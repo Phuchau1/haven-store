@@ -1,54 +1,26 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/types';
+import React, { ReactNode } from 'react';
+import { useAuthStore, User } from '@/app/store/useAuthStore';
 
-interface AuthContextType {
-    user: User | null;
-    login: (user: User) => void;
-    logout: () => void;
-    updateProfile: (data: Partial<User>) => Promise<boolean>;
-    isAdmin: boolean;
+export function AuthProvider({ children }: { children: ReactNode }) {
+    // Không cần Provider vì Zustand là global state
+    return <>{children}</>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem('phstore-user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
-
-    const login = (userData: User) => {
-        setUser(userData);
-        localStorage.setItem('phstore-user', JSON.stringify(userData));
-    };
-
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('phstore-user');
-        // Xóa cả key cũ nếu có
-        localStorage.removeItem('luxe-user');
-    };
+export const useAuth = () => {
+    const store = useAuthStore();
 
     const updateProfile = async (data: Partial<User>) => {
-        if (!user) return false;
-
+        if (!store.user) return false;
         try {
             const res = await fetch('/api/auth/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: user.id, ...data })
+                body: JSON.stringify({ id: store.user.id, ...data })
             });
             const result = await res.json();
-
             if (result.success) {
-                const updatedUser = result.user;
-                setUser(updatedUser);
-                localStorage.setItem('phstore-user', JSON.stringify(updatedUser));
+                store.updateUserLocally(result.user);
                 return true;
             }
             return false;
@@ -58,15 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    return (
-        <AuthContext.Provider value={{ user, login, logout, isAdmin: user?.role === 'admin', updateProfile }}>
-            {children}
-        </AuthContext.Provider>
-    );
-}
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within an AuthProvider');
-    return context;
+    return {
+        user: store.user,
+        login: store.login,
+        logout: store.logout,
+        updateProfile,
+        isAdmin: store.user?.role === 'admin'
+    };
 };

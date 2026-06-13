@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { CartProvider } from '@/app/component/CartContext';
-import { AuthProvider } from '@/app/component/AuthContext';
 import LayoutShell from '@/app/component/LayoutShell';
 
 export const metadata: Metadata = {
@@ -31,11 +29,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <AuthProvider>
-          <CartProvider>
-            <LayoutShell>{children}</LayoutShell>
-          </CartProvider>
-        </AuthProvider>
+        <LayoutShell>{children}</LayoutShell>
       </body>
     </html>
   );

@@ -142,7 +142,27 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 }).catch(e => console.error(e));
             }
 
-            // Thành công!
+            // Nếu thanh toán bằng VNPay hoặc MoMo
+            if (formData.paymentMethod === 'vnpay' || formData.paymentMethod === 'momo') {
+                const payRes = await fetch('/api/payment/create-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: result.orderId,
+                        amount: totalAmount,
+                        paymentMethod: formData.paymentMethod
+                    })
+                });
+                const payData = await payRes.json();
+                if (payData.success && payData.url) {
+                    window.location.href = payData.url;
+                    return; // Dừng tại đây, chờ quay lại từ cổng thanh toán
+                } else {
+                    throw new Error('Lỗi khởi tạo cổng thanh toán: ' + (payData.message || ''));
+                }
+            }
+
+            // Thành công (COD hoặc Chuyển khoản thông thường)!
             onSuccess(result.orderId, formData.email);
         } catch (err: any) {
             console.error('Checkout error:', err);

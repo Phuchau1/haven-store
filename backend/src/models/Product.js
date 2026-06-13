@@ -41,6 +41,11 @@ const ProductSchema = new Schema({
     soldQuantity: { type: Number, required: true, default: 0 }
 }, { timestamps: true });
 
+// Tối ưu hóa truy vấn bằng Indexing
+ProductSchema.index({ name: 'text', description: 'text' }); // Tìm kiếm siêu tốc bằng Text Index
+ProductSchema.index({ category: 1, price: 1 }); // Compound Index cho bộ lọc
+ProductSchema.index({ createdAt: -1 });
+
 const ProductModel = mongoose.models.Product || mongoose.model('Product', ProductSchema);
 
 module.exports = { ProductModel };

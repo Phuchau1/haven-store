@@ -22,7 +22,8 @@
     "react-dom": "19.2.3",
     "react-parallax-tilt": "^1.7.328",
     "three": "^0.184.0",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

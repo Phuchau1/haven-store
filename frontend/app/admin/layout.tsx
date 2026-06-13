@@ -278,8 +278,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     // Auth guard
     React.useEffect(() => {
-        const storedUser = localStorage.getItem('phstore-user');
-        if (!storedUser || JSON.parse(storedUser).role !== 'admin') {
+        const storedStr = localStorage.getItem('phstore-user');
+        if (!storedStr) {
+            router.push('/login');
+            return;
+        }
+        try {
+            const parsed = JSON.parse(storedStr);
+            // Zustand bọc data trong `state`, còn code cũ thì lưu trực tiếp
+            const userObj = parsed?.state?.user || parsed;
+            if (!userObj || userObj.role !== 'admin') {
+                router.push('/login');
+            }
+        } catch (e) {
             router.push('/login');
         }
     }, [router]);

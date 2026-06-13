@@ -16,6 +16,7 @@ const wishlistRoutes = require('./wishlistRoutes');
 const addressRoutes = require('./addressRoutes');
 const bannerRoutes = require('./bannerRoutes');
 const flashSaleRoutes = require('./flashSaleRoutes');
+const paymentRoutes = require('./paymentRoutes');
 
 // WMS Routes
 const menuRoutes = require('./menuRoutes');
@@ -42,6 +43,7 @@ router.use('/wishlist', wishlistRoutes);
 router.use('/addresses', addressRoutes);
 router.use('/banners', bannerRoutes);
 router.use('/flash-sales', flashSaleRoutes);
+router.use('/payment', paymentRoutes);
 
 // WMS API
 router.use('/menus', menuRoutes);
