@@ -1,0 +1,1480 @@
+[2026-03-10T05:07:36.734Z] Starting server on port 5000...
+[2026-03-10T05:07:36.740Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:36.761Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:36.787Z] Starting server on port 5000...
+[2026-03-10T05:07:36.789Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:36.807Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:36.808Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:36.838Z] Starting server on port 5000...
+[2026-03-10T05:07:36.840Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:36.853Z] Starting server on port 5000...
+[2026-03-10T05:07:36.853Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:36.854Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:36.855Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:36.868Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:36.869Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:36.975Z] Starting server on port 5000...
+[2026-03-10T05:07:36.976Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:36.986Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:36.986Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:51.361Z] --- NEW ORDER REQUEST ---
+[2026-03-10T05:07:51.362Z] Body received: {"customerName":"Admin PH Store","phone":"1234567","email":"ntphau21@gmail.com","address":"Long An",...
+[2026-03-10T05:07:51.363Z] Reading orders.json...
+[2026-03-10T05:07:51.373Z] Orders count: 15
+[2026-03-10T05:07:51.374Z] New Order ID: LF-4MF9LMYA
+[2026-03-10T05:07:51.375Z] Writing to orders.json...
+[2026-03-10T05:07:51.380Z] Write successful.
+[2026-03-10T05:07:51.381Z] Generating email HTML...
+[2026-03-10T05:07:51.433Z] Email HTML generated.
+[2026-03-10T05:07:51.438Z] Sending email...
+[2026-03-10T05:07:51.910Z] Starting server on port 5000...
+[2026-03-10T05:07:51.913Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:51.943Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:53.957Z] --- NEW ORDER REQUEST ---
+[2026-03-10T05:07:53.963Z] Body received: {"customerName":"Admin PH Store","phone":"1234567","email":"ntphau21@gmail.com","address":"Long An",...
+[2026-03-10T05:07:53.967Z] Reading orders.json...
+[2026-03-10T05:07:53.977Z] Orders count: 16
+[2026-03-10T05:07:53.981Z] New Order ID: LF-UKFWQUXL
+[2026-03-10T05:07:53.983Z] Writing to orders.json...
+[2026-03-10T05:07:53.999Z] Write successful.
+[2026-03-10T05:07:54.008Z] Generating email HTML...
+[2026-03-10T05:07:54.143Z] Email HTML generated.
+[2026-03-10T05:07:54.165Z] Sending email...
+[2026-03-10T05:07:58.017Z] Starting server on port 5000...
+[2026-03-10T05:07:58.020Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:58.036Z] Starting server on port 5000...
+[2026-03-10T05:07:58.038Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:58.038Z] Starting server on port 5000...
+[2026-03-10T05:07:58.041Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:58.044Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:58.047Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:58.062Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:58.063Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:58.064Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:58.066Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:58.092Z] Starting server on port 5000...
+[2026-03-10T05:07:58.095Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:58.095Z] Starting server on port 5000...
+[2026-03-10T05:07:58.100Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:07:58.121Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:58.122Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:07:58.125Z] Backend server running on http://localhost:5000
+[2026-03-10T05:07:58.126Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:04.217Z] Email sent successfully.
+[2026-03-10T05:08:04.218Z] Sending success response.
+[2026-03-10T05:08:14.118Z] Starting server on port 5000...
+[2026-03-10T05:08:14.122Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:14.143Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:14.144Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:14.146Z] Starting server on port 5000...
+[2026-03-10T05:08:14.149Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:14.170Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:14.171Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:14.172Z] Starting server on port 5000...
+[2026-03-10T05:08:14.175Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:14.175Z] Starting server on port 5000...
+[2026-03-10T05:08:14.179Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:14.190Z] Starting server on port 5000...
+[2026-03-10T05:08:14.192Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:14.195Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:14.196Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:14.200Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:14.201Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:14.210Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:14.210Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:30.941Z] --- NEW ORDER REQUEST ---
+[2026-03-10T05:08:30.942Z] Body received: {"customerName":"Admin PH Store","phone":"1234567","email":"ntphau21@gmail.com","address":"Long An",...
+[2026-03-10T05:08:30.943Z] Reading orders.json...
+[2026-03-10T05:08:30.949Z] Orders count: 17
+[2026-03-10T05:08:30.952Z] New Order ID: LF-YUZP6QSR
+[2026-03-10T05:08:30.954Z] Writing to orders.json...
+[2026-03-10T05:08:30.957Z] Write successful.
+[2026-03-10T05:08:30.958Z] Generating email HTML...
+[2026-03-10T05:08:30.959Z] Email HTML generated.
+[2026-03-10T05:08:30.967Z] Sending email...
+[2026-03-10T05:08:34.296Z] Starting server on port 5000...
+[2026-03-10T05:08:34.297Z] Starting server on port 5000...
+[2026-03-10T05:08:34.302Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:34.301Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:34.324Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:34.325Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:34.328Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:34.330Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:34.342Z] Starting server on port 5000...
+[2026-03-10T05:08:34.344Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:34.368Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:34.369Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:34.389Z] Starting server on port 5000...
+[2026-03-10T05:08:34.391Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:34.412Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:34.413Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:34.417Z] Starting server on port 5000...
+[2026-03-10T05:08:34.419Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:08:34.440Z] Backend server running on http://localhost:5000
+[2026-03-10T05:08:34.441Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-03-10T05:08:59.999Z] Email sent successfully.
+[2026-03-10T05:09:00.000Z] Sending success response.
+[2026-03-10T05:11:38.263Z] Starting server on port 5000...
+[2026-03-10T05:11:38.264Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:11:38.273Z] Backend server running on http://localhost:5000
+[2026-03-10T05:29:35.435Z] Starting server on port 5000...
+[2026-03-10T05:29:35.436Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:29:35.446Z] Backend server running on http://localhost:5000
+[2026-03-10T05:31:20.330Z] 404 Not Found: GET /favicon.ico
+[2026-03-10T05:32:55.726Z] Starting server on port 5000...
+[2026-03-10T05:32:55.727Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-10T05:32:55.734Z] Backend server running on http://localhost:5000
+[2026-03-16T16:16:47.210Z] Starting server on port 5000...
+[2026-03-16T16:16:47.211Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-16T16:16:47.220Z] Backend server running on http://localhost:5000
+[2026-03-16T16:19:48.875Z] 404 Not Found: GET /favicon.ico
+[2026-03-16T16:25:17.452Z] Starting server on port 5000...
+[2026-03-16T16:25:17.453Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-03-16T16:25:17.460Z] Backend server running on http://localhost:5000
+[2026-05-20T17:14:51.699Z] Starting server on port 5000...
+[2026-05-20T17:14:51.701Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-20T17:14:51.723Z] Backend server running on http://localhost:5000
+[2026-05-20T17:17:53.708Z] 404 Not Found: GET /favicon.ico
+[2026-05-22T06:03:19.445Z] Starting server on port 5000...
+[2026-05-22T06:03:19.448Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T06:03:19.485Z] Backend server running on http://localhost:5000
+[2026-05-22T06:04:12.448Z] [ErrorHandler] Global Server Error: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+[2026-05-22T06:04:19.366Z] [ErrorHandler] Global Server Error: Bad escaped character in JSON at position 9 (line 1 column 10)
+[2026-05-22T06:11:34.939Z] Starting server on port 5000...
+[2026-05-22T06:11:34.941Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T06:11:34.986Z] Backend server running on http://localhost:5000
+[2026-05-22T06:35:48.754Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-05-22T06:35:48.755Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-05-22T06:35:48.757Z] [OrderController] New Order ID: LF-5XS7OBUK
+[2026-05-22T06:35:48.758Z] [OrderController] Saving order to MongoDB...
+[2026-05-22T06:35:48.808Z] [OrderController] Save successful.
+[2026-05-22T06:35:48.810Z] [EmailService] Generating email HTML...
+[2026-05-22T06:35:48.958Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-05-22T06:35:48.976Z] [OrderController] Sending success response to client.
+[2026-05-22T06:35:49.864Z] [EmailService] Email error for order LF-5XS7OBUK: Missing credentials for "PLAIN"
+[2026-05-22T06:37:55.750Z] Starting server on port 5000...
+[2026-05-22T06:37:55.753Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T06:37:55.793Z] Backend server running on http://localhost:5000
+[2026-05-22T06:37:55.794Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T06:39:57.689Z] Starting server on port 5000...
+[2026-05-22T06:39:57.691Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T06:39:57.730Z] Backend server running on http://localhost:5000
+[2026-05-22T06:44:56.200Z] Starting server on port 5000...
+[2026-05-22T06:44:56.201Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T06:44:56.230Z] Backend server running on http://localhost:5000
+[2026-05-22T07:10:53.459Z] Starting server on port 5000...
+[2026-05-22T07:10:53.462Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T07:10:53.513Z] Backend server running on http://localhost:5000
+[2026-05-22T07:13:11.026Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-05-22T07:13:11.028Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-05-22T07:13:11.030Z] [OrderController] New Order ID: LF-CNK0MCGA
+[2026-05-22T07:13:11.031Z] [OrderController] Saving order to MongoDB...
+[2026-05-22T07:13:11.089Z] [OrderController] Save successful.
+[2026-05-22T07:13:11.091Z] [EmailService] Generating email HTML...
+[2026-05-22T07:13:11.241Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-05-22T07:13:11.257Z] [OrderController] Sending success response to client.
+[2026-05-22T07:13:12.227Z] [EmailService] Email error for order LF-CNK0MCGA: Missing credentials for "PLAIN"
+[2026-05-22T07:13:56.373Z] Starting server on port 5000...
+[2026-05-22T07:13:56.376Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T07:13:56.424Z] Backend server running on http://localhost:5000
+[2026-05-22T07:14:21.034Z] [OrderController] Updated order LF-CNK0MCGA status to processing
+[2026-05-22T07:14:30.773Z] [OrderController] Updated order LF-UKFWQUXL status to cancelled
+[2026-05-22T07:25:05.767Z] [OrderController] Updated order LF-5XS7OBUK status to cancelled
+[2026-05-22T07:40:59.710Z] Starting server on port 5000...
+[2026-05-22T07:40:59.714Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T07:40:59.758Z] Backend server running on http://localhost:5000
+[2026-05-22T07:44:36.661Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-05-22T14:49:14.383Z] Starting server on port 5000...
+[2026-05-22T14:49:14.385Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T14:49:14.428Z] Backend server running on http://localhost:5000
+[2026-05-22T14:49:20.342Z] Starting server on port 5000...
+[2026-05-22T14:49:20.345Z] CWD: D:\BANWEB\fashion-store\backend
+[2026-05-22T14:49:20.414Z] Backend server running on http://localhost:5000
+[2026-05-22T14:51:49.373Z] [ErrorHandler] Global Server Error: connect ECONNREFUSED 127.0.0.1:27017
+[2026-05-22T14:51:49.385Z] [ErrorHandler] Global Server Error: connect ECONNREFUSED 127.0.0.1:27017
+[2026-05-22T14:51:49.388Z] [ErrorHandler] Global Server Error: connect ECONNREFUSED 127.0.0.1:27017
+[2026-05-22T16:59:03.818Z] Starting server on port 5000...
+[2026-05-22T16:59:03.819Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T16:59:03.842Z] Backend server running on http://localhost:5000
+[2026-05-22T17:03:43.813Z] Starting server on port 5000...
+[2026-05-22T17:03:43.815Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:03:43.840Z] Backend server running on http://localhost:5000
+[2026-05-22T17:05:40.924Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-05-22T17:09:09.860Z] [ProductController] Updated product: that-lung-24
+[2026-05-22T17:10:02.174Z] [ProductController] Updated product: kinh-mat-23
+[2026-05-22T17:10:48.400Z] [ProductController] Updated product: dong-ho-25
+[2026-05-22T17:11:15.028Z] [ProductController] Updated product: giay-derby-26
+[2026-05-22T17:12:23.913Z] [ProductController] Updated product: giay-sandal-27
+[2026-05-22T17:12:58.484Z] [ProductController] Updated product: vay-hoa-28
+[2026-05-22T17:13:57.551Z] Starting server on port 5000...
+[2026-05-22T17:13:57.552Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:13:57.577Z] Backend server running on http://localhost:5000
+[2026-05-22T17:13:57.771Z] Starting server on port 5000...
+[2026-05-22T17:13:57.773Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:13:57.800Z] Backend server running on http://localhost:5000
+[2026-05-22T17:13:57.801Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:14:05.263Z] Starting server on port 5000...
+[2026-05-22T17:14:05.264Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:14:05.267Z] Starting server on port 5000...
+[2026-05-22T17:14:05.269Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:14:05.285Z] Backend server running on http://localhost:5000
+[2026-05-22T17:14:05.289Z] Backend server running on http://localhost:5000
+[2026-05-22T17:14:05.290Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:14:14.311Z] Starting server on port 5000...
+[2026-05-22T17:14:14.312Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:14:14.316Z] Starting server on port 5000...
+[2026-05-22T17:14:14.317Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:14:14.333Z] Backend server running on http://localhost:5000
+[2026-05-22T17:14:14.339Z] Backend server running on http://localhost:5000
+[2026-05-22T17:14:14.340Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:14:21.093Z] Starting server on port 5000...
+[2026-05-22T17:14:21.095Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:14:21.096Z] Starting server on port 5000...
+[2026-05-22T17:14:21.097Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:14:21.116Z] Backend server running on http://localhost:5000
+[2026-05-22T17:14:21.118Z] Backend server running on http://localhost:5000
+[2026-05-22T17:14:21.118Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:19:14.409Z] Starting server on port 5000...
+[2026-05-22T17:19:14.410Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:19:14.431Z] Backend server running on http://localhost:5000
+[2026-05-22T17:20:25.809Z] Starting server on port 5000...
+[2026-05-22T17:20:25.810Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:20:25.810Z] Starting server on port 5000...
+[2026-05-22T17:20:25.811Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:20:25.831Z] Backend server running on http://localhost:5000
+[2026-05-22T17:20:25.831Z] Backend server running on http://localhost:5000
+[2026-05-22T17:20:25.832Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:22:19.183Z] [NotFoundHandler] 404 Not Found: GET /api/products/reviews?product_id=quan-short-kaki-34
+[2026-05-22T17:24:15.718Z] Starting server on port 5000...
+[2026-05-22T17:24:15.719Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:24:15.724Z] Starting server on port 5000...
+[2026-05-22T17:24:15.725Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:24:15.741Z] Backend server running on http://localhost:5000
+[2026-05-22T17:24:15.748Z] Backend server running on http://localhost:5000
+[2026-05-22T17:24:15.749Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:24:53.166Z] [ProductController] Created review: rv-r7k16gh6z for product: quan-short-kaki-34
+[2026-05-22T17:38:37.998Z] Starting server on port 5000...
+[2026-05-22T17:38:37.999Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:38:38.020Z] Backend server running on http://localhost:5000
+[2026-05-22T17:38:56.765Z] Starting server on port 5000...
+[2026-05-22T17:38:56.766Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:38:56.769Z] Starting server on port 5000...
+[2026-05-22T17:38:56.770Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:38:56.789Z] Backend server running on http://localhost:5000
+[2026-05-22T17:38:56.795Z] Backend server running on http://localhost:5000
+[2026-05-22T17:38:56.796Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:39:10.217Z] Starting server on port 5000...
+[2026-05-22T17:39:10.219Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:10.219Z] Starting server on port 5000...
+[2026-05-22T17:39:10.220Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:10.243Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:10.243Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:10.243Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:39:16.622Z] Starting server on port 5000...
+[2026-05-22T17:39:16.624Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:16.643Z] Starting server on port 5000...
+[2026-05-22T17:39:16.644Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:16.647Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:16.669Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:16.670Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:39:24.215Z] Starting server on port 5000...
+[2026-05-22T17:39:24.214Z] Starting server on port 5000...
+[2026-05-22T17:39:24.216Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:24.216Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:24.237Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:24.238Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:24.239Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:39:29.655Z] Starting server on port 5000...
+[2026-05-22T17:39:29.656Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:29.672Z] Starting server on port 5000...
+[2026-05-22T17:39:29.673Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:29.675Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:29.696Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:29.697Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:39:34.558Z] Starting server on port 5000...
+[2026-05-22T17:39:34.559Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:34.563Z] Starting server on port 5000...
+[2026-05-22T17:39:34.564Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:34.580Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:34.587Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:34.588Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:39:40.840Z] Starting server on port 5000...
+[2026-05-22T17:39:40.842Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:40.843Z] Starting server on port 5000...
+[2026-05-22T17:39:40.844Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:40.864Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:40.864Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:40.865Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:39:46.504Z] Starting server on port 5000...
+[2026-05-22T17:39:46.505Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:46.510Z] Starting server on port 5000...
+[2026-05-22T17:39:46.511Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:39:46.531Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:46.538Z] Backend server running on http://localhost:5000
+[2026-05-22T17:39:46.539Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:40:27.026Z] Starting server on port 5000...
+[2026-05-22T17:40:27.027Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:40:27.029Z] Starting server on port 5000...
+[2026-05-22T17:40:27.030Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:40:27.048Z] Backend server running on http://localhost:5000
+[2026-05-22T17:40:27.048Z] Backend server running on http://localhost:5000
+[2026-05-22T17:40:27.049Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:40:41.960Z] Starting server on port 5000...
+[2026-05-22T17:40:41.961Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:40:41.960Z] Starting server on port 5000...
+[2026-05-22T17:40:41.962Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:40:41.980Z] Backend server running on http://localhost:5000
+[2026-05-22T17:40:41.982Z] Backend server running on http://localhost:5000
+[2026-05-22T17:40:41.982Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:52:41.282Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-05-22T17:53:59.131Z] Starting server on port 5000...
+[2026-05-22T17:53:59.132Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:53:59.132Z] Starting server on port 5000...
+[2026-05-22T17:53:59.133Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:53:59.155Z] Backend server running on http://localhost:5000
+[2026-05-22T17:53:59.155Z] Backend server running on http://localhost:5000
+[2026-05-22T17:53:59.155Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T17:54:20.901Z] Starting server on port 5000...
+[2026-05-22T17:54:20.902Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:54:20.914Z] Starting server on port 5000...
+[2026-05-22T17:54:20.915Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-22T17:54:20.922Z] Backend server running on http://localhost:5000
+[2026-05-22T17:54:20.936Z] Backend server running on http://localhost:5000
+[2026-05-22T17:54:20.936Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-22T18:03:31.760Z] [NotFoundHandler] 404 Not Found: POST /api/auth/forgot-password
+[2026-05-22T18:03:33.028Z] [NotFoundHandler] 404 Not Found: POST /api/auth/forgot-password
+[2026-05-23T02:41:11.506Z] Starting server on port 5000...
+[2026-05-23T02:41:11.507Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-23T02:41:11.530Z] Backend server running on http://localhost:5000
+[2026-05-23T12:54:41.649Z] Starting server on port 5000...
+[2026-05-23T12:54:41.650Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-23T12:54:41.673Z] Backend server running on http://localhost:5000
+[2026-05-23T12:57:24.083Z] Starting server on port 5000...
+[2026-05-23T12:57:24.084Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-23T12:57:24.103Z] Backend server running on http://localhost:5000
+[2026-05-23T12:57:24.104Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-23T12:57:41.885Z] Starting server on port 5000...
+[2026-05-23T12:57:41.886Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-23T12:57:41.904Z] Backend server running on http://localhost:5000
+[2026-05-23T12:57:41.905Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-23T12:58:06.040Z] Starting server on port 5000...
+[2026-05-23T12:58:06.041Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-23T12:58:06.064Z] Backend server running on http://localhost:5000
+[2026-05-24T14:35:07.869Z] Starting server on port 5000...
+[2026-05-24T14:35:07.870Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:35:07.888Z] Backend server running on http://localhost:5000
+[2026-05-24T14:35:07.888Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:35:27.257Z] Starting server on port 5000...
+[2026-05-24T14:35:27.258Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:35:27.276Z] Backend server running on http://localhost:5000
+[2026-05-24T14:35:27.277Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:35:35.724Z] Starting server on port 5001...
+[2026-05-24T14:35:35.725Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:35:35.745Z] Backend server running on http://localhost:5001
+[2026-05-24T14:46:26.379Z] Starting server on port 5000...
+[2026-05-24T14:46:26.381Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:26.412Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:26.666Z] Starting server on port 5000...
+[2026-05-24T14:46:26.667Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:26.677Z] Starting server on port 5000...
+[2026-05-24T14:46:26.678Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:26.687Z] Starting server on port 5000...
+[2026-05-24T14:46:26.688Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:26.687Z] Starting server on port 5001...
+[2026-05-24T14:46:26.689Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:26.689Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:26.689Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:26.703Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:26.703Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:26.708Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:26.709Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:26.709Z] Backend server running on http://localhost:5001
+[2026-05-24T14:46:35.233Z] Starting server on port 5000...
+[2026-05-24T14:46:35.234Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:35.248Z] Starting server on port 5000...
+[2026-05-24T14:46:35.249Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:35.265Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:35.285Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:35.286Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:35.290Z] Starting server on port 5000...
+[2026-05-24T14:46:35.291Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:35.307Z] Starting server on port 5000...
+[2026-05-24T14:46:35.310Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:35.325Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:35.326Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:35.349Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:35.350Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:35.352Z] Starting server on port 5001...
+[2026-05-24T14:46:35.354Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:35.383Z] Backend server running on http://localhost:5001
+[2026-05-24T14:46:45.037Z] Starting server on port 5000...
+[2026-05-24T14:46:45.039Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:45.039Z] Starting server on port 5000...
+[2026-05-24T14:46:45.040Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:45.041Z] Starting server on port 5000...
+[2026-05-24T14:46:45.042Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:45.060Z] Starting server on port 5000...
+[2026-05-24T14:46:45.062Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:45.063Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:45.064Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:45.065Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:45.065Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:45.066Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:45.086Z] Backend server running on http://localhost:5000
+[2026-05-24T14:46:45.087Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-24T14:46:45.094Z] Starting server on port 5001...
+[2026-05-24T14:46:45.096Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T14:46:45.127Z] Backend server running on http://localhost:5001
+[2026-05-24T15:02:15.843Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-05-24T15:02:55.250Z] Starting server on port 5001...
+[2026-05-24T15:02:55.251Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T15:02:55.272Z] Backend server running on http://localhost:5001
+[2026-05-24T15:05:02.639Z] Starting server on port 5000...
+[2026-05-24T15:05:02.640Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T15:05:02.659Z] Backend server running on http://localhost:5000
+[2026-05-24T15:07:24.457Z] [ProductController] Updated product: giay-derby-26
+[2026-05-24T15:09:06.451Z] [ProductController] Updated product: ao-vest-33
+[2026-05-24T15:10:30.171Z] [ProductController] Updated product: tat-classic-32
+[2026-05-24T15:14:55.541Z] [ProductController] Updated product: khan-len-31
+[2026-05-24T15:17:49.260Z] Starting server on port 5000...
+[2026-05-24T15:17:49.261Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-24T15:17:49.282Z] Backend server running on http://localhost:5000
+[2026-05-30T12:00:28.190Z] Starting server on port 5000...
+[2026-05-30T12:00:28.193Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-30T12:00:28.239Z] Backend server running on http://localhost:5000
+[2026-05-30T13:34:45.239Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-05-30T13:34:45.242Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-05-30T13:34:45.243Z] [OrderController] New Order ID: LF-3OLJDJDM
+[2026-05-30T13:34:45.243Z] [OrderController] Saving order to MongoDB...
+[2026-05-30T13:34:45.285Z] [OrderController] Save successful.
+[2026-05-30T13:34:45.286Z] [EmailService] Generating email HTML...
+[2026-05-30T13:34:45.382Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-05-30T13:34:45.390Z] [OrderController] Sending success response to client.
+[2026-05-30T13:34:46.240Z] [EmailService] Email error for order LF-3OLJDJDM: Missing credentials for "PLAIN"
+[2026-05-30T13:36:10.147Z] [ReviewController] ✅ Review saved to MongoDB: rv-1780148170143-nmz81q | product: giay-derby-26 | rating: 5⭐
+[2026-05-30T13:36:10.165Z] [ReviewController] 📊 Product giay-derby-26 rating updated: 5⭐ (1 reviews)
+[2026-05-30T13:36:21.109Z] [AdminController] Updated review status: rv-1780148170143-nmz81q to rejected
+[2026-05-30T14:04:22.263Z] Starting server on port 5000...
+[2026-05-30T14:04:22.264Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-30T14:04:22.283Z] Backend server running on http://localhost:5000
+[2026-05-31T05:36:39.209Z] Starting server on port 5000...
+[2026-05-31T05:36:39.211Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T05:36:39.235Z] Backend server running on http://localhost:5000
+[2026-05-31T05:58:10.500Z] Starting server on port 5000...
+[2026-05-31T05:58:10.501Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T05:58:10.523Z] Backend server running on http://localhost:5000
+[2026-05-31T05:59:00.169Z] Starting server on port 5000...
+[2026-05-31T05:59:00.170Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T05:59:00.193Z] Backend server running on http://localhost:5000
+[2026-05-31T05:59:00.194Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-31T06:00:31.576Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-05-31T06:02:23.682Z] Starting server on port 5000...
+[2026-05-31T06:02:23.684Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T06:02:23.717Z] Backend server running on http://localhost:5000
+[2026-05-31T07:47:57.878Z] Starting server on port 5000...
+[2026-05-31T07:47:57.880Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:47:57.900Z] Backend server running on http://localhost:5000
+[2026-05-31T07:53:13.893Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-05-31T07:53:13.894Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-05-31T07:53:13.895Z] [OrderController] New Order ID: LF-0C0GDF9V
+[2026-05-31T07:53:13.895Z] [OrderController] Saving order to MongoDB...
+[2026-05-31T07:53:13.930Z] [OrderController] Save successful.
+[2026-05-31T07:53:13.931Z] [EmailService] Generating email HTML...
+[2026-05-31T07:53:13.986Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-05-31T07:53:13.996Z] [OrderController] Sending success response to client.
+[2026-05-31T07:53:17.426Z] [EmailService] Email error for order LF-0C0GDF9V: Missing credentials for "PLAIN"
+[2026-05-31T07:54:50.062Z] Starting server on port 5000...
+[2026-05-31T07:54:50.063Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:54:50.089Z] Backend server running on http://localhost:5000
+[2026-05-31T07:54:53.291Z] Starting server on port 5000...
+[2026-05-31T07:54:53.293Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:54:53.314Z] Backend server running on http://localhost:5000
+[2026-05-31T07:54:57.378Z] Starting server on port 5000...
+[2026-05-31T07:54:57.379Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:54:57.401Z] Backend server running on http://localhost:5000
+[2026-05-31T07:54:59.868Z] Starting server on port 5000...
+[2026-05-31T07:54:59.869Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:54:59.887Z] Backend server running on http://localhost:5000
+[2026-05-31T07:55:03.060Z] Starting server on port 5000...
+[2026-05-31T07:55:03.062Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:55:03.087Z] Backend server running on http://localhost:5000
+[2026-05-31T07:57:04.552Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-05-31T07:57:04.553Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-05-31T07:57:04.554Z] [OrderController] New Order ID: LF-GU03ARIL
+[2026-05-31T07:57:04.555Z] [OrderController] Saving order to MongoDB...
+[2026-05-31T07:57:04.588Z] [OrderController] Save successful.
+[2026-05-31T07:57:04.589Z] [EmailService] Generating email HTML...
+[2026-05-31T07:57:04.634Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-05-31T07:57:04.643Z] [OrderController] Sending success response to client.
+[2026-05-31T07:57:05.736Z] [EmailService] Email error for order LF-GU03ARIL: Missing credentials for "PLAIN"
+[2026-05-31T07:57:29.173Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-05-31T07:57:29.174Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-05-31T07:57:29.175Z] [OrderController] New Order ID: LF-FP3Q3I8W
+[2026-05-31T07:57:29.175Z] [OrderController] Saving order to MongoDB...
+[2026-05-31T07:57:29.184Z] [OrderController] Save successful.
+[2026-05-31T07:57:29.185Z] [EmailService] Generating email HTML...
+[2026-05-31T07:57:29.186Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-05-31T07:57:29.187Z] [OrderController] Sending success response to client.
+[2026-05-31T07:57:30.165Z] [EmailService] Email error for order LF-FP3Q3I8W: Missing credentials for "PLAIN"
+[2026-05-31T07:59:15.010Z] [ChatController] Created new chat session: session-9tiyrl4t4 for Admin PH Store
+[2026-05-31T07:59:15.035Z] [ChatController] Persisted message msg-i46g3971r in session session-9tiyrl4t4
+[2026-05-31T07:59:16.337Z] [ChatController] Persisted message msg-vg16jmq5f in session session-9tiyrl4t4
+[2026-05-31T07:59:47.544Z] Starting server on port 5000...
+[2026-05-31T07:59:47.546Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:59:47.565Z] Backend server running on http://localhost:5000
+[2026-05-31T07:59:59.495Z] Starting server on port 5000...
+[2026-05-31T07:59:59.496Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T07:59:59.517Z] Backend server running on http://localhost:5000
+[2026-05-31T08:00:02.329Z] Starting server on port 5000...
+[2026-05-31T08:00:02.330Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:00:02.350Z] Backend server running on http://localhost:5000
+[2026-05-31T08:00:07.628Z] Starting server on port 5000...
+[2026-05-31T08:00:07.629Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:00:07.655Z] Backend server running on http://localhost:5000
+[2026-05-31T08:03:26.434Z] Starting server on port 5000...
+[2026-05-31T08:03:26.435Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:03:26.455Z] Backend server running on http://localhost:5000
+[2026-05-31T08:06:22.426Z] Starting server on port 5000...
+[2026-05-31T08:06:22.427Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:06:22.449Z] Backend server running on http://localhost:5000
+[2026-05-31T08:07:31.048Z] Starting server on port 5000...
+[2026-05-31T08:07:31.049Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:07:31.066Z] Backend server running on http://localhost:5000
+[2026-05-31T08:08:02.565Z] [OrderController] Updated order LF-FP3Q3I8W status from pending to processing
+[2026-05-31T08:09:35.643Z] Starting server on port 5000...
+[2026-05-31T08:09:35.644Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:09:35.665Z] Backend server running on http://localhost:5000
+[2026-05-31T08:10:33.062Z] [NotFoundHandler] 404 Not Found: DELETE /api/admin/users?id=user-customer1
+[2026-05-31T08:10:35.743Z] [NotFoundHandler] 404 Not Found: DELETE /api/admin/users?id=user-customer1
+[2026-05-31T08:10:45.785Z] [AdminController] Deleted review: rev-1
+[2026-05-31T08:10:48.272Z] [AdminController] Deleted review: rev-2
+[2026-05-31T08:12:08.940Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-05-31T08:12:08.941Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-05-31T08:12:08.942Z] [OrderController] New Order ID: LF-K5FMPM0C
+[2026-05-31T08:12:08.943Z] [OrderController] Saving order to MongoDB...
+[2026-05-31T08:12:08.979Z] [OrderController] Save successful. Now decreasing stock.
+[2026-05-31T08:12:09.006Z] [OrderController] Stock decreased automatically for order: LF-K5FMPM0C
+[2026-05-31T08:12:09.008Z] [EmailService] Generating email HTML...
+[2026-05-31T08:12:09.099Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-05-31T08:12:09.106Z] [OrderController] Sending success response to client.
+[2026-05-31T08:12:11.031Z] [EmailService] Email error for order LF-K5FMPM0C: Missing credentials for "PLAIN"
+[2026-05-31T08:14:08.981Z] Starting server on port 5000...
+[2026-05-31T08:14:08.983Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:14:09.006Z] Backend server running on http://localhost:5000
+[2026-05-31T08:14:16.005Z] Starting server on port 5000...
+[2026-05-31T08:14:16.006Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:14:16.028Z] Backend server running on http://localhost:5000
+[2026-05-31T08:14:23.777Z] Starting server on port 5000...
+[2026-05-31T08:14:23.778Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:14:23.801Z] Backend server running on http://localhost:5000
+[2026-05-31T08:14:28.048Z] Starting server on port 5000...
+[2026-05-31T08:14:28.049Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:14:28.070Z] Backend server running on http://localhost:5000
+[2026-05-31T08:14:35.152Z] Starting server on port 5000...
+[2026-05-31T08:14:35.154Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:14:35.175Z] Backend server running on http://localhost:5000
+[2026-05-31T08:14:39.728Z] Starting server on port 5000...
+[2026-05-31T08:14:39.730Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:14:39.755Z] Backend server running on http://localhost:5000
+[2026-05-31T08:14:55.406Z] Starting server on port 5000...
+[2026-05-31T08:14:55.408Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:14:55.428Z] Backend server running on http://localhost:5000
+[2026-05-31T08:14:55.428Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-31T08:24:06.751Z] Starting server on port 5000...
+[2026-05-31T08:24:06.752Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:24:06.777Z] Backend server running on http://localhost:5000
+[2026-05-31T08:24:14.889Z] Starting server on port 5000...
+[2026-05-31T08:24:14.890Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:24:14.911Z] Backend server running on http://localhost:5000
+[2026-05-31T08:24:35.271Z] Starting server on port 5000...
+[2026-05-31T08:24:35.272Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:24:35.293Z] Backend server running on http://localhost:5000
+[2026-05-31T08:24:40.887Z] Starting server on port 5000...
+[2026-05-31T08:24:40.889Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:24:40.910Z] Backend server running on http://localhost:5000
+[2026-05-31T08:24:48.464Z] Starting server on port 5000...
+[2026-05-31T08:24:48.466Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:24:48.488Z] Backend server running on http://localhost:5000
+[2026-05-31T08:24:54.002Z] Starting server on port 5000...
+[2026-05-31T08:24:54.003Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:24:54.029Z] Backend server running on http://localhost:5000
+[2026-05-31T08:25:01.397Z] Starting server on port 5000...
+[2026-05-31T08:25:01.398Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:25:01.420Z] Backend server running on http://localhost:5000
+[2026-05-31T08:25:08.704Z] [ChatController] Persisted message msg-r0enn3cv3 in session session-9tiyrl4t4
+[2026-05-31T08:25:10.115Z] [ChatController] Persisted message msg-7em9vr0mo in session session-9tiyrl4t4
+[2026-05-31T08:25:11.947Z] Starting server on port 5000...
+[2026-05-31T08:25:11.948Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:25:11.968Z] Backend server running on http://localhost:5000
+[2026-05-31T08:25:17.815Z] Starting server on port 5000...
+[2026-05-31T08:25:17.816Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:25:17.841Z] Backend server running on http://localhost:5000
+[2026-05-31T08:25:25.109Z] Starting server on port 5000...
+[2026-05-31T08:25:25.110Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:25:25.138Z] Backend server running on http://localhost:5000
+[2026-05-31T08:25:29.819Z] [ChatController] Persisted message msg-ghte40kz2 in session session-9tiyrl4t4
+[2026-05-31T08:25:31.133Z] [ChatController] Persisted message msg-87hsvb4mu in session session-9tiyrl4t4
+[2026-05-31T08:25:38.445Z] [ChatController] Closed session: session-9tiyrl4t4
+[2026-05-31T08:25:41.232Z] [ChatController] Created new chat session: session-q7lvafc2e for Admin PH Store
+[2026-05-31T08:27:53.311Z] Starting server on port 5000...
+[2026-05-31T08:27:53.313Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:27:53.335Z] Backend server running on http://localhost:5000
+[2026-05-31T08:27:59.001Z] Starting server on port 5000...
+[2026-05-31T08:27:59.002Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:27:59.020Z] Backend server running on http://localhost:5000
+[2026-05-31T08:28:07.795Z] Starting server on port 5000...
+[2026-05-31T08:28:07.796Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:28:07.821Z] Backend server running on http://localhost:5000
+[2026-05-31T08:28:16.196Z] Starting server on port 5000...
+[2026-05-31T08:28:16.197Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:28:16.221Z] Backend server running on http://localhost:5000
+[2026-05-31T08:28:22.706Z] Starting server on port 5000...
+[2026-05-31T08:28:22.708Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:28:22.729Z] Backend server running on http://localhost:5000
+[2026-05-31T08:28:30.683Z] Starting server on port 5000...
+[2026-05-31T08:28:30.684Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:28:30.706Z] Backend server running on http://localhost:5000
+[2026-05-31T08:28:41.129Z] Starting server on port 5000...
+[2026-05-31T08:28:41.130Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T08:28:41.150Z] Backend server running on http://localhost:5000
+[2026-05-31T09:07:33.216Z] Starting server on port 5000...
+[2026-05-31T09:07:33.217Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:07:33.238Z] Backend server running on http://localhost:5000
+[2026-05-31T09:07:41.595Z] Starting server on port 5000...
+[2026-05-31T09:07:41.596Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:07:41.623Z] Backend server running on http://localhost:5000
+[2026-05-31T09:07:58.724Z] Starting server on port 5000...
+[2026-05-31T09:07:58.726Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:07:58.750Z] Backend server running on http://localhost:5000
+[2026-05-31T09:08:12.227Z] Starting server on port 5000...
+[2026-05-31T09:08:12.229Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:08:12.249Z] Backend server running on http://localhost:5000
+[2026-05-31T09:08:21.132Z] Starting server on port 5000...
+[2026-05-31T09:08:21.134Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:08:21.159Z] Backend server running on http://localhost:5000
+[2026-05-31T09:08:26.566Z] Starting server on port 5000...
+[2026-05-31T09:08:26.567Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:08:26.586Z] Backend server running on http://localhost:5000
+[2026-05-31T09:08:31.712Z] Starting server on port 5000...
+[2026-05-31T09:08:31.714Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:08:31.735Z] Backend server running on http://localhost:5000
+[2026-05-31T09:08:36.977Z] Starting server on port 5000...
+[2026-05-31T09:08:36.978Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:08:37.006Z] Backend server running on http://localhost:5000
+[2026-05-31T09:08:42.531Z] Starting server on port 5000...
+[2026-05-31T09:08:42.533Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:08:42.553Z] Backend server running on http://localhost:5000
+[2026-05-31T09:08:47.462Z] Starting server on port 5000...
+[2026-05-31T09:08:47.464Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:08:47.485Z] Backend server running on http://localhost:5000
+[2026-05-31T09:50:11.096Z] Starting server on port 5000...
+[2026-05-31T09:50:11.097Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:50:11.118Z] Backend server running on http://localhost:5000
+[2026-05-31T09:51:06.628Z] Starting server on port 5000...
+[2026-05-31T09:51:06.629Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:51:06.650Z] Backend server running on http://localhost:5000
+[2026-05-31T09:51:06.650Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-31T09:59:05.695Z] Starting server on port 5000...
+[2026-05-31T09:59:05.696Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T09:59:05.720Z] Backend server running on http://localhost:5000
+[2026-05-31T10:01:11.711Z] Starting server on port 5000...
+[2026-05-31T10:01:11.711Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T10:01:11.732Z] Backend server running on http://localhost:5000
+[2026-05-31T10:01:11.733Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-05-31T10:12:10.378Z] [ChatController] Persisted message msg-2uvqgzywe in session session-9tiyrl4t4
+[2026-05-31T10:12:12.023Z] [ChatController] Persisted message msg-j9ln0w6ej in session session-9tiyrl4t4
+[2026-05-31T10:12:16.022Z] [ChatController] Persisted message msg-ewa2higgc in session session-9tiyrl4t4
+[2026-05-31T10:12:17.350Z] [ChatController] Persisted message msg-478b986oa in session session-9tiyrl4t4
+[2026-05-31T10:23:00.275Z] [OrderController] Updated order LF-K5FMPM0C status from pending to cancelled
+[2026-05-31T10:23:00.304Z] [OrderController] Stock restored automatically for cancelled order: LF-K5FMPM0C
+[2026-05-31T10:37:01.364Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-05-31T10:37:54.654Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-05-31T10:41:03.008Z] [ProductController] Updated product: ao-vest-33
+[2026-05-31T10:42:53.629Z] [ProductController] Updated product: ao-vest-33
+[2026-05-31T10:46:22.625Z] [ProductController] Updated product: tat-classic-32
+[2026-05-31T10:48:10.010Z] [ProductController] Updated product: khan-len-31
+[2026-05-31T10:52:09.056Z] [ReviewController] ✅ Review saved to MongoDB: rv-1780224729049-u9wykt | product: quan-short-kaki-34 | rating: 5⭐
+[2026-05-31T10:52:09.063Z] [ReviewController] 📊 Product quan-short-kaki-34 rating updated: 5⭐ (1 reviews)
+[2026-05-31T10:52:29.714Z] Starting server on port 5000...
+[2026-05-31T10:52:29.714Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T10:52:29.732Z] Backend server running on http://localhost:5000
+[2026-05-31T10:54:58.929Z] Starting server on port 5000...
+[2026-05-31T10:54:58.929Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T10:54:58.955Z] Backend server running on http://localhost:5000
+[2026-05-31T15:29:54.480Z] [ProductController] Updated product: quan-jogger-30
+[2026-05-31T15:32:43.003Z] [ProductController] Updated product: ao-cardigan-29
+[2026-05-31T15:36:05.317Z] [ProductController] Updated product: vay-hoa-28
+[2026-05-31T15:37:58.617Z] [ProductController] Updated product: giay-sandal-27
+[2026-05-31T15:40:19.906Z] [ProductController] Updated product: giay-derby-26
+[2026-05-31T15:41:54.374Z] [ProductController] Updated product: dong-ho-25
+[2026-05-31T15:43:02.268Z] [ProductController] Updated product: that-lung-24
+[2026-05-31T15:44:07.069Z] [ProductController] Updated product: kinh-mat-23
+[2026-05-31T15:45:26.275Z] [ProductController] Updated product: kinh-mat-23
+[2026-05-31T15:45:51.639Z] [ProductController] Updated product: kinh-mat-23
+[2026-05-31T15:46:44.386Z] [ProductController] Updated product: tui-deo-cheo-22
+[2026-05-31T15:49:18.646Z] [ProductController] Updated product: ao-da-21
+[2026-05-31T15:58:20.278Z] [ProductController] Updated product: quan-short-20
+[2026-05-31T15:58:51.101Z] [ProductController] Updated product: quan-short-20
+[2026-05-31T16:00:34.340Z] [ProductController] Updated product: ao-polo-19
+[2026-05-31T16:03:17.039Z] [ProductController] Updated product: chan-vay-18
+[2026-05-31T16:05:13.347Z] [ProductController] Updated product: ao-bomber-17
+[2026-05-31T16:06:52.587Z] [ProductController] Updated product: quan-kaki-16
+[2026-05-31T16:08:19.795Z] [ProductController] Updated product: ao-len-15
+[2026-05-31T16:08:34.437Z] [ProductController] Updated product: ao-len-15
+[2026-05-31T16:11:24.272Z] [ProductController] Updated product: mu-bucket-14
+[2026-05-31T16:12:59.221Z] [ProductController] Updated product: tui-xach-13
+[2026-05-31T16:14:12.090Z] [ProductController] Updated product: giay-cao-got-12
+[2026-05-31T16:19:01.699Z] [ProductController] Updated product: dep-slide-11
+[2026-05-31T16:21:23.616Z] [ProductController] Updated product: giay-the-thao-10
+[2026-05-31T16:22:53.674Z] [ProductController] Updated product: giay-loafer-09
+[2026-05-31T16:24:12.221Z] [ProductController] Updated product: giay-boot-08
+[2026-05-31T16:25:19.174Z] [ProductController] Updated product: giay-sneaker-07
+[2026-05-31T16:27:14.398Z] [ProductController] Updated product: vay-dam-06
+[2026-05-31T16:29:05.632Z] [ProductController] Updated product: ao-so-mi-05
+[2026-05-31T16:29:59.347Z] [ProductController] Updated product: ao-hoodie-04
+[2026-05-31T16:31:37.803Z] [ProductController] Updated product: quan-jean-03
+[2026-05-31T17:05:15.764Z] Starting server on port 5000...
+[2026-05-31T17:05:15.765Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-05-31T17:05:15.779Z] Backend server running on http://localhost:5000
+[2026-05-31T17:05:15.780Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T06:09:23.165Z] Starting server on port 5000...
+[2026-06-01T06:09:23.167Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:09:23.184Z] Backend server running on http://localhost:5000
+[2026-06-01T06:22:13.333Z] Starting server on port 5000...
+[2026-06-01T06:22:13.334Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:22:13.371Z] Backend server running on http://localhost:5000
+[2026-06-01T06:22:15.607Z] Starting server on port 5000...
+[2026-06-01T06:22:15.608Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:22:15.623Z] Backend server running on http://localhost:5000
+[2026-06-01T06:22:28.323Z] Starting server on port 5000...
+[2026-06-01T06:22:28.323Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:22:28.341Z] Backend server running on http://localhost:5000
+[2026-06-01T06:25:44.957Z] Starting server on port 5000...
+[2026-06-01T06:25:44.959Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:25:44.976Z] Backend server running on http://localhost:5000
+[2026-06-01T06:26:12.959Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:26:12.969Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:26:12.973Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:26:12.978Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:26:12.980Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-01T06:26:12.983Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:26:12.989Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:31:04.909Z] Starting server on port 5000...
+[2026-06-01T06:31:04.909Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:31:04.927Z] Backend server running on http://localhost:5000
+[2026-06-01T06:31:06.783Z] Starting server on port 5000...
+[2026-06-01T06:31:06.783Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:31:06.799Z] Backend server running on http://localhost:5000
+[2026-06-01T06:31:17.998Z] [ChatController] Error in getMessagesBySession: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:31:17.999Z] [ErrorHandler] Global Server Error: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:31:18.001Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:31:56.517Z] [AdminController] Error in /api/admin/stats: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:31:56.519Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:31:58.167Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:32:06.543Z] [AdminController] Error in /api/admin/stats: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:32:06.544Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T06:32:08.183Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:32:40.516Z] Starting server on port 5000...
+[2026-06-01T06:32:40.517Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:32:40.532Z] Backend server running on http://localhost:5000
+[2026-06-01T06:33:13.483Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:33:23.501Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:33:33.518Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T06:33:40.935Z] Starting server on port 5000...
+[2026-06-01T06:33:40.936Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:33:40.940Z] Backend server running on http://localhost:5000
+[2026-06-01T06:33:42.533Z] Starting server on port 5000...
+[2026-06-01T06:33:42.533Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:33:42.537Z] Backend server running on http://localhost:5000
+[2026-06-01T06:33:46.817Z] Starting server on port 5000...
+[2026-06-01T06:33:46.818Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:33:46.823Z] Backend server running on http://localhost:5000
+[2026-06-01T06:33:51.270Z] Starting server on port 5000...
+[2026-06-01T06:33:51.271Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:33:51.275Z] Backend server running on http://localhost:5000
+[2026-06-01T06:33:54.333Z] Starting server on port 5000...
+[2026-06-01T06:33:54.334Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:33:54.337Z] Backend server running on http://localhost:5000
+[2026-06-01T06:36:07.645Z] [ChatController] Error in getMessagesBySession: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:36:07.647Z] [ErrorHandler] Global Server Error: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:37:01.369Z] [ChatController] Error in getMessagesBySession: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:37:01.371Z] [ErrorHandler] Global Server Error: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:37:09.566Z] Starting server on port 5000...
+[2026-06-01T06:37:09.567Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:37:09.571Z] Backend server running on http://localhost:5000
+[2026-06-01T06:39:41.266Z] Starting server on port 5000...
+[2026-06-01T06:39:41.267Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:39:41.271Z] Backend server running on http://localhost:5000
+[2026-06-01T06:39:47.792Z] Starting server on port 5000...
+[2026-06-01T06:39:47.792Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:39:47.795Z] Backend server running on http://localhost:5000
+[2026-06-01T06:39:47.796Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T06:40:36.349Z] Starting server on port 5000...
+[2026-06-01T06:40:36.349Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:40:36.364Z] Backend server running on http://localhost:5000
+[2026-06-01T06:41:47.613Z] Starting server on port 5000...
+[2026-06-01T06:41:47.614Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:41:47.617Z] Backend server running on http://localhost:5000
+[2026-06-01T06:43:03.889Z] [ReviewController] getReviewsByProduct error: Operation `productreviews.find()` buffering timed out after 10000ms
+[2026-06-01T06:43:03.890Z] [ErrorHandler] Global Server Error: Operation `productreviews.find()` buffering timed out after 10000ms
+[2026-06-01T06:49:46.298Z] [ChatController] Error in getMessagesBySession: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:49:46.303Z] [ErrorHandler] Global Server Error: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:50:21.540Z] [ChatController] Error in getMessagesBySession: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:50:21.546Z] [ErrorHandler] Global Server Error: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:53:51.781Z] Starting server on port 5000...
+[2026-06-01T06:53:51.782Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:53:51.797Z] Backend server running on http://localhost:5000
+[2026-06-01T06:53:51.797Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T06:54:05.056Z] [ChatController] Error in getMessagesBySession: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:54:05.057Z] [ErrorHandler] Global Server Error: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:54:39.777Z] [ChatController] Error in getMessagesBySession: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:54:39.779Z] [ErrorHandler] Global Server Error: Operation `chatmessages.find()` buffering timed out after 10000ms
+[2026-06-01T06:55:31.944Z] Starting server on port 5000...
+[2026-06-01T06:55:31.945Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T06:55:31.959Z] Backend server running on http://localhost:5000
+[2026-06-01T07:00:04.277Z] Starting server on port 5000...
+[2026-06-01T07:00:04.278Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:00:04.292Z] Backend server running on http://localhost:5000
+[2026-06-01T07:00:04.640Z] Starting server on port 5000...
+[2026-06-01T07:00:04.640Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:00:04.656Z] Backend server running on http://localhost:5000
+[2026-06-01T07:00:04.657Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:00:05.546Z] Starting server on port 5000...
+[2026-06-01T07:00:05.547Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:00:05.553Z] Starting server on port 5000...
+[2026-06-01T07:00:05.553Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:00:05.563Z] Backend server running on http://localhost:5000
+[2026-06-01T07:00:05.570Z] Backend server running on http://localhost:5000
+[2026-06-01T07:00:05.570Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:00:06.658Z] Starting server on port 5000...
+[2026-06-01T07:00:06.658Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:00:06.663Z] Starting server on port 5000...
+[2026-06-01T07:00:06.664Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:00:06.674Z] Backend server running on http://localhost:5000
+[2026-06-01T07:00:06.679Z] Backend server running on http://localhost:5000
+[2026-06-01T07:00:06.679Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:03:21.350Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T07:06:48.315Z] Starting server on port 5000...
+[2026-06-01T07:06:48.316Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:06:48.332Z] Starting server on port 5000...
+[2026-06-01T07:06:48.333Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:06:48.333Z] Backend server running on http://localhost:5000
+[2026-06-01T07:06:48.351Z] Backend server running on http://localhost:5000
+[2026-06-01T07:06:48.351Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:07:45.868Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T07:08:28.756Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T07:09:41.392Z] [ProductController] Updated product: ao-vest-33
+[2026-06-01T07:09:51.850Z] Starting server on port 5000...
+[2026-06-01T07:09:51.851Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:09:51.851Z] Starting server on port 5000...
+[2026-06-01T07:09:51.852Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:09:51.866Z] Backend server running on http://localhost:5000
+[2026-06-01T07:09:51.866Z] Backend server running on http://localhost:5000
+[2026-06-01T07:09:51.866Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:13:14.809Z] Starting server on port 5000...
+[2026-06-01T07:13:14.810Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:13:14.812Z] Starting server on port 5000...
+[2026-06-01T07:13:14.812Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:13:14.824Z] Backend server running on http://localhost:5000
+[2026-06-01T07:13:14.825Z] Backend server running on http://localhost:5000
+[2026-06-01T07:13:14.825Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:14:09.359Z] Starting server on port 5000...
+[2026-06-01T07:14:09.360Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:14:09.361Z] Starting server on port 5000...
+[2026-06-01T07:14:09.362Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:14:09.374Z] Backend server running on http://localhost:5000
+[2026-06-01T07:14:09.375Z] Backend server running on http://localhost:5000
+[2026-06-01T07:14:09.375Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:14:34.075Z] [ProductController] Added product: sp-test-kaki
+[2026-06-01T07:14:43.482Z] [ProductController] Deleted product: sp-test-kaki
+[2026-06-01T07:15:19.560Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T07:18:25.080Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T07:18:50.669Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T07:19:52.967Z] [ProductController] Updated product: quan-short-20
+[2026-06-01T07:22:11.365Z] Starting server on port 5000...
+[2026-06-01T07:22:11.365Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:22:11.366Z] Starting server on port 5000...
+[2026-06-01T07:22:11.367Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T07:22:11.379Z] Backend server running on http://localhost:5000
+[2026-06-01T07:22:11.381Z] Backend server running on http://localhost:5000
+[2026-06-01T07:22:11.381Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T07:29:01.708Z] [ProductController] Updated product: that-lung-24
+[2026-06-01T07:29:31.935Z] [ProductController] Updated product: ao-da-21
+[2026-06-01T07:29:41.525Z] [ProductController] Updated product: ao-polo-19
+[2026-06-01T08:21:00.043Z] Starting server on port 5000...
+[2026-06-01T08:21:00.045Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T08:21:00.048Z] Starting server on port 5000...
+[2026-06-01T08:21:00.049Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T08:21:00.059Z] Backend server running on http://localhost:5000
+[2026-06-01T08:21:00.063Z] Backend server running on http://localhost:5000
+[2026-06-01T08:21:00.063Z] Server Error: listen EADDRINUSE: address already in use :::5000
+[2026-06-01T08:37:59.712Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T08:39:13.356Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T08:40:05.672Z] [OrderController] Updated order LF-CNK0MCGA status from processing to delivered
+[2026-06-01T08:43:34.772Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T08:47:03.272Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-01T08:47:23.092Z] [ProductController] Updated product: quan-jogger-30
+[2026-06-01T08:47:39.479Z] [ProductController] Updated product: ao-vest-33
+[2026-06-01T08:47:50.960Z] [ProductController] Updated product: tat-classic-32
+[2026-06-01T08:48:02.291Z] [ProductController] Updated product: khan-len-31
+[2026-06-01T08:48:20.579Z] [ProductController] Updated product: ao-cardigan-29
+[2026-06-01T08:48:40.286Z] [ProductController] Updated product: giay-sandal-27
+[2026-06-01T08:48:46.071Z] [ProductController] Updated product: giay-derby-26
+[2026-06-01T08:48:53.764Z] [ProductController] Updated product: dong-ho-25
+[2026-06-01T08:49:03.776Z] [ProductController] Updated product: that-lung-24
+[2026-06-01T08:49:11.075Z] [ProductController] Updated product: kinh-mat-23
+[2026-06-01T08:49:18.951Z] [ProductController] Updated product: tui-deo-cheo-22
+[2026-06-01T08:49:26.053Z] [ProductController] Updated product: ao-da-21
+[2026-06-01T08:49:30.596Z] [ProductController] Updated product: quan-short-20
+[2026-06-01T08:49:34.729Z] [ProductController] Updated product: ao-polo-19
+[2026-06-01T08:49:44.028Z] [ProductController] Updated product: chan-vay-18
+[2026-06-01T08:49:49.960Z] [ProductController] Updated product: ao-bomber-17
+[2026-06-01T08:49:57.642Z] [ProductController] Updated product: quan-kaki-16
+[2026-06-01T08:50:06.408Z] [ProductController] Updated product: ao-len-15
+[2026-06-01T08:52:23.548Z] [ProductController] Updated product: mu-bucket-14
+[2026-06-01T08:52:29.829Z] [ProductController] Updated product: tui-xach-13
+[2026-06-01T08:52:34.953Z] [ProductController] Updated product: giay-cao-got-12
+[2026-06-01T08:52:42.055Z] [ProductController] Updated product: dep-slide-11
+[2026-06-01T08:53:04.337Z] [ProductController] Updated product: giay-the-thao-10
+[2026-06-01T08:53:10.129Z] [ProductController] Updated product: giay-loafer-09
+[2026-06-01T08:53:16.977Z] [ProductController] Updated product: giay-boot-08
+[2026-06-01T08:53:26.091Z] [ProductController] Updated product: vay-dam-06
+[2026-06-01T08:53:32.707Z] [ProductController] Updated product: ao-so-mi-05
+[2026-06-01T08:53:41.126Z] [ProductController] Updated product: ao-hoodie-04
+[2026-06-01T08:53:48.106Z] [ProductController] Updated product: quan-jean-03
+[2026-06-01T08:58:15.254Z] Starting server on port 5000...
+[2026-06-01T08:58:15.255Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T08:58:15.270Z] Backend server running on http://localhost:5000
+[2026-06-01T08:59:07.439Z] Starting server on port 5000...
+[2026-06-01T08:59:07.440Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T08:59:07.454Z] Backend server running on http://localhost:5000
+[2026-06-01T15:28:56.389Z] Starting server on port 5000...
+[2026-06-01T15:28:56.390Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T15:28:56.406Z] Backend server running on http://localhost:5000
+[2026-06-01T15:29:15.463Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:15.554Z] [AdminController] Error in /api/admin/stats: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:15.555Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:25.580Z] [AdminController] Error in /api/admin/stats: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:25.581Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:27.065Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:27.067Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:35.595Z] [AdminController] Error in /api/admin/stats: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:35.596Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:37.178Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:37.179Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:37.317Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:37.319Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:37.320Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:45.608Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:47.201Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:47.204Z] [AdminController] Error in /api/admin/stats: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:47.205Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:47.340Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:47.343Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:47.345Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:55.628Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:57.222Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:57.224Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:29:57.363Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T15:30:22.217Z] Starting server on port 5000...
+[2026-06-01T15:30:22.218Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T15:30:22.234Z] Backend server running on http://localhost:5000
+[2026-06-01T15:30:42.536Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:30:42.542Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-01T15:30:42.545Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T15:30:42.546Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:30:42.547Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:30:42.550Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:30:42.561Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:07.878Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:07.893Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:07.910Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:07.912Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:07.913Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:07.915Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:07.919Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:52.689Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:52.720Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:52.721Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:52.722Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:52.723Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:52.726Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-01T15:31:52.727Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-01T15:32:52.474Z] Starting server on port 5000...
+[2026-06-01T15:32:52.475Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T15:32:52.500Z] Backend server running on http://localhost:5000
+[2026-06-01T15:33:18.372Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:33:48.213Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:33:48.273Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:34:16.555Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:34:16.644Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:35:47.228Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:35:47.303Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:36:20.161Z] Starting server on port 5000...
+[2026-06-01T15:36:20.162Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T15:36:20.182Z] Backend server running on http://localhost:5000
+[2026-06-01T15:37:43.193Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:37:43.267Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:38:32.374Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:38:32.559Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:38:56.690Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:38:56.849Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:38:59.345Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:39:04.593Z] Starting server on port 5000...
+[2026-06-01T15:39:04.593Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T15:39:04.614Z] Backend server running on http://localhost:5000
+[2026-06-01T15:40:18.118Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:40:18.217Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:44:56.920Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:44:56.994Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:49:16.743Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:49:16.834Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:51:42.559Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:51:42.635Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:52:39.042Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:52:39.122Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:53:46.533Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:53:46.595Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T15:58:00.945Z] [ProductController] Added product: LF-V09VUJ
+[2026-06-01T16:00:49.077Z] [ProductController] Added product: LF-7K0BY2
+[2026-06-01T16:03:39.513Z] [ErrorHandler] Global Server Error: getDefaultSettings is not defined
+[2026-06-01T16:04:30.428Z] Starting server on port 5000...
+[2026-06-01T16:04:30.429Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T16:04:30.444Z] Backend server running on http://localhost:5000
+[2026-06-01T16:05:45.097Z] Starting server on port 5000...
+[2026-06-01T16:05:45.097Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T16:05:45.116Z] Backend server running on http://localhost:5000
+[2026-06-01T16:06:12.517Z] [ProductController] Added product: LF-HR29LH
+[2026-06-01T16:06:16.896Z] [ProductController] Deleted product: LF-HR29LH
+[2026-06-01T16:12:06.052Z] [ProductController] Updated product: LF-7K0BY2
+[2026-06-01T16:13:35.179Z] [ProductController] Updated product: LF-7K0BY2
+[2026-06-01T16:14:25.254Z] [ProductController] Updated product: vay-hoa-28
+[2026-06-01T16:15:23.235Z] [ProductController] Updated product: vay-hoa-28
+[2026-06-01T16:17:10.449Z] Starting server on port 5000...
+[2026-06-01T16:17:10.449Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-01T16:17:10.465Z] Backend server running on http://localhost:5000
+[2026-06-01T16:22:22.724Z] [ProductController] Added product: LF-S9GHYM
+[2026-06-01T16:25:06.187Z] [ProductController] Added product: LF-6SHAYZ
+[2026-06-01T16:26:22.774Z] [ProductController] Added product: LF-GEOJMW
+[2026-06-01T16:28:20.316Z] [ProductController] Added product: LF-5T1GIV
+[2026-06-01T16:29:07.245Z] [ProductController] Updated product: LF-5T1GIV
+[2026-06-01T16:29:26.560Z] [ProductController] Updated product: LF-5T1GIV
+[2026-06-01T16:34:52.950Z] [ChatController] Persisted message msg-kr7qpko5f in session session-9tiyrl4t4
+[2026-06-01T16:34:55.322Z] [ChatController] Persisted message msg-3f78ov1mf in session session-9tiyrl4t4
+[2026-06-01T16:35:00.614Z] [NotFoundHandler] 404 Not Found: GET /api/settings/menu
+[2026-06-01T16:39:17.007Z] [ProductController] Added product: LF-X8P95K
+[2026-06-01T16:44:52.420Z] [ProductController] Added product: LF-WYOOV7
+[2026-06-01T17:24:13.821Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-01T17:24:13.823Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-06-01T17:24:13.824Z] [OrderController] New Order ID: LF-GPGKYWRZ
+[2026-06-01T17:24:13.825Z] [OrderController] Saving order to MongoDB...
+[2026-06-01T17:24:14.053Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-01T17:24:14.262Z] [OrderController] Stock decreased automatically for order: LF-GPGKYWRZ
+[2026-06-01T17:24:14.263Z] [EmailService] Generating email HTML...
+[2026-06-01T17:24:14.342Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-01T17:24:14.355Z] [OrderController] Sending success response to client.
+[2026-06-01T17:24:15.262Z] [EmailService] Email error for order LF-GPGKYWRZ: Missing credentials for "PLAIN"
+[2026-06-04T05:21:50.029Z] Starting server on port 5000...
+[2026-06-04T05:21:50.031Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-04T05:21:50.066Z] Backend server running on http://localhost:5000
+[2026-06-04T05:24:20.742Z] Starting server on port 5000...
+[2026-06-04T05:24:20.742Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-04T05:24:20.764Z] Backend server running on http://localhost:5000
+[2026-06-04T05:24:39.326Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:24:39.338Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-04T05:24:39.342Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-04T05:24:39.355Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-04T05:24:39.357Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:24:39.358Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:24:39.385Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:24:49.366Z] [ErrorHandler] Global Server Error: Operation `banners.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:22.533Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:22.564Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:22.566Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:22.570Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:22.573Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:22.575Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:22.580Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:25:32.604Z] [ErrorHandler] Global Server Error: Operation `banners.find()` buffering timed out after 10000ms
+[2026-06-04T05:26:13.935Z] Starting server on port 5000...
+[2026-06-04T05:26:13.935Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-04T05:26:13.953Z] Backend server running on http://localhost:5000
+[2026-06-04T05:27:57.626Z] Starting server on port 5000...
+[2026-06-04T05:27:57.627Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-04T05:27:57.645Z] Backend server running on http://localhost:5000
+[2026-06-04T05:28:11.937Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:28:12.026Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-04T05:28:12.031Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-04T05:28:12.037Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:28:12.042Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-04T05:28:12.045Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:28:12.050Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:29:38.414Z] Starting server on port 5000...
+[2026-06-04T05:29:38.416Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-04T05:29:38.448Z] Backend server running on http://localhost:5000
+[2026-06-04T05:45:05.139Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:45:05.179Z] [ErrorHandler] Global Server Error: Operation `categories.find()` buffering timed out after 10000ms
+[2026-06-04T05:45:05.181Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:45:05.183Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:45:05.184Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-04T05:45:05.236Z] [ErrorHandler] Global Server Error: Operation `menus.find()` buffering timed out after 10000ms
+[2026-06-04T05:45:05.238Z] [ErrorHandler] Global Server Error: Operation `sitesettings.find()` buffering timed out after 10000ms
+[2026-06-05T01:51:01.630Z] Starting server on port 5000...
+[2026-06-05T01:51:01.631Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T01:51:01.650Z] Backend server running on http://localhost:5000
+[2026-06-05T02:25:51.535Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T02:25:51.536Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-06-05T02:25:51.536Z] [OrderController] New Order ID: LF-IHQ2LDQW
+[2026-06-05T02:25:51.537Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T02:25:51.622Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T02:25:51.858Z] [OrderController] Stock decreased automatically for order: LF-IHQ2LDQW
+[2026-06-05T02:25:51.858Z] [EmailService] Generating email HTML...
+[2026-06-05T02:25:51.942Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T02:25:51.948Z] [OrderController] Sending success response to client.
+[2026-06-05T02:25:52.737Z] [EmailService] Email error for order LF-IHQ2LDQW: Missing credentials for "PLAIN"
+[2026-06-05T02:28:41.704Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T02:28:41.705Z] [OrderController] Body received: {"customerName":"Admin PH Store","phone":"0387033728","email":"ntphau21@gmail.com","address":"long a...
+[2026-06-05T02:28:41.706Z] [OrderController] New Order ID: LF-2KN32M99
+[2026-06-05T02:28:41.706Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T02:28:41.852Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T02:28:42.300Z] [OrderController] Stock decreased automatically for order: LF-2KN32M99
+[2026-06-05T02:28:42.300Z] [EmailService] Generating email HTML...
+[2026-06-05T02:28:42.301Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T02:28:42.304Z] [OrderController] Sending success response to client.
+[2026-06-05T02:28:43.425Z] [EmailService] Email error for order LF-2KN32M99: Missing credentials for "PLAIN"
+[2026-06-05T02:31:59.692Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T02:31:59.693Z] [OrderController] Body received: {"customerName":"PHUC HAU","phone":"0838484885","email":"ntphau21@gmail.com","address":"long an","pa...
+[2026-06-05T02:31:59.693Z] [OrderController] New Order ID: LF-Z1VTG1E2
+[2026-06-05T02:31:59.694Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T02:31:59.756Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T02:31:59.953Z] [OrderController] Stock decreased automatically for order: LF-Z1VTG1E2
+[2026-06-05T02:31:59.953Z] [EmailService] Generating email HTML...
+[2026-06-05T02:31:59.954Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T02:31:59.956Z] [OrderController] Sending success response to client.
+[2026-06-05T02:32:01.348Z] [EmailService] Email error for order LF-Z1VTG1E2: Missing credentials for "PLAIN"
+[2026-06-05T02:34:33.626Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T02:34:33.626Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"admin@gmail.com","address":"Hà Nội,...
+[2026-06-05T02:34:33.627Z] [OrderController] New Order ID: LF-JL1SXAUD
+[2026-06-05T02:34:33.627Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T02:34:33.690Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T02:34:33.893Z] [OrderController] Stock decreased automatically for order: LF-JL1SXAUD
+[2026-06-05T02:34:33.894Z] [EmailService] Generating email HTML...
+[2026-06-05T02:34:33.895Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T02:34:33.896Z] [OrderController] Sending success response to client.
+[2026-06-05T02:34:35.392Z] [EmailService] Email error for order LF-JL1SXAUD: Missing credentials for "PLAIN"
+[2026-06-05T02:35:20.079Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T02:35:20.080Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"ntphau21@gmail.com","address":"Hà N...
+[2026-06-05T02:35:20.080Z] [OrderController] New Order ID: LF-O36B24F8
+[2026-06-05T02:35:20.081Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T02:35:20.134Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T02:35:20.326Z] [OrderController] Stock decreased automatically for order: LF-O36B24F8
+[2026-06-05T02:35:20.327Z] [EmailService] Generating email HTML...
+[2026-06-05T02:35:20.328Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T02:35:20.329Z] [OrderController] Sending success response to client.
+[2026-06-05T02:35:21.640Z] [EmailService] Email error for order LF-O36B24F8: Missing credentials for "PLAIN"
+[2026-06-05T02:40:04.509Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T02:40:04.509Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"ntphau21@gmail.com","address":"Hà N...
+[2026-06-05T02:40:04.510Z] [OrderController] New Order ID: LF-3RBY62MB
+[2026-06-05T02:40:04.510Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T02:40:04.573Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T02:40:04.785Z] [OrderController] Stock decreased automatically for order: LF-3RBY62MB
+[2026-06-05T02:40:04.785Z] [EmailService] Generating email HTML...
+[2026-06-05T02:40:04.786Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T02:40:04.787Z] [OrderController] Sending success response to client.
+[2026-06-05T02:40:05.475Z] [EmailService] Email error for order LF-3RBY62MB: Missing credentials for "PLAIN"
+[2026-06-05T02:42:38.447Z] Starting server on port 5000...
+[2026-06-05T02:42:38.447Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T02:42:38.447Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-05T02:42:38.447Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-05T02:42:38.462Z] Backend server running on http://localhost:5000
+[2026-06-05T02:43:37.573Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T02:43:37.573Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"ntphau21@gmail.com","address":"Hà N...
+[2026-06-05T02:43:37.574Z] [OrderController] New Order ID: LF-R5RLF4IR
+[2026-06-05T02:43:37.574Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T02:43:37.674Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T02:43:37.897Z] [OrderController] Stock decreased automatically for order: LF-R5RLF4IR
+[2026-06-05T02:43:37.898Z] [EmailService] Generating email HTML...
+[2026-06-05T02:43:37.936Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T02:43:37.942Z] [OrderController] Sending success response to client.
+[2026-06-05T02:43:41.530Z] [EmailService] Email sent successfully for order: LF-R5RLF4IR
+[2026-06-05T02:43:51.937Z] Starting server on port 5000...
+[2026-06-05T02:43:51.938Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T02:43:51.938Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-05T02:43:51.938Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-05T02:43:51.956Z] Backend server running on http://localhost:5000
+[2026-06-05T02:45:40.198Z] Starting server on port 5000...
+[2026-06-05T02:45:40.198Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T02:45:40.198Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-05T02:45:40.198Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-05T02:45:40.213Z] Backend server running on http://localhost:5000
+[2026-06-05T06:53:19.295Z] Starting server on port 5000...
+[2026-06-05T06:53:19.295Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T06:53:19.295Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-05T06:53:19.295Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-05T06:53:19.308Z] Backend server running on http://localhost:5000
+[2026-06-05T06:55:21.803Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-05T06:55:21.803Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"ntphau21@gmail.com","address":"Hà N...
+[2026-06-05T06:55:21.804Z] [OrderController] New Order ID: LF-3M44NU8T
+[2026-06-05T06:55:21.804Z] [OrderController] Saving order to MongoDB...
+[2026-06-05T06:55:21.884Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-05T06:55:22.136Z] [OrderController] Stock decreased automatically for order: LF-3M44NU8T
+[2026-06-05T06:55:22.137Z] [EmailService] Generating email HTML...
+[2026-06-05T06:55:22.174Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-05T06:55:22.184Z] [OrderController] Sending success response to client.
+[2026-06-05T06:55:26.500Z] [EmailService] Email sent successfully for order: LF-3M44NU8T
+[2026-06-05T07:09:52.495Z] Starting server on port 5000...
+[2026-06-05T07:09:52.495Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T07:09:52.496Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-05T07:09:52.496Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-05T07:09:52.511Z] Backend server running on http://localhost:5000
+[2026-06-05T07:38:42.152Z] Starting server on port 5000...
+[2026-06-05T07:38:42.153Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T07:38:42.153Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-05T07:38:42.154Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-05T07:38:42.169Z] Backend server running on http://localhost:5000
+[2026-06-05T15:47:15.432Z] [ProductController] Updated product: LF-WYOOV7
+[2026-06-05T16:02:15.543Z] [ChatController] Persisted message msg-8dxfoa9a0 in session session-9tiyrl4t4
+[2026-06-05T16:02:18.167Z] [ChatController] Persisted message msg-5vwmiddf9 in session session-9tiyrl4t4
+[2026-06-05T16:02:25.651Z] [ChatController] Persisted message msg-4mfriye9p in session session-9tiyrl4t4
+[2026-06-05T16:02:32.276Z] [ChatController] Persisted message msg-e0a27b131 in session session-9tiyrl4t4
+[2026-06-05T16:04:26.183Z] [ChatController] Persisted message msg-mxp1bfvtz in session session-9tiyrl4t4
+[2026-06-05T16:05:25.998Z] [ChatController] Persisted message msg-rw6c1d31l in session session-9tiyrl4t4
+[2026-06-05T16:06:51.114Z] [ChatController] Persisted message msg-jwy9yyp9v in session session-9tiyrl4t4
+[2026-06-05T16:23:10.754Z] [ChatController] Persisted message msg-7baoyvao4 in session session-9tiyrl4t4
+[2026-06-05T16:23:12.617Z] [ChatController] Persisted message msg-vcau5euhs in session session-9tiyrl4t4
+[2026-06-05T16:23:14.064Z] [ChatController] Persisted message msg-q2t4y6sr5 in session session-9tiyrl4t4
+[2026-06-05T16:23:16.184Z] [ChatController] Persisted message msg-54b4gnl8b in session session-9tiyrl4t4
+[2026-06-05T16:30:31.109Z] [ChatController] Persisted message msg-xkw3k7zlc in session session-9tiyrl4t4
+[2026-06-05T16:30:31.313Z] [ChatController] Persisted message msg-fhc0zzovs in session session-9tiyrl4t4
+[2026-06-05T16:30:33.109Z] [ChatController] Persisted message msg-gozrhc8tj in session session-9tiyrl4t4
+[2026-06-05T16:30:33.224Z] [ChatController] Persisted message msg-u4txhnoxn in session session-9tiyrl4t4
+[2026-06-05T16:30:39.503Z] [ChatController] Persisted message msg-5ltmikkxw in session session-9tiyrl4t4
+[2026-06-05T16:30:39.607Z] [ChatController] Persisted message msg-romems89f in session session-9tiyrl4t4
+[2026-06-05T16:54:21.434Z] Starting server on port 5000...
+[2026-06-05T16:54:21.435Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-05T16:54:21.435Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-05T16:54:21.435Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-05T16:54:21.451Z] Backend server running on http://localhost:5000
+[2026-06-07T14:37:29.956Z] Starting server on port 5000...
+[2026-06-07T14:37:29.957Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-07T14:37:29.957Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-07T14:37:29.957Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-07T14:37:29.973Z] Backend server running on http://localhost:5000
+[2026-06-07T14:38:54.175Z] Starting server on port 5000...
+[2026-06-07T14:38:54.176Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-07T14:38:54.177Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-07T14:38:54.177Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-07T14:38:54.213Z] Backend server running on http://localhost:5000
+[2026-06-07T14:54:11.990Z] [ChatController] Persisted message msg-vmithiqbn in session session-9tiyrl4t4
+[2026-06-07T14:54:12.317Z] [ChatController] Persisted message msg-i9bih4jmq in session session-9tiyrl4t4
+[2026-06-07T14:54:30.461Z] [ChatController] Persisted message msg-55qcxzvs8 in session session-9tiyrl4t4
+[2026-06-07T14:54:30.578Z] [ChatController] Persisted message msg-hbng6kor2 in session session-9tiyrl4t4
+[2026-06-07T15:32:43.730Z] Starting server on port 5000...
+[2026-06-07T15:32:43.730Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-07T15:32:43.730Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-07T15:32:43.731Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-07T15:32:43.746Z] Backend server running on http://localhost:5000
+[2026-06-07T15:38:59.521Z] Starting server on port 5000...
+[2026-06-07T15:38:59.521Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-07T15:38:59.522Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-07T15:38:59.522Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-07T15:38:59.538Z] Backend server running on http://localhost:5000
+[2026-06-07T15:57:19.387Z] [ReviewController] ✅ Review saved to MongoDB: rv-1780847839309-hqs6mm | product: LF-7K0BY2 | rating: 5⭐
+[2026-06-07T15:57:19.569Z] [ReviewController] 📊 Product LF-7K0BY2 rating updated: 5⭐ (1 reviews)
+[2026-06-07T16:03:41.422Z] [ChatController] Persisted message msg-q4ztq92y0 in session session-9tiyrl4t4
+[2026-06-07T16:03:41.530Z] [ChatController] Persisted message msg-sc9yktsih in session session-9tiyrl4t4
+[2026-06-08T01:29:38.976Z] Starting server on port 5000...
+[2026-06-08T01:29:38.978Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:29:38.978Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:29:38.980Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:29:39.016Z] Backend server running on http://localhost:5000
+[2026-06-08T01:33:49.747Z] Starting server on port 5000...
+[2026-06-08T01:33:49.749Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:33:49.750Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:33:49.750Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:33:49.781Z] Backend server running on http://localhost:5000
+[2026-06-08T01:38:48.667Z] Starting server on port 5000...
+[2026-06-08T01:38:48.668Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:38:48.668Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:38:48.669Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:38:48.703Z] Backend server running on http://localhost:5000
+[2026-06-08T01:55:51.978Z] Starting server on port 5000...
+[2026-06-08T01:55:51.981Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:55:51.981Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:55:51.982Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:55:52.000Z] Backend server running on http://localhost:5000
+[2026-06-08T01:56:18.184Z] Starting server on port 5000...
+[2026-06-08T01:56:18.185Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:56:18.186Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:56:18.186Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:56:18.200Z] Backend server running on http://localhost:5000
+[2026-06-08T01:56:30.750Z] Starting server on port 5000...
+[2026-06-08T01:56:30.750Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:56:30.751Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:56:30.751Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:56:30.765Z] Backend server running on http://localhost:5000
+[2026-06-08T01:56:57.504Z] Starting server on port 5000...
+[2026-06-08T01:56:57.505Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:56:57.505Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:56:57.506Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:56:57.520Z] Backend server running on http://localhost:5000
+[2026-06-08T01:57:05.172Z] Starting server on port 5000...
+[2026-06-08T01:57:05.173Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T01:57:05.174Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T01:57:05.175Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T01:57:05.212Z] Backend server running on http://localhost:5000
+[2026-06-08T02:00:32.389Z] Starting server on port 5000...
+[2026-06-08T02:00:32.390Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T02:00:32.391Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T02:00:32.391Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T02:00:32.409Z] Backend server running on http://localhost:5000
+[2026-06-08T02:09:28.656Z] Starting server on port 5000...
+[2026-06-08T02:09:28.656Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T02:09:28.657Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T02:09:28.658Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T02:09:28.674Z] Backend server running on http://localhost:5000
+[2026-06-08T02:09:38.956Z] Starting server on port 5000...
+[2026-06-08T02:09:38.957Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T02:09:38.957Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T02:09:38.958Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T02:09:38.973Z] Backend server running on http://localhost:5000
+[2026-06-08T02:33:23.657Z] Starting server on port 5000...
+[2026-06-08T02:33:23.658Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T02:33:23.659Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T02:33:23.660Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T02:33:23.687Z] Backend server running on http://localhost:5000
+[2026-06-08T02:42:25.237Z] [ProductController] Updated product: LF-X8P95K
+[2026-06-08T02:45:31.024Z] [ProductController] Updated product: LF-WYOOV7
+[2026-06-08T02:46:18.495Z] [ProductController] Updated product: LF-X8P95K
+[2026-06-08T02:49:50.565Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-08T02:50:42.532Z] [ProductController] Updated product: quan-short-kaki-34
+[2026-06-08T02:57:11.468Z] Starting server on port 5000...
+[2026-06-08T02:57:11.468Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T02:57:11.469Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T02:57:11.469Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T02:57:11.484Z] Backend server running on http://localhost:5000
+[2026-06-08T06:14:52.044Z] [ProductController] Added product: LF-4H3TGO
+[2026-06-08T06:18:12.014Z] [ProductController] Added product: LF-IKFMJQ
+[2026-06-08T06:19:43.353Z] [ProductController] Updated product: LF-IKFMJQ
+[2026-06-08T06:20:29.541Z] [ProductController] Updated product: LF-IKFMJQ
+[2026-06-08T06:20:49.386Z] [ProductController] Updated product: LF-4H3TGO
+[2026-06-08T06:21:37.030Z] [ProductController] Updated product: LF-IKFMJQ
+[2026-06-08T06:26:41.045Z] [ProductController] Added product: LF-EUN721
+[2026-06-08T06:30:12.304Z] [ProductController] Added product: LF-5MLDBD
+[2026-06-08T06:32:54.606Z] [ProductController] Added product: LF-DMBBXK
+[2026-06-08T06:35:06.177Z] [ProductController] Added product: LF-3EX29B
+[2026-06-08T06:37:32.412Z] [ProductController] Added product: LF-73SSIQ
+[2026-06-08T06:42:59.306Z] [ProductController] Added product: LF-WMKW8T
+[2026-06-08T06:49:27.955Z] [ProductController] Added product: LF-SDV6FV
+[2026-06-08T06:54:13.083Z] [ProductController] Added product: LF-8C2QBA
+[2026-06-08T06:56:30.243Z] [ProductController] Added product: LF-QQ30E8
+[2026-06-08T06:58:39.107Z] [ProductController] Added product: LF-5H6ZDK
+[2026-06-08T07:03:29.881Z] [ProductController] Added product: LF-Q42CCS
+[2026-06-08T07:07:43.473Z] Starting server on port 5000...
+[2026-06-08T07:07:43.475Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T07:07:43.475Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T07:07:43.476Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T07:07:43.494Z] Backend server running on http://localhost:5000
+[2026-06-08T07:08:06.027Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-08T07:08:06.028Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"ntphau21@gmail.com","address":"Hà N...
+[2026-06-08T07:08:06.028Z] [OrderController] New Order ID: LF-BW90YJBE
+[2026-06-08T07:08:06.029Z] [OrderController] Saving order to MongoDB...
+[2026-06-08T07:08:06.076Z] [OrderController] CRITICAL error: Order validation failed: paymentMethod: `pay-cod` is not a valid enum value for path `paymentMethod`.
+[2026-06-08T07:08:06.078Z] [ErrorHandler] Global Server Error: Order validation failed: paymentMethod: `pay-cod` is not a valid enum value for path `paymentMethod`.
+[2026-06-08T07:08:15.742Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-08T07:08:15.743Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"ntphau21@gmail.com","address":"Hà N...
+[2026-06-08T07:08:15.743Z] [OrderController] New Order ID: LF-Z7VT4VHR
+[2026-06-08T07:08:15.744Z] [OrderController] Saving order to MongoDB...
+[2026-06-08T07:08:15.760Z] [OrderController] CRITICAL error: Order validation failed: paymentMethod: `pay-bank` is not a valid enum value for path `paymentMethod`.
+[2026-06-08T07:08:15.762Z] [ErrorHandler] Global Server Error: Order validation failed: paymentMethod: `pay-bank` is not a valid enum value for path `paymentMethod`.
+[2026-06-08T07:09:26.684Z] Starting server on port 5000...
+[2026-06-08T07:09:26.685Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T07:09:26.685Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T07:09:26.686Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T07:09:26.701Z] Backend server running on http://localhost:5000
+[2026-06-08T07:09:52.268Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-08T07:09:52.270Z] [OrderController] Body received: {"customerName":"PH Store Manager","phone":"0901234567","email":"ntphau21@gmail.com","address":"Hà N...
+[2026-06-08T07:09:52.271Z] [OrderController] New Order ID: LF-H8H5J9SZ
+[2026-06-08T07:09:52.272Z] [OrderController] Saving order to MongoDB...
+[2026-06-08T07:09:52.377Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-08T07:09:53.298Z] [OrderController] Stock decreased automatically for order: LF-H8H5J9SZ
+[2026-06-08T07:09:53.299Z] [EmailService] Generating email HTML...
+[2026-06-08T07:09:53.373Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-08T07:09:53.390Z] [OrderController] Sending success response to client.
+[2026-06-08T07:09:56.334Z] [EmailService] Email sent successfully for order: LF-H8H5J9SZ
+[2026-06-08T08:12:47.566Z] Starting server on port 5000...
+[2026-06-08T08:12:47.567Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T08:12:47.568Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T08:12:47.568Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T08:12:47.584Z] Backend server running on http://localhost:5000
+[2026-06-08T08:49:32.318Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-08T08:49:32.322Z] [OrderController] Body received: {"customerName":"PHUC HAU","phone":"0838484885","email":"ntphau21@gmail.com","address":"long an","pa...
+[2026-06-08T08:49:32.326Z] [OrderController] New Order ID: LF-ANLUKCMS
+[2026-06-08T08:49:32.329Z] [OrderController] Saving order to MongoDB...
+[2026-06-08T08:49:32.407Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-08T08:49:32.765Z] [OrderController] Stock decreased automatically for order: LF-ANLUKCMS
+[2026-06-08T08:49:32.769Z] [EmailService] Generating email HTML...
+[2026-06-08T08:49:32.811Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-08T08:49:32.823Z] [OrderController] Sending success response to client.
+[2026-06-08T08:49:36.154Z] [EmailService] Email sent successfully for order: LF-ANLUKCMS
+[2026-06-08T08:57:09.512Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-08T08:57:09.513Z] [OrderController] Body received: {"id":"LF-PV1AA3","customerName":"PHUC HAU","phone":"0838484885","email":"ntphau21@gmail.com","addre...
+[2026-06-08T08:57:09.513Z] [OrderController] New Order ID: LF-PV1AA3
+[2026-06-08T08:57:09.514Z] [OrderController] Saving order to MongoDB...
+[2026-06-08T08:57:09.595Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-08T08:57:09.810Z] [OrderController] Stock decreased automatically for order: LF-PV1AA3
+[2026-06-08T08:57:09.810Z] [EmailService] Generating email HTML...
+[2026-06-08T08:57:09.812Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-08T08:57:09.816Z] [OrderController] Sending success response to client.
+[2026-06-08T08:57:13.953Z] [EmailService] Email sent successfully for order: LF-PV1AA3
+[2026-06-08T08:57:40.902Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-08T08:57:40.904Z] [OrderController] Body received: {"id":"LF-I7THTW","customerName":"PHUC HAU","phone":"0838484885","email":"ntphau21@gmail.com","addre...
+[2026-06-08T08:57:40.929Z] [OrderController] New Order ID: LF-I7THTW
+[2026-06-08T08:57:40.930Z] [OrderController] Saving order to MongoDB...
+[2026-06-08T08:57:40.987Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-08T08:57:41.133Z] [OrderController] Stock decreased automatically for order: LF-I7THTW
+[2026-06-08T08:57:41.135Z] [EmailService] Generating email HTML...
+[2026-06-08T08:57:41.138Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-08T08:57:41.151Z] [OrderController] Sending success response to client.
+[2026-06-08T08:57:44.771Z] [EmailService] Email sent successfully for order: LF-I7THTW
+[2026-06-08T09:00:50.415Z] Starting server on port 5000...
+[2026-06-08T09:00:50.416Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T09:00:50.416Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T09:00:50.417Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T09:00:50.439Z] Backend server running on http://localhost:5000
+[2026-06-08T09:01:01.133Z] Starting server on port 5000...
+[2026-06-08T09:01:01.135Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-08T09:01:01.135Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-08T09:01:01.136Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-08T09:01:01.186Z] Backend server running on http://localhost:5000
+[2026-06-09T13:42:11.993Z] Starting server on port 5000...
+[2026-06-09T13:42:11.995Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-09T13:42:11.996Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-09T13:42:11.996Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-09T13:42:12.018Z] Backend server running on http://localhost:5000
+[2026-06-09T13:43:01.923Z] [NotFoundHandler] 404 Not Found: GET /favicon.ico
+[2026-06-10T01:24:14.006Z] Starting server on port 5000...
+[2026-06-10T01:24:14.007Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-10T01:24:14.008Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-10T01:24:14.009Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-10T01:24:14.030Z] Backend server running on http://localhost:5000
+[2026-06-10T02:30:24.534Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-10T02:30:24.535Z] [OrderController] Body received: {"id":"LF-BZEJJM","customerName":"PHUC HAU","phone":"0838484885","email":"ntphau21@gmail.com","addre...
+[2026-06-10T02:30:24.536Z] [OrderController] New Order ID: LF-BZEJJM
+[2026-06-10T02:30:24.537Z] [OrderController] Saving order to MongoDB...
+[2026-06-10T02:30:24.632Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-10T02:30:25.064Z] [OrderController] Stock decreased automatically for order: LF-BZEJJM
+[2026-06-10T02:30:25.066Z] [EmailService] Generating email HTML...
+[2026-06-10T02:30:25.213Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-10T02:30:25.225Z] [OrderController] Sending success response to client.
+[2026-06-10T02:30:28.485Z] [EmailService] Email sent successfully for order: LF-BZEJJM
+[2026-06-13T14:20:16.648Z] Starting server on port 5000...
+[2026-06-13T14:20:16.649Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-13T14:20:16.649Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-13T14:20:16.649Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-13T14:20:16.663Z] Backend server running on http://localhost:5000
+[2026-06-13T14:58:45.420Z] Starting server on port 5000...
+[2026-06-13T14:58:45.421Z] CWD: E:\BANWEB\fashion-store\backend
+[2026-06-13T14:58:45.421Z] EMAIL_USER loaded: YES (ntphau21@gmail.com)
+[2026-06-13T14:58:45.421Z] EMAIL_PASS loaded: YES (length: 19)
+[2026-06-13T14:58:45.434Z] Backend server running on http://localhost:5000

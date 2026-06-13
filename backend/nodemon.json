@@ -1,0 +1,10 @@
+{
+    "ignore": [
+        "data/*",
+        "backend_debug.log"
+    ],
+    "watch": [
+        "src"
+    ],
+    "ext": "js"
+}
