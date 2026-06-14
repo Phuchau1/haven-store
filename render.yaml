@@ -2,6 +2,7 @@ services:
   - type: web
     name: fashion-backend
     env: node
+    plan: free
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
@@ -21,6 +22,7 @@ services:
   - type: web
     name: fashion-frontend
     env: node
+    plan: free
     rootDir: frontend
     buildCommand: npm install --legacy-peer-deps && npm run build
     startCommand: npm start
