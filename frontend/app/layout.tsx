@@ -30,7 +30,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <GoogleOAuthProvider clientId="1059982947365-mmvo47jgvdo3o5ipvl2nkk53s5hmm115.apps.googleusercontent.com">
+        <GoogleOAuthProvider clientId="70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com">
           <LayoutShell>{children}</LayoutShell>
         </GoogleOAuthProvider>
       </body>

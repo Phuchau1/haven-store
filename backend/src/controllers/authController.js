@@ -165,7 +165,7 @@ const resetPassword = async (req, res, next) => {
 
 const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '1059982947365-mmvo47jgvdo3o5ipvl2nkk53s5hmm115.apps.googleusercontent.com');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com');
 
 const googleLogin = async (req, res, next) => {
     try {
@@ -174,7 +174,7 @@ const googleLogin = async (req, res, next) => {
 
         const ticket = await googleClient.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID || '1059982947365-mmvo47jgvdo3o5ipvl2nkk53s5hmm115.apps.googleusercontent.com',
+            audience: process.env.GOOGLE_CLIENT_ID || '70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com',
         });
         const payload = ticket.getPayload();
         
