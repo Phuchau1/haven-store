@@ -28,5 +28,5 @@ services:
     startCommand: npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://fashion-backend.onrender.com
+        value: https://fashion-backend-93lh.onrender.com
     region: singapore
