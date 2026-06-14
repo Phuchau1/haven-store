@@ -48,8 +48,8 @@ interface ChatTurn {
   parts: { text: string }[];
 }
 
-const SUGGESTION_CHIPS = [
-  'Danh mục sản phẩm?',
+const DEFAULT_SUGGESTION_CHIPS = [
+  'Sản phẩm mới nhất?',
   'Sản phẩm rẻ nhất?',
   'Đánh giá cao nhất?',
   'Hàng đang sale?',
@@ -171,6 +171,20 @@ export default function ChatSupport() {
     }
   }, [isOpen]);
 
+  // ── Dynamic Suggestion Chips ──
+  const dynamicChips = React.useMemo(() => {
+    if (!products || products.length === 0) return DEFAULT_SUGGESTION_CHIPS;
+    
+    const categories = Array.from(new Set(products.map(p => p.categoryLabel))).filter(Boolean);
+    const categoryChips = categories.slice(0, 3).map(c => `Bạn có ${c.toLowerCase()} không?`);
+    
+    return [
+      ...categoryChips,
+      'Đánh giá cao nhất?',
+      'Hàng đang sale?'
+    ];
+  }, [products]);
+
   // ── Build prompt cho Gemini ──
   const buildPrompt = (userMessage: string): string => {
     const productList = products
@@ -207,8 +221,29 @@ QUY TẮC:
     return `${systemCtx}\n\n${historyText ? 'Lịch sử hội thoại:\n' + historyText + '\n' : ''}Khách: ${userMessage}\nTrợ lý:`;
   };
 
-  // ── Smart Local AI (Fallback / No-Key Mode) ──
+  // ── Smart Local AI (Fallback) & Real Gemini API ──
   const callGemini = async (userMessage: string): Promise<string> => {
+    // 1. Dùng Gemini API thật nếu có KEY
+    if (GEMINI_KEY) {
+      try {
+        const prompt = buildPrompt(userMessage);
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        });
+        const data = await res.json();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+          return data.candidates[0].content.parts[0].text;
+        }
+      } catch (err) {
+        console.error('Lỗi gọi Gemini API:', err);
+      }
+    }
+
+    // 2. Fallback Logic cục bộ (nếu API lỗi hoặc hết hạn ngạch)
     const msg = userMessage.toLowerCase();
     
     // Nếu hỏi về danh mục
@@ -519,7 +554,7 @@ QUY TẮC:
 
             {/* ── Suggestion Chips ── */}
             <div className="px-4 py-2 bg-white border-t border-slate-50 flex gap-2 overflow-x-auto flex-shrink-0 scrollbar-hide">
-              {SUGGESTION_CHIPS.map((chip) => (
+              {dynamicChips.map((chip) => (
                 <button
                   key={chip}
                   onClick={() => handleSend(chip)}
