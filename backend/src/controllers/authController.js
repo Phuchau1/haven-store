@@ -44,6 +44,20 @@ const register = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Email đã được đăng ký' });
         }
 
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: 'Email không đúng định dạng' });
+        }
+
+        // Validate phone if provided
+        if (phone) {
+            const phoneRegex = /^0[0-9]{9}$/;
+            if (!phoneRegex.test(phone)) {
+                return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và dài 10 số)' });
+            }
+        }
+
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
         const id = `usr-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -96,7 +110,13 @@ const updateProfile = async (req, res, next) => {
 
         // Cập nhật thông tin khác
         if (name !== undefined) user.name = name;
-        if (phone !== undefined) user.phone = phone;
+        if (phone !== undefined) {
+            const phoneRegex = /^0[0-9]{9}$/;
+            if (phone && !phoneRegex.test(phone)) {
+                return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và dài 10 số)' });
+            }
+            user.phone = phone;
+        }
         if (address !== undefined) user.address = address;
 
         await user.save();
@@ -116,6 +136,12 @@ const forgotPassword = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu email' });
         }
 
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: 'Email không đúng định dạng' });
+        }
+
         const user = await UserModel.findOne({ email });
         if (!user) {
             return res.status(404).json({ success: false, message: 'Email không tồn tại trên hệ thống' });
@@ -126,7 +152,8 @@ const forgotPassword = async (req, res, next) => {
         user.resetPasswordExpires = Date.now() + 3600000; // 1 giờ
         await user.save();
 
-        const resetUrl = `http://localhost:3000/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
+        const frontendUrl = process.env.FRONTEND_URL || 'https://fashion-frontend-imqb.onrender.com';
+        const resetUrl = `${frontendUrl}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
         sendPasswordResetEmail(email, resetUrl);
 
         res.json({ success: true, message: 'Đã gửi email hướng dẫn đặt lại mật khẩu' });

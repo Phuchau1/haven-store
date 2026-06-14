@@ -28,6 +28,18 @@ export default function RegisterPage() {
             return;
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Email không đúng định dạng');
+            return;
+        }
+
+        const phoneRegex = /^0[0-9]{9}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            setError('Số điện thoại không hợp lệ (bắt đầu bằng số 0, dài đúng 10 số)');
+            return;
+        }
+
         setLoading(true);
 
         try {

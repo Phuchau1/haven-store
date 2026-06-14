@@ -140,6 +140,13 @@ export default function AccountPage() {
 
     const handleUpdateProfile = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        const phoneRegex = /^0[0-9]{9}$/;
+        if (formData.phone && !phoneRegex.test(formData.phone)) {
+            alert('Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và dài đúng 10 số)');
+            return;
+        }
+
         setIsSaving(true);
         setTimeout(() => {
             updateProfile(formData);

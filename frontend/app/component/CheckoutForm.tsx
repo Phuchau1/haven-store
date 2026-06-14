@@ -78,14 +78,18 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             setError('Vui lòng nhập họ tên.');
             return;
         }
-        if (!formData.phone.trim()) {
-            setError('Vui lòng nhập số điện thoại.');
+        const phoneRegex = /^0[0-9]{9}$/;
+        if (!phoneRegex.test(formData.phone.trim())) {
+            setError('Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và dài đúng 10 số).');
             return;
         }
-        if (!formData.email.trim()) {
-            setError('Vui lòng nhập email.');
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email.trim())) {
+            setError('Email không đúng định dạng.');
             return;
         }
+
         if (!formData.address.trim()) {
             setError('Vui lòng nhập địa chỉ giao hàng.');
             return;

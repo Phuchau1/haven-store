@@ -12,6 +12,13 @@ export default function ForgotPasswordPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage({ text: '', type: '' });
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            setMessage({ text: 'Email không đúng định dạng', type: 'error' });
+            return;
+        }
+
         setLoading(true);
 
         try {
