@@ -60,6 +60,7 @@ export interface User {
     role: 'user' | 'admin';
     phone?: string;
     address?: string;
+    avatar?: string;
 }
 
 export interface CartItem {
@@ -75,7 +76,7 @@ export interface OrderData {
     phone: string;
     email: string;
     address: string;
-    paymentMethod: 'cod' | 'bank-transfer';
+    paymentMethod: string;
     items: CartItem[];
     totalAmount: number;
     note?: string;
@@ -97,4 +98,5 @@ export interface FilterState {
     colors: string[];
     priceRange: [number, number];
     sortBy: 'newest' | 'price-asc' | 'price-desc' | 'popular';
+    discount?: string;
 }

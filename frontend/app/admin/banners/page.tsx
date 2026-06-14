@@ -42,7 +42,7 @@ export default function AdminBannersPage() {
     const openModal = (item?: Banner) => {
         if (item) {
             setEditingItem(item);
-            setFormData({ ...item });
+            setFormData({ ...item, video: item.video || '' });
         } else {
             setEditingItem(null);
             setFormData({ id: '', title: '', image: '', video: '', link: '', status: 'active' });

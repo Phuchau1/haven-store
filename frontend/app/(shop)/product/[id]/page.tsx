@@ -332,7 +332,7 @@ export default function ProductDetailPage() {
                                 {selectedColor && <span className="text-xs text-gray-500">{selectedColor.name}</span>}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {product.colors.map((color) => {
+                                {product.colors.map((color: any) => {
                                     const outOfStock = isColorOutOfStock(color.name);
                                     return (
                                         <button
@@ -340,7 +340,7 @@ export default function ProductDetailPage() {
                                             onClick={() => {
                                                 setSelectedColor(color);
                                                 if (color.image) {
-                                                    const imgIndex = product.images.findIndex(img => img === color.image);
+                                                    const imgIndex = product.images.findIndex((img: any) => img === color.image);
                                                     if (imgIndex !== -1) {
                                                         setSelectedImage(imgIndex);
                                                     }
@@ -373,7 +373,7 @@ export default function ProductDetailPage() {
                                 {selectedSize && <span className="text-xs text-gray-500">{selectedSize}</span>}
                             </div>
                             <div className="flex flex-wrap gap-[8px]">
-                                {product.sizes.map((size) => {
+                                {product.sizes.map((size: any) => {
                                     const outOfStock = isSizeOutOfStock(size);
                                     return (
                                         <button

@@ -8,6 +8,7 @@ export interface User {
     role: string;
     phone?: string;
     address?: string;
+    avatar?: string;
 }
 
 interface AuthStore {

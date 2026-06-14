@@ -144,9 +144,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                         <span className="text-[16px] font-bold text-[#111111]">
                             {formatPrice(product.price)}
                         </span>
-                        {product.originalPrice > 0 && (
+                        {(product.originalPrice || 0) > 0 && (
                             <span className="text-[13px] font-normal text-[#999999] line-through">
-                                {formatPrice(product.originalPrice)}
+                                {formatPrice(product.originalPrice || 0)}
                             </span>
                         )}
                     </div>
