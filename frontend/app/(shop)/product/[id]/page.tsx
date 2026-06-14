@@ -285,7 +285,7 @@ export default function ProductDetailPage() {
                                 setSelectedImage(i);
                                 // Đồng bộ màu theo ảnh
                                 const img = product.images[i];
-                                const matchingColor = product.colors.find(col => col.image === img);
+                                const matchingColor = product.colors.find((col: any) => col.image === img);
                                 if (matchingColor) setSelectedColor(matchingColor);
                             }}
                         />
