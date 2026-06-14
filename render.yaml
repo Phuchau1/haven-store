@@ -17,6 +17,24 @@ services:
         sync: false
       - key: EMAIL_PASS
         sync: false
+      - key: VNP_TMN_CODE
+        value: CGXZLS0Z
+      - key: VNP_HASH_SECRET
+        value: XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN
+      - key: VNP_URL
+        value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - key: VNP_RETURN_URL
+        value: https://fashion-frontend-imqb.onrender.com/checkout/payment-result
+      - key: MOMO_PARTNER_CODE
+        value: MOMOBKUN20180529
+      - key: MOMO_ACCESS_KEY
+        value: klm05TvNBzhg7h7j
+      - key: MOMO_SECRET_KEY
+        value: at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
+      - key: MOMO_API_URL
+        value: https://test-payment.momo.vn/v2/gateway/api/create
+      - key: MOMO_RETURN_URL
+        value: https://fashion-frontend-imqb.onrender.com/checkout/payment-result
     region: singapore
 
   - type: web

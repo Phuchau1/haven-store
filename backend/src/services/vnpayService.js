@@ -23,6 +23,10 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     let vnpUrl = process.env.VNP_URL;
     let returnUrl = process.env.VNP_RETURN_URL;
 
+    if (!tmnCode || !secretKey) {
+        throw new Error('Chưa cấu hình VNPay trên server (thiếu VNP_TMN_CODE hoặc VNP_HASH_SECRET).');
+    }
+
     function getVNPayDate() {
         const d = new Date();
         const utc = d.getTime() + (d.getTimezoneOffset() * 60000);

@@ -8,6 +8,10 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
     let endpoint = process.env.MOMO_API_URL;
     let notifyUrl = process.env.MOMO_RETURN_URL; // Can be a separate webhook later
 
+    if (!partnerCode || !secretKey || !accessKey) {
+        throw new Error('Chưa cấu hình MoMo trên server (thiếu MOMO_PARTNER_CODE hoặc MOMO_SECRET_KEY).');
+    }
+
     let requestId = orderId + new Date().getTime();
     let requestType = "captureWallet";
     let extraData = "";
