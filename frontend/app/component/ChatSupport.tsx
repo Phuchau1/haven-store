@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
 
-const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+const GEMINI_MODEL = 'gemini-1.5-flash';
 const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_KEY || '';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -270,15 +270,31 @@ QUY TẮC:
       }
     }
 
-    // Tìm kiếm sản phẩm theo từ khóa
-    const keywords = msg.split(' ').filter(w => w.length > 2);
-    let matches = products.filter(p => 
-      keywords.some(k => p.name.toLowerCase().includes(k) || p.categoryLabel.toLowerCase().includes(k))
-    ).filter(p => p.inStock);
+    // Tìm kiếm sản phẩm theo từ khóa (tính điểm mức độ phù hợp)
+    const keywords = msg.replace(/[?.,!]/g, '').split(/\s+/).filter(w => w.length > 0 && !['tìm', 'cho', 'mình', 'tôi', 'bạn', 'có', 'không', 'ạ', 'nhé', 'xem'].includes(w));
+    
+    let scoredMatches = products.filter(p => p.inStock).map(p => {
+      const pName = p.name.toLowerCase();
+      const cLabel = p.categoryLabel.toLowerCase();
+      let score = 0;
+      
+      // Nếu cụm từ tìm kiếm xuất hiện nguyên vẹn trong tên thì điểm rất cao
+      const searchPhrase = keywords.join(' ');
+      if (pName.includes(searchPhrase)) score += 10;
+      if (cLabel.includes(searchPhrase)) score += 10;
 
-    if (matches.length > 0) {
-      const top3 = matches.slice(0, 3);
-      const ids = top3.map(p => p.id).join(',');
+      // Tính điểm theo từng từ khóa
+      keywords.forEach(k => {
+        if (pName.includes(k) || cLabel.includes(k)) {
+          score += 1;
+        }
+      });
+      return { product: p, score };
+    }).filter(p => p.score > 0).sort((a, b) => b.score - a.score);
+
+    if (scoredMatches.length > 0) {
+      const top3 = scoredMatches.slice(0, 3);
+      const ids = top3.map(p => p.product.id).join(',');
       return `Dạ mình tìm thấy một số sản phẩm phù hợp với yêu cầu của bạn đây ạ:\nSUGGEST_IDS: ${ids}`;
     }
 
