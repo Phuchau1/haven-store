@@ -1,4 +1,5 @@
 'use client';
+import { GoogleLogin } from '@react-oauth/google';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -136,13 +137,35 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        <div className="mt-8 grid grid-cols-2 gap-4">
-                            <button className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border border-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-[0.98]">
-                                <Chrome size={18} /> Google
-                            </button>
-                            <button className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border border-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-[0.98]">
-                                <Github size={18} /> Github
-                            </button>
+                        <div className="mt-8 flex justify-center w-full">
+                            <GoogleLogin
+                                onSuccess={async (credentialResponse) => {
+                                    setLoading(true);
+                                    try {
+                                        const res = await fetch('/api/auth/google', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ token: credentialResponse.credential })
+                                        });
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            login(data.user);
+                                            router.push('/');
+                                        } else {
+                                            setError(data.message || 'Đăng nhập Google thất bại');
+                                        }
+                                    } catch (err) {
+                                        setError('Lỗi kết nối máy chủ');
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                onError={() => setError('Google Login Failed')}
+                                shape="pill"
+                                size="large"
+                                text="continue_with"
+                                width="300"
+                            />
                         </div>
                     </div>
 

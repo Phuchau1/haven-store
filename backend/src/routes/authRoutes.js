@@ -8,4 +8,8 @@ router.put('/profile', authController.updateProfile);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 
+// Social Login
+router.post('/google', authController.googleLogin);
+router.post('/facebook', authController.facebookLogin);
+
 module.exports = router;

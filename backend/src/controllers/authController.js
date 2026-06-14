@@ -163,10 +163,91 @@ const resetPassword = async (req, res, next) => {
     }
 };
 
+const { OAuth2Client } = require('google-auth-library');
+const axios = require('axios');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '1059982947365-mmvo47jgvdo3o5ipvl2nkk53s5hmm115.apps.googleusercontent.com');
+
+const googleLogin = async (req, res, next) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(400).json({ success: false, message: 'Thiếu Google token' });
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID || '1059982947365-mmvo47jgvdo3o5ipvl2nkk53s5hmm115.apps.googleusercontent.com',
+        });
+        const payload = ticket.getPayload();
+        
+        let user = await UserModel.findOne({ email: payload.email });
+        if (!user) {
+            user = new UserModel({
+                id: `usr-${Math.random().toString(36).substr(2, 9)}`,
+                name: payload.name,
+                email: payload.email,
+                googleId: payload.sub,
+                avatar: payload.picture,
+                role: 'user',
+            });
+            await user.save();
+        } else if (!user.googleId) {
+            user.googleId = payload.sub;
+            user.avatar = payload.picture;
+            await user.save();
+        }
+
+        const userObj = user.toObject();
+        delete userObj.password;
+        res.json({ success: true, user: userObj });
+    } catch (error) {
+        console.error('Google Login Error:', error);
+        res.status(401).json({ success: false, message: 'Đăng nhập Google thất bại' });
+    }
+};
+
+const facebookLogin = async (req, res, next) => {
+    try {
+        const { accessToken, userID } = req.body;
+        if (!accessToken) return res.status(400).json({ success: false, message: 'Thiếu Facebook token' });
+
+        const fbRes = await axios.get(`https://graph.facebook.com/v13.0/me?fields=id,name,email,picture.type(large)&access_token=${accessToken}`);
+        const payload = fbRes.data;
+        
+        if (!payload.email) {
+            return res.status(400).json({ success: false, message: 'Không thể lấy email từ Facebook. Vui lòng thử phương thức khác.' });
+        }
+
+        let user = await UserModel.findOne({ email: payload.email });
+        if (!user) {
+            user = new UserModel({
+                id: `usr-${Math.random().toString(36).substr(2, 9)}`,
+                name: payload.name,
+                email: payload.email,
+                facebookId: payload.id,
+                avatar: payload.picture?.data?.url,
+                role: 'user',
+            });
+            await user.save();
+        } else if (!user.facebookId) {
+            user.facebookId = payload.id;
+            user.avatar = payload.picture?.data?.url;
+            await user.save();
+        }
+
+        const userObj = user.toObject();
+        delete userObj.password;
+        res.json({ success: true, user: userObj });
+    } catch (error) {
+        console.error('Facebook Login Error:', error);
+        res.status(401).json({ success: false, message: 'Đăng nhập Facebook thất bại' });
+    }
+};
+
 module.exports = {
     login,
     register,
     updateProfile,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    googleLogin,
+    facebookLogin
 };

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import LayoutShell from '@/app/component/LayoutShell';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
   title: 'PH Store - Thời trang cao cấp | Quần áo & Giày dép',
@@ -29,7 +30,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <LayoutShell>{children}</LayoutShell>
+        <GoogleOAuthProvider clientId="1059982947365-mmvo47jgvdo3o5ipvl2nkk53s5hmm115.apps.googleusercontent.com">
+          <LayoutShell>{children}</LayoutShell>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

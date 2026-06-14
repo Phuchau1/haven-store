@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "chart.js": "^4.5.1",
@@ -20,6 +21,7 @@
     "react": "19.2.3",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3",
+    "react-facebook-login": "^4.1.1",
     "react-parallax-tilt": "^1.7.328",
     "three": "^0.184.0",
     "uuid": "^13.0.0",
@@ -31,6 +33,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-facebook-login": "^4.1.11",
     "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
