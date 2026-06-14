@@ -4,8 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, XCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function PaymentResultPage() {
+function PaymentResultContent() {
     const searchParams = useSearchParams();
     const status = searchParams.get('status');
     const orderId = searchParams.get('orderId');
@@ -65,5 +66,13 @@ export default function PaymentResultPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function PaymentResultPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Đang tải kết quả thanh toán...</div>}>
+            <PaymentResultContent />
+        </Suspense>
     );
 }
