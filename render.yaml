@@ -2,6 +2,7 @@ services:
   - type: web
     name: fashion-backend
     env: node
+    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -20,6 +21,7 @@ services:
   - type: web
     name: fashion-frontend
     env: node
+    rootDir: frontend
     buildCommand: npm install --legacy-peer-deps && npm run build
     startCommand: npm start
     envVars:
