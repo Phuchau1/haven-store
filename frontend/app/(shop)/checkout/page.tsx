@@ -5,17 +5,24 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, Lock } from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
 import { formatPrice } from '@/lib/format';
 import CheckoutForm from '@/app/component/CheckoutForm';
 import OrderSuccessModal from '@/app/component/OrderSuccessModal';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 export default function CheckoutPage() {
     const router = useRouter();
     const { items, totalAmount, clearCart } = useCart();
+    const { user } = useAuthStore();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [orderInfo, setOrderInfo] = useState({ orderId: '', email: '' });
+    const [isMounted, setIsMounted] = useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const handleOrderSuccess = (orderId: string, email: string) => {
         setOrderInfo({ orderId, email });
@@ -27,6 +34,32 @@ export default function CheckoutPage() {
         setShowSuccessModal(false);
         router.push('/');
     };
+
+    // Hydration check
+    if (!isMounted) return null;
+
+    // Login check
+    if (!user && !showSuccessModal) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+                <div className="text-center p-8 bg-white rounded-3xl shadow-xl border border-gray-100 max-w-md w-full">
+                    <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                        <Lock size={32} className="text-slate-700" />
+                    </div>
+                    <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Yêu cầu đăng nhập</h2>
+                    <p className="text-sm text-slate-500 mt-2 mb-8 font-medium">Bạn cần đăng nhập tài khoản để có thể tiến hành đặt hàng và thanh toán.</p>
+                    <div className="space-y-3">
+                        <Link href="/login" className="block w-full py-4 px-4 bg-slate-900 text-white text-sm font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-[0.98]">
+                            Đăng nhập ngay
+                        </Link>
+                        <Link href="/register" className="block w-full py-4 px-4 bg-white text-slate-900 text-sm font-bold border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all active:scale-[0.98]">
+                            Tạo tài khoản mới
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // Redirect if cart is empty
     if (items.length === 0 && !showSuccessModal) {
