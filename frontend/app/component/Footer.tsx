@@ -13,8 +13,8 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
                     {/* Brand Info */}
                     <div className="lg:col-span-1">
-                        <Link href="/" className="inline-block bg-white p-2 rounded-xl hover:bg-gray-50 transition-colors">
-                            <Image src="/logo-new.png" alt="HAVEN STORE" width={200} height={200} className="h-[45px] w-auto object-contain drop-shadow-sm" />
+                        <Link href="/" className="inline-block bg-white p-2 rounded-xl hover:bg-gray-50 transition-colors mb-4">
+                            <img src="/logo-new.png" alt="HAVEN STORE" className="h-[40px] w-auto object-contain drop-shadow-sm" />
                         </Link>
                         <p className="mt-6 text-sm text-[#BDBDBD] leading-relaxed font-normal" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
                             Thương hiệu thời trang hàng đầu Việt Nam. Chúng tôi mang đến những sản phẩm

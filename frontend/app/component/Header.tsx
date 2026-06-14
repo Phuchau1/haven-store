@@ -239,7 +239,7 @@ export default function Header() {
 
                         {/* Logo */}
                         <Link href="/" className="flex items-center h-full">
-                            <Image src="/logo-new.png" alt="HAVEN STORE" width={300} height={300} className="h-[45px] md:h-[55px] w-auto object-contain hover:opacity-70 transition-opacity duration-300" priority />
+                            <img src="/logo-new.png" alt="HAVEN STORE" className="h-[40px] md:h-[50px] w-auto object-contain hover:opacity-70 transition-opacity duration-300" />
                         </Link>
 
                         {/* Desktop Navigation */}
