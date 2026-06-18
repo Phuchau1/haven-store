@@ -125,7 +125,13 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
                                 </div>
                                 <div>
                                     <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Tổng tiền</p>
-                                    <p className="text-sm font-bold text-rose-600">{formatPrice(order.totalAmount)}</p>
+                                    {(order as any).discountAmount > 0 && (
+                                        <p className="text-xs text-slate-400 line-through">{formatPrice(order.totalAmount)}</p>
+                                    )}
+                                    <p className="text-sm font-bold text-rose-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</p>
+                                    {(order as any).couponCode && (
+                                        <p className="text-[10px] text-emerald-600 mt-0.5">🎟 {(order as any).couponCode}</p>
+                                    )}
                                 </div>
                             </div>
                             <div className="space-y-5">
@@ -188,9 +194,19 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
                                         ))}
                                     </tbody>
                                     <tfoot>
+                                        <tr className="border-t border-slate-100">
+                                            <td colSpan={3} className="py-3 text-right text-sm text-slate-500">Tạm tính:</td>
+                                            <td className="py-3 text-right text-sm text-slate-500">{formatPrice(order.totalAmount)}</td>
+                                        </tr>
+                                        {(order as any).discountAmount > 0 && (
+                                            <tr className="text-emerald-600">
+                                                <td colSpan={3} className="py-2 text-right text-sm font-medium">🎟 Voucher ({(order as any).couponCode}):</td>
+                                                <td className="py-2 text-right text-sm font-medium">-{formatPrice((order as any).discountAmount)}</td>
+                                            </tr>
+                                        )}
                                         <tr className="border-t-2 border-slate-100 bg-slate-50/30">
                                             <td colSpan={3} className="py-4 text-right font-bold text-sm text-slate-900">Tổng cộng:</td>
-                                            <td className="py-4 text-right font-bold text-base text-rose-600">{formatPrice(order.totalAmount)}</td>
+                                            <td className="py-4 text-right font-bold text-base text-rose-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -533,7 +549,12 @@ export default function NguoiDungPage() {
                                                                     )}
                                                                 </div>
                                                                 <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
-                                                                    <p className="text-sm font-bold text-indigo-600">{formatPrice(order.totalAmount)}</p>
+                                                                    <div className="text-right">
+                                                                        {(order as any).discountAmount > 0 && (
+                                                                            <p className="text-xs text-slate-400 line-through">{formatPrice(order.totalAmount)}</p>
+                                                                        )}
+                                                                        <p className="text-sm font-bold text-indigo-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</p>
+                                                                    </div>
                                                                     <button 
                                                                         onClick={() => setSelectedOrderId(order.id ?? '')}
                                                                         className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-600 hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-md hover:shadow-lg"

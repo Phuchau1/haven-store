@@ -23,7 +23,8 @@ function getTransporter() {
 }
 
 function generateOrderEmailHTML(data) {
-    const { orderId, customerName, items, totalAmount, paymentMethod, address, phone, orderDate, note } = data;
+    const { orderId, customerName, items, totalAmount, finalAmount, discountAmount, couponCode, paymentMethod, address, phone, orderDate, note } = data;
+    const paidAmount = finalAmount || totalAmount;
 
     const itemsHTML = items
         .map(
@@ -126,9 +127,20 @@ function generateOrderEmailHTML(data) {
     </div>
     <div style="padding: 20px 32px; background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);">
       <table style="width: 100%; border-collapse: collapse;">
+        ${discountAmount > 0 ? `
         <tr>
-          <td style="padding: 12px 0 8px; color: #fff; font-size: 18px; font-weight: 700;">TỔNG CỘNG</td>
-          <td style="padding: 12px 0 8px; text-align: right; color: #fff; font-size: 22px; font-weight: 700;">${formatPrice(totalAmount)}</td>
+          <td style="padding: 6px 0; color: #aaa; font-size: 14px;">T\u1ea1m t\u00ednh</td>
+          <td style="padding: 6px 0; text-align: right; color: #aaa; font-size: 14px;">${formatPrice(totalAmount)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #6ee7b7; font-size: 14px;">\uD83C\uDF9F Voucher (${couponCode})</td>
+          <td style="padding: 6px 0; text-align: right; color: #6ee7b7; font-size: 14px;">-${formatPrice(discountAmount)}</td>
+        </tr>
+        <tr><td colspan="2" style="border-top: 1px solid #444; padding-top: 8px;"></td></tr>
+        ` : ''}
+        <tr>
+          <td style="padding: 12px 0 8px; color: #fff; font-size: 18px; font-weight: 700;">T\u1ed4NG C\u1ed8NG</td>
+          <td style="padding: 12px 0 8px; text-align: right; color: #fff; font-size: 22px; font-weight: 700;">${formatPrice(paidAmount)}</td>
         </tr>
       </table>
     </div>
