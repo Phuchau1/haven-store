@@ -42,7 +42,7 @@ const OrderSchema = new Schema({
     totalAmount: { type: Number, required: true },
     couponCode: { type: String, default: '' },
     discountAmount: { type: Number, default: 0 },
-    finalAmount: { type: Number, required: true },
+    finalAmount: { type: Number, default: 0 }, // fallback handled in controller
     note: { type: String },
     transferReceipt: { type: String, default: '' },
     status: { type: String, required: true, enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
