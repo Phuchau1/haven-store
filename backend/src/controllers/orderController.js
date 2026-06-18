@@ -2,6 +2,7 @@ const { OrderModel } = require('../models/Order');
 const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
 const { InventoryHistoryModel } = require('../models/InventoryHistory');
+const { CouponModel } = require('../models/Coupon');
 const { sendOrderConfirmationEmail } = require('../services/emailService');
 const fs = require('fs');
 const path = require('path');
@@ -126,6 +127,7 @@ const createOrder = async (req, res, next) => {
             ...body,
             id: orderId,
             status: 'pending',
+            finalAmount: body.finalAmount ?? body.totalAmount,
             createdAt: new Date().toISOString()
         };
 
@@ -137,6 +139,14 @@ const createOrder = async (req, res, next) => {
         // Decrease Stock
         if (newOrderData.items && newOrderData.items.length > 0) {
             await decreaseStockOnOrder(newOrderData.items, orderId);
+        }
+
+        // Giảm usage_limit của coupon nếu có dùng
+        if (newOrderData.couponCode) {
+            await CouponModel.findOneAndUpdate(
+                { code: newOrderData.couponCode },
+                { $inc: { usage_limit: -1 } }
+            ).catch(e => log('Coupon decrement error: ' + e.message));
         }
 
         // Gửi email xác nhận bất đồng bộ (Non-blocking)

@@ -32,6 +32,12 @@ export const useAuthStore = create<AuthStore>()(
         }),
         {
             name: 'phstore-user', // Match the existing localStorage key if possible, but Zustand wraps it in JSON
+            skipHydration: true,
         }
     )
 );
+
+// Rehydrate on client after mount
+if (typeof window !== 'undefined') {
+    useAuthStore.persist.rehydrate();
+}

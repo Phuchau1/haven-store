@@ -86,6 +86,12 @@ export const useCartStore = create<CartStore>()(
         {
             name: 'fashion-cart-storage',
             partialize: (state) => ({ items: state.items }), // Only persist items, not isOpen
+            skipHydration: true, // Prevent SSR mismatch — hydrate manually on client
         }
     )
 );
+
+// Rehydrate on client after mount
+if (typeof window !== 'undefined') {
+    useCartStore.persist.rehydrate();
+}

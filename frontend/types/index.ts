@@ -79,6 +79,9 @@ export interface OrderData {
     paymentMethod: string;
     items: CartItem[];
     totalAmount: number;
+    couponCode?: string;
+    discountAmount?: number;
+    finalAmount: number;
     note?: string;
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
     createdAt: string;
