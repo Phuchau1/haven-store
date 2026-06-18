@@ -211,7 +211,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }
 
             if (!response.ok) {
-                throw new Error(result.message || 'Có lỗi xảy ra khi đặt hàng');
+                throw new Error(result.error || result.message || 'Có lỗi xảy ra khi đặt hàng');
             }
 
             // Lưu thông tin để lần sau không cần nhập lại

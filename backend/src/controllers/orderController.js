@@ -156,6 +156,11 @@ const createOrder = async (req, res, next) => {
         return res.json({ success: true, orderId: newOrderData.id });
     } catch (error) {
         log('CRITICAL error: ' + error.message);
+        log('Error stack: ' + (error.stack || ''));
+        if (error.name === 'ValidationError') {
+            log('Validation errors: ' + JSON.stringify(error.errors));
+            return res.status(400).json({ success: false, message: 'Dữ liệu không hợp lệ', error: error.message });
+        }
         next(error);
     }
 };
