@@ -11,11 +11,15 @@ import { formatPrice } from '@/lib/format';
 import CheckoutForm from '@/app/component/CheckoutForm';
 import OrderSuccessModal from '@/app/component/OrderSuccessModal';
 import { useAuthStore } from '@/app/store/useAuthStore';
+import { useVoucherStore } from '@/app/store/useVoucherStore';
+import { Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
     const router = useRouter();
     const { items, totalAmount, clearCart } = useCart();
     const { user } = useAuthStore();
+    const { appliedVoucher, removeVoucher } = useVoucherStore();
+    const finalTotal = appliedVoucher ? appliedVoucher.finalAmount : totalAmount;
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [orderInfo, setOrderInfo] = useState({ orderId: '', email: '' });
     const [isMounted, setIsMounted] = useState(false);
@@ -28,6 +32,7 @@ export default function CheckoutPage() {
         setOrderInfo({ orderId, email });
         setShowSuccessModal(true);
         clearCart();
+        removeVoucher(); // reset voucher sau khi đặt hàng xong
     };
 
     const handleCloseModal = () => {
@@ -173,12 +178,29 @@ export default function CheckoutPage() {
                                         <span>Phí vận chuyển</span>
                                         <span className="font-medium">Miễn phí</span>
                                     </div>
+
+                                    {/* Voucher discount row */}
+                                    {appliedVoucher && (
+                                        <div className="flex justify-between text-sm text-rose-500">
+                                            <span className="flex items-center gap-1">
+                                                <Tag size={12} />
+                                                Voucher ({appliedVoucher.code})
+                                            </span>
+                                            <span>-{formatPrice(appliedVoucher.discountAmount)}</span>
+                                        </div>
+                                    )}
+
                                     <div className="border-t border-gray-100 pt-3 mt-3">
                                         <div className="flex justify-between items-baseline">
                                             <span className="text-sm text-gray-500">Tổng cộng</span>
-                                            <span className="text-2xl font-semibold text-black">
-                                                {formatPrice(totalAmount)}
-                                            </span>
+                                            <div className="text-right">
+                                                {appliedVoucher && (
+                                                    <p className="text-xs text-gray-400 line-through">{formatPrice(totalAmount)}</p>
+                                                )}
+                                                <span className={`text-2xl font-semibold ${appliedVoucher ? 'text-rose-600' : 'text-black'}`}>
+                                                    {formatPrice(finalTotal)}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

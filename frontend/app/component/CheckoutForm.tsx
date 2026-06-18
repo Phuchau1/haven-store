@@ -7,6 +7,7 @@ import { useCart } from '@/app/component/CartContext';
 import { useAuth } from '@/app/component/AuthContext';
 import { formatPrice } from '@/lib/format';
 import { OrderData } from '@/types';
+import { useVoucherStore } from '@/app/store/useVoucherStore';
 
 interface CheckoutFormProps {
     onSuccess: (orderId: string, email: string) => void;
@@ -42,7 +43,8 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
     // ── Voucher states ──
     const [voucherInput, setVoucherInput] = useState('');
-    const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number; finalAmount: number; discount_type: string; discount_value: number } | null>(null);
+    const { appliedVoucher, setVoucher, removeVoucher: removeVoucherStore } = useVoucherStore();
+    const appliedCoupon = appliedVoucher;
     const [voucherError, setVoucherError] = useState('');
     const [voucherLoading, setVoucherLoading] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
@@ -121,7 +123,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             const data = await res.json();
 
             if (data.success) {
-                setAppliedCoupon({
+                setVoucher({
                     code: data.coupon.code,
                     discountAmount: data.discountAmount,
                     finalAmount: data.finalAmount,
@@ -133,7 +135,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 setShowVoucherList(false);
             } else {
                 setVoucherError(data.message || 'Mã voucher không hợp lệ.');
-                setAppliedCoupon(null);
+                removeVoucherStore();
             }
         } catch (_) {
             setVoucherError('Không thể kết nối máy chủ. Thử lại sau.');
@@ -142,7 +144,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     };
 
     const removeVoucher = () => {
-        setAppliedCoupon(null);
+        removeVoucherStore();
         setVoucherInput('');
         setVoucherError('');
     };
