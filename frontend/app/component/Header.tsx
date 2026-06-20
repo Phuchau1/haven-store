@@ -248,14 +248,6 @@ export default function Header() {
                             {navMenus.map(menu => (
                                 <DesktopMenuItem key={menu.id} menu={menu} />
                             ))}
-                            <div className="flex items-center gap-2 ml-2 pl-4 border-l border-gray-200">
-                                <Link href="/ai-style" className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold tracking-wide text-purple-600 hover:text-purple-700 transition-colors bg-purple-50 hover:bg-purple-100 rounded-full">
-                                    <Sparkles size={14} /> AI Gợi Ý
-                                </Link>
-                                <Link href="/ai-tryon" className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold tracking-wide text-amber-600 hover:text-amber-700 transition-colors bg-amber-50 hover:bg-amber-100 rounded-full">
-                                    <Camera size={14} /> AI Thử Đồ
-                                </Link>
-                            </div>
                         </nav>
 
                         {/* Actions */}
