@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Search, Menu, X, Heart, User, LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Heart, User, LayoutDashboard, LogOut, ChevronDown, Sparkles, Camera } from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
 import { useAuth } from '@/app/component/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -248,6 +248,14 @@ export default function Header() {
                             {navMenus.map(menu => (
                                 <DesktopMenuItem key={menu.id} menu={menu} />
                             ))}
+                            <div className="flex items-center gap-2 ml-2 pl-4 border-l border-gray-200">
+                                <Link href="/ai-style" className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold tracking-wide text-purple-600 hover:text-purple-700 transition-colors bg-purple-50 hover:bg-purple-100 rounded-full">
+                                    <Sparkles size={14} /> AI Gợi Ý
+                                </Link>
+                                <Link href="/ai-tryon" className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold tracking-wide text-amber-600 hover:text-amber-700 transition-colors bg-amber-50 hover:bg-amber-100 rounded-full">
+                                    <Camera size={14} /> AI Thử Đồ
+                                </Link>
+                            </div>
                         </nav>
 
                         {/* Actions */}
