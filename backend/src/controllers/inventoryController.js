@@ -182,8 +182,12 @@ const getStockList = async (req, res, next) => {
         
         const stockList = variants.map(v => {
             const prod = productMap[v.product_id];
-            // Ưu tiên ảnh riêng của variant, fallback về ảnh đầu tiên của sản phẩm
-            const imageUrl = v.image || (prod && prod.images && prod.images.length > 0 ? prod.images[0] : '');
+            // Nếu ảnh variant là placeholder hoặc không có, lấy ảnh thật của sản phẩm
+            let imageUrl = v.image;
+            if (!imageUrl || imageUrl === '/products/placeholder.jpg') {
+                imageUrl = (prod && prod.images && prod.images.length > 0) ? prod.images[0] : '';
+            }
+            
             return {
                 id: v.id,
                 product_id: v.product_id,
