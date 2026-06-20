@@ -346,7 +346,7 @@ export default function LuckyWheel() {
                 {!isOpen && (
                     <motion.button
                         onClick={openWheel}
-                        className="fixed bottom-24 right-4 z-40 flex flex-col items-center gap-1 group"
+                        className="fixed bottom-24 right-6 z-40 flex flex-col items-center gap-1 group"
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0 }}
