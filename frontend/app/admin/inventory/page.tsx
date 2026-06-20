@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Boxes, AlertTriangle, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Boxes, AlertTriangle, ArrowDownLeft, ArrowUpRight, Download } from 'lucide-react';
 import { 
     Chart as ChartJS, 
     CategoryScale, 
@@ -73,6 +73,15 @@ export default function WMSDashboard() {
                     <h2 className="text-2xl font-bold text-slate-900">Dashboard Kho Hàng</h2>
                     <p className="text-sm text-slate-500">Tổng quan tình hình xuất nhập tồn.</p>
                 </div>
+                <a 
+                    href="/api/export/excel/transactions" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                >
+                    <Download size={16} />
+                    Xuất Excel (Lịch sử)
+                </a>
             </div>
 
             {/* Stats */}
