@@ -10,7 +10,7 @@ export default function FloatingAIActions() {
             {/* AI Thử đồ */}
             <Link href="/ai-tryon" passHref legacyBehavior>
                 <motion.a
-                    className="fixed bottom-[170px] right-6 z-40 flex flex-col items-center gap-1 group"
+                    className="fixed bottom-[190px] right-6 z-40 flex flex-col items-center gap-1 group w-14"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     whileHover={{ scale: 1.1 }}
@@ -33,7 +33,7 @@ export default function FloatingAIActions() {
             {/* AI Gợi ý */}
             <Link href="/ai-style" passHref legacyBehavior>
                 <motion.a
-                    className="fixed bottom-[244px] right-6 z-40 flex flex-col items-center gap-1 group"
+                    className="fixed bottom-[280px] right-6 z-40 flex flex-col items-center gap-1 group w-14"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     whileHover={{ scale: 1.1 }}
