@@ -24,6 +24,18 @@ interface DashboardStats {
         inStock: number;
         outOfStock: number;
     };
+    sparklines: {
+        revenue: number[];
+        orders: number[];
+        products: number[];
+        customers: number[];
+    };
+    trends: {
+        revenue: string;
+        orders: string;
+        products: string;
+        customers: string;
+    };
 }
 
 // Sparkline mini chart (SVG)
@@ -61,55 +73,36 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
     );
 }
 
-const SPARKLINE_DATA = {
-    revenue: [40, 65, 45, 80, 55, 90, 70, 95, 60, 88],
-    orders:  [10, 20, 15, 35, 25, 45, 30, 50, 40, 55],
-    products:[5, 8, 6, 12, 9, 15, 11, 18, 14, 20],
-    customers:[20, 30, 25, 40, 35, 55, 45, 60, 50, 70],
-};
-
 const CARD_CONFIGS = [
     {
         key: 'totalRevenue',
         label: 'Doanh thu',
-        trend: '+12.5%',
-        isUp: true,
         icon: DollarSign,
         color: '#10b981',
-        sparkData: SPARKLINE_DATA.revenue,
         format: (v: number) => formatPrice(v),
         link: '/admin/orders',
     },
     {
         key: 'orderCount',
         label: 'Đơn hàng',
-        trend: '+8.2%',
-        isUp: true,
         icon: ShoppingBag,
         color: '#6366f1',
-        sparkData: SPARKLINE_DATA.orders,
         format: (v: number) => v.toLocaleString('vi-VN'),
         link: '/admin/orders',
     },
     {
         key: 'productCount',
         label: 'Sản phẩm',
-        trend: '+3.4%',
-        isUp: true,
         icon: Package,
         color: '#f43f5e',
-        sparkData: SPARKLINE_DATA.products,
         format: (v: number) => v.toLocaleString('vi-VN'),
         link: '/admin/products',
     },
     {
         key: 'customerCount',
         label: 'Khách hàng',
-        trend: '-2.4%',
-        isUp: false,
         icon: Users,
         color: '#f59e0b',
-        sparkData: SPARKLINE_DATA.customers,
         format: (v: number) => v.toLocaleString('vi-VN'),
         link: '/admin/users',
     },
@@ -240,6 +233,22 @@ export default function AdminDashboard() {
                 ) : stats ? (
                     CARD_CONFIGS.map((cfg, i) => {
                         const value = stats[cfg.key as keyof DashboardStats] as number;
+                        const trendMap: any = {
+                            totalRevenue: stats.trends.revenue,
+                            orderCount: stats.trends.orders,
+                            productCount: stats.trends.products,
+                            customerCount: stats.trends.customers
+                        };
+                        const sparkMap: any = {
+                            totalRevenue: stats.sparklines.revenue,
+                            orderCount: stats.sparklines.orders,
+                            productCount: stats.sparklines.products,
+                            customerCount: stats.sparklines.customers
+                        };
+                        const trend = trendMap[cfg.key];
+                        const isUp = trend.startsWith('+');
+                        const sparkData = sparkMap[cfg.key];
+                        
                         return (
                             <motion.div
                                 key={cfg.key}
@@ -256,14 +265,11 @@ export default function AdminDashboard() {
                                             <cfg.icon size={18} />
                                         </div>
                                         <div
-                                            className={`flex items-center gap-0.5 text-xs font-bold ${cfg.isUp ? '' : ''}`}
-                                            style={{ color: cfg.isUp ? 'var(--adm-success)' : 'var(--adm-danger)' }}
+                                            className="flex items-center gap-0.5 text-xs font-bold"
+                                            style={{ color: isUp ? 'var(--adm-success)' : 'var(--adm-danger)' }}
                                         >
-                                            {cfg.trend}
-                                            {cfg.isUp
-                                                ? <ArrowUpRight size={12} />
-                                                : <ArrowDownRight size={12} />
-                                            }
+                                            {trend}
+                                            {isUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                                         </div>
                                     </div>
 
@@ -283,7 +289,7 @@ export default function AdminDashboard() {
                                             </p>
                                         </div>
                                         <div className="opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <Sparkline data={cfg.sparkData} color={cfg.color} />
+                                            <Sparkline data={sparkData} color={cfg.color} />
                                         </div>
                                     </div>
                                 </Link>

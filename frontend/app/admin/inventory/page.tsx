@@ -28,7 +28,10 @@ export default function WMSDashboard() {
         lowStockSKUs: 0,
         outOfStockSKUs: 0,
         importsToday: 0,
-        exportsToday: 0
+        exportsToday: 0,
+        chartLabels: [],
+        importData: [],
+        exportData: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -43,19 +46,18 @@ export default function WMSDashboard() {
             .finally(() => setLoading(false));
     }, []);
 
-    // Placeholder chart data (could be fetched from API later)
     const lineChartData = {
-        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+        labels: stats.chartLabels || ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
         datasets: [
             {
                 label: 'Nhập kho',
-                data: [650, 590, 800, 810, 560, 550, 400],
+                data: stats.importData || [0, 0, 0, 0, 0, 0, 0],
                 borderColor: 'rgb(16, 185, 129)',
                 tension: 0.3
             },
             {
                 label: 'Xuất kho',
-                data: [280, 480, 400, 190, 860, 270, 900],
+                data: stats.exportData || [0, 0, 0, 0, 0, 0, 0],
                 borderColor: 'rgb(244, 63, 94)',
                 tension: 0.3
             }

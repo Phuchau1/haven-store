@@ -49,6 +49,54 @@ const getStats = async (req, res, next) => {
             outOfStock: products.filter(p => !p.inStock).length,
         };
 
+        // Thống kê theo ngày (10 ngày gần nhất) cho sparkline
+        const sparklines = { revenue: [], orders: [], products: [], customers: [] };
+        const trends = { revenue: '+0%', orders: '+0%', products: '+0%', customers: '+0%' };
+        
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        for (let i = 9; i >= 0; i--) {
+            const dateStart = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+            const dateEnd = new Date(dateStart.getTime() + 24 * 60 * 60 * 1000);
+            
+            const dailyOrders = orders.filter(o => {
+                const d = new Date(o.createdAt);
+                return d >= dateStart && d < dateEnd;
+            });
+            
+            const dailyRevenue = dailyOrders
+                .filter(o => o.status === 'delivered')
+                .reduce((s, o) => s + (o.totalAmount || 0), 0);
+                
+            const dailyProducts = products.filter(p => {
+                const d = new Date(p.createdAt || p.updatedAt);
+                return d >= dateStart && d < dateEnd;
+            }).length;
+            
+            const dailyCustomers = new Set(dailyOrders.map(o => o.email)).size;
+            
+            sparklines.revenue.push(dailyRevenue);
+            sparklines.orders.push(dailyOrders.length);
+            sparklines.products.push(dailyProducts);
+            sparklines.customers.push(dailyCustomers);
+        }
+        
+        // Tính trend (so sánh tổng 5 ngày gần đây với 5 ngày trước đó)
+        const calcTrend = (arr) => {
+            if (arr.length !== 10) return '+0%';
+            const recent = arr.slice(5, 10).reduce((a, b) => a + b, 0);
+            const previous = arr.slice(0, 5).reduce((a, b) => a + b, 0);
+            if (previous === 0) return recent > 0 ? '+100%' : '0%';
+            const diff = ((recent - previous) / previous) * 100;
+            return diff > 0 ? `+${diff.toFixed(1)}%` : `${diff.toFixed(1)}%`;
+        };
+        
+        trends.revenue = calcTrend(sparklines.revenue);
+        trends.orders = calcTrend(sparklines.orders);
+        trends.products = calcTrend(sparklines.products);
+        trends.customers = calcTrend(sparklines.customers);
+
         res.json({
             success: true,
             stats: {
@@ -58,7 +106,9 @@ const getStats = async (req, res, next) => {
                 customerCount: new Set(orders.map(o => o.email)).size,
                 recentOrders: orders.slice(0, 5),
                 topProducts: topProducts,
-                stockStatus: stockStatus
+                stockStatus: stockStatus,
+                sparklines,
+                trends
             }
         });
     } catch (error) {

@@ -38,6 +38,44 @@ exports.getDashboardStats = async (req, res) => {
             else if (txn.type === 'EXPORT') exportsToday += Math.abs(txn.quantity);
         }
 
+        // Biểu đồ nhập xuất 7 ngày gần nhất
+        const chartLabels = [];
+        const importData = [];
+        const exportData = [];
+        
+        const last7Days = [];
+        const now = new Date();
+        const todayStr = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(todayStr.getTime() - i * 24 * 60 * 60 * 1000);
+            last7Days.push(date);
+            chartLabels.push(`T${date.getDate()}/${date.getMonth()+1}`);
+        }
+        
+        const weekTxns = await StockTransactionModel.find({
+            createdAt: { $gte: last7Days[0] }
+        });
+        
+        for (let i = 0; i < 7; i++) {
+            const dateStart = last7Days[i];
+            const dateEnd = new Date(dateStart.getTime() + 24 * 60 * 60 * 1000);
+            
+            const dailyTxns = weekTxns.filter(t => {
+                const d = new Date(t.createdAt);
+                return d >= dateStart && d < dateEnd;
+            });
+            
+            let dImport = 0;
+            let dExport = 0;
+            for (const txn of dailyTxns) {
+                if (txn.type === 'IMPORT' || txn.type === 'RETURN') dImport += txn.quantity;
+                else if (txn.type === 'EXPORT') dExport += Math.abs(txn.quantity);
+            }
+            importData.push(dImport);
+            exportData.push(dExport);
+        }
+
         res.json({
             success: true,
             data: {
@@ -48,7 +86,10 @@ exports.getDashboardStats = async (req, res) => {
                 lowStockSKUs,
                 outOfStockSKUs,
                 importsToday,
-                exportsToday
+                exportsToday,
+                chartLabels,
+                importData,
+                exportData
             }
         });
     } catch (error) {
