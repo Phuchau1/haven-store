@@ -182,21 +182,23 @@ const getStockList = async (req, res, next) => {
         
         const stockList = variants.map(v => {
             const prod = productMap[v.product_id];
+            // Ưu tiên ảnh riêng của variant, fallback về ảnh đầu tiên của sản phẩm
+            const imageUrl = v.image || (prod && prod.images && prod.images.length > 0 ? prod.images[0] : '');
             return {
                 id: v.id,
                 product_id: v.product_id,
                 product_name: prod ? prod.name : 'Unknown',
-                category: prod ? prod.category_id : 'N/A',
-                brand: prod ? prod.brand : 'N/A',
+                category: prod ? (prod.category_id || prod.category || 'N/A') : 'N/A',
+                brand: prod ? (prod.brand || 'N/A') : 'N/A',
                 sku: v.sku,
                 barcode: v.barcode || '',
                 qr_code: v.qr_code || '',
                 size_id: v.size_id,
                 color_id: v.color_id,
-                price: v.price,
+                price: v.price || (prod ? prod.price : 0),
                 stock: v.stock,
                 status: v.status,
-                image: v.image
+                image: imageUrl
             };
         });
         

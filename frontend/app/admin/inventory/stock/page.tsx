@@ -98,12 +98,31 @@ export default function StockVariantManager() {
                                     <tr key={variant.id} className="hover:bg-slate-50/50">
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden">
-                                                    {variant.image && <img src={variant.image} alt={variant.sku} className="w-full h-full object-cover" />}
+                                                <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">
+                                                    {variant.image && variant.image !== '/products/placeholder.jpg' ? (
+                                                        <img 
+                                                            src={variant.image} 
+                                                            alt={variant.product_name}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).onerror = null;
+                                                                (e.target as HTMLImageElement).src = '';
+                                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                                const parent = (e.target as HTMLImageElement).parentElement;
+                                                                if (parent) {
+                                                                    parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">${variant.product_name?.charAt(0) || '?'}</div>`;
+                                                                }
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-500 text-sm font-bold">
+                                                            {variant.product_name?.charAt(0) || '?'}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-slate-800">{variant.product_name}</p>
-                                                    <p className="text-xs text-slate-500">{variant.brand}</p>
+                                                    <p className="font-semibold text-slate-800 text-sm">{variant.product_name}</p>
+                                                    <p className="text-xs text-slate-500">{variant.brand && variant.brand !== 'N/A' ? variant.brand : variant.category}</p>
                                                 </div>
                                             </div>
                                         </td>
