@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
     Menu, X, Bell, User, Star, Image as ImageIcon, Palette, Ruler,
     Home, ChevronRight, Store, Search, MoreHorizontal, Zap,
-    Bot, Gift
+    Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
