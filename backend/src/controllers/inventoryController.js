@@ -169,8 +169,46 @@ const directSetStock = async (req, res, next) => {
     }
 };
 
+const getStockList = async (req, res, next) => {
+    try {
+        const variants = await ProductVariantModel.find().lean();
+        
+        // Fetch product info to merge
+        const productIds = [...new Set(variants.map(v => v.product_id))];
+        const products = await ProductModel.find({ id: { $in: productIds } }).lean();
+        
+        const productMap = {};
+        products.forEach(p => productMap[p.id] = p);
+        
+        const stockList = variants.map(v => {
+            const prod = productMap[v.product_id];
+            return {
+                id: v.id,
+                product_id: v.product_id,
+                product_name: prod ? prod.name : 'Unknown',
+                category: prod ? prod.category_id : 'N/A',
+                brand: prod ? prod.brand : 'N/A',
+                sku: v.sku,
+                barcode: v.barcode || '',
+                qr_code: v.qr_code || '',
+                size_id: v.size_id,
+                color_id: v.color_id,
+                price: v.price,
+                stock: v.stock,
+                status: v.status,
+                image: v.image
+            };
+        });
+        
+        res.json({ success: true, data: stockList });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getInventoryHistory,
     adjustInventory,
-    directSetStock
+    directSetStock,
+    getStockList
 };

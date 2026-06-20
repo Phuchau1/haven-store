@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, FileDown } from 'lucide-react';
+import Link from 'next/link';
 
 export default function StockReceiptsPage() {
     const [receipts, setReceipts] = useState<any[]>([]);
@@ -28,9 +29,9 @@ export default function StockReceiptsPage() {
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden p-6">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-slate-800">Phiếu Xuất / Nhập Kho</h3>
-                <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700">
+                <Link href="/admin/inventory/receipts/new" className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700">
                     <Plus size={16} /> Tạo Phiếu Kho
-                </button>
+                </Link>
             </div>
 
             <div className="overflow-x-auto">

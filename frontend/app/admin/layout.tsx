@@ -6,7 +6,8 @@ import {
     LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
     Menu, X, Bell, User, Star, Image as ImageIcon, Palette, Ruler,
     Home, ChevronRight, Store, Search, MoreHorizontal, Zap,
-    Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon
+    Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
+    Boxes, FileDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
@@ -17,8 +18,15 @@ const MENU_ITEMS = [
     { icon: LayoutDashboard, label: 'Dashboard',     href: '/admin',                   group: 'main' },
     { icon: Package,         label: 'Sản phẩm',      href: '/admin/products',          group: 'main' },
     { icon: ShoppingCart,    label: 'Đơn hàng',      href: '/admin/orders',            group: 'main' },
-    { icon: History,         label: 'Kho hàng',      href: '/admin/inventory',         group: 'main' },
     { icon: Users,           label: 'Người dùng',    href: '/admin/users',             group: 'main' },
+    
+    // Kho hàng (WMS)
+    { icon: LayoutDashboard, label: 'Tổng quan Kho', href: '/admin/inventory',         group: 'inventory' },
+    { icon: Boxes,           label: 'Tồn kho',       href: '/admin/inventory/stock',   group: 'inventory' },
+    { icon: FileDown,        label: 'Phiếu Kho',     href: '/admin/inventory/receipts',group: 'inventory' },
+    { icon: History,         label: 'Nhật ký kho',   href: '/admin/inventory/transactions',group: 'inventory' },
+    { icon: Truck,           label: 'Nhà cung cấp',  href: '/admin/inventory/suppliers',group: 'inventory' },
+    
     { icon: Star,            label: 'Đánh giá',      href: '/admin/reviews',           group: 'catalog' },
     { icon: MessageSquare,   label: 'Live Chat',     href: '/admin/chats',             group: 'catalog' },
     { icon: Package,         label: 'Danh mục',      href: '/admin/categories',        group: 'catalog' },
@@ -36,7 +44,8 @@ const MENU_ITEMS = [
 
 const GROUPS = [
     { key: 'main',    label: 'Chính' },
-    { key: 'catalog', label: 'Quản lý' },
+    { key: 'inventory', label: 'Quản lý kho (WMS)' },
+    { key: 'catalog', label: 'Sản phẩm' },
     { key: 'store',   label: 'Cửa hàng' },
 ];
 
