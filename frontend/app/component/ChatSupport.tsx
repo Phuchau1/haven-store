@@ -7,8 +7,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
 
-const GEMINI_MODEL = 'gemini-1.5-flash';
-const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_KEY || '';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface Product {
@@ -221,26 +219,28 @@ QUY TẮC:
     return `${systemCtx}\n\n${historyText ? 'Lịch sử hội thoại:\n' + historyText + '\n' : ''}Khách: ${userMessage}\nTrợ lý:`;
   };
 
-  // ── Smart Local AI (Fallback) & Real Gemini API ──
+  // ── Call AI via Backend (secure) ──
   const callGemini = async (userMessage: string): Promise<string> => {
-    // 1. Dùng Gemini API thật nếu có KEY
-    if (GEMINI_KEY) {
-      try {
-        const prompt = buildPrompt(userMessage);
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        });
-        const data = await res.json();
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-          return data.candidates[0].content.parts[0].text;
-        }
-      } catch (err) {
-        console.error('Lỗi gọi Gemini API:', err);
-      }
+    // 1. Try Backend AI API (uses server-side API Key & system prompt)
+    try {
+      const productList = products
+        .filter(p => p.inStock)
+        .map(p => `ID:${p.id} | ${p.name} | ${p.categoryLabel} | ${p.price.toLocaleString('vi-VN')}đ${p.originalPrice ? ` (gốc: ${p.originalPrice.toLocaleString('vi-VN')}đ)` : ''}${p.badge ? ` | ${p.badge}` : ''}`)
+        .join('\n');
+
+      const res = await fetch(`${BACKEND_URL}/api/ai/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'chat',
+          messages: [...chatHistory, { role: 'user', parts: [{ text: userMessage }] }],
+          productContext: productList || null
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.text) return data.text;
+    } catch (err) {
+      console.error('Backend AI error, using fallback:', err);
     }
 
     // 2. Fallback Logic cục bộ (nếu API lỗi hoặc hết hạn ngạch)

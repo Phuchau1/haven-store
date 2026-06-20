@@ -1,48 +1,55 @@
-import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_KEY || '';
+// ─── Backend-proxied AI calls (secure, API key stays on server) ───
 
-// Initialize the Gemini client
-function getClient() {
-    return new GoogleGenerativeAI(API_KEY);
-}
-
-// Text-only generation
-export async function generateText(prompt: string): Promise<string> {
+// Text-only generation via Backend
+export async function generateText(prompt: string, type: 'style' | 'chat' = 'style'): Promise<string> {
     try {
-        const genAI = getClient();
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-    } catch (err: unknown) {
-        console.error('Gemini text error:', err);
-        // fallback response
+        const res = await fetch(`${BACKEND_URL}/api/ai/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type,
+                messages: [{ role: 'user', parts: [{ text: prompt }] }]
+            })
+        });
+        const data = await res.json();
+        if (data.success) return data.text;
+        console.error('Backend AI error:', data.message);
+        return generateFallbackText(prompt);
+    } catch (err) {
+        console.error('Gemini text error via backend:', err);
         return generateFallbackText(prompt);
     }
 }
 
-// Vision: text + image
-export async function generateWithImage(prompt: string, imageBase64: string, mimeType: string = 'image/jpeg'): Promise<string> {
+// Vision: text + image via Backend
+export async function generateWithImage(
+    prompt: string,
+    imageBase64: string,
+    _mimeType: string = 'image/jpeg'
+): Promise<string> {
     try {
-        const genAI = getClient();
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-        const imagePart: Part = {
-            inlineData: {
-                data: imageBase64,
-                mimeType: mimeType as 'image/jpeg' | 'image/png' | 'image/webp',
-            },
-        };
-
-        const result = await model.generateContent([prompt, imagePart]);
-        return result.response.text();
-    } catch (err: unknown) {
-        console.error('Gemini vision error:', err);
+        const res = await fetch(`${BACKEND_URL}/api/ai/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'tryon',
+                messages: [{ role: 'user', parts: [{ text: prompt }] }],
+                imageBase64
+            })
+        });
+        const data = await res.json();
+        if (data.success) return data.text;
+        console.error('Backend AI vision error:', data.message);
+        return generateFallbackVision();
+    } catch (err) {
+        console.error('Gemini vision error via backend:', err);
         return generateFallbackVision();
     }
 }
 
-// Fallback responses khi API không hoạt động
+// Fallback responses khi backend không hoạt động
 function generateFallbackText(prompt: string): string {
     const lower = prompt.toLowerCase();
     if (lower.includes('outfit') || lower.includes('phong cách') || lower.includes('style')) {

@@ -32,6 +32,7 @@ export const useAuth = () => {
 
     return {
         user: store.user,
+        token: store.user?.id || null, // dùng user.id như auth token cho backend headers
         login: store.login,
         logout: store.logout,
         updateProfile,

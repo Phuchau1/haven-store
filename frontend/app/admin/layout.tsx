@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
     Menu, X, Bell, User, Star, Image as ImageIcon, Palette, Ruler,
-    Ticket, CreditCard, Truck, MessageSquare, History, Sun, Moon,
-    Home, ChevronRight, Store, Search, MoreHorizontal, Zap
+    Home, ChevronRight, Store, Search, MoreHorizontal, Zap,
+    Bot, Gift
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
@@ -27,6 +27,8 @@ const MENU_ITEMS = [
     { icon: Ruler,           label: 'Kích thước',    href: '/admin/sizes',             group: 'catalog' },
     { icon: Zap,             label: 'Flash Sale',    href: '/admin/flash-sales',       group: 'store' },
     { icon: Ticket,          label: 'Mã giảm giá',  href: '/admin/coupons',           group: 'store' },
+    { icon: Gift,            label: 'Vòng quay',     href: '/admin/lucky-wheel',       group: 'store' },
+    { icon: Bot,             label: 'Cấu hình AI',   href: '/admin/ai-settings',       group: 'store' },
     { icon: CreditCard,      label: 'Thanh toán',    href: '/admin/payment-methods',   group: 'store' },
     { icon: Truck,           label: 'Vận chuyển',    href: '/admin/shipping-methods',  group: 'store' },
     { icon: Settings,        label: 'Cài đặt',       href: '/admin/settings',          group: 'store' },

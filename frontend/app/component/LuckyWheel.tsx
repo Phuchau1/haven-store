@@ -1,26 +1,57 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Gift, RotateCcw, Copy, Check, Sparkles, Clock } from 'lucide-react';
-import { useLuckyWheelStore, WHEEL_PRIZES, WheelPrize } from '@/app/store/useLuckyWheelStore';
+import { X, Gift, RotateCcw, Copy, Check, Sparkles, Clock, Loader2 } from 'lucide-react';
+import { useLuckyWheelStore, WheelPrize, WheelConfig } from '@/app/store/useLuckyWheelStore';
+import { useAuth } from '@/app/component/AuthContext';
 
-const NUM_SEGMENTS = WHEEL_PRIZES.length;
-const SEGMENT_ANGLE = 360 / NUM_SEGMENTS;
+// Helper: Map backend prize to frontend WheelPrize
+const mapPrize = (p: any): WheelPrize => {
+    let shortLabel = p.label;
+    let emoji = '🎁';
+    let type: any = p.type;
+    
+    if (p.type === 'discount' || p.type === 'discount_cash') {
+        shortLabel = p.type === 'discount' ? `-${p.value}` : `-${p.value/1000}K`;
+        emoji = '💸';
+        type = 'voucher';
+    } else if (p.type === 'freeship') {
+        shortLabel = 'SHIP';
+        emoji = '🚚';
+    } else if (p.type === 'retry') {
+        shortLabel = '😔';
+        emoji = '😔';
+    }
+
+    return {
+        id: p.id,
+        label: p.label,
+        shortLabel,
+        type,
+        value: Number(p.value) || 0,
+        code: type !== 'retry' ? `WIN${Math.floor(Math.random()*10000)}` : '',
+        color: p.color || '#F59E0B',
+        textColor: '#fff',
+        emoji
+    };
+};
 
 // Draw wheel on canvas
-function drawWheel(canvas: HTMLCanvasElement) {
+function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const size = canvas.width;
     const cx = size / 2;
     const cy = size / 2;
     const radius = cx - 8;
+    const numSegments = prizes.length;
+    const segmentAngle = 360 / numSegments;
 
     ctx.clearRect(0, 0, size, size);
 
-    WHEEL_PRIZES.forEach((prize, i) => {
-        const startAngle = (i * SEGMENT_ANGLE - 90) * (Math.PI / 180);
-        const endAngle = ((i + 1) * SEGMENT_ANGLE - 90) * (Math.PI / 180);
+    prizes.forEach((prize, i) => {
+        const startAngle = (i * segmentAngle - 90) * (Math.PI / 180);
+        const endAngle = ((i + 1) * segmentAngle - 90) * (Math.PI / 180);
 
         // Segment
         ctx.beginPath();
@@ -39,7 +70,7 @@ function drawWheel(canvas: HTMLCanvasElement) {
         const midAngle = startAngle + (endAngle - startAngle) / 2;
         ctx.rotate(midAngle);
         ctx.textAlign = 'right';
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = prize.textColor;
         ctx.font = `bold ${size > 300 ? 13 : 11}px 'Be Vietnam Pro', Inter, sans-serif`;
         ctx.shadowColor = 'rgba(0,0,0,0.4)';
         ctx.shadowBlur = 4;
@@ -85,13 +116,13 @@ const Particle = ({ x, y, color }: { x: number; y: number; color: string }) => (
 );
 
 // Prize Result Modal
-function PrizeModal({ prize, onClose }: { prize: WheelPrize; onClose: () => void }) {
+function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize, prizes: WheelPrize[], onClose: () => void }) {
     const [copied, setCopied] = useState(false);
     const particles = Array.from({ length: 30 }, (_, i) => ({
         id: i,
         x: Math.random() * 320,
         y: Math.random() * 100,
-        color: WHEEL_PRIZES[i % WHEEL_PRIZES.length].color,
+        color: prizes[i % prizes.length].color,
     }));
 
     const handleCopy = () => {
@@ -144,7 +175,7 @@ function PrizeModal({ prize, onClose }: { prize: WheelPrize; onClose: () => void
                         {/* Prize display */}
                         <div className="text-center mb-5">
                             <div
-                                className="inline-block px-6 py-3 rounded-2xl text-white font-black text-2xl"
+                                className="inline-block px-6 py-3 rounded-2xl text-white font-black text-2xl shadow-lg"
                                 style={{ backgroundColor: prize.color }}
                             >
                                 {prize.label}
@@ -153,7 +184,7 @@ function PrizeModal({ prize, onClose }: { prize: WheelPrize; onClose: () => void
 
                         {prize.code && (
                             <>
-                                <p className="text-xs text-center text-gray-400 mb-2 uppercase tracking-wider">Mã giảm giá của bạn</p>
+                                <p className="text-xs text-center text-gray-400 mb-2 uppercase tracking-wider">Mã phần thưởng</p>
                                 <button
                                     onClick={handleCopy}
                                     className="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-dashed hover:bg-gray-50 transition-colors group"
@@ -167,7 +198,7 @@ function PrizeModal({ prize, onClose }: { prize: WheelPrize; onClose: () => void
                                         : <Copy size={20} className="text-gray-400 group-hover:text-gray-600" />
                                     }
                                 </button>
-                                <p className="text-xs text-center text-gray-400 mt-2">Nhấn để sao chép • Có thể dùng ngay khi thanh toán</p>
+                                <p className="text-xs text-center text-gray-400 mt-2">Nhấn để sao chép</p>
                             </>
                         )}
                     </div>
@@ -189,45 +220,110 @@ function PrizeModal({ prize, onClose }: { prize: WheelPrize; onClose: () => void
 // Main Wheel Modal
 function WheelModal({ onClose }: { onClose: () => void }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { token } = useAuth();
     const [spinning, setSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [prize, setPrize] = useState<WheelPrize | null>(null);
-    const { canSpinToday, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
+    const [loadingConfig, setLoadingConfig] = useState(true);
+    const [prizes, setPrizes] = useState<WheelPrize[]>([]);
+    
+    const { config, setConfig, canSpinToday, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
     const canSpin = canSpinToday();
     const timeLeft = !canSpin ? getTimeUntilNextSpin() : '';
 
+    // Fetch config on open if not fetched
     useEffect(() => {
-        if (canvasRef.current) drawWheel(canvasRef.current);
-    }, []);
+        const fetchConfig = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/config`);
+                const data = await res.json();
+                if (data.success && data.config) {
+                    setConfig(data.config);
+                    const mapped = data.config.prizes.map(mapPrize);
+                    setPrizes(mapped);
+                    if (canvasRef.current) drawWheel(canvasRef.current, mapped);
+                }
+            } catch (err) {
+                console.error('Fetch wheel config error:', err);
+            } finally {
+                setLoadingConfig(false);
+            }
+        };
 
-    const spin = useCallback(() => {
-        if (spinning || !canSpin) return;
+        if (!config) {
+            fetchConfig();
+        } else {
+            const mapped = config.prizes.map(mapPrize);
+            setPrizes(mapped);
+            setLoadingConfig(false);
+            if (canvasRef.current) drawWheel(canvasRef.current, mapped);
+        }
+    }, [config, setConfig]);
+
+    useEffect(() => {
+        if (!loadingConfig && canvasRef.current && prizes.length > 0) {
+            drawWheel(canvasRef.current, prizes);
+        }
+    }, [loadingConfig, prizes]);
+
+    const spin = useCallback(async () => {
+        if (spinning || !canSpin || loadingConfig || prizes.length === 0) return;
+        if (!token) {
+            alert('Vui lòng đăng nhập để quay Vòng Quay May Mắn!');
+            return;
+        }
+
         setSpinning(true);
         setPrize(null);
 
-        // Weighted random: less chance on 20% and 50K
-        const weights = [20, 12, 30, 5, 18, 30, 8, 15];
-        const total = weights.reduce((a, b) => a + b, 0);
-        let rand = Math.random() * total;
-        let winIndex = 0;
-        for (let i = 0; i < weights.length; i++) {
-            rand -= weights[i];
-            if (rand <= 0) { winIndex = i; break; }
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/spin`, {
+                method: 'POST',
+                headers: { 'x-user-id': token || '' }
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                alert(data.message);
+                setSpinning(false);
+                return;
+            }
+
+            const winPrizeBackend = data.prize;
+            const winIndex = prizes.findIndex(p => p.id === winPrizeBackend.id);
+            if (winIndex === -1) {
+                setSpinning(false);
+                return;
+            }
+
+            const segmentAngle = 360 / prizes.length;
+            const targetAngle = winIndex * segmentAngle + segmentAngle / 2;
+            const extraSpins = 5 + Math.floor(Math.random() * 3); // 5-8 vòng
+            const finalAngle = rotation + extraSpins * 360 + (360 - targetAngle) - (rotation % 360);
+
+            setRotation(finalAngle);
+
+            setTimeout(() => {
+                const won = prizes[winIndex];
+                setPrize(won);
+                recordSpin(won);
+                setSpinning(false);
+            }, 5000);
+
+        } catch (err) {
+            alert('Lỗi kết nối! Vui lòng thử lại.');
+            setSpinning(false);
         }
 
-        const targetAngle = winIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
-        const extraSpins = 5 + Math.floor(Math.random() * 5); // 5-10 full rotations
-        const finalAngle = rotation + extraSpins * 360 + (360 - targetAngle) - (rotation % 360);
+    }, [spinning, canSpin, rotation, recordSpin, token, loadingConfig, prizes]);
 
-        setRotation(finalAngle);
-
-        setTimeout(() => {
-            const won = WHEEL_PRIZES[winIndex];
-            setPrize(won);
-            recordSpin(won);
-            setSpinning(false);
-        }, 5000);
-    }, [spinning, canSpin, rotation, recordSpin]);
+    if (loadingConfig) {
+        return (
+            <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <Loader2 className="animate-spin text-white w-12 h-12" />
+            </div>
+        );
+    }
 
     return (
         <motion.div
@@ -248,85 +344,75 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 {/* Header */}
                 <div className="relative bg-gradient-to-r from-amber-500 to-yellow-400 px-6 pt-6 pb-16 text-center">
                     <button onClick={!spinning ? onClose : undefined} className="absolute right-4 top-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
-                        <X size={18} className="text-white" />
+                        <X size={20} className="text-white" />
                     </button>
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                        <Sparkles size={20} className="text-white" />
-                        <h2 className="text-xl font-black text-white tracking-tight">VÒNG QUAY MAY MẮN</h2>
-                        <Sparkles size={20} className="text-white" />
-                    </div>
-                    <p className="text-white/80 text-sm">Quay ngay để nhận ưu đãi độc quyền!</p>
+                    <h2 className="text-2xl font-black text-white flex items-center justify-center gap-2 drop-shadow-md">
+                        <Sparkles size={24} className="text-yellow-100" />
+                        VÒNG QUAY MAY MẮN
+                        <Sparkles size={24} className="text-yellow-100" />
+                    </h2>
+                    <p className="text-yellow-50 font-medium mt-1 drop-shadow">Quay mỗi ngày - Nhận quà liền tay!</p>
                 </div>
 
-                {/* Wheel area */}
-                <div className="relative px-6 -mt-10">
-                    <div className="relative flex flex-col items-center">
-                        {/* Pointer arrow */}
-                        <div className="relative z-10 mb-[-12px]">
-                            <div className="w-0 h-0" style={{
-                                borderLeft: '12px solid transparent',
-                                borderRight: '12px solid transparent',
-                                borderTop: '24px solid #C9A227',
-                                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
-                            }} />
-                        </div>
-
-                        {/* Canvas wheel */}
-                        <div className="relative w-72 h-72">
-                            <canvas
-                                ref={canvasRef}
-                                width={288}
-                                height={288}
-                                className="w-full h-full rounded-full"
+                {/* Wheel Area */}
+                <div className="relative px-6 pb-8 -mt-12 flex flex-col items-center">
+                    {/* Wheel container */}
+                    <div className="relative w-72 h-72 rounded-full p-2 bg-gradient-to-br from-yellow-300 to-amber-600 shadow-xl">
+                        {/* Outer dots */}
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className={`absolute w-2 h-2 rounded-full ${i % 2 === 0 ? 'bg-yellow-100' : 'bg-red-400'} shadow-sm`}
                                 style={{
-                                    transition: spinning ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
-                                    transform: `rotate(${rotation}deg)`,
-                                    boxShadow: '0 0 30px rgba(201,162,39,0.3), 0 8px 32px rgba(0,0,0,0.15)',
+                                    top: '50%', left: '50%',
+                                    transform: `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-138px)`,
                                 }}
                             />
+                        ))}
+
+                        {/* The Canvas Wheel */}
+                        <motion.div
+                            className="relative w-full h-full rounded-full overflow-hidden shadow-inner bg-white"
+                            animate={{ rotate: rotation }}
+                            transition={{ duration: spinning ? 5 : 0, ease: [0.15, 0.85, 0.15, 1] }}
+                        >
+                            <canvas ref={canvasRef} width={272} height={272} className="w-full h-full block" />
+                        </motion.div>
+
+                        {/* Pointer */}
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-10 drop-shadow-md z-10 flex flex-col items-center">
+                            <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
+                            <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[20px] border-t-red-600 -mt-2" />
                         </div>
                     </div>
 
-                    {/* Spin button */}
-                    <div className="mt-6 mb-6">
+                    {/* Spin Button or Timer */}
+                    <div className="mt-8 w-full">
                         {canSpin ? (
                             <button
                                 onClick={spin}
                                 disabled={spinning}
-                                className="w-full py-4 rounded-2xl font-black text-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                                style={{
-                                    background: spinning ? '#9CA3AF' : 'linear-gradient(135deg, #C9A227 0%, #F59E0B 100%)',
-                                    color: '#fff',
-                                    boxShadow: spinning ? 'none' : '0 4px 20px rgba(201,162,39,0.4)',
-                                }}
+                                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xl shadow-lg shadow-red-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {spinning ? (
-                                    <span className="flex items-center justify-center gap-2">
-                                        <RotateCcw size={18} className="animate-spin" /> Đang quay...
-                                    </span>
-                                ) : (
-                                    <span className="flex items-center justify-center gap-2">
-                                        <Gift size={18} /> QUAY NGAY!
-                                    </span>
-                                )}
+                                {spinning ? 'ĐANG QUAY...' : 'QUAY NGAY!'}
                             </button>
                         ) : (
-                            <div className="text-center py-4 rounded-2xl bg-gray-100">
-                                <p className="text-gray-500 text-sm font-medium flex items-center justify-center gap-2">
-                                    <Clock size={16} />
-                                    Quay lại sau: <span className="font-bold text-gray-700">{timeLeft}</span>
-                                </p>
-                                <p className="text-xs text-gray-400 mt-1">Mỗi ngày chỉ được quay 1 lần</p>
+                            <div className="w-full py-4 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1">
+                                <span className="font-bold text-slate-600 flex items-center gap-2">
+                                    <Clock size={18} /> Bạn đã hết lượt quay
+                                </span>
+                                <span className="text-sm font-medium text-slate-500">
+                                    Lượt quay tiếp theo sau: <span className="text-indigo-600">{timeLeft}</span>
+                                </span>
                             </div>
                         )}
                     </div>
                 </div>
-            </motion.div>
 
-            {/* Prize modal */}
-            <AnimatePresence>
-                {prize && <PrizeModal prize={prize} onClose={() => { setPrize(null); onClose(); }} />}
-            </AnimatePresence>
+                <AnimatePresence>
+                    {prize && <PrizeModal prize={prize} prizes={prizes} onClose={() => setPrize(null)} />}
+                </AnimatePresence>
+            </motion.div>
         </motion.div>
     );
 }

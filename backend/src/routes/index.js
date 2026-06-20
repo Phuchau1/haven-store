@@ -28,6 +28,8 @@ const poRoutes = require('./poRoutes');
 const inventoryReportRoutes = require('./inventoryReportRoutes');
 const barcodeRoutes = require('./barcodeRoutes');
 const exportRoutes = require('./exportRoutes');
+const aiRoutes = require('./aiRoutes');
+const luckyWheelRoutes = require('./luckyWheelRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
@@ -46,6 +48,9 @@ router.use('/banners', bannerRoutes);
 router.use('/flash-sales', flashSaleRoutes);
 router.use('/payment', paymentRoutes);
 router.use('/coupons', couponRoutes);
+router.use('/export', exportRoutes);
+router.use('/ai', aiRoutes);
+router.use('/lucky-wheel', luckyWheelRoutes);
 
 // WMS API
 router.use('/menus', menuRoutes);
