@@ -8,6 +8,7 @@ import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '@/types';
 import { formatPrice } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
+import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 
 interface ProductCardProps {
     product: Product;
@@ -16,8 +17,12 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const [isLiked, setIsLiked] = useState(false);
     const { addItem } = useCart();
+    const { isFavorite, toggleFavorite } = useFavoritesStore();
+    
+    // Check local hydration to avoid mismatch, but since we rely on zustand persist, we might need a small trick or just use it directly.
+    // However, simplest way is direct usage.
+    const isLiked = isFavorite(product.id);
 
 
     const handleQuickAdd = (e: React.MouseEvent) => {
@@ -89,7 +94,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setIsLiked(!isLiked);
+                            toggleFavorite(product);
                         }}
                         className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isLiked
                             ? 'bg-[#D32F2F] text-white shadow-md'

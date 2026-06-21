@@ -6,34 +6,42 @@ import { X, Gift, RotateCcw, Copy, Check, Sparkles, Clock, Loader2 } from 'lucid
 import { useLuckyWheelStore, WheelPrize, WheelConfig } from '@/app/store/useLuckyWheelStore';
 import { useAuth } from '@/app/component/AuthContext';
 
-// Helper: Map backend prize to frontend WheelPrize
-const mapPrize = (p: any): WheelPrize => {
-    let shortLabel = p.label;
+const DEFAULT_COLORS = ['#FFB300', '#FF8F00', '#E65100', '#BF360C', '#FFB300', '#FF8F00', '#E65100', '#BF360C'];
+
+const mapPrize = (p: any, index: number): WheelPrize => {
+    let shortLabel = p.reward;
     let emoji = '🎁';
     let type: any = p.type;
     
-    if (p.type === 'discount' || p.type === 'discount_cash') {
-        shortLabel = p.type === 'discount' ? `-${p.value}` : `-${p.value/1000}K`;
+    if (p.type === 'fixed') {
+        shortLabel = `Giảm ${p.discount_value/1000}K`;
         emoji = '💸';
         type = 'voucher';
-    } else if (p.type === 'freeship') {
-        shortLabel = 'SHIP';
+    } else if (p.type === 'percent') {
+        shortLabel = `Giảm ${p.discount_value}%`;
+        emoji = '💸';
+        type = 'voucher';
+    } else if (p.type === 'shipping') {
+        shortLabel = 'Freeship';
         emoji = '🚚';
-    } else if (p.type === 'retry') {
-        shortLabel = '😔';
+        type = 'voucher';
+    } else if (p.type === 'none') {
+        shortLabel = 'Chúc may mắn lần sau';
         emoji = '😔';
+        type = 'retry';
     }
 
     return {
-        id: p.id,
-        label: p.label,
+        id: p._id || p.id,
+        label: p.reward,
         shortLabel,
         type,
-        value: Number(p.value) || 0,
-        code: type !== 'retry' ? `WIN${Math.floor(Math.random()*10000)}` : '',
-        color: p.color || '#F59E0B',
+        value: Number(p.discount_value) || 0,
+        code: type !== 'retry' ? p.coupon_code : '',
+        color: DEFAULT_COLORS[index % DEFAULT_COLORS.length],
         textColor: '#fff',
-        emoji
+        emoji,
+        probability: p.probability || 1
     };
 };
 
@@ -72,13 +80,15 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
         ctx.rotate(midAngle);
         ctx.textAlign = 'right';
         ctx.fillStyle = prize.textColor;
-        ctx.font = `bold ${size > 300 ? 13 : 11}px 'Be Vietnam Pro', Inter, sans-serif`;
+        ctx.font = `bold ${size > 300 ? 12 : 10}px 'Be Vietnam Pro', Inter, sans-serif`;
         ctx.shadowColor = 'rgba(0,0,0,0.4)';
         ctx.shadowBlur = 4;
-        ctx.fillText(prize.shortLabel, radius - 12, 5);
+        ctx.fillText(prize.shortLabel, radius - 15, 4);
+        
         // Emoji
-        ctx.font = `${size > 300 ? 16 : 13}px serif`;
-        ctx.fillText(prize.emoji, radius - 12 - (size > 300 ? 50 : 40), 5);
+        ctx.font = `${size > 300 ? 15 : 12}px serif`;
+        const textMetrics = ctx.measureText(prize.shortLabel);
+        ctx.fillText(prize.emoji, radius - 20 - textMetrics.width, 4);
         ctx.restore();
     });
 
@@ -238,9 +248,10 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/config`);
                 const data = await res.json();
-                if (data.success && data.config) {
-                    setConfig(data.config);
-                    const mapped = data.config.prizes.map(mapPrize);
+                if (data.success && data.prizes) {
+                    const mockConfig = { isActive: true, spinsPerDay: 1, prizes: data.prizes };
+                    setConfig(mockConfig as any);
+                    const mapped = data.prizes.map((p: any, i: number) => mapPrize(p, i));
                     setPrizes(mapped);
                     if (canvasRef.current) drawWheel(canvasRef.current, mapped);
                 }
@@ -251,10 +262,11 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             }
         };
 
-        if (!config) {
+        if (!config || !config.prizes || config.prizes.length === 0 || !config.prizes[0].reward) {
+            // Need refetch because store might have old schema
             fetchConfig();
         } else {
-            const mapped = config.prizes.map(mapPrize);
+            const mapped = config.prizes.map((p: any, i: number) => mapPrize(p, i));
             setPrizes(mapped);
             setLoadingConfig(false);
             if (canvasRef.current) drawWheel(canvasRef.current, mapped);
@@ -280,7 +292,10 @@ function WheelModal({ onClose }: { onClose: () => void }) {
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/spin`, {
                 method: 'POST',
-                headers: { 'x-user-id': token || '' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                }
             });
             const data = await res.json();
 
@@ -291,7 +306,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             }
 
             const winPrizeBackend = data.prize;
-            const winIndex = prizes.findIndex(p => p.id === winPrizeBackend.id);
+            const winIndex = prizes.findIndex(p => p.id === (winPrizeBackend._id || winPrizeBackend.id));
             if (winIndex === -1) {
                 setSpinning(false);
                 return;
@@ -299,13 +314,17 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
             const segmentAngle = 360 / prizes.length;
             const targetAngle = winIndex * segmentAngle + segmentAngle / 2;
+
             const extraSpins = 5 + Math.floor(Math.random() * 3); // 5-8 vòng
             const finalAngle = rotation + extraSpins * 360 + (360 - targetAngle) - (rotation % 360);
 
             setRotation(finalAngle);
 
             setTimeout(() => {
-                const won = prizes[winIndex];
+                const won = { ...prizes[winIndex] };
+                if (data.coupon) {
+                    won.code = data.coupon.coupon_code;
+                }
                 setPrize(won);
                 recordSpin(won);
                 setSpinning(false);
