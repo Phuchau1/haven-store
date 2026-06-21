@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { UserModel } = require('../models/User');
-const { sendPasswordResetEmail } = require('../services/emailService');
+const { sendOtpEmail } = require('../services/emailService');
 
 const login = async (req, res, next) => {
     try {
@@ -147,16 +147,38 @@ const forgotPassword = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Email không tồn tại trên hệ thống' });
         }
 
-        const token = crypto.randomBytes(20).toString('hex');
-        user.resetPasswordToken = token;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 giờ
+        // Tạo OTP 6 số ngẫu nhiên
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetPasswordToken = otp;
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // Hết hạn sau 10 phút
         await user.save();
 
-        const frontendUrl = process.env.FRONTEND_URL || 'https://fashion-frontend-imqb.onrender.com';
-        const resetUrl = `${frontendUrl}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
-        sendPasswordResetEmail(email, resetUrl);
+        sendOtpEmail(email, otp);
 
-        res.json({ success: true, message: 'Đã gửi email hướng dẫn đặt lại mật khẩu' });
+        res.json({ success: true, message: 'Đã gửi mã OTP đến email của bạn' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const verifyOtp = async (req, res, next) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({ success: false, message: 'Thiếu thông tin' });
+        }
+
+        const user = await UserModel.findOne({
+            email,
+            resetPasswordToken: otp,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn' });
+        }
+
+        res.json({ success: true, message: 'OTP hợp lệ' });
     } catch (error) {
         next(error);
     }
@@ -164,19 +186,19 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
     try {
-        const { email, token, password } = req.body;
-        if (!email || !token || !password) {
+        const { email, otp, password } = req.body;
+        if (!email || !otp || !password) {
             return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
         }
 
         const user = await UserModel.findOne({
             email,
-            resetPasswordToken: token,
+            resetPasswordToken: otp,
             resetPasswordExpires: { $gt: Date.now() }
         });
 
         if (!user) {
-            return res.status(400).json({ success: false, message: 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn' });
+            return res.status(400).json({ success: false, message: 'Mã OTP không hợp lệ hoặc đã hết hạn' });
         }
 
         user.password = crypto.createHash('sha256').update(password).digest('hex');
@@ -274,6 +296,7 @@ module.exports = {
     register,
     updateProfile,
     forgotPassword,
+    verifyOtp,
     resetPassword,
     googleLogin,
     facebookLogin

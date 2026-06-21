@@ -2,15 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    User,
     Package,
-    Truck,
-    CheckCircle2,
     XCircle,
-    Clock,
-    RefreshCcw,
     ChevronRight,
-    Search,
     ShoppingBag,
     Settings,
     LogOut,
@@ -27,6 +21,14 @@ import { useRouter } from 'next/navigation';
 import { OrderData } from '@/types';
 import { formatPrice } from '@/lib/format';
 import Image from 'next/image';
+import AddressManager from './AddressManager';
+import ChangePasswordModal from './ChangePasswordModal';
+
+interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
+    discountAmount?: number;
+    couponCode?: string;
+    finalAmount?: number;
+}
 
 const TABS = [
     { id: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
@@ -118,19 +120,19 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
                                 <div>
                                     <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Phương thức thanh toán</p>
                                     <p className="text-sm font-medium text-slate-800">
-                                        {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 
+                                        {order.paymentMethod === 'pay-cod' || order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 
                                          order.paymentMethod === 'momo' ? 'Ví điện tử MoMo' : 
                                          order.paymentMethod === 'vnpay' ? 'Ví VNPAY' : 'Chuyển khoản'}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Tổng tiền</p>
-                                    {(order as any).discountAmount > 0 && (
+                                    {((order as ExtendedOrder).discountAmount ?? 0) > 0 && (
                                         <p className="text-xs text-slate-400 line-through">{formatPrice(order.totalAmount)}</p>
                                     )}
-                                    <p className="text-sm font-bold text-rose-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</p>
-                                    {(order as any).couponCode && (
-                                        <p className="text-[10px] text-emerald-600 mt-0.5">🎟 {(order as any).couponCode}</p>
+                                    <p className="text-sm font-bold text-rose-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
+                                    {(order as ExtendedOrder).couponCode && (
+                                        <p className="text-[10px] text-emerald-600 mt-0.5">🎟 {(order as ExtendedOrder).couponCode}</p>
                                     )}
                                 </div>
                             </div>
@@ -198,15 +200,15 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
                                             <td colSpan={3} className="py-3 text-right text-sm text-slate-500">Tạm tính:</td>
                                             <td className="py-3 text-right text-sm text-slate-500">{formatPrice(order.totalAmount)}</td>
                                         </tr>
-                                        {(order as any).discountAmount > 0 && (
+                                        {((order as ExtendedOrder).discountAmount ?? 0) > 0 && (
                                             <tr className="text-emerald-600">
-                                                <td colSpan={3} className="py-2 text-right text-sm font-medium">🎟 Voucher ({(order as any).couponCode}):</td>
-                                                <td className="py-2 text-right text-sm font-medium">-{formatPrice((order as any).discountAmount)}</td>
+                                                <td colSpan={3} className="py-2 text-right text-sm font-medium">🎟 Voucher ({(order as ExtendedOrder).couponCode}):</td>
+                                                <td className="py-2 text-right text-sm font-medium">-{formatPrice((order as ExtendedOrder).discountAmount || 0)}</td>
                                             </tr>
                                         )}
                                         <tr className="border-t-2 border-slate-100 bg-slate-50/30">
                                             <td colSpan={3} className="py-4 text-right font-bold text-sm text-slate-900">Tổng cộng:</td>
-                                            <td className="py-4 text-right font-bold text-base text-rose-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</td>
+                                            <td className="py-4 text-right font-bold text-base text-rose-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -299,6 +301,7 @@ export default function NguoiDungPage() {
     const [orders, setOrders] = useState<OrderData[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     
     // State cho Chi tiết đơn hàng
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -326,7 +329,7 @@ export default function NguoiDungPage() {
             } else {
                 alert('Lỗi: ' + data.message);
             }
-        } catch (error) {
+        } catch {
             alert('Đã có lỗi xảy ra');
         }
     };
@@ -550,10 +553,10 @@ export default function NguoiDungPage() {
                                                                 </div>
                                                                 <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
                                                                     <div className="text-right">
-                                                                        {(order as any).discountAmount > 0 && (
+                                                                        {((order as ExtendedOrder).discountAmount ?? 0) > 0 && (
                                                                             <p className="text-xs text-slate-400 line-through">{formatPrice(order.totalAmount)}</p>
                                                                         )}
-                                                                        <p className="text-sm font-bold text-indigo-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</p>
+                                                                        <p className="text-sm font-bold text-indigo-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
                                                                     </div>
                                                                     <button 
                                                                         onClick={() => setSelectedOrderId(order.id ?? '')}
@@ -612,29 +615,31 @@ export default function NguoiDungPage() {
                                                     placeholder="09xx xxx xxx"
                                                 />
                                             </div>
-                                            <div className="space-y-2 md:col-span-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Địa chỉ giao hàng</label>
-                                                <textarea
-                                                    rows={3}
-                                                    value={formData.address}
-                                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                    className="w-full px-5 py-4 bg-slate-50 border-0 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-medium resize-none"
-                                                    placeholder="Nhập địa chỉ nhận hàng chi tiết..."
-                                                />
-                                            </div>
                                         </div>
 
-                                        <div className="pt-6 flex justify-end">
+                                        <div className="pt-6 mt-6 flex flex-col-reverse sm:flex-row justify-between items-center gap-4 border-t border-slate-100">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsPasswordModalOpen(true)}
+                                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-white text-indigo-600 border border-indigo-200 rounded-2xl text-sm font-bold shadow-sm hover:bg-indigo-50 transition-all"
+                                            >
+                                                <Shield size={18} />
+                                                Đổi mật khẩu (Bảo mật)
+                                            </button>
                                             <button
                                                 type="submit"
                                                 disabled={isSaving}
-                                                className="flex items-center gap-2 px-10 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold shadow-xl hover:bg-slate-800 transition-all disabled:opacity-50"
+                                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold shadow-xl hover:bg-slate-800 transition-all disabled:opacity-50"
                                             >
                                                 {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                                                Lưu thay đổi
+                                                Lưu thay đổi hồ sơ
                                             </button>
                                         </div>
                                     </form>
+
+                                    <div className="mt-8 pt-8 border-t border-slate-100">
+                                        <AddressManager userId={user.id} />
+                                    </div>
 
                                     <div className="mt-12 pt-8 border-t border-slate-50 grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
@@ -678,6 +683,12 @@ export default function NguoiDungPage() {
                     </div>
                 </div>
             </div>
+            
+            <ChangePasswordModal 
+                isOpen={isPasswordModalOpen} 
+                onClose={() => setIsPasswordModalOpen(false)} 
+                email={user.email} 
+            />
         </div>
     );
 }

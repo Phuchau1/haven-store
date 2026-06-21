@@ -48,6 +48,15 @@ exports.generate = async (req, res) => {
     try {
         const { type, messages, productContext, imageBase64 } = req.body; // type: chat, style, tryon
         
+        // Validate input
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return res.status(400).json({ success: false, message: 'Messages không hợp lệ.' });
+        }
+
+        if (!type || !['chat', 'style', 'tryon'].includes(type)) {
+            return res.status(400).json({ success: false, message: 'Type không hợp lệ.' });
+        }
+
         const setting = await AISettingModel.findOne({ type });
         if (!setting || !setting.isActive) {
             return res.status(403).json({ success: false, message: 'Tính năng AI này đang bị tắt.' });
@@ -59,41 +68,56 @@ exports.generate = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
+        const modelName = type === 'tryon' ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
+            model: modelName,
             systemInstruction: setting.systemPrompt
         });
 
         // Xây dựng history cho chat
-        const formattedHistory = messages.slice(0, -1).map(msg => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.parts[0].text }]
-        }));
+        const formattedHistory = messages.slice(0, -1).map(msg => {
+            if (!msg.parts || !msg.parts[0] || !msg.parts[0].text) {
+                throw new Error('Định dạng message không hợp lệ.');
+            }
+            return {
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.parts[0].text }]
+            };
+        });
         
-        const currentMessage = messages[messages.length - 1].parts[0].text;
+        const lastMessage = messages[messages.length - 1];
+        if (!lastMessage.parts || !lastMessage.parts[0] || !lastMessage.parts[0].text) {
+            return res.status(400).json({ success: false, message: 'Message cuối cùng không hợp lệ.' });
+        }
+        const currentMessage = lastMessage.parts[0].text;
         
         let promptWithContext = currentMessage;
         if (productContext) {
-             promptWithContext += `\n\n[Dữ liệu Sản Phẩm Hiện Tại trong Kho]:\n${productContext}`;
+            promptWithContext += `\n\n[Dữ liệu Sản Phẩm Hiện Tại trong Kho]:\n${JSON.stringify(productContext)}`;
         }
 
         let result;
-        if (type === 'tryon' && imageBase64) {
-            // Xử lý ảnh cho Try-On
-            result = await model.generateContent([
-                promptWithContext,
-                { inlineData: { data: imageBase64, mimeType: "image/jpeg" } }
-            ]);
-        } else {
-            // Xử lý text (Chat, Style)
-            const chat = model.startChat({ history: formattedHistory });
-            result = await chat.sendMessage(promptWithContext);
+        try {
+            if (type === 'tryon' && imageBase64) {
+                // Xử lý ảnh cho Try-On
+                result = await model.generateContent([
+                    promptWithContext,
+                    { inlineData: { data: imageBase64, mimeType: "image/jpeg" } }
+                ]);
+            } else {
+                // Xử lý text (Chat, Style)
+                const chat = model.startChat({ history: formattedHistory });
+                result = await chat.sendMessage(promptWithContext);
+            }
+
+            const response = await result.response;
+            const text = response.text();
+
+            res.json({ success: true, text });
+        } catch (aiError) {
+            logger.error('Error in AI generation: ' + aiError.message);
+            res.status(500).json({ success: false, message: 'Lỗi khi gọi API AI: ' + aiError.message });
         }
-
-        const response = await result.response;
-        const text = response.text();
-
-        res.json({ success: true, text });
     } catch (error) {
         logger.error('Error in AI generate: ' + error.message);
         res.status(500).json({ success: false, message: error.message });

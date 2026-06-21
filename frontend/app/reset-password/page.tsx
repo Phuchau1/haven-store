@@ -9,6 +9,7 @@ function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const token = searchParams.get('token');
+    const otp = searchParams.get('otp') || token; // hỗ trợ cả otp và token cũ
     const email = searchParams.get('email');
 
     const [password, setPassword] = useState('');
@@ -37,7 +38,7 @@ function ResetPasswordForm() {
             const res = await fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, token, password })
+                body: JSON.stringify({ email, otp, password })
             });
 
             const data = await res.json();
@@ -56,7 +57,7 @@ function ResetPasswordForm() {
         }
     };
 
-    if (!token || !email) {
+    if (!otp || !email) {
         return (
             <div className="text-center">
                 <h2 className="text-2xl font-bold text-slate-900">Liên kết không hợp lệ</h2>

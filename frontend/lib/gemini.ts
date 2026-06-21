@@ -27,7 +27,7 @@ export async function generateText(prompt: string, type: 'style' | 'chat' = 'sty
 export async function generateWithImage(
     prompt: string,
     imageBase64: string,
-    _mimeType: string = 'image/jpeg'
+    // mimeType removed
 ): Promise<string> {
     try {
         const res = await fetch(`${BACKEND_URL}/api/ai/generate`, {
@@ -125,16 +125,17 @@ Trả lời ngắn gọn, súc tích, sử dụng emoji để làm nổi bật. 
 
 // Try-on prompt template  
 export function buildTryOnPrompt(productName: string, productDescription: string): string {
-    return `Bạn là AI Stylist chuyên nghiệp. Nhìn vào ảnh người dùng được cung cấp, hãy phân tích và tư vấn về sản phẩm thời trang sau:
+    return `Bạn là một AI Stylist và Chuyên gia Phân tích Hình ảnh Thời trang cấp cao. Nhiệm vụ của bạn là tư vấn như thể khách hàng đang mặc thử sản phẩm này. Hãy quan sát thật kỹ bức ảnh của người dùng và đối chiếu với thông tin sản phẩm sau:
 
 Sản phẩm: **${productName}**
-${productDescription ? `Mô tả: ${productDescription}` : ''}
+${productDescription ? `Mô tả đặc tính sản phẩm: ${productDescription}` : ''}
 
-Phân tích bằng tiếng Việt, bao gồm:
-1. **Đánh giá phù hợp** (sản phẩm này có phù hợp với vóc dáng, tông màu da trong ảnh không?)
-2. **Cách mặc gợi ý** (nên mặc như thế nào, size nào phù hợp)
-3. **Phối đồ hoàn chỉnh** (nên phối cùng gì để tạo look đẹp nhất)
-4. **Đánh giá tổng thể** (thang điểm /10 kèm nhận xét)
+Hãy phân tích cực kỳ sắc bén và chi tiết bằng tiếng Việt, tập trung vào các khía cạnh:
+1. **Phân tích hình thể & Làn da**: Đánh giá tông màu da (ấm/lạnh), dáng người (chiều cao, tỷ lệ cơ thể) hiển thị trong ảnh.
+2. **Độ tương thích (Fit & Match)**: Màu sắc và form dáng của sản phẩm này có tôn lên làn da và che khuyết điểm/tôn dáng cho người dùng không? Tại sao? Hãy giải thích dựa trên đặc tính chất liệu và thiết kế.
+3. **Gợi ý Size & Cách mặc**: Dựa trên body type trong ảnh, hãy gợi ý cách mặc chuẩn nhất (ví dụ: sơ vin, xắn tay áo) và dự đoán size phù hợp.
+4. **Bản phối hoàn hảo (Total Look)**: Gợi ý cụ thể các items khác (quần/áo, giày, phụ kiện) để hoàn thiện set đồ dựa trên phong cách cá nhân toát ra từ ảnh người dùng.
+5. **Chấm điểm độ hợp (1-10)**: Điểm số chân thực kèm một câu chốt mang tính khích lệ, thân thiện nhưng chuyên nghiệp.
 
-Trả lời thân thiện, tích cực, khuyến khích. Sử dụng emoji.`;
+Trình bày sử dụng format markdown (in đậm, bullet points) cho dễ đọc và thêm các emoji thời trang tinh tế. Lời văn cần tự nhiên, thuyết phục như một Stylist thực thụ đang đứng trước mặt khách hàng.`;
 }

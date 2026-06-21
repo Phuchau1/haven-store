@@ -26,7 +26,7 @@ function FormModal({
     onClose: () => void;
     editingItem: PaymentMethod | null;
     formData: { id: string; name_methond: string; description: string; bank_info?: string; qr_code_url?: string; is_active: boolean };
-    setFormData: (d: any) => void;
+    setFormData: (d: { id: string; name_methond: string; description: string; bank_info?: string; qr_code_url?: string; is_active: boolean }) => void;
     onSubmit: (e: React.FormEvent) => void;
 }) {
     return (
@@ -123,6 +123,7 @@ function FormModal({
                                 <div className="flex items-center gap-4">
                                     {formData.qr_code_url && (
                                         <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 shrink-0">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img src={formData.qr_code_url} alt="QR Code" className="w-full h-full object-cover" />
                                             <button
                                                 type="button"

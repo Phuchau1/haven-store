@@ -5,6 +5,26 @@ import { useRouter } from 'next/navigation';
 import { Plus, ArrowLeft, Trash2, Save, Search } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 
+interface VariantInfo {
+    id: string;
+    sku: string;
+    product_name: string;
+    color_id: string;
+    size_id: string;
+    stock: number;
+    price?: number;
+    image?: string;
+}
+
+interface ReceiptItem {
+    variant_id: string;
+    name: string;
+    variant_label: string;
+    currentStock: number;
+    quantity: number;
+    price: number;
+}
+
 export default function NewStockReceipt() {
     const router = useRouter();
     const { token, user } = useAuth();
@@ -14,12 +34,12 @@ export default function NewStockReceipt() {
     const [reason, setReason] = useState('');
     const [note, setNote] = useState('');
     
-    const [items, setItems] = useState<any[]>([]);
+    const [items, setItems] = useState<ReceiptItem[]>([]);
     
     // Search products to add
     const [search, setSearch] = useState('');
-    const [allVariants, setAllVariants] = useState<any[]>([]);
-    const [filteredVariants, setFilteredVariants] = useState<any[]>([]);
+    const [allVariants, setAllVariants] = useState<VariantInfo[]>([]);
+    const [filteredVariants, setFilteredVariants] = useState<VariantInfo[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -44,7 +64,7 @@ export default function NewStockReceipt() {
         setFilteredVariants(filtered);
     }, [search, allVariants]);
 
-    const addItem = (variant: any) => {
+    const addItem = (variant: VariantInfo) => {
         const existing = items.find(i => i.variant_id === variant.sku);
         if (existing) {
             setItems(items.map(i => i.variant_id === variant.sku ? { ...i, quantity: i.quantity + 1 } : i));

@@ -18,6 +18,7 @@ export default function AISettingsPage() {
 
     useEffect(() => {
         if (token) fetchSettings();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
     const fetchSettings = async () => {
@@ -57,14 +58,14 @@ export default function AISettingsPage() {
             } else {
                 alert('Lỗi: ' + data.message);
             }
-        } catch (err) {
+        } catch {
             alert('Lỗi kết nối!');
         } finally {
             setSaving(null);
         }
     };
 
-    const updateSettingField = (type: string, field: keyof AISetting, value: any) => {
+    const updateSettingField = (type: string, field: keyof AISetting, value: string | boolean) => {
         setSettings(prev => prev.map(s => s.type === type ? { ...s, [field]: value } : s));
     };
 

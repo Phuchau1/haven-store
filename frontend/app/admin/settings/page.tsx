@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/component/AuthContext';
 import {
     User, Mail, Lock, Phone, MapPin, Save, Loader2,
-    Key, Settings as SettingsIcon, Shield, Globe, CheckCircle, AlertCircle,
-    Clock, MessageSquare, Plus, Trash2, Image as ImageIcon
+    Key, Shield, Globe, CheckCircle, AlertCircle,
+    Clock, MessageSquare, Plus, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -167,8 +167,8 @@ export default function AdminSettings() {
         if (user) {
             setProfileData({
                 name: user.name || '',
-                phone: (user as any).phone || '',
-                address: (user as any).address || '',
+                phone: (user as {phone?: string}).phone || '',
+                address: (user as {address?: string}).address || '',
             });
         }
         const fetchSettings = async () => {
@@ -305,7 +305,7 @@ export default function AdminSettings() {
         ]);
     };
 
-    const updateReview = (id: string, field: keyof HomepageReview, value: any) => {
+    const updateReview = (id: string, field: keyof HomepageReview, value: string | number) => {
         setHomepageReviews(homepageReviews.map(r => r.id === id ? { ...r, [field]: value } : r));
     };
 
@@ -608,6 +608,7 @@ export default function AdminSettings() {
                                         />
                                         {siteSettings.heroImage && !siteSettings.heroVideoUrl && (
                                             <div className="mt-3 rounded-xl overflow-hidden bg-[var(--adm-surface-2)] aspect-video">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
                                                     src={siteSettings.heroImage}
                                                     alt="Hero"
@@ -745,7 +746,10 @@ export default function AdminSettings() {
                                                         className={inputCls()}
                                                     />
                                                     {review.avatar && (
-                                                        <img src={review.avatar} className="w-11 h-11 rounded-lg border object-cover shrink-0" alt="avatar" />
+                                                        <>
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img src={review.avatar} className="w-11 h-11 rounded-lg border object-cover shrink-0" alt="avatar" />
+                                                        </>
                                                     )}
                                                 </div>
                                             </FormField>

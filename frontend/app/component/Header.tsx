@@ -2,9 +2,9 @@
 // ===== HEADER COMPONENT — Dynamic category nav with subcategory dropdowns =====
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+// Image unused
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Search, Menu, X, Heart, User, LayoutDashboard, LogOut, ChevronDown, Sparkles, Camera } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Heart, User, LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
 import { useAuth } from '@/app/component/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -239,6 +239,7 @@ export default function Header() {
 
                         {/* Logo */}
                         <Link href="/" className="flex items-center h-full">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/logo-new.png" alt="HAVEN STORE" className="h-[40px] md:h-[50px] w-auto object-contain hover:opacity-70 transition-opacity duration-300" />
                         </Link>
 

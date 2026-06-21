@@ -38,7 +38,7 @@ export default function AdminReviewsPage() {
             });
             const data = await res.json();
             if (data.success) {
-                setReviews(reviews.map(r => r.id === id ? { ...r, status: newStatus as any } : r));
+                setReviews(reviews.map(r => r.id === id ? { ...r, status: newStatus as 'pending' | 'approved' | 'rejected' } : r));
             } else {
                 alert(data.message || 'Lỗi cập nhật trạng thái');
             }
@@ -111,7 +111,7 @@ export default function AdminReviewsPage() {
                     ].map(option => (
                         <button
                             key={option.value}
-                            onClick={() => setStatusFilter(option.value as any)}
+                            onClick={() => setStatusFilter(option.value as 'all' | 'pending' | 'approved' | 'rejected')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                                 statusFilter === option.value
                                     ? 'bg-black text-white'

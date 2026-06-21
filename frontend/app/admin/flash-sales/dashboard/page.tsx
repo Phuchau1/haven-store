@@ -1,15 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Zap, DollarSign, ShoppingBag, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Zap, DollarSign, ShoppingBag, Clock, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 interface DashboardData {
     totalActive: number;
     totalRevenue: number;
     totalSold: number;
-    endingSoon: any[];
-    topProducts: any[];
+    endingSoon: Array<{ id: string; name: string; endTime: string }>;
+    topProducts: Array<{ id: string; name: string; sold: number; revenue: number }>;
 }
 
 export default function FlashSaleDashboard() {
@@ -91,7 +90,7 @@ export default function FlashSaleDashboard() {
                     </div>
                     {data.endingSoon.length > 0 ? (
                         <div className="space-y-4">
-                            {data.endingSoon.map((fs: any) => (
+                            {data.endingSoon.map((fs) => (
                                 <div key={fs.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
                                     <span className="font-semibold text-gray-800">{fs.name}</span>
                                     <span className="text-sm text-rose-500 font-medium">
@@ -113,7 +112,7 @@ export default function FlashSaleDashboard() {
                     </div>
                     {data.topProducts.length > 0 ? (
                         <div className="space-y-4">
-                            {data.topProducts.map((p: any, idx: number) => (
+                            {data.topProducts.map((p, idx: number) => (
                                 <div key={p.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
                                     <div className="flex items-center gap-3">
                                         <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">{idx + 1}</span>

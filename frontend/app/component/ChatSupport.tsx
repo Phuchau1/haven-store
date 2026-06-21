@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, User, Bot, Loader2, Sparkles, ExternalLink, ChevronRight } from 'lucide-react';
+import { MessageSquare, X, Send, User, Bot, Loader2, Sparkles, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
@@ -74,6 +74,29 @@ export default function ChatSupport() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // ── Parse suggested product IDs từ reply ──
+  const parseSuggestedProducts = useCallback((reply: string): { cleanReply: string; suggested: SuggestedProduct[] } => {
+    const match = reply.match(/SUGGEST_IDS:\s*([\w\-,\s]+)/i);
+    if (!match) return { cleanReply: reply, suggested: [] };
+
+    const ids = match[1].split(',').map((s) => s.trim()).filter(Boolean);
+    const cleanReply = reply.replace(/SUGGEST_IDS:[\w\-,\s]+/i, '').trim();
+
+    const suggested: SuggestedProduct[] = ids
+      .map((id) => products.find((p) => p.id === id))
+      .filter((p): p is Product => !!p && p.inStock)
+      .slice(0, 3)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image: p.images?.[0] || '',
+        category: p.category,
+      }));
+
+    return { cleanReply, suggested };
+  }, [products]);
+
   // ── Load sản phẩm từ backend ──
   useEffect(() => {
     const loadProducts = async () => {
@@ -103,12 +126,12 @@ export default function ChatSupport() {
           const res = await fetch(`${BACKEND_URL}/api/chats/sessions/${storedSessionId}/messages`);
           const data = await res.json();
           if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
-            const formattedMessages: Message[] = data.messages.map((m: any) => {
+            const formattedMessages: Message[] = data.messages.map((m: {id: string; message: string; sender_type: string; createdAt: string}) => {
               const { cleanReply, suggested } = parseSuggestedProducts(m.message);
               return {
                 id: m.id,
                 text: cleanReply,
-                sender: m.sender_type as any,
+                sender: m.sender_type as Message['sender'],
                 timestamp: new Date(m.createdAt),
                 suggestedProducts: suggested
               };
@@ -121,7 +144,7 @@ export default function ChatSupport() {
       };
       fetchHistory();
     }
-  }, [isReady]);
+  }, [isReady, parseSuggestedProducts]);
 
   // ── Poll for admin responses ──
   useEffect(() => {
@@ -133,12 +156,12 @@ export default function ChatSupport() {
         const data = await res.json();
         if (data.success && Array.isArray(data.messages)) {
           if (data.messages.length !== messages.length) {
-            const formattedMessages: Message[] = data.messages.map((m: any) => {
+            const formattedMessages: Message[] = data.messages.map((m: {id: string; message: string; sender_type: string; createdAt: string}) => {
               const { cleanReply, suggested } = parseSuggestedProducts(m.message);
               return {
                 id: m.id,
                 text: cleanReply,
-                sender: m.sender_type as any,
+                sender: m.sender_type as Message['sender'],
                 timestamp: new Date(m.createdAt),
                 suggestedProducts: suggested
               };
@@ -152,7 +175,7 @@ export default function ChatSupport() {
     }, 4000);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen, sessionId, messages.length]);
+  }, [isOpen, sessionId, messages.length, parseSuggestedProducts]);
 
   // ── Scroll to bottom ──
   useEffect(() => {
@@ -184,6 +207,7 @@ export default function ChatSupport() {
   }, [products]);
 
   // ── Build prompt cho Gemini ──
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const buildPrompt = (userMessage: string): string => {
     const productList = products
       .slice(0, 80) // giới hạn context
@@ -273,7 +297,7 @@ QUY TẮC:
     // Tìm kiếm sản phẩm theo từ khóa (tính điểm mức độ phù hợp)
     const keywords = msg.replace(/[?.,!]/g, '').split(/\s+/).filter(w => w.length > 0 && !['tìm', 'cho', 'mình', 'tôi', 'bạn', 'có', 'không', 'ạ', 'nhé', 'xem'].includes(w));
     
-    let scoredMatches = products.filter(p => p.inStock).map(p => {
+    const scoredMatches = products.filter(p => p.inStock).map(p => {
       const pName = p.name.toLowerCase();
       const cLabel = p.categoryLabel.toLowerCase();
       let score = 0;
@@ -300,29 +324,6 @@ QUY TẮC:
 
     // Trả lời chung chung nếu không tìm thấy
     return 'Dạ xin lỗi bạn, mình chưa tìm thấy sản phẩm phù hợp với từ khóa này. Bạn có thể nói rõ hơn bạn đang tìm áo, quần hay phụ kiện không ạ?';
-  };
-
-  // ── Parse suggested product IDs từ reply ──
-  const parseSuggestedProducts = (reply: string): { cleanReply: string; suggested: SuggestedProduct[] } => {
-    const match = reply.match(/SUGGEST_IDS:\s*([\w\-,\s]+)/i);
-    if (!match) return { cleanReply: reply, suggested: [] };
-
-    const ids = match[1].split(',').map((s) => s.trim()).filter(Boolean);
-    const cleanReply = reply.replace(/SUGGEST_IDS:[\w\-,\s]+/i, '').trim();
-
-    const suggested: SuggestedProduct[] = ids
-      .map((id) => products.find((p) => p.id === id))
-      .filter((p): p is Product => !!p && p.inStock)
-      .slice(0, 3)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        image: p.images?.[0] || '',
-        category: p.category,
-      }));
-
-    return { cleanReply, suggested };
   };
 
   // ── Xử lý gửi tin nhắn ──
@@ -411,6 +412,7 @@ QUY TẮC:
       // Hiện badge nếu panel đang đóng
       if (!isOpen) setHasUnread(true);
     } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const errorMessage = err instanceof Error ? err.message : 'Lỗi không xác định';
       
       // Fallback message if API fails (e.g., project denied, invalid key)

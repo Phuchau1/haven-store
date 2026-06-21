@@ -2,7 +2,7 @@
 // ===== FOOTER COMPONENT =====
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+// Image unused
 import { motion } from 'framer-motion';
 import { Instagram, Facebook, MapPin, Phone, Mail, Clock } from 'lucide-react';
 
@@ -14,9 +14,10 @@ export default function Footer() {
                     {/* Brand Info */}
                     <div className="lg:col-span-1">
                         <Link href="/" className="inline-block bg-white p-2 rounded-xl hover:bg-gray-50 transition-colors mb-4">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/logo-new.png" alt="HAVEN STORE" className="h-[40px] w-auto object-contain drop-shadow-sm" />
                         </Link>
-                        <p className="mt-6 text-sm text-[#BDBDBD] leading-relaxed font-normal" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
+                        <p className="mt-6 text-sm text-[#BDBDBD] leading-relaxed font-normal">
                             Thương hiệu thời trang hàng đầu Việt Nam. Chúng tôi mang đến những sản phẩm
                             chất lượng cao với giá cả hợp lý nhất.
                         </p>

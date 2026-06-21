@@ -3,7 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Github, Chrome, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -38,7 +38,8 @@ export default function LoginPage() {
             } else {
                 setError(data.message || 'Đăng nhập thất bại');
             }
-        } catch (err) {
+        } catch (error) {
+            console.error('Login error:', error);
             setError('Lỗi kết nối máy chủ. Vui lòng thử lại sau.');
         } finally {
             setLoading(false);
@@ -154,7 +155,8 @@ export default function LoginPage() {
                                         } else {
                                             setError(data.message || 'Đăng nhập Google thất bại');
                                         }
-                                    } catch (err) {
+                                    } catch (error) {
+                                        console.error('Google login error:', error);
                                         setError('Lỗi kết nối máy chủ');
                                     } finally {
                                         setLoading(false);

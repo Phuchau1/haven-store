@@ -19,6 +19,7 @@ export default function OrderSuccessModal({ isOpen, orderId, email, onClose }: O
     // Countdown tự động chuyển về trang chủ
     useEffect(() => {
         if (!isOpen) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCountdown(15);
         const timer = setInterval(() => {
             setCountdown((prev) => {

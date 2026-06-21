@@ -6,9 +6,7 @@ import {
     Send, 
     User, 
     Bot, 
-    Sparkles, 
-    Check, 
-    Clock, 
+    Sparkles,
     Phone, 
     MessageSquare, 
     Loader2, 
@@ -102,9 +100,9 @@ export default function AdminChats() {
         } else {
             setMessages([]);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedSession?.id]);
 
-    // 3. Poll messages for the active session to see user texts real-time
     useEffect(() => {
         if (!selectedSession) return;
 
@@ -113,6 +111,7 @@ export default function AdminChats() {
         }, 3000);
 
         return () => clearInterval(pollInterval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedSession?.id]);
 
     // 4. Scroll to bottom

@@ -6,8 +6,15 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Loader2 } from 'lucide-react';
 
+interface Category {
+    id: string | number;
+    name: string;
+    image: string;
+    count: number;
+}
+
 export default function CategorySection() {
-    const [categories, setCategories] = useState<any[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

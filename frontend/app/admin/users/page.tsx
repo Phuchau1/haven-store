@@ -2,16 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import {
     Search,
-    User,
     Mail,
-    Shield,
     Trash2,
-    Loader2,
-    MoreVertical,
     Calendar,
     Phone
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 
 interface UserData {
@@ -54,7 +49,8 @@ export default function AdminUsers() {
             if (data.success) {
                 setUsers(users.filter(u => u.id !== id));
             }
-        } catch (error) {
+        } catch (err) {
+            console.error(err);
             alert('Lỗi xóa người dùng');
         }
     };
@@ -70,7 +66,8 @@ export default function AdminUsers() {
             if (data.success) {
                 setUsers(users.map(u => u.id === id ? { ...u, role: newRole } : u));
             }
-        } catch (error) {
+        } catch (err) {
+            console.error(err);
             alert('Lỗi cập nhật quyền');
         }
     };

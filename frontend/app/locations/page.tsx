@@ -12,6 +12,7 @@ export default function LocationsPage() {
                         {/* Store 1 */}
                         <div className="flex flex-col md:flex-row gap-6 border-b border-gray-100 pb-8">
                             <div className="w-full md:w-1/3">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img 
                                     src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&h=600&fit=crop" 
                                     alt="Cửa hàng Hà Nội" 
@@ -34,6 +35,7 @@ export default function LocationsPage() {
                         {/* Store 2 */}
                         <div className="flex flex-col md:flex-row gap-6 pb-4">
                             <div className="w-full md:w-1/3">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img 
                                     src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&h=600&fit=crop" 
                                     alt="Cửa hàng TP.HCM" 

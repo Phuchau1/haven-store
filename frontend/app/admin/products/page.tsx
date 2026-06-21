@@ -1,9 +1,8 @@
 'use client';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Search,
     Plus,
-    Filter,
     Edit2,
     Trash2,
     X,
@@ -43,7 +42,6 @@ export default function AdminProducts() {
 
     // ── Data State ──
     const [products, setProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // ── Modal State ──
@@ -226,17 +224,10 @@ export default function AdminProducts() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const [productsRes, categoriesRes] = await Promise.all([
-                    fetch('/api/products'),
-                    fetch('/api/categories'),
-                ]);
+                const productsRes = await fetch('/api/products');
                 if (productsRes.ok) {
                     const d = await productsRes.json();
                     if (d.success) setProducts(d.products);
-                }
-                if (categoriesRes.ok) {
-                    const d = await categoriesRes.json();
-                    if (d.success) setCategories(d.categories);
                 }
             } catch {
                 showToast('error', 'Lỗi tải dữ liệu');
@@ -245,14 +236,14 @@ export default function AdminProducts() {
             }
         };
         fetchInitialData();
-    }, []);
+    }, [showToast]);
 
     // ── Auto-generate variants when colors/sizes change ──
     useEffect(() => {
         const colors = formData.colors || [];
         const sizes = formData.sizes || [];
         const currentVariants = formData.variants || [];
-        const newVariants: any[] = [];
+        const newVariants: Array<{ color: string; size: string; stock: number; price: number; originalPrice: number }> = [];
         colors.forEach(col => {
             sizes.forEach(sz => {
                 if (col.name && sz) {
@@ -267,11 +258,11 @@ export default function AdminProducts() {
                 }
             });
         });
-        const sig = (vars: any[]) => vars.map(v => `${v.color}-${v.size}`).join('|');
+        const sig = (vars: Array<{ color: string; size: string }>) => vars.map(v => `${v.color}-${v.size}`).join('|');
         if (sig(newVariants) !== sig(currentVariants)) {
             setFormData(prev => ({ ...prev, variants: newVariants }));
         }
-    }, [formData.colors, formData.sizes]);
+    }, [formData.colors, formData.sizes, formData.price, formData.originalPrice, formData.variants]);
 
     // ── CRUD handlers ──
     const handleDelete = async (id: string) => {
@@ -347,8 +338,8 @@ export default function AdminProducts() {
             } else {
                 showToast('error', data.message || 'Không thể lưu sản phẩm');
             }
-        } catch (err: any) {
-            showToast('error', err.message || 'Lỗi khi lưu sản phẩm');
+        } catch (err) {
+            showToast('error', err instanceof Error ? err.message : 'Lỗi khi lưu sản phẩm');
         } finally {
             setIsSubmitting(false);
         }
@@ -919,7 +910,7 @@ export default function AdminProducts() {
                                             onChange={e =>
                                                 setFormData({
                                                     ...formData,
-                                                    category: e.target.value as any,
+                                                    category: e.target.value,
                                                     categoryLabel: e.target.options[e.target.selectedIndex].text,
                                                     subCategory: '',
                                                     subCategoryLabel: ''

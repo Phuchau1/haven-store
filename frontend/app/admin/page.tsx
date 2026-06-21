@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/format';
-import { SkeletonCard, SkeletonList } from './components/SkeletonLoaders';
+import { SkeletonCard } from './components/SkeletonLoaders';
 import { EmptyState } from './components/EmptyState';
 import { useToast } from './components/AdminToast';
 
@@ -18,8 +18,8 @@ interface DashboardStats {
     orderCount: number;
     productCount: number;
     customerCount: number;
-    recentOrders: any[];
-    topProducts: any[];
+    recentOrders: Array<{ id: string; customerName: string; createdAt: string; totalAmount: number; status: string }>;
+    topProducts: Array<{ id: string; name: string; images: string[]; price: number; sales: number }>;
     stockStatus: {
         inStock: number;
         outOfStock: number;
@@ -144,9 +144,10 @@ export default function AdminDashboard() {
             } else {
                 throw new Error(data.message || 'Không thể tải dữ liệu');
             }
-        } catch (err: any) {
-            setError(err.message || 'Lỗi khi tải dữ liệu');
-            showToast('error', 'Lỗi tải dữ liệu', err.message);
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : 'Lỗi khi tải dữ liệu';
+            setError(msg);
+            showToast('error', 'Lỗi tải dữ liệu', msg);
         } finally {
             setLoading(false);
         }
@@ -233,13 +234,13 @@ export default function AdminDashboard() {
                 ) : stats ? (
                     CARD_CONFIGS.map((cfg, i) => {
                         const value = stats[cfg.key as keyof DashboardStats] as number;
-                        const trendMap: any = {
+                        const trendMap: Record<string, string> = {
                             totalRevenue: stats.trends.revenue,
                             orderCount: stats.trends.orders,
                             productCount: stats.trends.products,
                             customerCount: stats.trends.customers
                         };
-                        const sparkMap: any = {
+                        const sparkMap: Record<string, number[]> = {
                             totalRevenue: stats.sparklines.revenue,
                             orderCount: stats.sparklines.orders,
                             productCount: stats.sparklines.products,
@@ -470,7 +471,10 @@ export default function AdminDashboard() {
                                                 style={{ border: '1px solid var(--adm-border)' }}
                                             >
                                                 {product.images?.[0] && (
-                                                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                                    <>
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                                    </>
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
