@@ -4,8 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, SlidersHorizontal } from 'lucide-react';
 import { FilterState } from '@/types';
-import { formatPrice } from '@/lib/format';
-
+// formatPrice removed
 interface ProductFilterProps {
     filters: FilterState;
     setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
@@ -25,12 +24,6 @@ const allColors = [
     { name: 'Hồng', hex: '#e8b4b8' },
 ];
 
-const categoryOptions = [
-    { value: '', label: 'Tất cả' },
-    { value: 'quan-ao', label: 'Quần áo' },
-    { value: 'giay', label: 'Giày dép' },
-    { value: 'phu-kien', label: 'Phụ kiện' },
-];
 
 const sortOptions = [
     { value: 'newest' as const, label: 'Mới nhất' },
@@ -54,7 +47,7 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
     const [categories, setCategories] = useState<{value: string, label: string}[]>([{ value: '', label: 'Tất cả' }]);
     const [priceRange, setPriceRange] = useState<[number, number]>(filters.priceRange);
     const [activeThumb, setActiveThumb] = useState<'min' | 'max'>('min');
-    const debounceTimeout = useRef<any>(null);
+    const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // Helper: format price with commas to match screenshot exactly
     const formatPriceWithCommas = (price: number): string => {
@@ -64,6 +57,7 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
     // Sync local state when parent filters.priceRange changes (e.g. on Reset)
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPriceRange(filters.priceRange);
     }, [filters.priceRange]);
 
@@ -88,7 +82,7 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                 const res = await fetch('/api/categories');
                 const data = await res.json();
                 if (data.success && data.categories) {
-                    const dynamicOptions = data.categories.map((c: any) => ({
+                    const dynamicOptions = data.categories.map((c: Record<string, string>) => ({
                         value: c.id,
                         label: c.name
                     }));

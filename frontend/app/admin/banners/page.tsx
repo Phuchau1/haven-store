@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Loader2, Plus, Edit2, Trash2, X, Image as ImageIcon, Save } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, X, Image as ImageIcon, Save } from 'lucide-react';
 
 interface Banner {
     id: string;
@@ -134,7 +134,10 @@ export default function AdminBannersPage() {
                                         <td className="px-6 py-4">
                                             <div className="w-24 h-12 rounded-lg overflow-hidden bg-gray-100">
                                                 {item.image ? (
-                                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                                    <>
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                                    </>
                                                 ) : (
                                                     <ImageIcon className="w-full h-full p-3 text-gray-400" />
                                                 )}

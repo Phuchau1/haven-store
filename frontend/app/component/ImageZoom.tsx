@@ -29,6 +29,7 @@ export default function ImageZoom({
 
     // Đồng bộ khi chọn màu từ bên ngoài
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (externalIndex !== undefined) setInternalIndex(externalIndex);
     }, [externalIndex]);
 

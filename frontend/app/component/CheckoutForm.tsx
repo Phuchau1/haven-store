@@ -23,8 +23,17 @@ interface Coupon {
     usage_limit: number;
 }
 
+interface PaymentMethod {
+    id: string;
+    name_methond: string;
+    description?: string;
+    bank_info?: string;
+    qr_code_url?: string;
+    is_active?: boolean;
+}
+
 export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
-    const { items, totalAmount, clearCart } = useCart();
+    const { items, totalAmount } = useCart();
     const { user, updateProfile } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -39,7 +48,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         note: '',
     });
 
-    const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
     // ── Voucher states ──
     const [voucherInput, setVoucherInput] = useState('');
@@ -59,9 +68,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 const res = await fetch('/api/admin/extra/payment-methods');
                 const data = await res.json();
                 if (data.success) {
-                    const activeMethods = data.data.filter((pm: any) => pm.is_active);
+                    const activeMethods = data.data.filter((pm: PaymentMethod) => pm.is_active);
                     setPaymentMethods(activeMethods);
-                    if (activeMethods.length > 0 && !activeMethods.find((m:any) => m.id === formData.paymentMethod)) {
+                    if (activeMethods.length > 0 && !activeMethods.find((m: PaymentMethod) => m.id === formData.paymentMethod)) {
                         setFormData(prev => ({ ...prev, paymentMethod: activeMethods[0].id }));
                     }
                 }
@@ -70,6 +79,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }
         };
         fetchPaymentMethods();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Cập nhật form nếu user đăng nhập hoặc từ thông tin đã lưu
@@ -96,7 +106,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 const res = await fetch('/api/coupons/available');
                 const data = await res.json();
                 if (data.success) setAvailableCoupons(data.coupons);
-            } catch (_) {}
+            } catch { /* ignore */ }
             setCouponsLoading(false);
         }
     };
@@ -137,7 +147,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 setVoucherError(data.message || 'Mã voucher không hợp lệ.');
                 removeVoucherStore();
             }
-        } catch (_) {
+        } catch {
             setVoucherError('Không thể kết nối máy chủ. Thử lại sau.');
         }
         setVoucherLoading(false);
@@ -252,9 +262,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
             // Thành công (COD hoặc Chuyển khoản thông thường)!
             onSuccess(result.orderId, formData.email);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Checkout error:', err);
-            setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+            setError((err as Error).message || 'Có lỗi xảy ra. Vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
@@ -374,6 +384,8 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 type="button"
                                 onClick={removeVoucher}
                                 className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-emerald-100 text-emerald-500 transition-colors"
+                                title="Xóa mã giảm giá"
+                                aria-label="Xóa mã giảm giá"
                             >
                                 <X size={14} />
                             </button>
@@ -585,8 +597,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         </div>
                         {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url && (
                             <div className="shrink-0">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img 
-                                    src={paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url} 
+                                    src={paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url as string} 
                                     alt="QR Code" 
                                     className="w-32 h-32 object-contain bg-white p-1 rounded-lg shadow-sm border border-blue-100" 
                                 />

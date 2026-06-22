@@ -301,3 +301,6 @@
 [2026-06-14 10:00:45] INFO: ::1 - - [14/Jun/2026:03:00:45 +0000] "GET /api/menus?active=true HTTP/1.1" 200 5124 "http://localhost:3000/checkout" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0" 
 [2026-06-14 10:00:46] INFO: ::1 - - [14/Jun/2026:03:00:46 +0000] "GET /api/products HTTP/1.1" 200 113920 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0" 
 [2026-06-14 10:00:46] INFO: ::1 - - [14/Jun/2026:03:00:46 +0000] "GET /api/chats/sessions/session-9tiyrl4t4/messages HTTP/1.1" 200 13808 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0" 
+[2026-06-21 14:03:18] INFO: Starting server on port 5000... 
+[2026-06-21 14:03:18] INFO: CWD: E:\BANWEB\fashion-store\backend 
+[2026-06-21 14:03:19] INFO: Backend server running on http://localhost:5000 

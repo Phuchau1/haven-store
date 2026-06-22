@@ -18,8 +18,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Play, Sparkles, Palette } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 // ── Tông màu cố định Premium ─────────────────────────────────
 const PREMIUM_THEME = {
@@ -45,7 +45,7 @@ export default function Hero() {
                 const resSettings  = await fetch('/api/settings');
                 const dataSettings = await resSettings.json();
                 
-                let newSettings = { ...settings };
+                const newSettings = { ...settings };
                 
                 if (dataSettings.success && dataSettings.settings) {
                     newSettings.heroSubtitle = dataSettings.settings.heroSubtitle || newSettings.heroSubtitle;
@@ -72,6 +72,7 @@ export default function Hero() {
             }
         };
         fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const headingLines = settings.heroHeading.split('\n');

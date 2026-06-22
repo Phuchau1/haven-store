@@ -59,7 +59,8 @@ export default function AdminSizesPage() {
                 fetchItems();
                 setIsModalOpen(false);
             } else alert(data.message || 'Có lỗi xảy ra');
-        } catch (error) {
+        } catch (err) {
+            console.error(err);
             alert('Có lỗi xảy ra khi lưu');
         }
     };
@@ -71,7 +72,8 @@ export default function AdminSizesPage() {
             const data = await res.json();
             if (data.success) setSizes(sizes.filter(c => c.id !== id));
             else alert(data.message || 'Lỗi xóa dữ liệu');
-        } catch (error) {
+        } catch (err) {
+            console.error(err);
             alert('Có lỗi xảy ra khi xóa');
         }
     };

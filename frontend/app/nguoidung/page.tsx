@@ -2,15 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    User,
     Package,
-    Truck,
-    CheckCircle2,
     XCircle,
-    Clock,
-    RefreshCcw,
     ChevronRight,
-    Search,
     ShoppingBag,
     Settings,
     LogOut,
@@ -27,6 +21,12 @@ import { useRouter } from 'next/navigation';
 import { OrderData } from '@/types';
 import { formatPrice } from '@/lib/format';
 import Image from 'next/image';
+
+interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
+    discountAmount?: number;
+    couponCode?: string;
+    finalAmount?: number;
+}
 
 const TABS = [
     { id: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
@@ -125,12 +125,12 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
                                 </div>
                                 <div>
                                     <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Tổng tiền</p>
-                                    {(order as any).discountAmount > 0 && (
+                                    {((order as ExtendedOrder).discountAmount ?? 0) > 0 && (
                                         <p className="text-xs text-slate-400 line-through">{formatPrice(order.totalAmount)}</p>
                                     )}
-                                    <p className="text-sm font-bold text-rose-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</p>
-                                    {(order as any).couponCode && (
-                                        <p className="text-[10px] text-emerald-600 mt-0.5">🎟 {(order as any).couponCode}</p>
+                                    <p className="text-sm font-bold text-rose-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
+                                    {(order as ExtendedOrder).couponCode && (
+                                        <p className="text-[10px] text-emerald-600 mt-0.5">🎟 {(order as ExtendedOrder).couponCode}</p>
                                     )}
                                 </div>
                             </div>
@@ -198,15 +198,15 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
                                             <td colSpan={3} className="py-3 text-right text-sm text-slate-500">Tạm tính:</td>
                                             <td className="py-3 text-right text-sm text-slate-500">{formatPrice(order.totalAmount)}</td>
                                         </tr>
-                                        {(order as any).discountAmount > 0 && (
+                                        {((order as ExtendedOrder).discountAmount ?? 0) > 0 && (
                                             <tr className="text-emerald-600">
-                                                <td colSpan={3} className="py-2 text-right text-sm font-medium">🎟 Voucher ({(order as any).couponCode}):</td>
-                                                <td className="py-2 text-right text-sm font-medium">-{formatPrice((order as any).discountAmount)}</td>
+                                                <td colSpan={3} className="py-2 text-right text-sm font-medium">🎟 Voucher ({(order as ExtendedOrder).couponCode}):</td>
+                                                <td className="py-2 text-right text-sm font-medium">-{formatPrice((order as ExtendedOrder).discountAmount || 0)}</td>
                                             </tr>
                                         )}
                                         <tr className="border-t-2 border-slate-100 bg-slate-50/30">
                                             <td colSpan={3} className="py-4 text-right font-bold text-sm text-slate-900">Tổng cộng:</td>
-                                            <td className="py-4 text-right font-bold text-base text-rose-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</td>
+                                            <td className="py-4 text-right font-bold text-base text-rose-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -326,7 +326,7 @@ export default function NguoiDungPage() {
             } else {
                 alert('Lỗi: ' + data.message);
             }
-        } catch (error) {
+        } catch {
             alert('Đã có lỗi xảy ra');
         }
     };
@@ -550,10 +550,10 @@ export default function NguoiDungPage() {
                                                                 </div>
                                                                 <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
                                                                     <div className="text-right">
-                                                                        {(order as any).discountAmount > 0 && (
+                                                                        {((order as ExtendedOrder).discountAmount ?? 0) > 0 && (
                                                                             <p className="text-xs text-slate-400 line-through">{formatPrice(order.totalAmount)}</p>
                                                                         )}
-                                                                        <p className="text-sm font-bold text-indigo-600">{formatPrice((order as any).finalAmount || order.totalAmount)}</p>
+                                                                        <p className="text-sm font-bold text-indigo-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
                                                                     </div>
                                                                     <button 
                                                                         onClick={() => setSelectedOrderId(order.id ?? '')}

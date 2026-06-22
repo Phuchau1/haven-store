@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+// ArrowRight removed
 import { Product } from '@/types';
 import ProductCard from './ProductCard';
 

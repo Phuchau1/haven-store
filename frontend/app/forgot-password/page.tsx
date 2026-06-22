@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
             } else {
                 setMessage({ text: data.message || 'Lỗi gửi yêu cầu', type: 'error' });
             }
-        } catch (error) {
+        } catch {
             setMessage({ text: 'Lỗi kết nối server', type: 'error' });
         } finally {
             setLoading(false);

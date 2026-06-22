@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Save, Gift, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 
@@ -24,11 +24,7 @@ export default function LuckyWheelAdminPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        if (token) fetchConfig();
-    }, [token]);
-
-    const fetchConfig = async () => {
+    const fetchConfig = useCallback(async () => {
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/config`, {
                 headers: { 'x-user-id': token || '' }
@@ -42,7 +38,11 @@ export default function LuckyWheelAdminPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        if (token) fetchConfig();
+    }, [token, fetchConfig]);
 
     const handleSave = async () => {
         if (!config) return;
@@ -63,13 +63,14 @@ export default function LuckyWheelAdminPage() {
                 alert('Lỗi: ' + data.message);
             }
         } catch (err) {
+            console.error(err);
             alert('Lỗi kết nối!');
         } finally {
             setSaving(false);
         }
     };
 
-    const updatePrize = (index: number, field: keyof Prize, value: any) => {
+    const updatePrize = (index: number, field: keyof Prize, value: string | number) => {
         if (!config) return;
         const newPrizes = [...config.prizes];
         newPrizes[index] = { ...newPrizes[index], [field]: value };

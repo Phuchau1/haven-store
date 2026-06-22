@@ -16,7 +16,7 @@ export function isAdminRequest(request: Request) {
     const adminEmail = request.headers.get('x-admin-email');
     if (!adminEmail) return false;
 
-    const users = readData<any[]>('users.json');
+    const users = readData<Record<string, unknown>[]>('users.json');
     const user = users.find(u => u.email === adminEmail && u.role === 'admin');
 
     return !!user;

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Zap, Calendar, Tag, Activity } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Zap, Tag, Activity } from 'lucide-react';
 import Link from 'next/link';
 
 interface FlashSaleVariant {
@@ -13,7 +13,7 @@ interface FlashSaleVariant {
 }
 
 interface FlashSaleProduct {
-    productId: string | any; // To handle populate on client side if needed
+    productId: string | { id: string }; // To handle populate on client side if needed
     flashSalePrice: number;
     stockQuantity: number;
     soldQuantity: number;
@@ -30,6 +30,14 @@ interface FlashSale {
     products: FlashSaleProduct[];
 }
 
+interface ProductBase {
+    id: string;
+    name: string;
+    price?: number;
+    variants?: Array<{ color: string; size: string }>;
+    images?: string[];
+}
+
 export default function AdminFlashSalesPage() {
     const [flashSales, setFlashSales] = useState<FlashSale[]>([]);
     const [loading, setLoading] = useState(true);
@@ -39,7 +47,7 @@ export default function AdminFlashSalesPage() {
     const [saving, setSaving] = useState(false);
     
     // Product Selection State
-    const [allProducts, setAllProducts] = useState<any[]>([]);
+    const [allProducts, setAllProducts] = useState<ProductBase[]>([]);
     const [searchKeyword, setSearchKeyword] = useState('');
 
     const [formData, setFormData] = useState({
@@ -76,14 +84,14 @@ export default function AdminFlashSalesPage() {
             
             // Normalize products (handle if productId is object due to populate)
             const normalizedProducts = (item.products || []).map(p => {
-                const pid = typeof p.productId === 'object' ? (p.productId as any).id : p.productId;
+                const pid = typeof p.productId === 'object' ? (p.productId as { id: string }).id : p.productId;
                 let variants = p.variants || [];
                 
                 // If old product without variants array, populate from allProducts
                 if (variants.length === 0) {
                     const productInfo = allProducts.find(ap => ap.id === pid);
                     if (productInfo && productInfo.variants) {
-                        variants = productInfo.variants.map((v: any) => ({
+                        variants = productInfo.variants.map((v) => ({
                             color: v.color,
                             size: v.size,
                             flashSalePrice: p.flashSalePrice || 0,
@@ -167,7 +175,7 @@ export default function AdminFlashSalesPage() {
             } else {
                 setErrorMsg(data.message || 'Có lỗi xảy ra');
             }
-        } catch (error) {
+        } catch {
             setErrorMsg('Không thể kết nối đến máy chủ');
         } finally {
             setSaving(false);
@@ -191,12 +199,12 @@ export default function AdminFlashSalesPage() {
     };
 
     // Product Selection Handlers
-    const handleAddProduct = (product: any) => {
+    const handleAddProduct = (product: ProductBase) => {
         if (formData.products.find(p => p.productId === product.id)) return;
         
         // Setup initial variants
         const defaultPrice = product.price ? Math.round(product.price * 0.8) : 0;
-        const variants = (product.variants || []).map((v: any) => ({
+        const variants = (product.variants || []).map((v) => ({
             color: v.color,
             size: v.size,
             flashSalePrice: defaultPrice,
@@ -224,7 +232,7 @@ export default function AdminFlashSalesPage() {
         });
     };
 
-    const handleUpdateProduct = (productId: string, field: string, value: any) => {
+    const handleUpdateProduct = (productId: string, field: string, value: string | number | boolean) => {
         setFormData({
             ...formData,
             products: formData.products.map(p => 
@@ -233,7 +241,7 @@ export default function AdminFlashSalesPage() {
         });
     };
 
-    const handleUpdateVariant = (productId: string, variantIndex: number, field: string, value: any) => {
+    const handleUpdateVariant = (productId: string, variantIndex: number, field: string, value: string | number | boolean) => {
         setFormData({
             ...formData,
             products: formData.products.map(p => {
@@ -398,12 +406,13 @@ export default function AdminFlashSalesPage() {
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-100">
                                                         {formData.products.map((p, idx) => {
-                                                            const productInfo = allProducts.find(ap => ap.id === p.productId);
+                                                            const pIdStr = typeof p.productId === 'object' ? p.productId.id : p.productId;
+                                                            const productInfo = allProducts.find(ap => ap.id === pIdStr);
                                                             return (
                                                                 <React.Fragment key={idx}>
                                                                     <tr className="bg-white hover:bg-gray-50">
                                                                         <td className="px-4 py-2">
-                                                                            <p className="font-semibold text-gray-800 line-clamp-1">{productInfo?.name || p.productId}</p>
+                                                                            <p className="font-semibold text-gray-800 line-clamp-1">{productInfo?.name || pIdStr}</p>
                                                                             <p className="text-xs text-gray-500">Giá gốc: {productInfo?.price?.toLocaleString() || 0} đ</p>
                                                                         </td>
                                                                         <td className="px-4 py-2">
@@ -411,7 +420,7 @@ export default function AdminFlashSalesPage() {
                                                                                 type="number" 
                                                                                 disabled={p.useVariants}
                                                                                 value={p.flashSalePrice} 
-                                                                                onChange={(e) => handleUpdateProduct(p.productId, 'flashSalePrice', e.target.value === '' ? '' : Number(e.target.value))}
+                                                                                onChange={(e) => handleUpdateProduct(pIdStr, 'flashSalePrice', e.target.value === '' ? '' : Number(e.target.value))}
                                                                                 className="adm-input w-full text-sm px-2 py-1 h-8 disabled:opacity-50"
                                                                             />
                                                                         </td>
@@ -420,7 +429,7 @@ export default function AdminFlashSalesPage() {
                                                                                 type="number" 
                                                                                 disabled={p.useVariants}
                                                                                 value={p.stockQuantity} 
-                                                                                onChange={(e) => handleUpdateProduct(p.productId, 'stockQuantity', e.target.value === '' ? '' : Number(e.target.value))}
+                                                                                onChange={(e) => handleUpdateProduct(pIdStr, 'stockQuantity', e.target.value === '' ? '' : Number(e.target.value))}
                                                                                 className="adm-input w-full text-sm px-2 py-1 h-8 disabled:opacity-50"
                                                                             />
                                                                         </td>
@@ -430,14 +439,14 @@ export default function AdminFlashSalesPage() {
                                                                                     <input 
                                                                                         type="checkbox" 
                                                                                         checked={p.useVariants || false}
-                                                                                        onChange={(e) => handleUpdateProduct(p.productId, 'useVariants', e.target.checked)}
+                                                                                        onChange={(e) => handleUpdateProduct(pIdStr, 'useVariants', e.target.checked)}
                                                                                         className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                                                                     />
                                                                                 </label>
                                                                             )}
                                                                         </td>
                                                                         <td className="px-4 py-2 text-right">
-                                                                            <button type="button" onClick={() => handleRemoveProduct(p.productId)} className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg">
+                                                                            <button type="button" onClick={() => handleRemoveProduct(pIdStr)} className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg">
                                                                                 <Trash2 size={16} />
                                                                             </button>
                                                                         </td>
@@ -460,7 +469,7 @@ export default function AdminFlashSalesPage() {
                                                                                                             type="number" 
                                                                                                             placeholder="Giá FS"
                                                                                                             value={v.flashSalePrice !== undefined ? v.flashSalePrice : ''}
-                                                                                                            onChange={(e) => handleUpdateVariant(p.productId, vIdx, 'flashSalePrice', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                                                                                                            onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'flashSalePrice', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
                                                                                                             className="w-24 px-2 py-1.5 rounded-md border text-right text-xs outline-none focus:ring-1 focus:ring-indigo-500 transition-all bg-gray-50"
                                                                                                         />
                                                                                                     </div>
@@ -470,7 +479,7 @@ export default function AdminFlashSalesPage() {
                                                                                                             type="number" 
                                                                                                             placeholder="Tồn kho"
                                                                                                             value={v.stockQuantity !== undefined ? v.stockQuantity : ''}
-                                                                                                            onChange={(e) => handleUpdateVariant(p.productId, vIdx, 'stockQuantity', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                                                                                                            onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'stockQuantity', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
                                                                                                             className="w-20 px-2 py-1.5 rounded-md border text-right text-xs font-bold outline-none focus:ring-1 focus:ring-indigo-500 transition-all bg-gray-50"
                                                                                                         />
                                                                                                     </div>
@@ -509,7 +518,10 @@ export default function AdminFlashSalesPage() {
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                                                                 {product.images && product.images[0] ? (
-                                                                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                                                    <>
+                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                                                    </>
                                                                 ) : (
                                                                     <Tag className="w-5 h-5 text-gray-400 m-2.5" />
                                                                 )}

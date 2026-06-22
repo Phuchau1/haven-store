@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Sparkles, Camera, ChevronRight, Loader2, ShoppingBag, Star, RotateCcw, AlertCircle } from 'lucide-react';
+import { X, Sparkles, Camera, ChevronRight, Loader2, ShoppingBag, Star, RotateCcw, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { generateWithImage, buildTryOnPrompt } from '@/lib/gemini';
@@ -171,7 +171,7 @@ export default function AITryOnPage() {
                     selectedProduct.description || ''
                 );
                 try {
-                    const text = await generateWithImage(prompt, base64, mimeType);
+                    const text = await generateWithImage(prompt, base64);
                     setResult(text);
                 } catch {
                     setError('Không thể kết nối AI. Hiển thị kết quả mẫu.');

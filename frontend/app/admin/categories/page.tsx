@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronRight,
-    Loader2, Tag, Grid3X3, ToggleLeft, ToggleRight, GripVertical,
-    Image as ImageIcon, AlertTriangle, CheckCircle, FolderOpen, Folder,
+    Plus, Edit2, Trash2, X, Save, ChevronRight,
+    Loader2, Grid3X3,
+    Image as ImageIcon, AlertTriangle, CheckCircle, FolderOpen,
     Eye, EyeOff, ArrowUp, ArrowDown
 } from 'lucide-react';
 
@@ -159,7 +159,11 @@ export default function AdminCategoriesPage() {
     const toggleExpand = (id: string) => {
         setExpandedIds(prev => {
             const next = new Set(prev);
-            next.has(id) ? next.delete(id) : next.add(id);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
             return next;
         });
     };

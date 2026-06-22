@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Heart, ShoppingBag, Star, Eye } from 'lucide-react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '@/types';
 import { formatPrice } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
@@ -19,16 +19,6 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     const [isLiked, setIsLiked] = useState(false);
     const { addItem } = useCart();
 
-    const colorSwatchClasses: Record<string, string> = {
-        'Đen': 'bg-[#1a1a1a]',
-        'Trắng': 'bg-[#ffffff]',
-        'Xám': 'bg-[#808080]',
-        'Be': 'bg-[#d4c5a9]',
-        'Nâu': 'bg-[#8B4513]',
-        'Đỏ': 'bg-[#c41e3a]',
-        'Xanh': 'bg-[#1a3a5c]',
-        'Hồng': 'bg-[#e8b4b8]',
-    };
 
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();

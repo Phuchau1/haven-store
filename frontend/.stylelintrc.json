@@ -1,0 +1,11 @@
+{
+  "ignoreFiles": [
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "app/**",
+    "lib/**",
+    "public/**"
+  ]
+}

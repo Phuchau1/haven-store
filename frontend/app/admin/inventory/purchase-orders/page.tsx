@@ -3,8 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, CheckCircle, XCircle } from 'lucide-react';
 
+interface PurchaseOrder {
+    id: string;
+    supplier_id: string;
+    expected_date?: string;
+    total_amount?: number;
+    status: string;
+}
+
 export default function PurchaseOrdersPage() {
-    const [orders, setOrders] = useState<any[]>([]);
+    const [orders, setOrders] = useState<PurchaseOrder[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchOrders = () => {

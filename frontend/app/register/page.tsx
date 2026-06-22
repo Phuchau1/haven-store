@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, ArrowRight, Github, Chrome, Phone, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, Phone, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -61,7 +61,7 @@ export default function RegisterPage() {
             } else {
                 setError(data.message || 'Đăng ký thất bại');
             }
-        } catch (err) {
+        } catch {
             setError('Lỗi kết nối máy chủ. Vui lòng thử lại sau.');
         } finally {
             setLoading(false);
