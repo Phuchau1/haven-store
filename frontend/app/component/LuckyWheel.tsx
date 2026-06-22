@@ -262,7 +262,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             }
         };
 
-        if (!config || !config.prizes || config.prizes.length === 0 || !config.prizes[0].reward) {
+        if (!config || !config.prizes || config.prizes.length === 0 || !config.prizes[0].label) {
             // Need refetch because store might have old schema
             fetchConfig();
         } else {
