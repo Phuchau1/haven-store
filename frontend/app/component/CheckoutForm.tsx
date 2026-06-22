@@ -32,6 +32,17 @@ interface PaymentMethod {
     is_active?: boolean;
 }
 
+interface SavedAddress {
+    id: string;
+    full_name: string;
+    phone: string;
+    city: string;
+    district: string;
+    ward: string;
+    street: string;
+    is_default: boolean;
+}
+
 export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const { items, totalAmount } = useCart();
     const { user, updateProfile } = useAuth();
@@ -60,7 +71,78 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const [showVoucherList, setShowVoucherList] = useState(false);
     const [couponsLoading, setCouponsLoading] = useState(false);
 
+    // ── Saved Addresses ──
+    const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+    const [loadingAddresses, setLoadingAddresses] = useState(false);
+    const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+
+    // ── API Addresses for new input ──
+    const [provinces, setProvinces] = useState<any[]>([]);
+    const [districts, setDistricts] = useState<any[]>([]);
+    const [wards, setWards] = useState<any[]>([]);
+    const [selectedProvinceCode, setSelectedProvinceCode] = useState<number | null>(null);
+    const [selectedDistrictCode, setSelectedDistrictCode] = useState<number | null>(null);
+    const [localAddress, setLocalAddress] = useState({ city: '', district: '', ward: '', street: '' });
+
     const finalTotal = appliedCoupon ? appliedCoupon.finalAmount : totalAmount;
+
+    React.useEffect(() => {
+        fetch('https://provinces.open-api.vn/api/?depth=1')
+            .then(res => res.json())
+            .then(data => setProvinces(data))
+            .catch(console.error);
+    }, []);
+
+    const fetchDistricts = async (provinceCode: number) => {
+        try {
+            const res = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+            const data = await res.json();
+            setDistricts(data.districts || []);
+        } catch (error) { console.error(error); }
+    };
+
+    const fetchWards = async (districtCode: number) => {
+        try {
+            const res = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+            const data = await res.json();
+            setWards(data.wards || []);
+        } catch (error) { console.error(error); }
+    };
+
+    const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const code = Number(e.target.value);
+        const name = e.target.options[e.target.selectedIndex].text;
+        setSelectedProvinceCode(code);
+        setLocalAddress({ ...localAddress, city: name, district: '', ward: '' });
+        setDistricts([]);
+        setWards([]);
+        setFormData(p => ({ ...p, address: '' }));
+        if (code) fetchDistricts(code);
+    };
+
+    const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const code = Number(e.target.value);
+        const name = e.target.options[e.target.selectedIndex].text;
+        setSelectedDistrictCode(code);
+        setLocalAddress({ ...localAddress, district: name, ward: '' });
+        setWards([]);
+        setFormData(p => ({ ...p, address: '' }));
+        if (code) fetchWards(code);
+    };
+
+    const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const name = e.target.options[e.target.selectedIndex].text;
+        setLocalAddress({ ...localAddress, ward: name });
+    };
+
+    React.useEffect(() => {
+        if (!selectedAddressId && localAddress.city && localAddress.district && localAddress.ward && localAddress.street) {
+            setFormData(prev => ({
+                ...prev,
+                address: `${localAddress.street}, ${localAddress.ward}, ${localAddress.district}, ${localAddress.city}`
+            }));
+        }
+    }, [localAddress, selectedAddressId]);
 
     React.useEffect(() => {
         const fetchPaymentMethods = async () => {
@@ -94,7 +176,36 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             phone: user?.phone || savedInfo?.phone || prev.phone,
             address: user?.address || savedInfo?.address || prev.address
         }));
+
+        if (user) {
+            setLoadingAddresses(true);
+            fetch(`/api/addresses?user_id=${user.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.addresses.length > 0) {
+                        setSavedAddresses(data.addresses);
+                        // Auto select default address if available
+                        const defAddr = data.addresses.find((a: SavedAddress) => a.is_default);
+                        if (defAddr) {
+                            handleSelectAddress(defAddr);
+                        }
+                    }
+                })
+                .catch(err => console.error(err))
+                .finally(() => setLoadingAddresses(false));
+        }
     }, [user]);
+
+    const handleSelectAddress = (addr: SavedAddress) => {
+        setSelectedAddressId(addr.id);
+        const fullAddressStr = `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}`;
+        setFormData(prev => ({
+            ...prev,
+            customerName: addr.full_name,
+            phone: addr.phone,
+            address: fullAddressStr
+        }));
+    };
 
     // Fetch available coupons when panel opens
     const handleToggleVoucherList = async () => {
@@ -272,6 +383,36 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
     return (
         <form onSubmit={handleCheckout} className="space-y-6">
+            {/* Saved Addresses Selection */}
+            {user && savedAddresses.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 border border-indigo-100 bg-indigo-50/30">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-indigo-900 mb-4 flex items-center gap-2">
+                        <MapPin size={16} className="text-indigo-600" />
+                        Chọn từ sổ địa chỉ
+                    </h3>
+                    {loadingAddresses ? (
+                        <div className="animate-pulse h-16 bg-white rounded-xl"></div>
+                    ) : (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            {savedAddresses.map(addr => (
+                                <div 
+                                    key={addr.id}
+                                    onClick={() => handleSelectAddress(addr)}
+                                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all ${selectedAddressId === addr.id ? 'border-indigo-500 bg-indigo-50' : 'border-transparent bg-white hover:border-indigo-200 shadow-sm'}`}
+                                >
+                                    <p className="font-bold text-slate-900 text-sm flex items-center gap-2 mb-1">
+                                        {addr.full_name} 
+                                        {addr.is_default && <span className="text-[9px] bg-indigo-500 text-white px-1.5 py-0.5 rounded uppercase">Mặc định</span>}
+                                    </p>
+                                    <p className="text-xs text-slate-600 mb-0.5">{addr.phone}</p>
+                                    <p className="text-xs text-slate-500 line-clamp-2">{addr.street}, {addr.ward}, {addr.district}, {addr.city}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Customer Info */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100">
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-5">
@@ -322,18 +463,47 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     </div>
 
                     {/* Address */}
-                    <div className="relative">
-                        <MapPin size={16} className="absolute left-4 top-4 text-gray-400" />
-                        <input
-                            type="text"
-                            name="address"
-                            value={formData.address}
-                            onChange={handleChange}
-                            placeholder="Địa chỉ giao hàng *"
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
-                            required
-                        />
-                    </div>
+                    {selectedAddressId ? (
+                        <div className="relative">
+                            <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                type="text"
+                                readOnly
+                                value={formData.address}
+                                className="w-full pl-11 pr-4 py-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl text-sm focus:outline-none text-indigo-900"
+                            />
+                            <button type="button" onClick={() => { setSelectedAddressId(''); setFormData(p => ({...p, address: ''})); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-600 font-semibold hover:underline bg-indigo-50/50 px-2 py-1">Sửa / Nhập mới</button>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 p-4 border border-gray-100 rounded-xl bg-gray-50/30">
+                            <p className="text-xs font-semibold uppercase text-gray-400 mb-2">Nhập địa chỉ mới</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <select required value={selectedProvinceCode || ''} onChange={handleProvinceChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all">
+                                    <option value="" disabled>Chọn Tỉnh/Thành phố *</option>
+                                    {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+                                </select>
+                                <select required disabled={!selectedProvinceCode} value={selectedDistrictCode || ''} onChange={handleDistrictChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all disabled:opacity-50">
+                                    <option value="" disabled>Chọn Quận/Huyện *</option>
+                                    {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
+                                </select>
+                                <select required disabled={!selectedDistrictCode} value={localAddress.ward ? wards.find(w=>w.name===localAddress.ward)?.code || '' : ''} onChange={handleWardChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all disabled:opacity-50 sm:col-span-2">
+                                    <option value="" disabled>Chọn Phường/Xã *</option>
+                                    {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="relative">
+                                <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={localAddress.street}
+                                    onChange={e => setLocalAddress({...localAddress, street: e.target.value})}
+                                    placeholder="Số nhà, Tên đường (Cụ thể) *"
+                                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                                    required={!selectedAddressId}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Note */}
                     <div className="relative">

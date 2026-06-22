@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Search, Menu, X, Heart, User, LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
 import { useAuth } from '@/app/component/AuthContext';
+import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 import { useRouter } from 'next/navigation';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -181,6 +182,7 @@ function MobileMenuItem({ menu, onClose, level = 1 }: { menu: MenuNode; onClose:
 export default function Header() {
     const { totalItems, toggleCart } = useCart();
     const { user, logout, isAdmin } = useAuth();
+    const { favorites } = useFavoritesStore();
     const router = useRouter();
 
     const [isScrolled, setIsScrolled] = useState(false);
@@ -263,9 +265,14 @@ export default function Header() {
                             </button>
 
                             {/* Wishlist */}
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-all duration-200 text-black hover:text-[#C9A227]" aria-label="Yêu thích">
+                            <Link href="/yeu-thich" className="relative p-2 hover:bg-gray-100 rounded-full transition-all duration-200 text-black hover:text-[#C9A227]" aria-label="Yêu thích">
                                 <Heart size={20} strokeWidth={2} />
-                            </button>
+                                {favorites.length > 0 && (
+                                    <span className="absolute 0 right-0 -top-1 w-4 h-4 bg-[#D32F2F] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                        {favorites.length}
+                                    </span>
+                                )}
+                            </Link>
 
                             {/* User */}
                             <div className="relative group/user flex items-center">

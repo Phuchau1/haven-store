@@ -10,3 +10,74 @@
 [2026-06-14T03:00:39.561Z] [EmailService] Email HTML generated. Sending email asynchronously...
 [2026-06-14T03:00:39.572Z] [OrderController] Sending success response to client.
 [2026-06-14T03:00:43.694Z] [EmailService] Email sent successfully for order: LF-YGKQJF
+[2026-06-21T09:42:11.503Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-21T09:42:41.929Z] [ErrorHandler] Global Server Error: Operation `products.find()` buffering timed out after 10000ms
+[2026-06-21T09:51:17.926Z] [EmailService] Sending password reset email to: ntphau21@gmail.com
+[2026-06-21T09:51:22.728Z] [EmailService] Reset email sent successfully to: ntphau21@gmail.com
+[2026-06-21T09:58:00.215Z] [EmailService] Sending password reset email to: ntphau21@gmail.com
+[2026-06-21T09:58:04.339Z] [EmailService] Reset email sent successfully to: ntphau21@gmail.com
+[2026-06-21T09:59:37.842Z] [EmailService] Sending password reset email to: minhhiep270206@gmail.com
+[2026-06-21T09:59:42.030Z] [EmailService] Reset email sent successfully to: minhhiep270206@gmail.com
+[2026-06-21T10:02:33.752Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:02:37.754Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:04:11.789Z] [EmailService] Sending OTP email to: minhhiep270206@gmail.com
+[2026-06-21T10:04:15.248Z] [EmailService] OTP email sent successfully to: minhhiep270206@gmail.com
+[2026-06-21T10:04:36.515Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:04:40.037Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:06:55.756Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:06:59.268Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:07:16.908Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:07:20.446Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:08:30.543Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:08:33.963Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:08:47.160Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:08:51.135Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:12:13.906Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:12:18.163Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:12:39.762Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:12:43.504Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:24:40.968Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:24:43.772Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:25:22.729Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:25:24.761Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:26:53.166Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:26:56.054Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:27:29.477Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:27:32.278Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:28:46.386Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:28:49.271Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:29:29.953Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:29:32.885Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:29:50.768Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:29:53.498Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:33:00.257Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:33:04.368Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:33:19.912Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:33:23.495Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:35:29.229Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:35:32.123Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:37:30.232Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:37:34.011Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:42:21.168Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:42:24.471Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:44:57.155Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:45:03.741Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:46:27.113Z] [EmailService] Sending OTP email to: ntphau21@gmail.com
+[2026-06-21T10:46:31.079Z] [EmailService] OTP email sent successfully to: ntphau21@gmail.com
+[2026-06-21T10:46:42.577Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:46:47.322Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T10:48:09.837Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T10:48:14.003Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T11:10:51.053Z] [OrderController] --- NEW ORDER REQUEST ---
+[2026-06-21T11:10:51.054Z] [OrderController] Body received: {"id":"LF-DL4LPA","customerName":"quang quy","phone":"0763488272","email":"truongquangquy2512@gmail....
+[2026-06-21T11:10:51.054Z] [OrderController] New Order ID: LF-DL4LPA
+[2026-06-21T11:10:51.055Z] [OrderController] Saving order to MongoDB...
+[2026-06-21T11:10:51.109Z] [OrderController] Save successful. Now decreasing stock.
+[2026-06-21T11:10:51.270Z] [OrderController] Stock decreased automatically for order: LF-DL4LPA
+[2026-06-21T11:10:51.303Z] [EmailService] Generating email HTML...
+[2026-06-21T11:10:51.362Z] [EmailService] Email HTML generated. Sending email asynchronously...
+[2026-06-21T11:10:51.376Z] [OrderController] Sending success response to client.
+[2026-06-21T11:10:54.552Z] [EmailService] Email sent successfully for order: LF-DL4LPA
+[2026-06-21T11:26:12.311Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
+[2026-06-21T11:26:15.861Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
+[2026-06-21T19:00:34.591Z] [NotFoundHandler] 404 Not Found: POST /api/lucky-wheel/update-probs

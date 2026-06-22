@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface WheelPrize {
-    id: number;
+    id: number | string;
     label: string;
     shortLabel: string;
     type: 'voucher' | 'freeship' | 'retry';
@@ -11,6 +11,7 @@ export interface WheelPrize {
     color: string;
     textColor: string;
     emoji: string;
+    probability?: number;
 }
 
 export interface WheelConfig {

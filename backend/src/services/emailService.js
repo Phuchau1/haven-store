@@ -57,12 +57,12 @@ function generateOrderEmailHTML(data) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xác nhận đơn hàng - PH Store</title>
+  <title>Xác nhận đơn hàng - Haven Store</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f8f8;">
   <div style="max-width: 640px; margin: 0 auto; background-color: #ffffff;">
     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 40px 32px; text-align: center;">
-      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 300; letter-spacing: 8px; text-transform: uppercase;">PH Store</h1>
+      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 300; letter-spacing: 8px; text-transform: uppercase;">Haven Store</h1>
       <p style="margin: 8px 0 0; color: #cccccc; font-size: 12px; letter-spacing: 3px; text-transform: uppercase;">Premium Fashion Store</p>
     </div>
     <div style="padding: 40px 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
@@ -153,7 +153,7 @@ function generateOrderEmailHTML(data) {
     <div style="padding: 24px 32px; background-color: #fafafa; text-align: center;">
       <p style="margin: 0 0 8px; color: #888; font-size: 13px;">Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ:</p>
       <p style="margin: 0 0 16px; color: #1a1a1a; font-size: 14px; font-weight: 500;">Email: support@phstore.vn | Hotline: 1900 xxxx</p>
-      <p style="margin: 0; color: #bbb; font-size: 12px;">© ${new Date().getFullYear()} PH Store. All rights reserved.</p>
+      <p style="margin: 0; color: #bbb; font-size: 12px;">© ${new Date().getFullYear()} Haven Store. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -172,10 +172,10 @@ function sendOrderConfirmationEmail(orderData) {
 
     const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'ntphau21@gmail.com';
     getTransporter().sendMail({
-        from: `"PH Store" <${process.env.EMAIL_USER}>`,
+        from: `"Haven Store" <${process.env.EMAIL_USER}>`,
         to: orderData.email,
         bcc: adminEmail,
-        subject: `Xác nhận đơn hàng #${orderData.id} - PH Store`,
+        subject: `Xác nhận đơn hàng #${orderData.id} - Haven Store`,
         html: emailHtml,
     }).then(() => {
         log('Email sent successfully for order: ' + orderData.id);
@@ -191,18 +191,18 @@ function sendPasswordResetEmail(email, resetUrl) {
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Đặt lại mật khẩu - PH Store</title>
+  <title>Đặt lại mật khẩu - Haven Store</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f8f8;">
   <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 32px; text-align: center;">
-      <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 300; letter-spacing: 6px; text-transform: uppercase;">PH Store</h1>
+      <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 300; letter-spacing: 6px; text-transform: uppercase;">Haven Store</h1>
     </div>
     <div style="padding: 40px 32px;">
       <h2 style="margin: 0 0 16px; color: #1a1a1a; font-size: 20px; font-weight: 600;">Yêu cầu đặt lại mật khẩu</h2>
       <p style="margin: 0 0 24px; color: #666; font-size: 15px; line-height: 1.6;">
         Chào bạn,<br/><br/>
-        Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn tại PH Store.
+        Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn tại Haven Store.
         Vui lòng click vào nút bên dưới để tiến hành đặt mật khẩu mới (Liên kết này có hiệu lực trong vòng 1 giờ):
       </p>
       <div style="text-align: center; margin: 32px 0;">
@@ -213,7 +213,7 @@ function sendPasswordResetEmail(email, resetUrl) {
       </p>
     </div>
     <div style="padding: 24px; background-color: #fafafa; border-top: 1px solid #f0f0f0; text-align: center; color: #999; font-size: 12px;">
-      © 2026 PH Store. Premium Fashion Store.
+      © 2026 Haven Store. Premium Fashion Store.
     </div>
   </div>
 </body>
@@ -221,9 +221,9 @@ function sendPasswordResetEmail(email, resetUrl) {
     `;
 
     getTransporter().sendMail({
-        from: `"PH Store" <${process.env.EMAIL_USER}>`,
+        from: `"Haven Store" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: 'Đặt lại mật khẩu tài khoản của bạn - PH Store',
+        subject: 'Đặt lại mật khẩu tài khoản của bạn - Haven Store',
         html: html,
     }).then(() => {
         log('Reset email sent successfully to: ' + email);
@@ -232,7 +232,47 @@ function sendPasswordResetEmail(email, resetUrl) {
     });
 }
 
+function sendOtpEmail(email, otp) {
+    log('Sending OTP email to: ' + email);
+
+    const plainText = `Xin chào,\n\nChúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản ${email}.\n\nMã xác nhận của bạn là: ${otp}\n\nMã này có hiệu lực trong 10 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.\nNếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này.\n\nTrân trọng,\nHaven Store`;
+
+    const html = `
+    <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 30px 0;">
+      <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <div style="padding: 40px 30px 30px;">
+          <h2 style="color: #333333; margin-top: 0; font-size: 22px; text-align: center;">Yêu cầu đặt lại mật khẩu</h2>
+          <p style="color: #555555; line-height: 1.6; font-size: 15px; margin-top: 20px;">Xin chào,</p>
+          <p style="color: #555555; line-height: 1.6; font-size: 15px;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>${email}</strong>.</p>
+          <p style="color: #555555; line-height: 1.6; font-size: 15px;">Mã xác nhận của bạn là:</p>
+          <div style="text-align: center; margin: 35px 0;">
+            <span style="display: inline-block; font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #111111; background-color: #f8f9fa; padding: 18px 36px; border: 2px dashed #dddddd; border-radius: 8px;">${otp}</span>
+          </div>
+          <p style="color: #888888; font-size: 14px; text-align: center; margin-bottom: 8px;">Mã này có hiệu lực trong <strong>10 phút</strong>. Vui lòng không chia sẻ mã này.</p>
+          <p style="color: #888888; font-size: 14px; text-align: center; margin-top: 0;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+        </div>
+        <div style="background-color: #fafafa; padding: 18px; text-align: center; border-top: 1px solid #eeeeee;">
+          <p style="color: #999999; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} Haven Store. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+    `;
+
+    getTransporter().sendMail({
+        from: `"Haven Store" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: `[Haven Store] Mã xác nhận đặt lại mật khẩu: ${otp}`,
+        text: plainText,
+        html: html,
+    }).then(() => {
+        log('OTP email sent successfully to: ' + email);
+    }).catch((e) => {
+        log('OTP email error for ' + email + ': ' + e.message);
+    });
+}
+
 module.exports = {
     sendOrderConfirmationEmail,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    sendOtpEmail
 };
