@@ -304,3 +304,75 @@
 [2026-06-21 14:03:18] INFO: Starting server on port 5000... 
 [2026-06-21 14:03:18] INFO: CWD: E:\BANWEB\fashion-store\backend 
 [2026-06-21 14:03:19] INFO: Backend server running on http://localhost:5000 
+[2026-06-23 23:53:33] INFO: Starting server on port 5000... 
+[2026-06-23 23:53:33] INFO: CWD: E:\BANWEB\fashion-store\backend 
+[2026-06-23 23:53:33] INFO: [CronJob] Order expiration cron service started. 
+[2026-06-23 23:53:33] INFO: ================================= 
+[2026-06-23 23:53:33] INFO: 🚀 Server is running on port 5000 
+[2026-06-23 23:53:33] INFO: ================================= 
+[2026-06-23 23:53:33] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:33] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:34] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:36] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:39] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:43] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:48] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:53] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:53:58] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:54:00] INFO: [CronJob] Tìm thấy 1 đơn hàng hết hạn chờ thanh toán. Bắt đầu hủy và hoàn tồn kho... 
+[2026-06-23 23:54:00] INFO: [CronJob] Đã hủy đơn hàng LF-GU03ARIL và hoàn lại giữ chỗ tồn kho. 
+[2026-06-23 23:54:03] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:54:08] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:54:13] WARN: [Redis] Max retries reached. Cache will be disabled. 
+[2026-06-23 23:54:13] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:54:13] WARN: [Redis Connect Error] Max retries reached 
+[2026-06-23 23:57:21] INFO: Starting server on port 5000... 
+[2026-06-23 23:57:21] INFO: CWD: E:\BANWEB\fashion-store\backend 
+[2026-06-23 23:57:21] INFO: [CronJob] Order expiration cron service started. 
+[2026-06-23 23:57:21] INFO: ================================= 
+[2026-06-23 23:57:21] INFO: 🚀 Server is running on port 5000 
+[2026-06-23 23:57:21] INFO: ================================= 
+[2026-06-23 23:57:21] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:21] WARN: [BullMQ Redis Connection] Lỗi kết nối: . Hàng đợi email sẽ bị tạm ngưng. 
+[2026-06-23 23:57:21] WARN: [BullMQ Queue] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Redis Connection] Lỗi kết nối: . Hàng đợi email sẽ bị tạm ngưng. 
+[2026-06-23 23:57:21] WARN: [BullMQ Queue] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Redis Connection] Lỗi kết nối: . Hàng đợi email sẽ bị tạm ngưng. 
+[2026-06-23 23:57:21] WARN: [BullMQ Queue] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Redis Connection] Lỗi kết nối: . Hàng đợi email sẽ bị tạm ngưng. 
+[2026-06-23 23:57:21] WARN: [BullMQ Queue] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:21] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:22] WARN: [BullMQ Redis Connection] Lỗi kết nối: . Hàng đợi email sẽ bị tạm ngưng. 
+[2026-06-23 23:57:22] WARN: [BullMQ Queue] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Redis Connection] Lỗi kết nối: . Hàng đợi email sẽ bị tạm ngưng. 
+[2026-06-23 23:57:22] WARN: [BullMQ Queue] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Redis] Ngừng retry kết nối để bảo vệ app. 
+[2026-06-23 23:57:22] WARN: [BullMQ Queue] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:22] WARN: [BullMQ Redis] Ngừng retry kết nối để bảo vệ app. 
+[2026-06-23 23:57:22] WARN: [BullMQ Worker] Lỗi kết nối:  
+[2026-06-23 23:57:24] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:27] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:31] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:36] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:41] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:46] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:51] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:57:56] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:58:01] WARN: [Redis] Max retries reached. Cache will be disabled. 
+[2026-06-23 23:58:01] WARN: [Redis Error] . Cache operations will be bypassed. 
+[2026-06-23 23:58:01] WARN: [Redis Connect Error] Max retries reached 

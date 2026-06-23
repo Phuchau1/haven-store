@@ -1,41 +1,45 @@
 const { createClient } = require('redis');
 const logger = require('./logger');
 
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const redisUrl = process.env.REDIS_URL;
 
-const redisClient = createClient({
-    url: redisUrl,
-    socket: {
-        reconnectStrategy: (retries) => {
-            // Reconnect logic: wait 1s, then 2s, cap at 5s. Stop after 10 retries if needed.
-            if (retries > 10) {
-                logger.warn('[Redis] Max retries reached. Cache will be disabled.');
-                return new Error('Max retries reached');
-            }
-            return Math.min(retries * 1000, 5000);
-        }
-    }
-});
-
+let redisClient = null;
 let isRedisConnected = false;
 
-redisClient.on('error', (err) => {
-    isRedisConnected = false;
-    logger.warn(`[Redis Error] ${err.message}. Cache operations will be bypassed.`);
-});
+if (redisUrl) {
+    redisClient = createClient({
+        url: redisUrl,
+        socket: {
+            reconnectStrategy: (retries) => {
+                if (retries > 10) {
+                    logger.warn('[Redis] Max retries reached. Cache will be disabled.');
+                    return new Error('Max retries reached');
+                }
+                return Math.min(retries * 1000, 5000);
+            }
+        }
+    });
 
-redisClient.on('connect', () => {
-    logger.info('[Redis] Connected successfully.');
-    isRedisConnected = true;
-});
+    redisClient.on('error', (err) => {
+        isRedisConnected = false;
+        logger.warn(`[Redis Error] ${err.message}. Cache operations will be bypassed.`);
+    });
 
-redisClient.connect().catch(err => {
-    logger.warn(`[Redis Connect Error] ${err.message}`);
-});
+    redisClient.on('connect', () => {
+        logger.info('[Redis] Connected successfully.');
+        isRedisConnected = true;
+    });
+
+    redisClient.connect().catch(err => {
+        logger.warn(`[Redis Connect Error] ${err.message}`);
+    });
+} else {
+    logger.info('[Redis] REDIS_URL is not set. Skipping Redis connection. Cache operations will be bypassed.');
+}
 
 /**
  * Lấy dữ liệu từ cache an toàn (Graceful degradation)
- * Nếu Redis chết, sẽ trả về null để app tự query từ DB
+ * Nếu Redis chết hoặc không được cấu hình, sẽ trả về null
  */
 const getCache = async (key) => {
     if (!isRedisConnected) return null;
