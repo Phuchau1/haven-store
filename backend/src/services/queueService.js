@@ -28,7 +28,16 @@ const emailWorker = new Worker('email-queue', async job => {
 }, { connection });
 
 emailWorker.on('failed', (job, err) => {
-    logger.error(`[Email Worker] Job ${job.id} thất bại sau các lần thử: ${err.message}`);
+    logger.error(`[Email Worker] Job ${job?.id} thất bại sau các lần thử: ${err.message}`);
+});
+
+// Xử lý lỗi kết nối Redis của BullMQ để tránh crash app (đặc biệt khi không có Redis)
+emailQueue.on('error', (err) => {
+    logger.warn(`[BullMQ Queue] Lỗi kết nối: ${err.message}`);
+});
+
+emailWorker.on('error', (err) => {
+    logger.warn(`[BullMQ Worker] Lỗi kết nối: ${err.message}`);
 });
 
 /**
