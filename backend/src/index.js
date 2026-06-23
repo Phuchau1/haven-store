@@ -1,24 +1,50 @@
+const http = require('http');
+const socketIo = require('socket.io');
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const fs = require('fs');
-const path = require('path');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
+const path = require('path');
+const dotenv = require('dotenv');
 const logger = require('./utils/logger');
 
-// Load env variables BEFORE requiring internal modules
-dotenv.config();
-// Fallback/override with root .env.local if present
+// Nạp biến môi trường từ .env.local
 dotenv.config({ path: path.join(__dirname, '../../.env.local') });
 
 const { connectDB } = require('./config/db');
+const { startCronJobs } = require('./services/cronService');
 const apiRoutes = require('./routes');
 const notFoundHandler = require('./middleware/notFoundHandler');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+const server = http.createServer(app);
+
+// Khởi tạo Socket.io
+const io = socketIo(server, {
+    cors: {
+        origin: process.env.NEXT_PUBLIC_FRONTEND_URL || '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+    }
+});
+
+// Gắn io vào app để dùng trong controller
+app.set('io', io);
+
+io.on('connection', (socket) => {
+    logger.info(`[Socket.io] Client connected: ${socket.id}`);
+    
+    // Client có thể join vào room tương ứng với userId của họ để nhận thông báo cá nhân
+    socket.on('join_user_room', (userId) => {
+        socket.join(`user_${userId}`);
+        logger.info(`[Socket.io] Socket ${socket.id} joined room user_${userId}`);
+    });
+
+    socket.on('disconnect', () => {
+        logger.info(`[Socket.io] Client disconnected: ${socket.id}`);
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 
 logger.info(`Starting server on port ${PORT}...`);
@@ -27,50 +53,39 @@ logger.info(`CWD: ${process.cwd()}`);
 // Kết nối cơ sở dữ liệu MongoDB
 connectDB();
 
+// Khởi động các Cronjob chạy ngầm
+startCronJobs();
+
 // --- BẢO MẬT (SECURITY) ---
-app.use(helmet()); // Bảo vệ HTTP Headers
+app.use(helmet()); 
 
-// Giới hạn số lượng Request (Chống DDoS, Brute-force)
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 phút
-    max: 1000, // Giới hạn 1000 request mỗi IP mỗi 15 phút
-    message: { success: false, message: 'Quá nhiều request từ IP này, vui lòng thử lại sau 15 phút.' }
-});
-app.use('/api/', apiLimiter);
+// --- CORS ---
+app.use(cors({
+    origin: process.env.NEXT_PUBLIC_FRONTEND_URL || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// --- GHI LOG (LOGGING) ---
-// Tích hợp morgan với winston để ghi log HTTP requests
-app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+// --- LOGGING ---
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+}
 
-app.use(cors());
+// --- PARSER ---
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Prevent caching for all API responses
-app.use((req, res, next) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-    next();
-});
-
-// Root path for testing
-app.get('/', (req, res) => {
-    res.send('PH Store Backend API with MongoDB is running (JS Version)...');
-});
-
-// Register all API routes under /api
+// --- ROUTES ---
 app.use('/api', apiRoutes);
 
-// Register 404 handler
+// --- XỬ LÝ LỖI (ERROR HANDLING) ---
 app.use(notFoundHandler);
-
-// Register global error handler
 app.use(errorHandler);
 
-const server = app.listen(PORT, () => {
-    logger.info(`Backend server running on http://localhost:${PORT}`);
-});
-
-server.on('error', (err) => {
-    logger.error('Server Error: ' + err.message);
+// --- LẮNG NGHE YÊU CẦU ---
+server.listen(PORT, () => {
+    logger.info(`=================================`);
+    logger.info(`🚀 Server is running on port ${PORT}`);
+    logger.info(`=================================`);
 });

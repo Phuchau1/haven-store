@@ -1,4 +1,5 @@
 const { ProductModel } = require('../models/Product');
+const { getCache, setCache, delCache } = require('../utils/redisClient');
 const { ProductReviewModel } = require('../models/ProductReview');
 
 const fs = require('fs');
@@ -12,10 +13,14 @@ function log(msg) {
 
 const getProducts = async (req, res, next) => {
     try {
+        const cacheKey = 'products:' + Buffer.from(JSON.stringify(req.query)).toString('base64');
+        const cachedProducts = await getCache(cacheKey);
+        if (cachedProducts) {
+            return res.json({ success: true, products: cachedProducts, cached: true });
+        }
+
         const { category, subCategory, search, sort, discounted, discount, limit } = req.query;
         const limitNumber = limit ? parseInt(limit, 10) : undefined;
-
-
 
         let query = {};
         const andConditions = [];
@@ -37,9 +42,6 @@ const getProducts = async (req, res, next) => {
         }
 
         if (discount) {
-            // discount=30 → sản phẩm giảm >= 30%
-            // discount=50 → sản phẩm giảm >= 50%
-            // discount=70 → sản phẩm giảm >= 70%
             const discPercent = parseInt(discount, 10);
             if (!isNaN(discPercent)) {
                 const minFraction = discPercent / 100;
@@ -84,6 +86,9 @@ const getProducts = async (req, res, next) => {
         }
 
         const products = await productsQuery;
+        
+        await setCache(cacheKey, products, 300); // cache for 5 minutes
+        
         res.json({ success: true, products });
     } catch (error) {
         next(error);
@@ -101,6 +106,7 @@ const createProduct = async (req, res, next) => {
 
         const newProduct = new ProductModel(newProductData);
         await newProduct.save();
+        await delCache('products:*', true);
         log(`Added product: ${newProduct.id}`);
         res.json({ success: true, message: 'Thêm sản phẩm thành công', product: newProduct });
     } catch (error) {
@@ -131,6 +137,7 @@ const deleteProduct = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu ID sản phẩm' });
         }
         const deletedProduct = await ProductModel.findOneAndDelete({ id });
+        await delCache('products:*', true);
         if (!deletedProduct) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
         }

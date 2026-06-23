@@ -45,7 +45,7 @@ const OrderSchema = new Schema({
     finalAmount: { type: Number, default: 0 }, // fallback handled in controller
     note: { type: String },
     transferReceipt: { type: String, default: '' },
-    status: { type: String, required: true, enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
+    status: { type: String, required: true, enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refund_requested', 'refunded'], default: 'pending' },
     createdAt: { type: String, required: true }
 }, { timestamps: true });
 

@@ -4,6 +4,10 @@ const adminController = require('../controllers/adminController');
 const settingController = require('../controllers/settingController');
 const categoryController = require('../controllers/categoryController');
 const adminExtraController = require('../controllers/adminExtraController');
+const auditMiddleware = require('../middleware/auditMiddleware');
+
+// Áp dụng Audit Log cho mọi thao tác POST/PUT/DELETE trong Admin
+router.use(auditMiddleware('SystemConfig', 'admin_action'));
 
 router.get('/stats', adminController.getStats);
 router.get('/users', adminController.getUsers);

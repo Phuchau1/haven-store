@@ -1,10 +1,15 @@
 const { CategoryModel } = require('../models/Category');
 const { ProductModel } = require('../models/Product');
+const { getCache, setCache, delCache } = require('../utils/redisClient');
 
 // ─── GET ALL CATEGORIES (public) ──────────────────────────────────────────────
 const getCategories = async (req, res, next) => {
     try {
-
+        const cacheKey = 'categories:' + (req.query.active === 'true' ? 'active' : 'all');
+        const cachedCategories = await getCache(cacheKey);
+        if (cachedCategories) {
+            return res.json({ success: true, categories: cachedCategories, cached: true });
+        }
 
         const filter = {};
         if (req.query.active === 'true') filter.isActive = true;
@@ -19,6 +24,8 @@ const getCategories = async (req, res, next) => {
                 $or: [{ category_id: cat.id }, { category: cat.id }]
             });
         }
+
+        await setCache(cacheKey, categories, 3600); // cache cho 1 giờ
 
         res.json({ success: true, categories });
     } catch (error) {
@@ -67,6 +74,7 @@ const createCategory = async (req, res, next) => {
         });
 
         await newCategory.save();
+        await delCache('categories:*', true);
         res.json({ success: true, message: 'Thêm danh mục thành công', category: newCategory });
     } catch (error) {
         next(error);
@@ -116,6 +124,7 @@ const deleteCategory = async (req, res, next) => {
         }
 
         const deleted = await CategoryModel.findOneAndDelete({ id });
+        await delCache('categories:*', true);
         if (!deleted) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy danh mục' });
         }
@@ -157,6 +166,7 @@ const addSubcategory = async (req, res, next) => {
         });
 
         await category.save();
+        await delCache('categories:*', true);
         res.json({ success: true, message: 'Thêm danh mục con thành công', category });
     } catch (error) {
         next(error);

@@ -7,6 +7,7 @@ const ProductVariantSchema = new Schema({
     size_id: { type: String, required: true },
     color_id: { type: String, required: true },
     stock: { type: Number, required: true, default: 0 }, // Tổng tồn kho (Storefront support)
+    reserved_stock: { type: Number, required: true, default: 0 }, // Khoản giữ chỗ khi chờ thanh toán
     warehouse_stocks: [{
         warehouse_id: { type: String, required: true },
         stock: { type: Number, required: true, default: 0 }
