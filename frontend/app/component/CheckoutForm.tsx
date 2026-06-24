@@ -239,7 +239,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             const res = await fetch('/api/coupons/apply', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: trimmed, totalAmount })
+                body: JSON.stringify({ code: trimmed, totalAmount, email: formData.email })
             });
             const data = await res.json();
 

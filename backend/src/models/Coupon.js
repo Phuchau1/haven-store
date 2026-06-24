@@ -8,7 +8,8 @@ const CouponSchema = new Schema({
     discount_value: { type: Number, required: true },
     start_date: { type: String, required: true },
     end_date: { type: String, required: true },
-    usage_limit: { type: Number, required: true, default: 100 }
+    usage_limit: { type: Number, required: true, default: 100 },
+    usage_limit_per_user: { type: Number, required: true, default: 1 }
 }, { timestamps: true });
 
 const CouponModel = mongoose.models.Coupon || mongoose.model('Coupon', CouponSchema);

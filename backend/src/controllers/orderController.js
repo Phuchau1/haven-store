@@ -148,6 +148,19 @@ const createOrder = async (req, res, next) => {
 
         // Cập nhật Coupon (with session)
         if (newOrderData.couponCode) {
+            const coupon = await CouponModel.findOne({ code: newOrderData.couponCode }).session(session);
+            if (coupon && coupon.usage_limit_per_user > 0) {
+                const userUsedCount = await OrderModel.countDocuments({ 
+                    couponCode: coupon.code, 
+                    email: newOrderData.email, 
+                    status: { $ne: 'cancelled' } 
+                }).session(session);
+                
+                if (userUsedCount >= coupon.usage_limit_per_user) {
+                    throw new Error('Bạn đã hết lượt sử dụng mã giảm giá này.');
+                }
+            }
+
             await CouponModel.findOneAndUpdate(
                 { code: newOrderData.couponCode },
                 { $inc: { usage_limit: -1 } },

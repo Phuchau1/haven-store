@@ -13,6 +13,7 @@ interface Coupon {
     start_date: string;
     end_date: string;
     usage_limit: number;
+    usage_limit_per_user: number;
 }
 
 export default function AdminCouponsPage() {
@@ -24,7 +25,7 @@ export default function AdminCouponsPage() {
     const [saving, setSaving] = useState(false);
 
     const [formData, setFormData] = useState({
-        id: '', code: '', discount_type: 'percent', discount_value: 0, start_date: '', end_date: '', usage_limit: 100
+        id: '', code: '', discount_type: 'percent', discount_value: 0, start_date: '', end_date: '', usage_limit: 100, usage_limit_per_user: 1
     });
 
     const fetchItems = async () => {
@@ -46,10 +47,10 @@ export default function AdminCouponsPage() {
         setErrorMsg('');
         if (item) {
             setEditingItem(item);
-            setFormData({ ...item });
+            setFormData({ ...item, usage_limit_per_user: item.usage_limit_per_user ?? 1 });
         } else {
             setEditingItem(null);
-            setFormData({ id: '', code: '', discount_type: 'percent', discount_value: 0, start_date: '', end_date: '', usage_limit: 100 });
+            setFormData({ id: '', code: '', discount_type: 'percent', discount_value: 0, start_date: '', end_date: '', usage_limit: 100, usage_limit_per_user: 1 });
         }
         setIsModalOpen(true);
     };
@@ -144,7 +145,8 @@ export default function AdminCouponsPage() {
                                         <th>Loại</th>
                                         <th>Giá trị</th>
                                         <th>Thời gian</th>
-                                        <th>Giới hạn</th>
+                                        <th>Giới hạn tổng</th>
+                                        <th>Giới hạn/User</th>
                                         <th className="text-right">Thao tác</th>
                                     </tr>
                                 </thead>
@@ -168,6 +170,7 @@ export default function AdminCouponsPage() {
                                                 {formatDate(item.start_date)} → {formatDate(item.end_date)}
                                             </td>
                                             <td style={{ color: 'var(--adm-text-muted)' }}>{item.usage_limit} lần</td>
+                                            <td style={{ color: 'var(--adm-text-muted)' }}>{item.usage_limit_per_user ?? 1} lần</td>
                                             <td className="text-right">
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
@@ -352,13 +355,24 @@ export default function AdminCouponsPage() {
                                             style={{ minHeight: 44 }}
                                         />
                                     </div>
-                                    <div className="sm:col-span-2">
-                                        <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--adm-text-muted)' }}>Giới hạn sử dụng</label>
+                                    <div className="sm:col-span-1">
+                                        <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--adm-text-muted)' }}>Giới hạn sử dụng (Tổng)</label>
                                         <input
                                             type="number"
                                             required
                                             value={formData.usage_limit}
                                             onChange={e => setFormData({ ...formData, usage_limit: Number(e.target.value) })}
+                                            className="adm-input w-full"
+                                            style={{ minHeight: 44 }}
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-1">
+                                        <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--adm-text-muted)' }}>Giới hạn mỗi User</label>
+                                        <input
+                                            type="number"
+                                            required
+                                            value={formData.usage_limit_per_user}
+                                            onChange={e => setFormData({ ...formData, usage_limit_per_user: Number(e.target.value) })}
                                             className="adm-input w-full"
                                             style={{ minHeight: 44 }}
                                         />

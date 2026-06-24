@@ -1,4 +1,5 @@
 const { CouponModel } = require('../models/Coupon');
+const { OrderModel } = require('../models/Order');
 
 // GET /api/coupons/available — trả về các coupon còn hiệu lực
 const getAvailableCoupons = async (req, res) => {
@@ -15,7 +16,7 @@ const getAvailableCoupons = async (req, res) => {
 // POST /api/coupons/apply — validate mã coupon và trả về thông tin giảm giá
 const applyCoupon = async (req, res) => {
     try {
-        const { code, totalAmount } = req.body;
+        const { code, totalAmount, email } = req.body;
 
         if (!code || !totalAmount) {
             return res.status(400).json({ success: false, message: 'Thiếu mã coupon hoặc tổng tiền.' });
@@ -36,6 +37,13 @@ const applyCoupon = async (req, res) => {
         }
         if (coupon.usage_limit <= 0) {
             return res.status(400).json({ success: false, message: 'Mã voucher đã hết lượt sử dụng.' });
+        }
+
+        if (coupon.usage_limit_per_user > 0 && email) {
+            const userUsedCount = await OrderModel.countDocuments({ couponCode: coupon.code, email: email, status: { $ne: 'cancelled' } });
+            if (userUsedCount >= coupon.usage_limit_per_user) {
+                return res.status(400).json({ success: false, message: 'Bạn đã hết lượt sử dụng mã giảm giá này.' });
+            }
         }
 
         let discountAmount = 0;
