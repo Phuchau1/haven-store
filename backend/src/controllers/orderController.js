@@ -40,7 +40,7 @@ const decreaseStockOnOrder = async (orderItems, orderId, session) => {
                     product_id: productId, 
                     size_id: size, 
                     color_id: color,
-                    $expr: { $gte: [{ $subtract: ["$stock", "$reserved_stock"] }, quantity] }
+                    $expr: { $gte: [{ $subtract: ["$stock", { $ifNull: ["$reserved_stock", 0] }] }, quantity] }
                 },
                 { $inc: { reserved_stock: quantity } },
                 { new: true, session }
