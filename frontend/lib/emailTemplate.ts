@@ -98,7 +98,7 @@ export function generateOrderEmailHTML(data: EmailData): string {
         <tr>
           <td style="padding: 8px 0;">
             <span style="color: #888; font-size: 13px;">Thanh toán</span><br/>
-            <span style="color: #1a1a1a; font-weight: 500; font-size: 14px;">${paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản ngân hàng'}</span>
+            <span style="color: #1a1a1a; font-weight: 500; font-size: 14px;">${paymentMethod === 'pay-cod' || paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : paymentMethod === 'momo' ? 'Ví điện tử MoMo' : paymentMethod === 'vnpay' ? 'Ví VNPAY' : 'Chuyển khoản ngân hàng'}</span>
           </td>
           <td style="padding: 8px 0; text-align: right;">
             <span style="color: #888; font-size: 13px;">Số điện thoại</span><br/>

@@ -307,7 +307,7 @@ export default function AccountPage() {
                                                             </div>
                                                             <div className="flex justify-between">
                                                                 <span>Phương thức thanh toán:</span>
-                                                                <span className="font-medium text-slate-900">{order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản ngân hàng'}</span>
+                                                                <span className="font-medium text-slate-900">{order.paymentMethod === 'pay-cod' || order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : order.paymentMethod === 'momo' ? 'Ví điện tử MoMo' : order.paymentMethod === 'vnpay' ? 'Ví VNPAY' : 'Chuyển khoản ngân hàng'}</span>
                                                             </div>
                                                         </div>
                                                     )}

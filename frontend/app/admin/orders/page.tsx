@@ -308,7 +308,7 @@ export default function AdminOrders() {
                                                             {new Date(order.createdAt).toLocaleDateString('vi-VN')}
                                                         </div>
                                                         <span className="text-[10px] font-bold uppercase tracking-tighter" style={{ color: 'var(--adm-text-subtle)' }}>
-                                                            {order.paymentMethod === 'cod' ? 'Thanh toán COD' : 'Đã chuyển khoản'}
+                                                            {order.paymentMethod === 'pay-cod' || order.paymentMethod === 'cod' ? 'Thanh toán COD' : order.paymentMethod === 'momo' ? 'Ví MoMo' : order.paymentMethod === 'vnpay' ? 'Ví VNPAY' : 'Chuyển khoản'}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -468,7 +468,7 @@ export default function AdminOrders() {
                                                 <span>{new Date(order.createdAt).toLocaleDateString('vi-VN')}</span>
                                             </div>
                                             <span className="text-[10px] uppercase font-bold tracking-tight" style={{ color: 'var(--adm-text-subtle)' }}>
-                                                {order.paymentMethod === 'cod' ? 'COD' : 'Chuyển khoản'}
+                                                {order.paymentMethod === 'pay-cod' || order.paymentMethod === 'cod' ? 'Thanh toán COD' : order.paymentMethod === 'momo' ? 'Ví MoMo' : order.paymentMethod === 'vnpay' ? 'Ví VNPAY' : 'Chuyển khoản'}
                                             </span>
                                             <span className="ml-auto text-sm font-extrabold" style={{ color: 'var(--adm-primary)' }}>
                                                 {formatPrice(order.finalAmount || order.totalAmount)}
