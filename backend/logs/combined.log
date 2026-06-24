@@ -376,3 +376,19 @@
 [2026-06-23 23:58:01] WARN: [Redis] Max retries reached. Cache will be disabled. 
 [2026-06-23 23:58:01] WARN: [Redis Error] . Cache operations will be bypassed. 
 [2026-06-23 23:58:01] WARN: [Redis Connect Error] Max retries reached 
+[2026-06-23 23:59:36] INFO: [Redis] REDIS_URL is not set. Skipping Redis connection. Cache operations will be bypassed. 
+[2026-06-23 23:59:36] INFO: [BullMQ] REDIS_HOST is not set. Email tasks will be executed synchronously. 
+[2026-06-23 23:59:36] INFO: Starting server on port 5000... 
+[2026-06-23 23:59:36] INFO: CWD: E:\BANWEB\fashion-store\backend 
+[2026-06-23 23:59:36] INFO: [CronJob] Order expiration cron service started. 
+[2026-06-23 23:59:36] INFO: ================================= 
+[2026-06-23 23:59:36] INFO: 🚀 Server is running on port 5000 
+[2026-06-23 23:59:36] INFO: ================================= 
+[2026-06-24 10:45:15] INFO: [Redis] REDIS_URL is not set. Skipping Redis connection. Cache operations will be bypassed. 
+[2026-06-24 10:45:15] INFO: [BullMQ] REDIS_HOST is not set. Email tasks will be executed synchronously. 
+[2026-06-24 10:45:16] INFO: Starting server on port 5000... 
+[2026-06-24 10:45:16] INFO: CWD: E:\BANWEB\fashion-store\backend 
+[2026-06-24 10:45:16] INFO: [CronJob] Order expiration cron service started. 
+[2026-06-24 10:45:16] INFO: ================================= 
+[2026-06-24 10:45:16] INFO: 🚀 Server is running on port 5000 
+[2026-06-24 10:45:16] INFO: ================================= 
