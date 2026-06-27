@@ -14,7 +14,7 @@ const ProductVariantSchema = new Schema({
     }],
     barcode: { type: String }, // Sinh barcode
     qr_code: { type: String }, // Sinh QR code
-    image: { type: String, required: true },
+    image: { type: String },
     price: { type: Number, required: true },
     sku: { type: String, required: true },
     status: { type: String, required: true, default: 'active' }
