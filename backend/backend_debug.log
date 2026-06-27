@@ -81,3 +81,4 @@
 [2026-06-21T11:26:12.311Z] [EmailService] Sending OTP email to: truongquangquy2512@gmail.com
 [2026-06-21T11:26:15.861Z] [EmailService] OTP email sent successfully to: truongquangquy2512@gmail.com
 [2026-06-21T19:00:34.591Z] [NotFoundHandler] 404 Not Found: POST /api/lucky-wheel/update-probs
+[2026-06-27T12:36:40.620Z] [ErrorHandler] Global Server Error: Expected property name or '}' in JSON at position 1 (line 1 column 2)

@@ -175,7 +175,7 @@ export default function EditStockReceipt() {
         
         setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/stock-receipts/${receiptId}`, {
+            const res = await fetch(`/api/stock-receipts/${receiptId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

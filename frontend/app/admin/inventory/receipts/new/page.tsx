@@ -141,7 +141,7 @@ export default function NewStockReceipt() {
 
         setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/stock-receipts`, {
+            const res = await fetch(`/api/stock-receipts`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
