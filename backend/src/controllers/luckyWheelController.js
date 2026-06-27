@@ -93,7 +93,7 @@ exports.spin = async (req, res) => {
     }
 };
 
-exports.updateProbabilities = async (req, res) => {
+exports.updateConfig = async (req, res) => {
     try {
         await SpinReward.deleteMany({});
         await initDefaultRewards();

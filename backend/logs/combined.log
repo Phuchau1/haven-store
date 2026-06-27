@@ -400,3 +400,11 @@
 [2026-06-24 10:54:46] INFO: ================================= 
 [2026-06-24 10:54:46] INFO: 🚀 Server is running on port 5000 
 [2026-06-24 10:54:46] INFO: ================================= 
+[2026-06-27 19:26:47] INFO: [Redis] REDIS_URL is not set. Skipping Redis connection. Cache operations will be bypassed. 
+[2026-06-27 19:26:47] INFO: [BullMQ] REDIS_HOST is not set. Email tasks will be executed synchronously. 
+[2026-06-27 19:26:47] INFO: Starting server on port 5000... 
+[2026-06-27 19:26:47] INFO: CWD: E:\BANWEB\fashion-store\backend 
+[2026-06-27 19:26:47] INFO: [CronJob] Order expiration cron service started. 
+[2026-06-27 19:26:47] INFO: ================================= 
+[2026-06-27 19:26:47] INFO: 🚀 Server is running on port 5000 
+[2026-06-27 19:26:47] INFO: ================================= 
