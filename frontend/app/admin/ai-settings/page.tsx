@@ -23,7 +23,7 @@ export default function AISettingsPage() {
 
     const fetchSettings = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/settings`, {
+            const res = await fetch(`/api/ai/settings`, {
                 headers: { 'x-user-id': token || '' }
             });
             const data = await res.json();
@@ -40,7 +40,7 @@ export default function AISettingsPage() {
     const handleSave = async (setting: AISetting) => {
         setSaving(setting.type);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/settings/${setting.type}`, {
+            const res = await fetch(`/api/ai/settings/${setting.type}`, {
                 method: 'PUT',
                 headers: { 
                     'x-user-id': token || '',

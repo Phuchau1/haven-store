@@ -8,6 +8,6 @@ router.get('/config', luckyWheelController.getConfig); // Lấy danh sách giả
 router.post('/spin', protect, luckyWheelController.spin); // Yêu cầu đăng nhập để quay
 
 // Admin routes
-router.post('/update-probs', luckyWheelController.updateProbabilities);
+router.put('/config', protect, admin, luckyWheelController.updateConfig);
 
 module.exports = router;

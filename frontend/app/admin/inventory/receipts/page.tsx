@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Eye, FileDown, Filter, Search, X, PackageCheck, PackageMinus, ArrowLeftRight, ClipboardList } from 'lucide-react';
+import { Plus, Eye, FileDown, Filter, Search, X, PackageCheck, PackageMinus, ArrowLeftRight, ClipboardList, CheckCircle, Edit3 } from 'lucide-react';
 import Link from 'next/link';
 
 interface Receipt {
@@ -97,6 +97,22 @@ export default function StockReceiptsPage() {
 
     const printReceipt = (id: string) => {
         window.open(`/api/export/pdf/receipt?id=${id}`, '_blank');
+    };
+
+    const approveReceipt = async (id: string) => {
+        if (!confirm('Bạn có chắc chắn muốn duyệt phiếu này? Sau khi duyệt sẽ cập nhật tồn kho và không thể chỉnh sửa.')) return;
+        try {
+            const res = await fetch(`/api/stock-receipts/${id}/approve`, { method: 'PUT' });
+            const data = await res.json();
+            if (data.success) {
+                alert('Duyệt thành công!');
+                fetchAll();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        } catch (e) {
+            alert('Lỗi kết nối');
+        }
     };
 
     // Summary stats
@@ -259,6 +275,24 @@ export default function StockReceiptsPage() {
                                             </td>
                                             <td className="px-4 py-3.5 text-right">
                                                 <div className="flex items-center justify-end gap-1">
+                                                    {rec.status === 'DRAFT' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => approveReceipt(rec.id)}
+                                                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                                title="Duyệt Phiếu"
+                                                            >
+                                                                <CheckCircle size={15} />
+                                                            </button>
+                                                            <Link
+                                                                href={`/admin/inventory/receipts/${rec.id}`}
+                                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                title="Chỉnh sửa"
+                                                            >
+                                                                <Edit3 size={15} />
+                                                            </Link>
+                                                        </>
+                                                    )}
                                                     <button
                                                         onClick={() => printReceipt(rec.id)}
                                                         className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
@@ -266,12 +300,13 @@ export default function StockReceiptsPage() {
                                                     >
                                                         <FileDown size={15} />
                                                     </button>
-                                                    <button
+                                                    <Link
+                                                        href={`/admin/inventory/receipts/${rec.id}`}
                                                         className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
                                                         title="Xem chi tiết"
                                                     >
                                                         <Eye size={15} />
-                                                    </button>
+                                                    </Link>
                                                 </div>
                                             </td>
                                         </tr>

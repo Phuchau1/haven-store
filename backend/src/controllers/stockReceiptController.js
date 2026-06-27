@@ -111,7 +111,7 @@ exports.getAll = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
-        const { type, warehouse_id, dest_warehouse_id, supplier_id, reason, note, user_id, items } = req.body;
+        const { type, warehouse_id, dest_warehouse_id, supplier_id, reason, note, user_id, items, status } = req.body;
         
         if (!items || items.length === 0) return res.status(400).json({ success: false, message: 'Danh sách sản phẩm trống' });
         
@@ -121,18 +121,96 @@ exports.create = async (req, res) => {
         const total_quantity = items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
         const total_amount = items.reduce((sum, item) => sum + (Math.abs(item.quantity) * (item.price || 0)), 0);
 
+        const receiptStatus = status || 'DRAFT';
+
         const receipt = new StockReceiptModel({
             id: receipt_id,
             type, warehouse_id, dest_warehouse_id, supplier_id, reason, note, user_id, items,
             total_quantity, total_amount,
-            status: 'COMPLETED' // Mặc định xử lý luôn (có thể mở rộng quy trình duyệt sau)
+            status: receiptStatus
         });
 
-        // Xử lý trừ/cộng tồn kho
-        await handleStockChange(type, warehouse_id, items, receipt_id, user_id, dest_warehouse_id);
+        // Xử lý trừ/cộng tồn kho nếu duyệt ngay
+        if (receiptStatus === 'COMPLETED') {
+            await handleStockChange(type, warehouse_id, items, receipt_id, user_id, dest_warehouse_id);
+        }
 
         await receipt.save();
         res.status(201).json({ success: true, data: receipt });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+exports.getById = async (req, res) => {
+    try {
+        const receipt = await StockReceiptModel.findOne({ id: req.params.id });
+        if (!receipt) return res.status(404).json({ success: false, message: 'Không tìm thấy phiếu kho' });
+        res.json({ success: true, data: receipt });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.update = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { type, warehouse_id, dest_warehouse_id, supplier_id, reason, note, items } = req.body;
+
+        const receipt = await StockReceiptModel.findOne({ id });
+        if (!receipt) return res.status(404).json({ success: false, message: 'Không tìm thấy phiếu kho' });
+        
+        if (receipt.status !== 'DRAFT') {
+            return res.status(400).json({ success: false, message: 'Chỉ có thể sửa phiếu ở trạng thái Nháp' });
+        }
+
+        if (!items || items.length === 0) return res.status(400).json({ success: false, message: 'Danh sách sản phẩm trống' });
+
+        const total_quantity = items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
+        const total_amount = items.reduce((sum, item) => sum + (Math.abs(item.quantity) * (item.price || 0)), 0);
+
+        receipt.type = type || receipt.type;
+        receipt.warehouse_id = warehouse_id || receipt.warehouse_id;
+        receipt.dest_warehouse_id = dest_warehouse_id || receipt.dest_warehouse_id;
+        receipt.supplier_id = supplier_id || receipt.supplier_id;
+        receipt.reason = reason;
+        receipt.note = note;
+        receipt.items = items;
+        receipt.total_quantity = total_quantity;
+        receipt.total_amount = total_amount;
+
+        await receipt.save();
+        res.json({ success: true, data: receipt });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+exports.approve = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const receipt = await StockReceiptModel.findOne({ id });
+        
+        if (!receipt) return res.status(404).json({ success: false, message: 'Không tìm thấy phiếu kho' });
+        
+        if (receipt.status !== 'DRAFT') {
+            return res.status(400).json({ success: false, message: 'Phiếu đã được duyệt hoặc đã hủy' });
+        }
+
+        // Xử lý tồn kho
+        await handleStockChange(
+            receipt.type, 
+            receipt.warehouse_id, 
+            receipt.items, 
+            receipt.id, 
+            receipt.user_id, 
+            receipt.dest_warehouse_id
+        );
+
+        receipt.status = 'COMPLETED';
+        await receipt.save();
+
+        res.json({ success: true, message: 'Duyệt phiếu thành công', data: receipt });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }

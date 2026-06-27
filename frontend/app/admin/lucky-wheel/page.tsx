@@ -26,7 +26,7 @@ export default function LuckyWheelAdminPage() {
 
     const fetchConfig = useCallback(async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/config`, {
+            const res = await fetch(`/api/lucky-wheel/config`, {
                 headers: { 'x-user-id': token || '' }
             });
             const data = await res.json();
@@ -48,7 +48,7 @@ export default function LuckyWheelAdminPage() {
         if (!config) return;
         setSaving(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/config`, {
+            const res = await fetch(`/api/lucky-wheel/config`, {
                 method: 'PUT',
                 headers: { 
                     'x-user-id': token || '',
