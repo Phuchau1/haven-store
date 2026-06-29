@@ -1,5 +1,15 @@
+/**
+ * ============================================================
+ * CONTROLLER: QUẢN LÝ KHO BÃI (Warehouse)
+ * Mô tả: Thực hiện các thao tác CRUD cơ bản để quản lý danh sách 
+ *        các kho hàng vật lý.
+ * ============================================================
+ */
 const { WarehouseModel } = require('../models/Warehouse');
 
+/**
+ * @desc Lấy danh sách tất cả các kho
+ */
 exports.getAll = async (req, res) => {
     try {
         const warehouses = await WarehouseModel.find().sort({ createdAt: -1 });
@@ -9,9 +19,13 @@ exports.getAll = async (req, res) => {
     }
 };
 
+/**
+ * @desc Thêm kho bãi mới
+ */
 exports.create = async (req, res) => {
     try {
         const { name, code, address, manager_id } = req.body;
+        // Kiểm tra xem mã kho đã tồn tại chưa
         const exists = await WarehouseModel.findOne({ code });
         if (exists) return res.status(400).json({ success: false, message: 'Mã kho đã tồn tại' });
 
@@ -26,6 +40,9 @@ exports.create = async (req, res) => {
     }
 };
 
+/**
+ * @desc Cập nhật thông tin kho bãi
+ */
 exports.update = async (req, res) => {
     try {
         const { id } = req.query;
@@ -37,6 +54,9 @@ exports.update = async (req, res) => {
     }
 };
 
+/**
+ * @desc Xóa kho bãi
+ */
 exports.delete = async (req, res) => {
     try {
         const { id } = req.query;

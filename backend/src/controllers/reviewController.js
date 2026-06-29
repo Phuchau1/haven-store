@@ -1,11 +1,12 @@
 /**
+ * ============================================================
  * reviewController.js
  * Controller xử lý toàn bộ logic đánh giá sản phẩm (ProductReview)
  * - Lưu vĩnh viễn vào MongoDB
- * - Tự động cập nhật rating trung bình của sản phẩm
- * - Validation đầy đủ
+ * - Tự động tính toán và cập nhật rating trung bình của sản phẩm
+ * - Cung cấp API duyệt/xóa đánh giá cho Admin
+ * ============================================================
  */
-
 const { ProductReviewModel } = require('../models/ProductReview');
 const { ProductModel } = require('../models/Product');
 const fs = require('fs');
@@ -21,19 +22,24 @@ function log(msg) {
 }
 
 /**
- * Tính lại rating trung bình và cập nhật vào Product
+ * @desc Tính lại điểm đánh giá trung bình và cập nhật vào Model Sản Phẩm
+ * Mỗi khi có đánh giá mới thêm, sửa, xóa -> Gọi hàm này để đồng bộ.
  */
 async function recalcProductRating(product_id) {
+    // Chỉ tính điểm của các đánh giá đã được duyệt (approved)
     const approvedReviews = await ProductReviewModel.find({ product_id, status: 'approved' });
     const count = approvedReviews.length;
+    
+    // Tính trung bình cộng
     const avg = count > 0
         ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / count
         : 0;
 
+    // Cập nhật lên Document sản phẩm chính
     await ProductModel.findOneAndUpdate(
         { id: product_id },
         {
-            rating: Math.round(avg * 10) / 10,
+            rating: Math.round(avg * 10) / 10, // Làm tròn 1 chữ số thập phân (VD: 4.5)
             reviews: count
         }
     );
@@ -41,7 +47,10 @@ async function recalcProductRating(product_id) {
     return { avg: Math.round(avg * 10) / 10, count };
 }
 
-// ─── GET /api/reviews?product_id=xxx ─────────────────────────────────────────
+/**
+ * @desc Lấy danh sách đánh giá của một sản phẩm cụ thể (Dành cho Frontend hiển thị)
+ * @route GET /api/reviews?product_id=xxx
+ */
 const getReviewsByProduct = async (req, res, next) => {
     try {
         const { product_id } = req.query;
@@ -50,7 +59,7 @@ const getReviewsByProduct = async (req, res, next) => {
         }
 
         const reviews = await ProductReviewModel
-            .find({ product_id, status: 'approved' })
+            .find({ product_id, status: 'approved' }) // Chỉ lấy review đã duyệt
             .sort({ createdAt: -1 });
 
         return res.json({ success: true, reviews, total: reviews.length });
@@ -60,12 +69,15 @@ const getReviewsByProduct = async (req, res, next) => {
     }
 };
 
-// ─── POST /api/reviews ────────────────────────────────────────────────────────
+/**
+ * @desc Người dùng gửi đánh giá mới
+ * @route POST /api/reviews
+ */
 const createReview = async (req, res, next) => {
     try {
         const { product_id, rating, content, userName, userEmail, user_id } = req.body;
 
-        // Validation
+        // Validation cơ bản
         if (!product_id || !rating || !content) {
             return res.status(400).json({
                 success: false,
@@ -96,7 +108,7 @@ const createReview = async (req, res, next) => {
             });
         }
 
-        // Kiểm tra sản phẩm có tồn tại không
+        // Kiểm tra xem sản phẩm có tồn tại thật hay không
         const product = await ProductModel.findOne({ id: product_id });
         if (!product) {
             return res.status(404).json({
@@ -105,7 +117,7 @@ const createReview = async (req, res, next) => {
             });
         }
 
-        // Tạo đánh giá mới
+        // Khởi tạo Review
         const reviewId = `rv-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
         const newReview = new ProductReviewModel({
             id: reviewId,
@@ -115,15 +127,15 @@ const createReview = async (req, res, next) => {
             product_id,
             rating: ratingNum,
             content: trimmedContent,
-            status: 'approved',   // Tự động duyệt — đổi thành 'pending' nếu muốn kiểm duyệt trước
+            status: 'approved',   // Mặc định tự động duyệt. Đổi thành 'pending' nếu muốn admin duyệt thủ công
             created_at: new Date().toISOString()
         });
 
-        // LƯU VĨNH VIỄN VÀO MONGODB
+        // LƯU VÀO MONGODB
         await newReview.save();
         log(`✅ Review saved to MongoDB: ${reviewId} | product: ${product_id} | rating: ${ratingNum}⭐`);
 
-        // Cập nhật rating trung bình của sản phẩm
+        // Gọi hàm tính toán lại trung bình sao
         const { avg, count } = await recalcProductRating(product_id);
         log(`📊 Product ${product_id} rating updated: ${avg}⭐ (${count} reviews)`);
 
@@ -139,7 +151,10 @@ const createReview = async (req, res, next) => {
     }
 };
 
-// ─── GET /api/reviews/all (Admin only) ───────────────────────────────────────
+/**
+ * @desc Lấy toàn bộ danh sách đánh giá (Dành cho màn hình Admin quản lý)
+ * @route GET /api/reviews/all
+ */
 const getAllReviews = async (req, res, next) => {
     try {
         const { status, product_id, page = 1, limit = 50 } = req.query;
@@ -148,12 +163,14 @@ const getAllReviews = async (req, res, next) => {
         if (product_id) query.product_id = product_id;
 
         const skip = (Number(page) - 1) * Number(limit);
+        
+        // Chạy Promise.all song song để vừa lấy list vừa count tổng
         const [reviews, total] = await Promise.all([
             ProductReviewModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
             ProductReviewModel.countDocuments(query)
         ]);
 
-        // Bổ sung tên sản phẩm
+        // Gộp thêm tên sản phẩm vào dữ liệu review cho dễ hiển thị
         const productIds = [...new Set(reviews.map(r => r.product_id))];
         const products = await ProductModel.find({ id: { $in: productIds } }).select('id name');
         const productMap = products.reduce((acc, p) => {
@@ -179,7 +196,10 @@ const getAllReviews = async (req, res, next) => {
     }
 };
 
-// ─── PUT /api/reviews/status ──────────────────────────────────────────────────
+/**
+ * @desc Cập nhật trạng thái đánh giá (Duyệt / Từ chối)
+ * @route PUT /api/reviews/status
+ */
 const updateReviewStatus = async (req, res, next) => {
     try {
         const { id, status } = req.body;
@@ -192,6 +212,7 @@ const updateReviewStatus = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy đánh giá' });
         }
 
+        // Tính lại sao vì nếu reject thì bị giảm số sao, approve thì tăng số sao
         const { avg, count } = await recalcProductRating(review.product_id);
         log(`Status updated: ${id} → ${status} | product rating: ${avg}⭐ (${count})`);
 
@@ -207,7 +228,10 @@ const updateReviewStatus = async (req, res, next) => {
     }
 };
 
-// ─── DELETE /api/reviews?id=xxx ───────────────────────────────────────────────
+/**
+ * @desc Xóa đánh giá vĩnh viễn
+ * @route DELETE /api/reviews?id=xxx
+ */
 const deleteReview = async (req, res, next) => {
     try {
         const id = typeof req.query.id === 'string' ? req.query.id.trim() : undefined;
@@ -220,6 +244,7 @@ const deleteReview = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy đánh giá' });
         }
 
+        // Sau khi xóa, phải tính toán lại rating sản phẩm
         const { avg, count } = await recalcProductRating(deleted.product_id);
         log(`Deleted review: ${id} | product rating recalculated: ${avg}⭐ (${count})`);
 

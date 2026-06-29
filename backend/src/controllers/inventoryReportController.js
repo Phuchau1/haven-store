@@ -1,7 +1,19 @@
+/**
+ * ============================================================
+ * CONTROLLER: BÁO CÁO TỒN KHO (Inventory Report)
+ * Mô tả: Cung cấp API để vẽ biểu đồ và hiển thị thống kê 
+ *        Dashboard cho hệ thống quản lý Kho (Tổng SKU, tồn kho, 
+ *        giá trị kho, sắp hết hàng, biểu đồ nhập xuất 7 ngày).
+ * ============================================================
+ */
 const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
 const { StockTransactionModel } = require('../models/StockTransaction');
 
+/**
+ * @desc Lấy dữ liệu tổng quan cho trang Dashboard Kho Hàng
+ * @route GET /api/inventory-reports/dashboard
+ */
 exports.getDashboardStats = async (req, res) => {
     try {
         const totalProducts = await ProductModel.countDocuments();
@@ -14,15 +26,16 @@ exports.getDashboardStats = async (req, res) => {
         let lowStockSKUs = 0;
         let outOfStockSKUs = 0;
 
+        // Tính toán tổng số lượng và tổng giá trị tồn kho
         for (const variant of variants) {
             totalStock += variant.stock;
-            totalStockValue += variant.stock * (variant.price || 0); // Có thể thay bằng giá vốn nếu có
+            totalStockValue += variant.stock * (variant.price || 0); // Ước tính bằng giá bán
 
             if (variant.stock <= 0) outOfStockSKUs++;
-            else if (variant.stock <= 10) lowStockSKUs++;
+            else if (variant.stock <= 10) lowStockSKUs++; // Dưới 10 cảnh báo sắp hết hàng
         }
 
-        // Nhập / Xuất hôm nay
+        // --- TÍNH TOÁN DỮ LIỆU TRONG NGÀY HÔM NAY ---
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
 
@@ -38,7 +51,7 @@ exports.getDashboardStats = async (req, res) => {
             else if (txn.type === 'EXPORT') exportsToday += Math.abs(txn.quantity);
         }
 
-        // Biểu đồ nhập xuất 7 ngày gần nhất
+        // --- TÍNH TOÁN DỮ LIỆU BIỂU ĐỒ (7 NGÀY GẦN NHẤT) ---
         const chartLabels = [];
         const importData = [];
         const exportData = [];
@@ -97,6 +110,9 @@ exports.getDashboardStats = async (req, res) => {
     }
 };
 
+/**
+ * @desc Lấy danh sách Lịch sử Giao dịch kho (Có hỗ trợ phân trang)
+ */
 exports.getTransactions = async (req, res) => {
     try {
         const { warehouse_id, type, limit = 50, skip = 0 } = req.query;

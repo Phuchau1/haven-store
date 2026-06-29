@@ -8,7 +8,7 @@ import {
     Menu, X, Bell, User, Star, Palette, Ruler,
     ChevronRight, Search, MoreHorizontal, Zap, Home,
     Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
-    Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin
+    Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
@@ -30,6 +30,7 @@ const MENU_ITEMS = [
     
     { icon: Star,            label: 'Đánh giá',      href: '/admin/reviews',           group: 'catalog' },
     { icon: MessageSquare,   label: 'Live Chat',     href: '/admin/chats',             group: 'catalog' },
+    { icon: FileText,        label: 'Bài viết',      href: '/admin/articles',          group: 'catalog' },
     { icon: Package,         label: 'Danh mục',      href: '/admin/categories',        group: 'catalog' },
     { icon: ImageIcon,       label: 'Banners',       href: '/admin/banners',           group: 'catalog' },
     { icon: Palette,         label: 'Màu sắc',       href: '/admin/colors',            group: 'catalog' },

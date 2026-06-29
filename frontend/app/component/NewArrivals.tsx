@@ -54,18 +54,17 @@ export default function NewArrivals() {
                         transition={{ duration: 0.6 }}
                         className="text-center"
                     >
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold uppercase text-center w-full text-black tracking-tight mb-5">
+                        <div className="flex flex-col items-center gap-1 mb-2">
+                            <span className="text-sm tracking-[0.18em] uppercase text-gray-500 font-bold">
+                                Mới nhất
+                            </span>
+                        </div>
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold uppercase text-center w-full text-black tracking-tight mb-4">
                             Sản phẩm mới về
                         </h2>
-                        <div className="flex flex-col items-center gap-1">
-                            <Link
-                                href="/products"
-                                className="text-xs tracking-[0.18em] uppercase text-black font-bold hover:text-gray-600 transition-colors"
-                            >
-                                Hàng mới nhất
-                            </Link>
-                            <span className="block w-full h-[2px] bg-black rounded-full" />
-                        </div>
+                        <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
+                            Cập nhật những item hot nhất, trending nhất mùa này. Đặt hàng ngay trước khi hết!
+                        </p>
                     </motion.div>
                 </div>
 

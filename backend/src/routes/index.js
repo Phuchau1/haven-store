@@ -18,6 +18,7 @@ const bannerRoutes = require('./bannerRoutes');
 const flashSaleRoutes = require('./flashSaleRoutes');
 const paymentRoutes = require('./paymentRoutes');
 const couponRoutes = require('./couponRoutes');
+const articleRoutes = require('./articleRoutes');
 
 // WMS Routes
 const menuRoutes = require('./menuRoutes');
@@ -48,6 +49,7 @@ router.use('/banners', bannerRoutes);
 router.use('/flash-sales', flashSaleRoutes);
 router.use('/payment', paymentRoutes);
 router.use('/coupons', couponRoutes);
+router.use('/articles', articleRoutes);
 router.use('/export', exportRoutes);
 router.use('/ai', aiRoutes);
 router.use('/lucky-wheel', luckyWheelRoutes);

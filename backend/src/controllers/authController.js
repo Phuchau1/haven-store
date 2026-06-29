@@ -1,7 +1,19 @@
+/**
+ * ============================================================
+ * CONTROLLER: XÁC THỰC NGƯỜI DÙNG (Auth)
+ * Mô tả: Xử lý đăng nhập, đăng ký, quên mật khẩu, cập nhật hồ sơ,
+ *        và đăng nhập bằng mạng xã hội (Google, Facebook).
+ * ============================================================
+ */
 const crypto = require('crypto');
 const { UserModel } = require('../models/User');
 const { sendOtpEmail } = require('../services/emailService');
 
+/**
+ * @desc    Đăng nhập bằng Email và Mật khẩu
+ * @route   POST /api/auth/login
+ * @access  Public
+ */
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -9,6 +21,7 @@ const login = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu email hoặc mật khẩu' });
         }
 
+        // Băm mật khẩu người dùng nhập vào bằng thuật toán SHA-256
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
         // Tìm kiếm người dùng bằng email
@@ -18,12 +31,13 @@ const login = async (req, res, next) => {
             return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' });
         }
 
-        // Hỗ trợ kiểm tra mật khẩu dạng thường hoặc dạng băm sha256
+        // Hỗ trợ kiểm tra mật khẩu dạng thường (để tương thích ngược) hoặc dạng băm sha256
         const isPasswordCorrect = user.password === password || user.password === hashedPassword;
         if (!isPasswordCorrect) {
             return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' });
         }
 
+        // Loại bỏ trường password trước khi trả về client
         const userObj = user.toObject();
         const { password: _, ...userWithoutPassword } = userObj;
         res.json({ success: true, user: userWithoutPassword });
@@ -32,6 +46,11 @@ const login = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Đăng ký tài khoản mới
+ * @route   POST /api/auth/register
+ * @access  Public
+ */
 const register = async (req, res, next) => {
     try {
         const { name, email, phone, password } = req.body;
@@ -39,26 +58,30 @@ const register = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
         }
 
+        // Kiểm tra xem email đã tồn tại chưa
         const existingUser = await UserModel.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ success: false, message: 'Email đã được đăng ký' });
         }
 
-        // Validate email format
+        // Kiểm tra định dạng email hợp lệ
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ success: false, message: 'Email không đúng định dạng' });
         }
 
-        // Validate phone if provided
+        // Kiểm tra định dạng số điện thoại (nếu có nhập)
         if (phone) {
-            const phoneRegex = /^0[0-9]{9}$/;
+            const phoneRegex = /^0[0-9]{9}$/; // Bắt đầu bằng số 0, theo sau là 9 chữ số
             if (!phoneRegex.test(phone)) {
                 return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và dài 10 số)' });
             }
         }
 
+        // Băm mật khẩu trước khi lưu
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+        
+        // Tạo ID ngẫu nhiên cho user (vd: usr-a1b2c3d4e)
         const id = `usr-${Math.random().toString(36).substr(2, 9)}`;
 
         const newUser = new UserModel({
@@ -66,11 +89,12 @@ const register = async (req, res, next) => {
             name,
             email,
             password: hashedPassword,
-            role: 'user',
+            role: 'user',       // Mặc định người dùng thường
             phone: phone || '',
             address: ''
         });
 
+        // Lưu vào DB
         await newUser.save();
 
         const userObj = newUser.toObject();
@@ -81,6 +105,11 @@ const register = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Cập nhật hồ sơ cá nhân
+ * @route   PUT /api/auth/profile
+ * @access  Private (Yêu cầu đăng nhập)
+ */
 const updateProfile = async (req, res, next) => {
     try {
         const { id, name, phone, address, password, currentPassword } = req.body;
@@ -93,27 +122,29 @@ const updateProfile = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
         }
 
-        // Nếu muốn thay đổi mật khẩu
+        // Nếu người dùng muốn đổi mật khẩu
         if (password) {
             if (!currentPassword) {
                 return res.status(400).json({ success: false, message: 'Thiếu mật khẩu hiện tại' });
             }
 
+            // Kiểm tra mật khẩu hiện tại có đúng không
             const currentHashed = crypto.createHash('sha256').update(currentPassword).digest('hex');
             const isPasswordCorrect = user.password === currentPassword || user.password === currentHashed;
             if (!isPasswordCorrect) {
                 return res.status(400).json({ success: false, message: 'Mật khẩu hiện tại không chính xác' });
             }
 
+            // Cập nhật mật khẩu mới
             user.password = crypto.createHash('sha256').update(password).digest('hex');
         }
 
-        // Cập nhật thông tin khác
+        // Cập nhật các thông tin khác
         if (name !== undefined) user.name = name;
         if (phone !== undefined) {
             const phoneRegex = /^0[0-9]{9}$/;
             if (phone && !phoneRegex.test(phone)) {
-                return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và dài 10 số)' });
+                return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ' });
             }
             user.phone = phone;
         }
@@ -129,6 +160,11 @@ const updateProfile = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Yêu cầu cấp lại mật khẩu (Quên mật khẩu)
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
 const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
@@ -136,7 +172,6 @@ const forgotPassword = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu email' });
         }
 
-        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ success: false, message: 'Email không đúng định dạng' });
@@ -147,12 +182,13 @@ const forgotPassword = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Email không tồn tại trên hệ thống' });
         }
 
-        // Tạo OTP 6 số ngẫu nhiên
+        // Tạo mã OTP 6 số ngẫu nhiên
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         user.resetPasswordToken = otp;
-        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // Hết hạn sau 10 phút
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // Cài đặt hết hạn sau 10 phút
         await user.save();
 
+        // Gửi email chứa OTP
         sendOtpEmail(email, otp);
 
         res.json({ success: true, message: 'Đã gửi mã OTP đến email của bạn' });
@@ -161,6 +197,11 @@ const forgotPassword = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Xác thực mã OTP để đổi mật khẩu
+ * @route   POST /api/auth/verify-otp
+ * @access  Public
+ */
 const verifyOtp = async (req, res, next) => {
     try {
         const { email, otp } = req.body;
@@ -168,6 +209,7 @@ const verifyOtp = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu thông tin' });
         }
 
+        // Tìm user khớp email, đúng mã OTP và OTP chưa hết hạn
         const user = await UserModel.findOne({
             email,
             resetPasswordToken: otp,
@@ -184,6 +226,11 @@ const verifyOtp = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Đặt lại mật khẩu mới (Sau khi nhập đúng OTP)
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
 const resetPassword = async (req, res, next) => {
     try {
         const { email, otp, password } = req.body;
@@ -201,7 +248,10 @@ const resetPassword = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Mã OTP không hợp lệ hoặc đã hết hạn' });
         }
 
+        // Băm và lưu mật khẩu mới
         user.password = crypto.createHash('sha256').update(password).digest('hex');
+        
+        // Xóa thông tin OTP khỏi DB để tránh dùng lại
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save();
@@ -212,23 +262,38 @@ const resetPassword = async (req, res, next) => {
     }
 };
 
+/* ============================================================
+ * PHẦN XỬ LÝ ĐĂNG NHẬP QUA MẠNG XÃ HỘI (Google, Facebook)
+ * ============================================================ */
 const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
+
+// Khởi tạo Google Client
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com');
 
+/**
+ * @desc    Đăng nhập bằng Google
+ * @route   POST /api/auth/google
+ * @access  Public
+ */
 const googleLogin = async (req, res, next) => {
     try {
         const { token } = req.body;
         if (!token) return res.status(400).json({ success: false, message: 'Thiếu Google token' });
 
+        // Xác thực ID Token với server của Google
         const ticket = await googleClient.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID || '70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com',
         });
+        
         const payload = ticket.getPayload();
         
+        // Tìm user theo email trả về từ Google
         let user = await UserModel.findOne({ email: payload.email });
+        
         if (!user) {
+            // Lần đầu đăng nhập → Tạo tài khoản tự động
             user = new UserModel({
                 id: `usr-${Math.random().toString(36).substr(2, 9)}`,
                 name: payload.name,
@@ -239,6 +304,7 @@ const googleLogin = async (req, res, next) => {
             });
             await user.save();
         } else if (!user.googleId) {
+            // Đã có tài khoản bằng email này (tạo thủ công trước đó) → Liên kết tài khoản Google
             user.googleId = payload.sub;
             user.avatar = payload.picture;
             await user.save();
@@ -253,20 +319,29 @@ const googleLogin = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Đăng nhập bằng Facebook
+ * @route   POST /api/auth/facebook
+ * @access  Public
+ */
 const facebookLogin = async (req, res, next) => {
     try {
         const { accessToken, userID } = req.body;
         if (!accessToken) return res.status(400).json({ success: false, message: 'Thiếu Facebook token' });
 
+        // Dùng access token của Facebook để lấy thông tin user qua Graph API
         const fbRes = await axios.get(`https://graph.facebook.com/v13.0/me?fields=id,name,email,picture.type(large)&access_token=${accessToken}`);
         const payload = fbRes.data;
         
+        // Bắt buộc tài khoản Facebook phải có email
         if (!payload.email) {
             return res.status(400).json({ success: false, message: 'Không thể lấy email từ Facebook. Vui lòng thử phương thức khác.' });
         }
 
         let user = await UserModel.findOne({ email: payload.email });
+        
         if (!user) {
+            // Tạo tài khoản tự động
             user = new UserModel({
                 id: `usr-${Math.random().toString(36).substr(2, 9)}`,
                 name: payload.name,
@@ -277,6 +352,7 @@ const facebookLogin = async (req, res, next) => {
             });
             await user.save();
         } else if (!user.facebookId) {
+            // Liên kết với tài khoản đã tồn tại
             user.facebookId = payload.id;
             user.avatar = payload.picture?.data?.url;
             await user.save();

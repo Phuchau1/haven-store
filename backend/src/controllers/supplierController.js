@@ -1,5 +1,15 @@
+/**
+ * ============================================================
+ * CONTROLLER: NHÀ CUNG CẤP (Supplier)
+ * Mô tả: Thực hiện các thao tác CRUD cơ bản để quản lý danh sách 
+ *        các nhà cung cấp hàng hóa/nguyên liệu.
+ * ============================================================
+ */
 const { SupplierModel } = require('../models/Supplier');
 
+/**
+ * @desc Lấy danh sách tất cả các nhà cung cấp
+ */
 exports.getAll = async (req, res) => {
     try {
         const suppliers = await SupplierModel.find().sort({ createdAt: -1 });
@@ -9,6 +19,9 @@ exports.getAll = async (req, res) => {
     }
 };
 
+/**
+ * @desc Thêm nhà cung cấp mới
+ */
 exports.create = async (req, res) => {
     try {
         const { name, email, phone, address, tax_code } = req.body;
@@ -23,6 +36,9 @@ exports.create = async (req, res) => {
     }
 };
 
+/**
+ * @desc Cập nhật thông tin nhà cung cấp
+ */
 exports.update = async (req, res) => {
     try {
         const { id } = req.query;
@@ -34,6 +50,9 @@ exports.update = async (req, res) => {
     }
 };
 
+/**
+ * @desc Xóa nhà cung cấp
+ */
 exports.delete = async (req, res) => {
     try {
         const { id } = req.query;

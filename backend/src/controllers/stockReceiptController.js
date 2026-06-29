@@ -1,26 +1,41 @@
+/**
+ * ============================================================
+ * CONTROLLER: PHIẾU KHO (Stock Receipt)
+ * Mô tả: Quản lý nghiệp vụ Nhập (IMPORT), Xuất (EXPORT), 
+ *        Chuyển kho nội bộ (TRANSFER) và Kiểm kê (ADJUSTMENT).
+ * Lưu ý quan trọng: Logic handleStockChange xử lý việc cộng/trừ
+ *        vào từng kho cụ thể (warehouse_stocks) của biến thể.
+ * ============================================================
+ */
 const { StockReceiptModel } = require('../models/StockReceipt');
 const { StockTransactionModel } = require('../models/StockTransaction');
 const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
 
+/**
+ * @desc Xử lý thay đổi số lượng kho thật khi phiếu kho được duyệt
+ * Cập nhật: Kho hiện tại, Kho đích (nếu chuyển kho), Tổng tồn kho Variant, Tồn kho hiển thị Product.
+ */
 const handleStockChange = async (type, warehouse_id, items, receipt_id, user_id, dest_warehouse_id = null) => {
-    // IMPORT: tăng kho hiện tại
-    // EXPORT: giảm kho hiện tại
-    // TRANSFER: giảm kho hiện tại, tăng kho đích
-    // ADJUSTMENT: cập nhật bằng số nhập vào (chênh lệch) - tạm thời coi quantity là +/-
+    // Ý nghĩa các loại giao dịch (type):
+    // IMPORT (Nhập hàng): tăng kho hiện tại
+    // EXPORT (Xuất hàng): giảm kho hiện tại
+    // TRANSFER (Chuyển kho): giảm kho hiện tại, tăng kho đích
+    // ADJUSTMENT (Điều chỉnh/Kiểm kê): cập nhật bằng số chênh lệch +/-
 
     for (const item of items) {
         const { variant_id, quantity, price } = item;
         
-        // Tìm Variant
+        // Tìm biến thể theo SKU hoặc ID
         const variant = await ProductVariantModel.findOne({ sku: variant_id }) || await ProductVariantModel.findOne({ id: variant_id });
         if (!variant) throw new Error(`Không tìm thấy variant: ${variant_id}`);
 
-        // Lấy tồn kho hiện tại ở warehouse_id
+        // Lấy mức tồn kho hiện tại tại kho đang xét (warehouse_id)
         const currentWHStockIndex = variant.warehouse_stocks.findIndex(w => w.warehouse_id === warehouse_id);
         let beforeStock = currentWHStockIndex > -1 ? variant.warehouse_stocks[currentWHStockIndex].stock : 0;
         let afterStock = beforeStock;
 
+        // Tính toán số lượng tồn kho mới tùy theo loại phiếu
         if (type === 'IMPORT' || type === 'RETURN') {
             afterStock = beforeStock + quantity;
         } else if (type === 'EXPORT') {
@@ -30,34 +45,34 @@ const handleStockChange = async (type, warehouse_id, items, receipt_id, user_id,
             if (beforeStock < quantity) throw new Error(`Tồn kho không đủ cho SKU: ${variant_id} để chuyển`);
             afterStock = beforeStock - quantity;
         } else if (type === 'ADJUSTMENT') {
-            afterStock = beforeStock + quantity; // quantity có thể âm
+            afterStock = beforeStock + quantity; // quantity ở đây có thể là số âm
             if (afterStock < 0) throw new Error(`Điều chỉnh làm tồn kho âm cho SKU: ${variant_id}`);
         }
 
-        // Cập nhật mảng warehouse_stocks
+        // Cập nhật lại mảng phân bổ tồn kho theo kho (warehouse_stocks)
         if (currentWHStockIndex > -1) {
             variant.warehouse_stocks[currentWHStockIndex].stock = afterStock;
         } else {
             variant.warehouse_stocks.push({ warehouse_id, stock: afterStock });
         }
 
-        // Cập nhật tổng stock
+        // Cập nhật tổng tồn kho của biến thể (cho tất cả kho)
         const totalStockDiff = afterStock - beforeStock;
         variant.stock += totalStockDiff;
         await variant.save();
 
-        // Đồng bộ với ProductModel (Cập nhật embedded variant array)
+        // Đồng bộ tổng tồn kho mới lên Model Sản phẩm chính (hiển thị cho khách xem)
         const product = await ProductModel.findOne({ id: variant.product_id });
         if (product && product.variants) {
             const embedVar = product.variants.find(v => v.color === variant.color_id && v.size === variant.size_id);
             if (embedVar) {
-                embedVar.stock = variant.stock; // Đồng bộ tổng stock lên storefront
+                embedVar.stock = variant.stock;
                 product.markModified('variants');
                 await product.save();
             }
         }
 
-        // Lưu StockTransaction cho kho nguồn
+        // Lưu Lịch sử giao dịch (Stock Transaction) cho kho nguồn
         await new StockTransactionModel({
             id: `txn-${Math.random().toString(36).substr(2, 9)}`,
             type,
@@ -70,24 +85,23 @@ const handleStockChange = async (type, warehouse_id, items, receipt_id, user_id,
             user_id
         }).save();
 
-        // Xử lý kho đích nếu là TRANSFER
+        // --- Nếu là chuyển kho (TRANSFER), xử lý cộng tồn cho kho đích ---
         if (type === 'TRANSFER' && dest_warehouse_id) {
             const destIndex = variant.warehouse_stocks.findIndex(w => w.warehouse_id === dest_warehouse_id);
             let destBefore = destIndex > -1 ? variant.warehouse_stocks[destIndex].stock : 0;
-            let destAfter = destBefore + quantity;
+            let destAfter = destBefore + quantity; // Cộng số lượng vừa trừ ở kho nguồn
             
             if (destIndex > -1) {
                 variant.warehouse_stocks[destIndex].stock = destAfter;
             } else {
                 variant.warehouse_stocks.push({ warehouse_id: dest_warehouse_id, stock: destAfter });
             }
-            await variant.save();
-            // Storefront total stock không đổi khi chuyển kho nội bộ
+            await variant.save(); // Tổng stock không đổi
 
-            // Lưu StockTransaction cho kho đích
+            // Lưu Stock Transaction nhập kho cho kho đích
             await new StockTransactionModel({
                 id: `txn-${Math.random().toString(36).substr(2, 9)}`,
-                type: 'IMPORT', // Nhận từ transfer
+                type: 'IMPORT', // Kho đích sẽ coi đây là phiếu nhập
                 reference_id: receipt_id,
                 warehouse_id: dest_warehouse_id,
                 variant_id: variant.id,
@@ -100,6 +114,9 @@ const handleStockChange = async (type, warehouse_id, items, receipt_id, user_id,
     }
 };
 
+/**
+ * @desc Lấy tất cả phiếu kho
+ */
 exports.getAll = async (req, res) => {
     try {
         const receipts = await StockReceiptModel.find().sort({ createdAt: -1 });
@@ -109,6 +126,11 @@ exports.getAll = async (req, res) => {
     }
 };
 
+/**
+ * @desc Tạo mới phiếu kho
+ * Nếu status gửi lên là COMPLETED -> xử lý cập nhật kho luôn (handleStockChange).
+ * Nếu DRAFT -> chỉ lưu nháp.
+ */
 exports.create = async (req, res) => {
     try {
         const { type, warehouse_id, dest_warehouse_id, supplier_id, reason, note, user_id, items, status } = req.body;
@@ -117,7 +139,6 @@ exports.create = async (req, res) => {
         
         const receipt_id = `rec-${Math.random().toString(36).substr(2, 9)}`;
 
-        // Tính tổng
         const total_quantity = items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
         const total_amount = items.reduce((sum, item) => sum + (Math.abs(item.quantity) * (item.price || 0)), 0);
 
@@ -130,7 +151,7 @@ exports.create = async (req, res) => {
             status: receiptStatus
         });
 
-        // Xử lý trừ/cộng tồn kho nếu duyệt ngay
+        // Xử lý trừ/cộng tồn kho nếu tạo phiếu là duyệt ngay
         if (receiptStatus === 'COMPLETED') {
             await handleStockChange(type, warehouse_id, items, receipt_id, user_id, dest_warehouse_id);
         }
@@ -142,6 +163,9 @@ exports.create = async (req, res) => {
     }
 };
 
+/**
+ * @desc Xem chi tiết phiếu kho
+ */
 exports.getById = async (req, res) => {
     try {
         const receipt = await StockReceiptModel.findOne({ id: req.params.id });
@@ -152,6 +176,9 @@ exports.getById = async (req, res) => {
     }
 };
 
+/**
+ * @desc Cập nhật phiếu kho (Chỉ khi đang ở trạng thái DRAFT/Nháp)
+ */
 exports.update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -186,6 +213,9 @@ exports.update = async (req, res) => {
     }
 };
 
+/**
+ * @desc Duyệt phiếu kho (Chuyển DRAFT -> COMPLETED và bắt đầu cộng/trừ kho)
+ */
 exports.approve = async (req, res) => {
     try {
         const { id } = req.params;
@@ -197,7 +227,7 @@ exports.approve = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Phiếu đã được duyệt hoặc đã hủy' });
         }
 
-        // Xử lý tồn kho
+        // Tiến hành ghi nhận tăng/giảm vào kho
         await handleStockChange(
             receipt.type, 
             receipt.warehouse_id, 

@@ -1,3 +1,10 @@
+/**
+ * ============================================================
+ * CONTROLLER: HỖ TRỢ TRỰC TUYẾN (Chat)
+ * Mô tả: Xử lý lưu trữ phiên chat (Session) và tin nhắn (Message)
+ *        vào Database. Dùng kết hợp với Socket.IO để chat realtime.
+ * ============================================================
+ */
 const { ChatSessionModel } = require('../models/ChatSession');
 const { ChatMessageModel } = require('../models/ChatMessage');
 const fs = require('fs');
@@ -9,10 +16,15 @@ function log(msg) {
     console.log(`[ChatController] ${msg}`);
 }
 
+/**
+ * @desc Tạo một phiên chat mới hoặc lấy lại phiên chat cũ đang mở
+ * @route POST /api/chat/session
+ */
 const createOrGetSession = async (req, res, next) => {
     try {
         const { customer_name, phone, session_id } = req.body;
 
+        // Nếu client có truyền session_id, tìm xem có tồn tại không
         if (session_id) {
             const session = await ChatSessionModel.findOne({ id: session_id });
             if (session) {
@@ -24,7 +36,7 @@ const createOrGetSession = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu tên khách hàng hoặc số điện thoại' });
         }
 
-        // Tìm xem có session nào đang mở với sđt này không
+        // Tìm xem có session nào đang mở với số điện thoại này không để tiếp tục chat
         let session = await ChatSessionModel.findOne({ phone, status: 'open' });
         if (!session) {
             const newId = `session-${Math.random().toString(36).substr(2, 9)}`;
@@ -47,9 +59,13 @@ const createOrGetSession = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc Lấy danh sách tất cả các phiên chat (Dành cho Admin)
+ * @route GET /api/chat/sessions
+ */
 const getSessions = async (req, res, next) => {
     try {
-        const sessions = await ChatSessionModel.find().sort({ updatedAt: -1 });
+        const sessions = await ChatSessionModel.find().sort({ updatedAt: -1 }); // Mới nhất lên đầu
         res.json({ success: true, sessions });
     } catch (error) {
         log(`Error in getSessions: ${error.message}`);
@@ -57,10 +73,14 @@ const getSessions = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc Lấy lịch sử tin nhắn của một phiên chat cụ thể
+ * @route GET /api/chat/sessions/:sessionId/messages
+ */
 const getMessagesBySession = async (req, res, next) => {
     try {
         const { sessionId } = req.params;
-        const messages = await ChatMessageModel.find({ session_id: sessionId }).sort({ createdAt: 1 });
+        const messages = await ChatMessageModel.find({ session_id: sessionId }).sort({ createdAt: 1 }); // Xếp theo thời gian tăng dần
         res.json({ success: true, messages });
     } catch (error) {
         log(`Error in getMessagesBySession: ${error.message}`);
@@ -68,6 +88,10 @@ const getMessagesBySession = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc Lưu một tin nhắn mới vào Database (Cả khách hàng và Admin gửi đều gọi API này/hoặc lưu qua socket)
+ * @route POST /api/chat/messages
+ */
 const sendMessage = async (req, res, next) => {
     try {
         const { session_id, sender_type, message } = req.body;
@@ -85,7 +109,7 @@ const sendMessage = async (req, res, next) => {
         });
         await newMessage.save();
 
-        // Cập nhật mốc thời gian cập nhật của session để đẩy lên đầu
+        // Cập nhật lại mốc thời gian (updatedAt) của session để session này trồi lên đầu trong danh sách của Admin
         await ChatSessionModel.findOneAndUpdate({ id: session_id }, { updatedAt: new Date() });
 
         log(`Persisted message ${msgId} in session ${session_id}`);
@@ -96,6 +120,10 @@ const sendMessage = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc Đóng một phiên chat (Kết thúc hỗ trợ)
+ * @route PUT /api/chat/sessions/:sessionId/close
+ */
 const closeSession = async (req, res, next) => {
     try {
         const { sessionId } = req.params;

@@ -1,3 +1,10 @@
+/**
+ * ============================================================
+ * CONTROLLER: QUẢN LÝ TỒN KHO (Inventory)
+ * Mô tả: Xử lý logic xem lịch sử xuất/nhập kho, điều chỉnh số lượng
+ *        thủ công, và cập nhật trực tiếp số lượng tồn kho của các biến thể.
+ * ============================================================
+ */
 const { InventoryHistoryModel } = require('../models/InventoryHistory');
 const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
@@ -10,10 +17,16 @@ function log(msg) {
     console.log(`[InventoryController] ${msg}`);
 }
 
+/**
+ * @desc    Lấy lịch sử xuất/nhập kho
+ * @route   GET /api/inventory/history
+ * @access  Private/Admin
+ */
 const getInventoryHistory = async (req, res, next) => {
     try {
         const history = await InventoryHistoryModel.find().sort({ createdAt: -1 });
         
+        // Nối thêm thông tin tên sản phẩm, mã SKU từ ProductVariant để hiển thị chi tiết
         const detailedHistory = [];
         for (const item of history) {
             const doc = item.toObject();
@@ -27,6 +40,7 @@ const getInventoryHistory = async (req, res, next) => {
                 doc.size = pVariant.size_id;
                 doc.sku = pVariant.sku;
             } else {
+                // Xử lý fallback nếu không tìm thấy variant trong DB
                 const parts = doc.variant_id.split('-');
                 doc.productName = `Mã biến thể: ${doc.variant_id}`;
                 doc.productId = parts.slice(1, -2).join('-');
@@ -43,6 +57,11 @@ const getInventoryHistory = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Điều chỉnh số lượng kho (Thêm hoặc bớt số lượng)
+ * @route   POST /api/inventory/adjust
+ * @access  Private/Admin
+ */
 const adjustInventory = async (req, res, next) => {
     try {
         const { productId, color, size, type, quantity, note } = req.body;
@@ -60,7 +79,7 @@ const adjustInventory = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Số lượng phải là số lớn hơn 0' });
         }
 
-        // 1. Update Product Model embedded variants
+        // 1. Cập nhật số lượng tồn kho lưu bên trong Product Model (Embedded variants)
         const product = await ProductModel.findOne({ id: productId });
         if (!product) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
@@ -70,12 +89,12 @@ const adjustInventory = async (req, res, next) => {
             const variant = product.variants.find(v => v.color === color && v.size === size);
             if (variant) {
                 const modifier = type === 'import' ? qtyValue : -qtyValue;
-                variant.stock = Math.max(0, variant.stock + modifier);
+                variant.stock = Math.max(0, variant.stock + modifier); // Không cho âm kho
                 await product.save();
             }
         }
 
-        // 2. Update ProductVariant Model
+        // 2. Cập nhật số lượng bên ProductVariant Model
         const modifier = type === 'import' ? qtyValue : -qtyValue;
         const pVariant = await ProductVariantModel.findOneAndUpdate(
             { product_id: productId, size_id: size, color_id: color },
@@ -87,7 +106,7 @@ const adjustInventory = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy biến thể độc lập' });
         }
 
-        // 3. Create inventory log
+        // 3. Ghi log lịch sử thay đổi kho
         const logId = `inv-log-${Math.random().toString(36).substr(2, 9)}`;
         const invLog = new InventoryHistoryModel({
             id: logId,
@@ -106,6 +125,11 @@ const adjustInventory = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Cài đặt số lượng tồn kho trực tiếp (Set cố định một số)
+ * @route   POST /api/inventory/set
+ * @access  Private/Admin
+ */
 const directSetStock = async (req, res, next) => {
     try {
         const { productId, color, size, stock, note } = req.body;
@@ -119,7 +143,7 @@ const directSetStock = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Số lượng kho mới không hợp lệ' });
         }
 
-        // 1. Update Product Model embedded variants
+        // 1. Cập nhật embedded variants trong Product Model
         const product = await ProductModel.findOne({ id: productId });
         if (!product) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
@@ -135,7 +159,7 @@ const directSetStock = async (req, res, next) => {
             }
         }
 
-        // 2. Update ProductVariant Model
+        // 2. Cập nhật ProductVariant Model
         const pVariant = await ProductVariantModel.findOneAndUpdate(
             { product_id: productId, size_id: size, color_id: color },
             { stock: newStockVal },
@@ -146,7 +170,7 @@ const directSetStock = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy biến thể độc lập' });
         }
 
-        // 3. Create inventory history log if there is a difference
+        // 3. Nếu số lượng thực sự thay đổi -> Tạo lịch sử xuất/nhập phần chênh lệch
         const difference = newStockVal - oldStock;
         if (difference !== 0) {
             const type = difference > 0 ? 'import' : 'export';
@@ -155,7 +179,7 @@ const directSetStock = async (req, res, next) => {
                 id: logId,
                 variant_id: pVariant.id,
                 type,
-                quantity: Math.abs(difference),
+                quantity: Math.abs(difference), // Ghi nhận số lượng chênh lệch
                 note: note || `Thay đổi số lượng trực tiếp từ ${oldStock} thành ${newStockVal}`,
                 created_at: new Date().toISOString()
             });
@@ -169,11 +193,16 @@ const directSetStock = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Lấy danh sách tồn kho hiện tại của tất cả các biến thể
+ * @route   GET /api/inventory/stock
+ * @access  Private/Admin
+ */
 const getStockList = async (req, res, next) => {
     try {
         const variants = await ProductVariantModel.find().lean();
         
-        // Fetch product info to merge
+        // Fetch thông tin tên sản phẩm để gộp vào chung data hiển thị
         const productIds = [...new Set(variants.map(v => v.product_id))];
         const products = await ProductModel.find({ id: { $in: productIds } }).lean();
         
@@ -182,7 +211,7 @@ const getStockList = async (req, res, next) => {
         
         const stockList = variants.map(v => {
             const prod = productMap[v.product_id];
-            // Nếu ảnh variant là placeholder hoặc không có, lấy ảnh thật của sản phẩm
+            // Nếu ảnh variant là placeholder hoặc không có, lấy ảnh thật của sản phẩm chính làm đại diện
             let imageUrl = v.image;
             if (!imageUrl || imageUrl === '/products/placeholder.jpg') {
                 imageUrl = (prod && prod.images && prod.images.length > 0) ? prod.images[0] : '';

@@ -1,5 +1,15 @@
+/**
+ * ============================================================
+ * CONTROLLER: ĐỊA CHỈ (Address)
+ * Mô tả: Xử lý quản lý sổ địa chỉ (Address Book) của người dùng.
+ *        Cho phép thêm, sửa, xóa và thiết lập địa chỉ mặc định.
+ * ============================================================
+ */
 const { AddressModel } = require('../models/Address');
 
+/**
+ * @desc Lấy danh sách địa chỉ của một người dùng
+ */
 exports.getAddresses = async (req, res) => {
     try {
         const { user_id } = req.query;
@@ -12,6 +22,9 @@ exports.getAddresses = async (req, res) => {
     }
 };
 
+/**
+ * @desc Thêm một địa chỉ mới
+ */
 exports.addAddress = async (req, res) => {
     try {
         const { user_id, full_name, phone, street, ward, district, city, is_default } = req.body;
@@ -19,6 +32,7 @@ exports.addAddress = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
         }
 
+        // Nếu người dùng chọn đây là địa chỉ mặc định, bỏ mặc định ở tất cả địa chỉ cũ
         if (is_default) {
             await AddressModel.updateMany({ user_id }, { is_default: false });
         }
@@ -42,11 +56,15 @@ exports.addAddress = async (req, res) => {
     }
 };
 
+/**
+ * @desc Cập nhật thông tin địa chỉ
+ */
 exports.updateAddress = async (req, res) => {
     try {
         const { id, user_id, is_default, ...data } = req.body;
         if (!id || !user_id) return res.status(400).json({ success: false, message: 'Thiếu id' });
 
+        // Tương tự hàm thêm, nếu chọn làm mặc định thì xóa cờ mặc định của các địa chỉ cũ
         if (is_default) {
             await AddressModel.updateMany({ user_id }, { is_default: false });
             data.is_default = true;
@@ -61,6 +79,9 @@ exports.updateAddress = async (req, res) => {
     }
 };
 
+/**
+ * @desc Xóa địa chỉ
+ */
 exports.deleteAddress = async (req, res) => {
     try {
         const { id, user_id } = req.query;

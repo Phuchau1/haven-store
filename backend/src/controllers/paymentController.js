@@ -1,7 +1,19 @@
+/**
+ * ============================================================
+ * CONTROLLER: THANH TOÁN (Payment)
+ * Mô tả: Xử lý tích hợp với các cổng thanh toán bên thứ ba (VNPay, MoMo).
+ * Cung cấp API tạo URL thanh toán và các Callback/IPN để 
+ * tự động cập nhật trạng thái đơn hàng khi thanh toán thành công.
+ * ============================================================
+ */
 const { buildVNPayUrl, verifyVNPayReturn } = require('../services/vnpayService');
 const { buildMoMoUrl, verifyMoMoReturn } = require('../services/momoService');
 const { OrderModel } = require('../models/Order');
 
+/**
+ * @desc Khởi tạo giao dịch thanh toán và trả về URL chuyển hướng cho Frontend
+ * @route POST /api/payment/create-url
+ */
 const createPaymentUrl = async (req, res) => {
     try {
         const { orderId, amount, paymentMethod } = req.body;
@@ -13,6 +25,7 @@ const createPaymentUrl = async (req, res) => {
         let payUrl = '';
         const orderInfo = `Thanh toan don hang ${orderId}`;
 
+        // Gọi service tương ứng để mã hóa thông tin và tạo URL
         if (paymentMethod === 'vnpay') {
             payUrl = buildVNPayUrl(req, orderId, amount, orderInfo);
         } else if (paymentMethod === 'momo') {
@@ -28,6 +41,10 @@ const createPaymentUrl = async (req, res) => {
     }
 };
 
+/**
+ * @desc Xử lý URL Redirect từ VNPay trả về cho người dùng (Frontend xử lý hiển thị)
+ * @route GET /api/payment/vnpay-return
+ */
 const vnpayReturn = async (req, res) => {
     let vnp_Params = req.query;
     const isValid = verifyVNPayReturn(vnp_Params);
@@ -37,7 +54,7 @@ const vnpayReturn = async (req, res) => {
         let rspCode = vnp_Params['vnp_ResponseCode'];
         
         if (rspCode === '00') {
-            // Thanh toán thành công
+            // Thanh toán thành công: Cập nhật đơn hàng
             await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
             res.redirect(`${process.env.VNP_RETURN_URL}?status=success&orderId=${orderId}`);
         } else {
@@ -49,6 +66,10 @@ const vnpayReturn = async (req, res) => {
     }
 };
 
+/**
+ * @desc Xử lý URL Redirect từ MoMo trả về
+ * @route GET /api/payment/momo-return
+ */
 const momoReturn = async (req, res) => {
     let query = req.query;
     const isValid = verifyMoMoReturn(query);
@@ -57,7 +78,7 @@ const momoReturn = async (req, res) => {
         let orderId = query.orderId;
         let resultCode = query.resultCode;
         
-        if (resultCode == 0) { // MoMo success code is 0
+        if (resultCode == 0) { // Mã 0 của MoMo là thành công
             await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
             res.redirect(`${process.env.MOMO_RETURN_URL}?status=success&orderId=${orderId}`);
         } else {
@@ -68,6 +89,11 @@ const momoReturn = async (req, res) => {
     }
 };
 
+/**
+ * @desc IPN (Instant Payment Notification) từ VNPay (Server-to-Server)
+ * Đảm bảo cập nhật trạng thái đơn hàng ngầm nếu User tắt trình duyệt sớm.
+ * @route GET /api/payment/vnpay-ipn
+ */
 const vnpayIpn = async (req, res) => {
     let vnp_Params = req.query;
     const isValid = verifyVNPayReturn(vnp_Params);
@@ -95,9 +121,13 @@ const vnpayIpn = async (req, res) => {
     }
 };
 
+/**
+ * @desc IPN từ MoMo (Server-to-Server)
+ * @route POST /api/payment/momo-ipn
+ */
 const momoIpn = async (req, res) => {
     let query = req.body;
-    const isValid = verifyMoMoReturn(query); // Mặc dù IPN có chữ ký riêng nhưng logic verify cơ bản giống nhau
+    const isValid = verifyMoMoReturn(query);
     
     if (isValid) {
         let orderId = query.orderId;
@@ -112,7 +142,7 @@ const momoIpn = async (req, res) => {
                     await OrderModel.findOneAndUpdate({ id: orderId }, { paymentStatus: 'failed' });
                 }
             }
-            res.status(204).send();
+            res.status(204).send(); // MoMo yêu cầu HTTP 204
         } catch (e) {
             res.status(500).send();
         }
