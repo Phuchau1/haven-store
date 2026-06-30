@@ -14,6 +14,23 @@ export interface Product {
     colors: Color[];
     description: string;
     content?: string; // Nội dung chi tiết
+    
+    // --- NEW FIELDS FOR DETAILED DESCRIPTION ---
+    shortDescription?: string;
+    richContent?: string;
+    specifications?: Record<string, string>;
+    sizeGuide?: any[];
+    careInstructions?: string[];
+    features?: string[];
+    tags?: string[];
+    seo?: { title?: string; description?: string; keywords?: string; slug?: string; };
+    faqs?: { question: string; answer: string; }[];
+    certificates?: string[];
+    fabric?: string[];
+    status?: 'draft' | 'published' | 'scheduled';
+    publishAt?: string;
+    videos?: string[];
+
     instructions?: string[]; // Hướng dẫn sử dụng
     notes?: string[]; // Lưu ý nhỏ
     sizeChartImage?: string; // Ảnh bảng size

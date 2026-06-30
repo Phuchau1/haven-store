@@ -323,7 +323,7 @@ export default function ProductDetailPage() {
                         </div>
 
                         {/* Description */}
-                        <p className="text-sm text-gray-600 leading-relaxed font-light">{product.description}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed font-light">{product.shortDescription || product.description}</p>
 
                         {/* Color Selection */}
                         <div>

@@ -39,9 +39,29 @@ const ProductSchema = new Schema({
     sizes:            [{ type: String }],                             // Danh sách kích thước có sẵn
     colors:           [ColorSchema],                                  // Danh sách màu sắc (dùng sub-schema ColorSchema)
     variants:         [VariantSchema],                                // Danh sách biến thể (màu + size + tồn kho)
-    description:      { type: String, default: '' },                  // Mô tả ngắn sản phẩm
-    content:          { type: String },                               // Nội dung chi tiết sản phẩm (HTML)
-    instructions:     [{ type: String }],                             // Hướng dẫn sử dụng / bảo quản
+    description:      { type: String, default: '' },                  // Mô tả ngắn sản phẩm (cũ)
+    content:          { type: String },                               // Nội dung chi tiết sản phẩm (cũ)
+    
+    // --- NEW FIELDS FOR DETAILED DESCRIPTION ---
+    shortDescription: { type: String, default: '' },                  // Mô tả ngắn (150-250 ký tự)
+    richContent:      { type: String, default: '' },                  // Nội dung HTML từ Rich Text Editor
+    specifications:   { type: Object, default: {} },                  // Thông số kỹ thuật (chất liệu, co giãn, kiểu cổ...)
+    sizeGuide:        [{ type: Object }],                             // Bảng hướng dẫn size (size, vai, ngực, dài...)
+    careInstructions: [{ type: String }],                             // Hướng dẫn bảo quản
+    features:         [{ type: String }],                             // Đặc điểm nổi bật
+    tags:             [{ type: String }],                             // Từ khóa tag
+    seo:              { type: Object, default: { title: '', description: '', keywords: '', slug: '' } }, // SEO Meta
+    faqs:             [{ 
+        question: { type: String },
+        answer: { type: String }
+    }],                                                               // Câu hỏi thường gặp
+    certificates:     [{ type: String }],                             // Chứng nhận
+    fabric:           [{ type: String }],                             // Thành phần vải %
+    status:           { type: String, enum: ['draft', 'published', 'scheduled'], default: 'published' }, // Trạng thái
+    publishAt:        { type: Date },                                 // Ngày lên lịch xuất bản
+    videos:           [{ type: String }],                             // URL video
+    
+    instructions:     [{ type: String }],                             // Hướng dẫn sử dụng / bảo quản (cũ)
     notes:            [{ type: String }],                             // Lưu ý đặc biệt
     sizeChartImage:   { type: String },                               // URL ảnh bảng hướng dẫn chọn size
     badge:            { type: String },                               // Nhãn nổi bật (vd: 'NEW', 'HOT', 'SALE')

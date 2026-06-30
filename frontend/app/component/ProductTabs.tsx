@@ -172,7 +172,7 @@ export default function ProductTabs({ product }: ProductTabsProps) {
                                     <div className={`relative overflow-hidden transition-all duration-500 ${isDescriptionExpanded ? '' : 'max-h-[600px]'}`}>
                                         <div 
                                             className="prose prose-sm lg:prose-base prose-gray max-w-none prose-headings:font-medium prose-a:text-indigo-600 prose-img:rounded-2xl prose-img:shadow-sm"
-                                            dangerouslySetInnerHTML={{ __html: product.content || '<p>Đang cập nhật nội dung chi tiết...</p>' }}
+                                            dangerouslySetInnerHTML={{ __html: product.richContent || product.content || '<p>Đang cập nhật nội dung chi tiết...</p>' }}
                                         />
                                         {!isDescriptionExpanded && (
                                             <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white to-transparent" />
@@ -194,6 +194,38 @@ export default function ProductTabs({ product }: ProductTabsProps) {
 
                                 {/* Sidebar Instructions & Notes */}
                                 <div className="lg:col-span-4 space-y-8">
+                                    {/* Features & Fabric (New) */}
+                                    {((product.features && product.features.length > 0) || (product.fabric && product.fabric.length > 0)) && (
+                                        <div className="bg-emerald-50 rounded-3xl p-8 border border-emerald-100">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <ShieldCheck className="text-emerald-600" size={24} />
+                                                <h3 className="text-lg font-medium text-gray-900">Đặc điểm nổi bật</h3>
+                                            </div>
+                                            {product.fabric && product.fabric.length > 0 && (
+                                                <div className="mb-4 pb-4 border-b border-emerald-200/60">
+                                                    <p className="text-sm font-semibold text-emerald-900 mb-2">Thành phần:</p>
+                                                    <ul className="space-y-2">
+                                                        {product.fabric.map((fab, idx) => (
+                                                            <li key={idx} className="flex justify-between text-sm text-emerald-800">
+                                                                <span>{fab}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {product.features && product.features.length > 0 && (
+                                                <ul className="space-y-4">
+                                                    {product.features.map((feat, idx) => (
+                                                        <li key={idx} className="flex gap-3 text-sm text-emerald-800 leading-relaxed">
+                                                            <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                            {feat}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* Care Instructions */}
                                     {(product.instructions && product.instructions.length > 0) && (
                                         <div className="bg-gray-50 rounded-3xl p-8">

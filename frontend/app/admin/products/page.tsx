@@ -48,6 +48,7 @@ export default function AdminProducts() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'media' | 'specs' | 'seo' | 'variants'>('overview');
 
     // ── Search & Filter State ──
     const [searchQuery, setSearchQuery] = useState('');
@@ -60,7 +61,6 @@ export default function AdminProducts() {
     // ── Pagination State ──
     const [currentPage, setCurrentPage] = useState(1);
 
-    // ── Form State ──
     const [formData, setFormData] = useState<Partial<Product>>({
         name: '',
         price: 0,
@@ -75,6 +75,19 @@ export default function AdminProducts() {
         inStock: true,
         badge: '',
         description: '',
+        shortDescription: '',
+        richContent: '',
+        specifications: {},
+        sizeGuide: [],
+        careInstructions: [],
+        features: [],
+        tags: [],
+        seo: { title: '', description: '', keywords: '', slug: '' },
+        faqs: [],
+        certificates: [],
+        fabric: [],
+        status: 'published',
+        videos: [],
         rating: 5,
         reviews: 0,
         soldQuantity: 0,
@@ -300,6 +313,19 @@ export default function AdminProducts() {
                 sizes: ['S', 'M', 'L', 'XL'],
                 inStock: true,
                 description: '',
+                shortDescription: '',
+                richContent: '',
+                specifications: {},
+                sizeGuide: [],
+                careInstructions: [],
+                features: [],
+                tags: [],
+                seo: { title: '', description: '', keywords: '', slug: '' },
+                faqs: [],
+                certificates: [],
+                fabric: [],
+                status: 'published',
+                videos: [],
                 content: '',
                 instructions: [],
                 notes: [],
@@ -310,6 +336,7 @@ export default function AdminProducts() {
                 soldQuantity: 0,
             });
         }
+        setActiveTab('overview');
         setIsModalOpen(true);
     };
 
@@ -833,12 +860,39 @@ export default function AdminProducts() {
                                 </button>
                             </div>
 
+                            {/* Modal Tabs Header */}
+                            <div className="flex overflow-x-auto border-b hide-scrollbar" style={{ borderColor: 'var(--adm-border)' }}>
+                                {[
+                                    { id: 'overview', label: 'Tổng quan' },
+                                    { id: 'content', label: 'Nội dung' },
+                                    { id: 'media', label: 'Media' },
+                                    { id: 'specs', label: 'Thông số' },
+                                    { id: 'seo', label: 'SEO & Tag' },
+                                    { id: 'variants', label: 'Biến thể' },
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(tab.id as any)}
+                                        className={`px-5 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                                            activeTab === tab.id
+                                                ? 'border-[var(--adm-primary)] text-[var(--adm-primary)]'
+                                                : 'border-transparent text-[var(--adm-text-muted)] hover:text-[var(--adm-text)]'
+                                        }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+
                             {/* Modal scrollable body */}
                             <form
                                 id="product-form"
                                 onSubmit={handleSubmit}
                                 className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-6"
                             >
+                                {/* ── TAB: OVERVIEW ── */}
+                                <div className={activeTab === 'overview' ? 'block space-y-6' : 'hidden'}>
                                 {/* ── Basic Info ── */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {/* Name – full width */}
@@ -1056,6 +1110,45 @@ export default function AdminProducts() {
                                     </div>
                                 </div>
 
+                                </div>
+
+                                {/* ── TAB: CONTENT ── */}
+                                <div className={activeTab === 'content' ? 'block space-y-6' : 'hidden'}>
+                                    <div>
+                                        <label className={labelCls}>Mô tả ngắn</label>
+                                        <textarea
+                                            value={formData.shortDescription || ''}
+                                            onChange={e => setFormData({ ...formData, shortDescription: e.target.value })}
+                                            className={inputCls}
+                                            rows={3}
+                                            placeholder="Mô tả ngắn hiển thị dưới tên sản phẩm..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className={labelCls + ' mb-0'}>Nội dung chi tiết (Rich Text)</label>
+                                            <button type="button" className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded font-medium flex items-center gap-1">
+                                                ✨ Tạo bằng AI
+                                            </button>
+                                        </div>
+                                        {/* Simple Rich Text Editor fallback for now */}
+                                        <textarea
+                                            value={formData.richContent || ''}
+                                            onChange={e => setFormData({ ...formData, richContent: e.target.value })}
+                                            className={inputCls}
+                                            rows={10}
+                                            placeholder="Nhập nội dung chi tiết dạng HTML hoặc text thường..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Câu hỏi thường gặp (FAQ)</label>
+                                        {/* Simplified FAQ input for brevity */}
+                                        <p className="text-xs text-gray-500 mb-2">Tính năng đang được phát triển.</p>
+                                    </div>
+                                </div>
+
+                                {/* ── TAB: MEDIA ── */}
+                                <div className={activeTab === 'media' ? 'block space-y-6' : 'hidden'}>
                                 {/* ── Images ── */}
                                 <div className="pt-4 border-t" style={{ borderColor: 'var(--adm-border)' }}>
                                     <div className="flex items-center justify-between mb-3">
@@ -1106,6 +1199,10 @@ export default function AdminProducts() {
                                     </div>
                                 </div>
 
+                                </div>
+
+                                {/* ── TAB: VARIANTS ── */}
+                                <div className={activeTab === 'variants' ? 'block space-y-6' : 'hidden'}>
                                 {/* ── Sizes & Instructions side by side on sm+ ── */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t" style={{ borderColor: 'var(--adm-border)' }}>
                                     {/* Sizes */}
@@ -1381,6 +1478,59 @@ export default function AdminProducts() {
                                             })}
                                         </div>
                                     )}
+                                </div>
+                                </div>
+
+                                {/* ── TAB: SPECS ── */}
+                                <div className={activeTab === 'specs' ? 'block space-y-6' : 'hidden'}>
+                                    <div>
+                                        <label className={labelCls}>Thành phần vải</label>
+                                        <input
+                                            value={formData.fabric?.join(', ') || ''}
+                                            onChange={e => setFormData({ ...formData, fabric: e.target.value.split(',').map(s => s.trim()) })}
+                                            className={inputCls}
+                                            placeholder="VD: 70% Cotton, 30% Polyester"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Đặc điểm nổi bật</label>
+                                        <input
+                                            value={formData.features?.join(', ') || ''}
+                                            onChange={e => setFormData({ ...formData, features: e.target.value.split(',').map(s => s.trim()) })}
+                                            className={inputCls}
+                                            placeholder="VD: Kháng khuẩn, Chống nhăn"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* ── TAB: SEO & TAG ── */}
+                                <div className={activeTab === 'seo' ? 'block space-y-6' : 'hidden'}>
+                                    <div>
+                                        <label className={labelCls}>Meta Title</label>
+                                        <input
+                                            value={formData.seo?.title || ''}
+                                            onChange={e => setFormData({ ...formData, seo: { ...formData.seo, title: e.target.value } })}
+                                            className={inputCls}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Meta Description</label>
+                                        <textarea
+                                            value={formData.seo?.description || ''}
+                                            onChange={e => setFormData({ ...formData, seo: { ...formData.seo, description: e.target.value } })}
+                                            className={inputCls}
+                                            rows={3}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Từ khóa (Tags)</label>
+                                        <input
+                                            value={formData.tags?.join(', ') || ''}
+                                            onChange={e => setFormData({ ...formData, tags: e.target.value.split(',').map(s => s.trim()) })}
+                                            className={inputCls}
+                                            placeholder="VD: Áo thun, Mùa hè, Basic"
+                                        />
+                                    </div>
                                 </div>
                             </form>
 
