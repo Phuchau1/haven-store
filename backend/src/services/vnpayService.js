@@ -49,6 +49,7 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     vnp_Params['vnp_Command'] = 'pay';
     vnp_Params['vnp_TmnCode'] = tmnCode;
     vnp_Params['vnp_Amount'] = Math.round(amount * 100);
+    vnp_Params['vnp_BankCode'] = 'VNBANK'; // Chuyển thẳng vào trang thẻ ATM nội địa (không qua QR)
     vnp_Params['vnp_CreateDate'] = createDate;
     vnp_Params['vnp_CurrCode'] = currCode;
     vnp_Params['vnp_IpAddr'] = ipAddr;
@@ -57,7 +58,6 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     vnp_Params['vnp_OrderType'] = 'other';
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_TxnRef'] = orderId;
-    // Ghi chú: IPN URL đã được cấu hình trên VNPay SIT Portal, không cần truyền trong request
 
     // Sắp xếp và ký đúng chuẩn VNPay
     vnp_Params = sortObject(vnp_Params);
