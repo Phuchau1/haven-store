@@ -409,6 +409,7 @@ export default function ProductDetailPage() {
 
                         {/* Actions */}
                         <div className="flex flex-col gap-2 pt-3 pb-3 lg:pb-0">
+                            {/* Hàng số lượng */}
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center border border-gray-300 h-[42px] overflow-hidden shrink-0">
                                     <button aria-label="Giảm số lượng" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">−</button>
@@ -419,6 +420,9 @@ export default function ProductDetailPage() {
                                         setQuantity(quantity + 1);
                                     }} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">+</button>
                                 </div>
+                            </div>
+                            {/* Hàng 2 nút: Thêm vào giỏ + Mua Ngay cùng 1 hàng */}
+                            <div className="flex items-center gap-2">
                                 <motion.button
                                     onClick={handleAddToCart}
                                     disabled={getVariantStock() === 0}
@@ -429,17 +433,17 @@ export default function ProductDetailPage() {
                                 >
                                     Thêm vào giỏ
                                 </motion.button>
+                                <motion.button
+                                    onClick={handleBuyNow}
+                                    disabled={getVariantStock() === 0}
+                                    whileTap={getVariantStock() !== 0 ? { scale: 0.98 } : {}}
+                                    className={`flex-1 h-[42px] rounded-none text-[14px] font-semibold tracking-wide uppercase flex items-center justify-center transition-all ${
+                                        getVariantStock() === 0 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-[#222]'
+                                    }`}
+                                >
+                                    {getVariantStock() === 0 ? 'Hết hàng' : 'Mua Ngay'}
+                                </motion.button>
                             </div>
-                            <motion.button
-                                onClick={handleBuyNow}
-                                disabled={getVariantStock() === 0}
-                                whileTap={getVariantStock() !== 0 ? { scale: 0.98 } : {}}
-                                className={`w-full h-[42px] rounded-none text-[14px] font-semibold tracking-wide uppercase flex items-center justify-center transition-all ${
-                                    getVariantStock() === 0 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-[#222]'
-                                }`}
-                            >
-                                {getVariantStock() === 0 ? 'Hết hàng' : 'Mua Ngay'}
-                            </motion.button>
                         </div>
 
                         {/* Added Notification */}
