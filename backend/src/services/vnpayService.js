@@ -22,6 +22,7 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     let secretKey = process.env.VNP_HASH_SECRET;
     let vnpUrl = process.env.VNP_URL;
     let returnUrl = process.env.VNP_RETURN_URL;
+    let ipnUrl = process.env.VNP_IPN_URL || '';
 
     if (!tmnCode || !secretKey) {
         throw new Error('Chưa cấu hình VNPay trên server (thiếu VNP_TMN_CODE hoặc VNP_HASH_SECRET).');
@@ -57,18 +58,17 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     vnp_Params['vnp_OrderType'] = 'other';
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_TxnRef'] = orderId;
+    // Thêm IPN URL trực tiếp trong request (không cần cấu hình trên Merchant Admin)
+    if (ipnUrl) {
+        vnp_Params['vnp_IpnUrl'] = ipnUrl;
+    }
 
     vnp_Params = sortObject(vnp_Params);
 
-    let signData = "";
-    let i = 0;
-    for (let key in vnp_Params) {
-        if (vnp_Params.hasOwnProperty(key)) {
-            if (i === 1) { signData += '&'; } else if (i > 1) { signData += '&'; }
-            signData += key + '=' + vnp_Params[key];
-            i++;
-        }
-    }
+    // Build chuỗi ký đúng chuẩn VNPay
+    let signData = Object.keys(vnp_Params)
+        .map(key => `${key}=${vnp_Params[key]}`)
+        .join('&');
     
     let hmac = crypto.createHmac("sha512", secretKey);
     let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex"); 
