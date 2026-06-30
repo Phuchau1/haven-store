@@ -353,26 +353,38 @@ export default function AdminOrders() {
                                                                         Chọn trạng thái mới:
                                                                     </p>
                                                                     <div className="space-y-0.5">
-                                                                        {STATUS_OPTIONS.map(opt => (
+                                                                        {STATUS_OPTIONS.map((opt, optIdx) => {
+                                                                            const currentIdx = STATUS_OPTIONS.findIndex(s => s.id === order.status);
+                                                                            
+                                                                            // Logic: Chỉ được tiến, không được lùi
+                                                                            const isBackward = optIdx < currentIdx; 
+                                                                            const isTerminal = order.status === 'cancelled' || order.status === 'delivered';
+                                                                            const isSame = order.status === opt.id;
+                                                                            
+                                                                            const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame);
+
+                                                                            return (
                                                                             <button
                                                                                 key={opt.id}
                                                                                 onClick={() => handleUpdateStatus(order.id!, opt.id)}
-                                                                                disabled={isSubmitting}
-                                                                                className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all disabled:opacity-50 min-h-[40px] ${
-                                                                                    order.status === opt.id
+                                                                                disabled={isDisabled}
+                                                                                className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all min-h-[40px] ${
+                                                                                    isDisabled && !isSame ? 'opacity-40 cursor-not-allowed grayscale' : ''
+                                                                                } ${
+                                                                                    isSame
                                                                                         ? 'bg-slate-900 text-white shadow-lg dark:bg-slate-100 dark:text-slate-900'
-                                                                                        : 'hover:bg-[var(--adm-surface-2)] text-[var(--adm-text)]'
+                                                                                        : !isDisabled ? 'hover:bg-[var(--adm-surface-2)] text-[var(--adm-text)]' : 'text-[var(--adm-text-subtle)]'
                                                                                 }`}
                                                                             >
-                                                                                <div className={`p-1.5 rounded-lg ${order.status === opt.id ? 'bg-white/20' : opt.bg}`}>
-                                                                                    <opt.icon size={13} className={order.status === opt.id ? 'text-white dark:text-slate-900' : opt.color} />
+                                                                                <div className={`p-1.5 rounded-lg ${isSame ? 'bg-white/20' : opt.bg}`}>
+                                                                                    <opt.icon size={13} className={isSame ? 'text-white dark:text-slate-900' : opt.color} />
                                                                                 </div>
                                                                                 {opt.label}
-                                                                                {order.status === opt.id && (
+                                                                                {isSame && (
                                                                                     <div className="ml-auto w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                                                                                 )}
                                                                             </button>
-                                                                        ))}
+                                                                        )})}
                                                                     </div>
                                                                 </motion.div>
                                                             )}
