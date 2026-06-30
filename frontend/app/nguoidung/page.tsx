@@ -305,6 +305,7 @@ export default function NguoiDungPage() {
     const [activeMainTab, setActiveMainTab] = useState('orders');
     const [activeOrderTab, setActiveOrderTab] = useState('all');
     const [orders, setOrders] = useState<OrderData[]>([]);
+    const [mounted, setMounted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -353,9 +354,14 @@ export default function NguoiDungPage() {
         alert('Cảm ơn bạn đã đánh giá đơn hàng #' + orderId + '!');
     };
 
-    // ...
 
     useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!mounted) return;
+        
         if (!user) {
             router.push('/login');
             return;
