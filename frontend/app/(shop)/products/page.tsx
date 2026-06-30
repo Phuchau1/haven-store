@@ -49,6 +49,40 @@ function ProductsContent() {
         discount: parsedDiscount,
     });
     
+    // ✅ Đồng bộ filters với URL mỗi khi searchParams thay đổi (khi click Nam/Nữ/...)
+    useEffect(() => {
+        let newCategory = searchParams.get('category') || '';
+        let newSubCategory = searchParams.get('subCategory') || '';
+        const newDiscount = searchParams.get('discount') || '';
+        const newSearch = searchParams.get('search') || '';
+
+        if (pathname && pathname.startsWith('/collections/')) {
+            const slug = pathname.replace('/collections/', '');
+            newSubCategory = slug;
+            if (slug.endsWith('-nam') || slug === 'nam') {
+                newCategory = 'cat-clothing';
+            } else if (slug.endsWith('-nu') || slug === 'do-nu' || slug === 'vay-dam' || slug === 'vay-lien-dam' || slug === 'chan-vay' || slug === 'tui-xach') {
+                newCategory = 'cat-womens';
+            } else if (slug === 'giay-the-thao' || slug === 'giay-da' || slug === 'dep') {
+                newCategory = 'cat-shoes';
+            } else if (slug === 'that-lung' || slug === 'vi-da' || slug === 'mu' || slug === 'tat') {
+                newCategory = 'cat-accessories';
+            }
+        }
+
+        setFilters(prev => ({
+            ...prev,
+            category: newCategory,
+            subCategory: newSubCategory,
+            discount: newDiscount,
+            search: newSearch,
+            // Reset client-side filters khi đổi danh mục
+            sizes: [],
+            colors: [],
+        }));
+        setCurrentPage(1);
+    }, [searchParams, pathname]);
+    
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
