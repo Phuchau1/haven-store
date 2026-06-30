@@ -300,10 +300,10 @@ export default function ProductDetailPage() {
                             <div className="flex items-center gap-3 mt-3">
                                 <div className="flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (
-                                        <Star key={i} size={14} className={i < Math.floor(product.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
+                                        <Star key={i} size={14} className={(product.reviews > 0) && i < Math.floor(product.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
                                     ))}
                                 </div>
-                                <span className="text-sm text-gray-500">{product.rating || 5}</span>
+                                <span className="text-sm text-gray-500">{product.reviews > 0 ? (product.rating || 0) : 0}</span>
                                 <span className="text-sm text-gray-300">({product.reviews || 0} đánh giá)</span>
                             </div>
                         </div>

@@ -292,10 +292,10 @@ export default function ProductTabs({ product }: ProductTabsProps) {
                                 {/* Reviews Summary & Form */}
                                 <div className="lg:col-span-4 space-y-8">
                                     <div className="bg-gray-50 rounded-3xl p-8 text-center">
-                                        <h3 className="text-5xl font-light text-black mb-2">{product.rating || 5} <span className="text-xl text-gray-400">/ 5</span></h3>
+                                        <h3 className="text-5xl font-light text-black mb-2">{product.reviews > 0 ? (product.rating || 0) : 0} <span className="text-xl text-gray-400">/ 5</span></h3>
                                         <div className="flex justify-center gap-1 mb-2">
                                             {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star key={star} size={20} className={star <= Math.round(product.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
+                                                <Star key={star} size={20} className={product.reviews > 0 && star <= Math.round(product.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
                                             ))}
                                         </div>
                                         <p className="text-sm text-gray-500">Dựa trên {product.reviews || 0} đánh giá</p>
