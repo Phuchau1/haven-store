@@ -22,7 +22,6 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     let secretKey = process.env.VNP_HASH_SECRET;
     let vnpUrl = process.env.VNP_URL;
     let returnUrl = process.env.VNP_RETURN_URL;
-    let ipnUrl = process.env.VNP_IPN_URL || '';
 
     if (!tmnCode || !secretKey) {
         throw new Error('Chưa cấu hình VNPay trên server (thiếu VNP_TMN_CODE hoặc VNP_HASH_SECRET).');
@@ -42,7 +41,7 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     }
     
     let createDate = getVNPayDate();
-    let ipAddr = '127.0.0.1'; // Bắt buộc định dạng IPv4
+    let ipAddr = '127.0.0.1';
     let currCode = 'VND';
     let vnp_Params = {};
     
@@ -58,21 +57,17 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     vnp_Params['vnp_OrderType'] = 'other';
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_TxnRef'] = orderId;
-    // Thêm IPN URL trực tiếp trong request (không cần cấu hình trên Merchant Admin)
-    if (ipnUrl) {
-        vnp_Params['vnp_IpnUrl'] = ipnUrl;
-    }
+    // Ghi chú: IPN URL đã được cấu hình trên VNPay SIT Portal, không cần truyền trong request
 
+    // Sắp xếp và ký đúng chuẩn VNPay
     vnp_Params = sortObject(vnp_Params);
 
-    // Build chuỗi ký đúng chuẩn VNPay
     let signData = Object.keys(vnp_Params)
         .map(key => `${key}=${vnp_Params[key]}`)
         .join('&');
     
     let hmac = crypto.createHmac("sha512", secretKey);
     let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex"); 
-    vnp_Params['vnp_SecureHash'] = signed;
     
     vnpUrl += '?' + signData + '&vnp_SecureHash=' + signed;
 
