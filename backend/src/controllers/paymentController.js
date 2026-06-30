@@ -48,7 +48,7 @@ const createPaymentUrl = async (req, res) => {
 const vnpayReturn = async (req, res) => {
     let vnp_Params = req.query;
     const isValid = verifyVNPayReturn(vnp_Params);
-    const frontendResultUrl = `${process.env.FRONTEND_URL}/checkout/payment-result`;
+    const frontendResultUrl = `${process.env.FRONTEND_URL}/nguoidung`;
     
     if (isValid) {
         let orderId = vnp_Params['vnp_TxnRef'];
@@ -74,7 +74,7 @@ const vnpayReturn = async (req, res) => {
 const momoReturn = async (req, res) => {
     let query = req.query;
     const isValid = verifyMoMoReturn(query);
-    const frontendResultUrl = `${process.env.FRONTEND_URL}/checkout/payment-result`;
+    const frontendResultUrl = `${process.env.FRONTEND_URL}/nguoidung`;
     
     if (isValid) {
         let orderId = query.orderId;

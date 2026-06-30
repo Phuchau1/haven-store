@@ -51,7 +51,7 @@ function PaymentResultContent() {
 
                 <div className="space-y-3 mt-8">
                     <Link 
-                        href="/account"
+                        href="/nguoidung"
                         className="w-full flex items-center justify-center gap-2 py-3.5 bg-black text-white rounded-xl font-medium hover:bg-gray-900 transition-colors"
                     >
                         Xem lịch sử đơn hàng

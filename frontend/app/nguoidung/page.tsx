@@ -353,10 +353,18 @@ export default function NguoiDungPage() {
         alert('Cảm ơn bạn đã đánh giá đơn hàng #' + orderId + '!');
     };
 
+    // ...
+
     useEffect(() => {
         if (!user) {
             router.push('/login');
             return;
+        }
+
+        // Kiểm tra xem có phải vừa thanh toán thành công không
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('status') === 'success') {
+            localStorage.removeItem('phstore-cart');
         }
 
         const fetchOrders = async () => {
