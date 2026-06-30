@@ -7,6 +7,39 @@ export default function TransactionsPage() {
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
+    
+    const [shippingModalOpen, setShippingModalOpen] = useState(false);
+    const [orderToApprove, setOrderToApprove] = useState<string | null>(null);
+    const [selectedShippingProvider, setSelectedShippingProvider] = useState<string>('J&T Express');
+    const [isApproving, setIsApproving] = useState(false);
+
+    const handleApproveOrder = async () => {
+        if (!orderToApprove) return;
+        setIsApproving(true);
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id: orderToApprove, 
+                    status: 'processing',
+                    shippingProvider: selectedShippingProvider
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`Đã duyệt đơn hàng ${orderToApprove} thành công!`);
+                setShippingModalOpen(false);
+                setOrderToApprove(null);
+            } else {
+                alert(`Lỗi: ${data.message || 'Không thể duyệt đơn hàng'}`);
+            }
+        } catch (error) {
+            alert('Lỗi kết nối khi duyệt đơn hàng.');
+        } finally {
+            setIsApproving(false);
+        }
+    };
 
     useEffect(() => {
         // Lấy dữ liệu từ API Lịch sử kho thực tế (đã ghi nhận từ đơn hàng)
@@ -101,7 +134,27 @@ export default function TransactionsPage() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-4 text-sm text-slate-600">
-                                        {item.note || '-'}
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span>{item.note || '-'}</span>
+                                            {item.note && item.note.includes('Đơn hàng #') && (() => {
+                                                const match = item.note.match(/Đơn hàng #(LF-[A-Z0-9]+)/);
+                                                const orderId = match ? match[1] : null;
+                                                if (orderId) {
+                                                    return (
+                                                        <button 
+                                                            onClick={() => {
+                                                                setOrderToApprove(orderId);
+                                                                setShippingModalOpen(true);
+                                                            }}
+                                                            className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-100 transition-colors whitespace-nowrap"
+                                                        >
+                                                            Duyệt nhanh
+                                                        </button>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -109,6 +162,61 @@ export default function TransactionsPage() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Modal Chọn đơn vị vận chuyển */}
+            {shippingModalOpen && (
+                <>
+                    <div 
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200]" 
+                        onClick={() => setShippingModalOpen(false)} 
+                    />
+                    <div 
+                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[201] p-6 rounded-2xl shadow-2xl border"
+                        style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
+                    >
+                        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--adm-text)' }}>
+                            Chọn đơn vị vận chuyển (Đơn #{orderToApprove})
+                        </h3>
+                        <p className="text-sm mb-6" style={{ color: 'var(--adm-text-muted)' }}>
+                            Vui lòng chọn một đơn vị vận chuyển để duyệt đơn hàng này.
+                        </p>
+                        
+                        <div className="space-y-3 mb-6">
+                            {['J&T Express', 'Viettel Post', 'Giao Hàng Nhanh'].map(provider => (
+                                <label key={provider} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShippingProvider === provider ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-[var(--adm-border)] hover:border-indigo-300'}`}>
+                                    <input
+                                        type="radio"
+                                        name="shippingProvider"
+                                        value={provider}
+                                        checked={selectedShippingProvider === provider}
+                                        onChange={(e) => setSelectedShippingProvider(e.target.value)}
+                                        className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="font-medium" style={{ color: 'var(--adm-text)' }}>{provider}</span>
+                                </label>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setShippingModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+                                style={{ color: 'var(--adm-text-muted)' }}
+                                disabled={isApproving}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleApproveOrder}
+                                disabled={isApproving}
+                                className="px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl shadow-indigo-200 dark:shadow-none disabled:opacity-50"
+                            >
+                                {isApproving ? 'Đang xử lý...' : 'Xác nhận & Duyệt'}
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

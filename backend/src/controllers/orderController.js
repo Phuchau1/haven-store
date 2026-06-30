@@ -254,7 +254,7 @@ const createOrder = async (req, res, next) => {
  */
 const updateOrderStatus = async (req, res, next) => {
     try {
-        const { id, status } = req.body;
+        const { id, status, shippingProvider } = req.body;
 
         const currentOrder = await OrderModel.findOne({ id });
         if (!currentOrder) {
@@ -262,7 +262,13 @@ const updateOrderStatus = async (req, res, next) => {
         }
 
         const oldStatus = currentOrder.status;
-        const updatedOrder = await OrderModel.findOneAndUpdate({ id }, { status }, { new: true });
+        
+        let updateData = { status };
+        if (shippingProvider) {
+            updateData.shippingProvider = shippingProvider;
+        }
+
+        const updatedOrder = await OrderModel.findOneAndUpdate({ id }, updateData, { new: true });
         
         log(`Cập nhật đơn ${id} từ ${oldStatus} sang ${status}`);
 

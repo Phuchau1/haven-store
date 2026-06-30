@@ -69,6 +69,11 @@ export default function AdminOrders() {
     const [searchQuery, setSearchQuery] = useState('');
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    
+    // Shipping Modal State
+    const [shippingModalOpen, setShippingModalOpen] = useState(false);
+    const [orderToApprove, setOrderToApprove] = useState<string | null>(null);
+    const [selectedShippingProvider, setSelectedShippingProvider] = useState<string>('J&T Express');
 
     const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -105,26 +110,43 @@ export default function AdminOrders() {
     useEffect(() => { fetchOrders(); }, []);
 
     // Update status
-    const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+    const handleUpdateStatus = async (orderId: string, newStatus: string, shippingProvider?: string) => {
         setIsSubmitting(true);
         setOpenDropdownId(null);
         try {
+            const bodyData: any = { id: orderId, status: newStatus };
+            if (shippingProvider) {
+                bodyData.shippingProvider = shippingProvider;
+            }
             const res = await fetch('/api/orders', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: orderId, status: newStatus }),
+                body: JSON.stringify(bodyData),
             });
             const data = await res.json();
             if (data.success) {
-                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' } : o));
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as any, shippingProvider: shippingProvider || o.shippingProvider } : o));
                 if (selectedOrder?.id === orderId) {
-                    setSelectedOrder(prev => prev ? { ...prev, status: newStatus as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' } : prev);
+                    setSelectedOrder(prev => prev ? { ...prev, status: newStatus as any, shippingProvider: shippingProvider || prev.shippingProvider } : prev);
                 }
             }
         } catch {
             alert('Lỗi cập nhật trạng thái');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleApproveOrder = (orderId: string) => {
+        setOrderToApprove(orderId);
+        setShippingModalOpen(true);
+    };
+
+    const confirmApproveOrder = () => {
+        if (orderToApprove) {
+            handleUpdateStatus(orderToApprove, 'processing', selectedShippingProvider);
+            setShippingModalOpen(false);
+            setOrderToApprove(null);
         }
     };
 
@@ -366,7 +388,13 @@ export default function AdminOrders() {
                                                                             return (
                                                                             <button
                                                                                 key={opt.id}
-                                                                                onClick={() => handleUpdateStatus(order.id!, opt.id)}
+                                                                                onClick={() => {
+                                                                                    if (order.status === 'pending' && opt.id === 'processing') {
+                                                                                        handleApproveOrder(order.id!);
+                                                                                    } else {
+                                                                                        handleUpdateStatus(order.id!, opt.id);
+                                                                                    }
+                                                                                }}
                                                                                 disabled={isDisabled}
                                                                                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all min-h-[40px] ${
                                                                                     isDisabled && !isSame ? 'opacity-40 cursor-not-allowed grayscale' : ''
@@ -758,6 +786,12 @@ export default function AdminOrders() {
                                                         <span>Vận chuyển</span>
                                                         <span className="text-emerald-400 font-bold">Miễn phí</span>
                                                     </div>
+                                                    {selectedOrder.shippingProvider && (
+                                                        <div className="flex justify-between text-xs font-medium" style={{ color: 'var(--adm-text-muted)' }}>
+                                                            <span>Đơn vị VC</span>
+                                                            <span className="text-blue-400 font-bold">{selectedOrder.shippingProvider}</span>
+                                                        </div>
+                                                    )}
                                                     <div className="h-px my-2" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
                                                     <div className="flex justify-between items-end">
                                                         <span className="text-xs font-bold uppercase" style={{ color: 'var(--adm-text-subtle)' }}>
@@ -786,7 +820,13 @@ export default function AdminOrders() {
                                                 {STATUS_OPTIONS.map(opt => (
                                                     <button
                                                         key={opt.id}
-                                                        onClick={() => handleUpdateStatus(selectedOrder.id!, opt.id)}
+                                                        onClick={() => {
+                                                            if (selectedOrder.status === 'pending' && opt.id === 'processing') {
+                                                                handleApproveOrder(selectedOrder.id!);
+                                                            } else {
+                                                                handleUpdateStatus(selectedOrder.id!, opt.id);
+                                                            }
+                                                        }}
                                                         disabled={isSubmitting}
                                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all border whitespace-nowrap active:scale-95 min-h-[38px] disabled:opacity-50 ${
                                                             selectedOrder.status === opt.id
@@ -803,6 +843,67 @@ export default function AdminOrders() {
                                     </div>
                                 </div>
 
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Shipping Provider Modal */}
+            <AnimatePresence>
+                {shippingModalOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200]"
+                            onClick={() => setShippingModalOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[201] p-6 rounded-2xl shadow-2xl border"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
+                        >
+                            <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--adm-text)' }}>
+                                Chọn đơn vị vận chuyển
+                            </h3>
+                            <p className="text-sm mb-6" style={{ color: 'var(--adm-text-muted)' }}>
+                                Vui lòng chọn một đơn vị vận chuyển để duyệt đơn hàng này và chuẩn bị giao hàng.
+                            </p>
+                            
+                            <div className="space-y-3 mb-6">
+                                {['J&T Express', 'Viettel Post', 'Giao Hàng Nhanh'].map(provider => (
+                                    <label key={provider} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShippingProvider === provider ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-[var(--adm-border)] hover:border-indigo-300'}`}>
+                                        <input
+                                            type="radio"
+                                            name="shippingProvider"
+                                            value={provider}
+                                            checked={selectedShippingProvider === provider}
+                                            onChange={(e) => setSelectedShippingProvider(e.target.value)}
+                                            className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span className="font-medium" style={{ color: 'var(--adm-text)' }}>{provider}</span>
+                                    </label>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setShippingModalOpen(false)}
+                                    className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    style={{ color: 'var(--adm-text-muted)' }}
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={confirmApproveOrder}
+                                    className="px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl shadow-indigo-200 dark:shadow-none"
+                                >
+                                    Xác nhận & Duyệt
+                                </button>
                             </div>
                         </motion.div>
                     </>

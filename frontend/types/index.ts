@@ -83,7 +83,8 @@ export interface OrderData {
     discountAmount?: number;
     finalAmount: number;
     note?: string;
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'refunded';
+    shippingProvider?: string;
     createdAt: string;
 }
 
