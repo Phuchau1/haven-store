@@ -5,6 +5,7 @@ const ChatSessionSchema = new Schema({
     id: { type: String, required: true, unique: true },
     customer_name: { type: String, required: true },
     phone: { type: String, required: true },
+    userId: { type: String, default: null }, // ID của tài khoản
     status: { type: String, required: true, enum: ['open', 'closed'], default: 'open' }
 }, { timestamps: true });
 

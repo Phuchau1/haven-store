@@ -22,7 +22,7 @@ function log(msg) {
  */
 const createOrGetSession = async (req, res, next) => {
     try {
-        const { customer_name, phone, session_id } = req.body;
+        const { customer_name, phone, session_id, userId } = req.body;
 
         // Nếu client có truyền session_id, tìm xem có tồn tại không
         if (session_id) {
@@ -32,18 +32,31 @@ const createOrGetSession = async (req, res, next) => {
             }
         }
 
+        // Ưu tiên tìm bằng userId nếu user đã đăng nhập
+        if (userId) {
+            let session = await ChatSessionModel.findOne({ userId, status: 'open' });
+            if (session) {
+                return res.json({ success: true, session });
+            }
+        }
+
         if (!customer_name || !phone) {
             return res.status(400).json({ success: false, message: 'Thiếu tên khách hàng hoặc số điện thoại' });
         }
 
-        // Tìm xem có session nào đang mở với số điện thoại này không để tiếp tục chat
-        let session = await ChatSessionModel.findOne({ phone, status: 'open' });
+        // Nếu KHÔNG đăng nhập, mới tìm bằng số điện thoại
+        let session = null;
+        if (!userId) {
+            session = await ChatSessionModel.findOne({ phone, status: 'open', userId: null });
+        }
+        
         if (!session) {
             const newId = `session-${Math.random().toString(36).substr(2, 9)}`;
             session = new ChatSessionModel({
                 id: newId,
                 customer_name,
                 phone,
+                userId: userId || null,
                 status: 'open'
             });
             await session.save();

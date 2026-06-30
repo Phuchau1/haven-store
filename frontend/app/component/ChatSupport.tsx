@@ -353,7 +353,8 @@ QUY TẮC:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             customer_name: user?.name || 'Khách vãng lai',
-            phone: user?.phone || '0900000000'
+            phone: user?.phone || '0900000000',
+            userId: user?.id || null
           })
         });
         const sessionData = await sessionRes.json();
