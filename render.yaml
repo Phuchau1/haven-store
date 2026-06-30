@@ -24,7 +24,7 @@ services:
       - key: VNP_TMN_CODE
         value: 2Z1OV1ND
       - key: VNP_HASH_SECRET
-        value: F53VALG2NXBJN1IEZV1QC0GOY20UDU42
+        value: RIVUUZZ1D8LK8E9K24A6VYLMIHV7QDR2
       - key: VNP_URL
         value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
       - key: VNP_RETURN_URL
