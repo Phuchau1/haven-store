@@ -6,7 +6,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
     let secretKey = process.env.MOMO_SECRET_KEY;
     let returnUrl = process.env.MOMO_RETURN_URL;
     let endpoint = process.env.MOMO_API_URL;
-    let notifyUrl = process.env.MOMO_RETURN_URL; // Can be a separate webhook later
+    let notifyUrl = process.env.MOMO_IPN_URL || returnUrl.replace('momo-return', 'momo-ipn');
 
     if (!partnerCode || !secretKey || !accessKey) {
         throw new Error('Chưa cấu hình MoMo trên server (thiếu MOMO_PARTNER_CODE hoặc MOMO_SECRET_KEY).');

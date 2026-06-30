@@ -39,6 +39,8 @@ services:
         value: https://test-payment.momo.vn/v2/gateway/api/create
       - key: MOMO_RETURN_URL
         value: https://fashion-backend-93lh.onrender.com/api/payment/momo-return
+      - key: MOMO_IPN_URL
+        value: https://fashion-backend-93lh.onrender.com/api/payment/momo-ipn
     region: singapore
 
   - type: web
