@@ -15,7 +15,9 @@ interface StockItem {
     size_id: string;
     color_id: string;
     price: number;
-    stock: number;
+    stock: number;           // Tồn thực tế
+    reserved_stock: number;  // Đang giữ
+    available_stock: number; // Có thể bán
     status: string;
     image: string;
     category: string;
@@ -55,16 +57,18 @@ export default function StockVariantManager() {
                 v.size_id?.toLowerCase().includes(q)
             );
         }
-        if (filterStatus === 'low') result = result.filter(v => v.stock > 0 && v.stock <= 10);
-        if (filterStatus === 'out') result = result.filter(v => v.stock <= 0);
+        if (filterStatus === 'low') result = result.filter(v => v.available_stock > 0 && v.available_stock <= 10);
+        if (filterStatus === 'out') result = result.filter(v => v.available_stock <= 0);
         return result;
     }, [variants, search, filterStatus]);
 
     const stats = useMemo(() => ({
         total: variants.length,
         totalStock: variants.reduce((s, v) => s + v.stock, 0),
-        lowStock: variants.filter(v => v.stock > 0 && v.stock <= 10).length,
-        outStock: variants.filter(v => v.stock <= 0).length,
+        totalReserved: variants.reduce((s, v) => s + (v.reserved_stock || 0), 0),
+        totalAvailable: variants.reduce((s, v) => s + (v.available_stock || 0), 0),
+        lowStock: variants.filter(v => v.available_stock > 0 && v.available_stock <= 10).length,
+        outStock: variants.filter(v => v.available_stock <= 0).length,
     }), [variants]);
 
     const handleExportExcel = () => {
@@ -73,18 +77,20 @@ export default function StockVariantManager() {
             'Mã SKU': v.sku,
             'Màu sắc': v.color_id,
             'Kích cỡ': v.size_id,
-            'Tồn kho': v.stock,
+            'Tồn thực tế': v.stock,
+            'Đang giữ (Reserved)': v.reserved_stock || 0,
+            'Có thể bán': v.available_stock || 0,
             'Giá bán': v.price,
-            'Trạng thái': v.stock <= 0 ? 'Hết hàng' : v.stock <= 10 ? 'Sắp hết' : 'Còn hàng'
+            'Trạng thái': v.available_stock <= 0 ? 'Hết hàng' : v.available_stock <= 10 ? 'Sắp hết' : 'Còn hàng'
         })));
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Ton_Kho");
         XLSX.writeFile(wb, "Danh_Sach_Ton_Kho.xlsx");
     };
 
-    const getStockBadge = (stock: number) => {
-        if (stock <= 0) return <span className="flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-full"><XCircle size={10} />Hết hàng</span>;
-        if (stock <= 10) return <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full"><AlertTriangle size={10} />Sắp hết</span>;
+    const getStockBadge = (available: number) => {
+        if (available <= 0)  return <span className="flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-full"><XCircle size={10} />Hết hàng</span>;
+        if (available <= 10) return <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full"><AlertTriangle size={10} />Sắp hết</span>;
         return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><CheckCircle size={10} />Còn hàng</span>;
     };
 
@@ -107,10 +113,12 @@ export default function StockVariantManager() {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:hidden">
                 {[
-                    { label: 'Tổng biến thể', value: stats.total, color: 'indigo', icon: Package },
-                    { label: 'Tổng tồn kho', value: stats.totalStock.toLocaleString('vi-VN') + ' sp', color: 'blue', icon: Package },
-                    { label: 'Sắp hết hàng', value: stats.lowStock, color: 'amber', icon: AlertTriangle },
-                    { label: 'Hết hàng', value: stats.outStock, color: 'rose', icon: XCircle },
+                    { label: 'Tổng biến thể',     value: stats.total,                                       color: 'indigo', icon: Package },
+                    { label: 'Tồn thực tế',       value: stats.totalStock.toLocaleString('vi-VN') + ' sp',  color: 'blue',   icon: Package },
+                    { label: 'Đang giữ chỗ',      value: stats.totalReserved.toLocaleString('vi-VN') + ' sp', color: 'violet', icon: Package },
+                    { label: 'Có thể bán',        value: stats.totalAvailable.toLocaleString('vi-VN') + ' sp', color: 'emerald', icon: Package },
+                    { label: 'Sắp hết hàng',      value: stats.lowStock,                                    color: 'amber',  icon: AlertTriangle },
+                    { label: 'Hết hàng',          value: stats.outStock,                                    color: 'rose',   icon: XCircle },
                 ].map((s, i) => (
                     <div key={i} className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm`}>
                         <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{s.label}</p>
@@ -158,7 +166,15 @@ export default function StockVariantManager() {
                                 <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Sản phẩm</th>
                                 <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Phân loại</th>
                                 <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Mã SKU</th>
-                                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">Tồn kho</th>
+                                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">
+                                    <span className="text-blue-600">Tồn thực tế</span>
+                                </th>
+                                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">
+                                    <span className="text-violet-600">Đang giữ</span>
+                                </th>
+                                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">
+                                    <span className="text-emerald-600">Có thể bán</span>
+                                </th>
                                 <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">Giá bán</th>
                                 <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center">Trạng thái</th>
                                 <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center">In tem</th>
@@ -168,7 +184,7 @@ export default function StockVariantManager() {
                             {loading ? (
                                 [...Array(6)].map((_, i) => (
                                     <tr key={i}>
-                                        {[...Array(7)].map((_, j) => (
+                                        {[...Array(10)].map((_, j) => (
                                             <td key={j} className="px-4 py-4">
                                                 <div className="h-4 bg-slate-100 animate-pulse rounded-lg" />
                                             </td>
@@ -177,7 +193,7 @@ export default function StockVariantManager() {
                                 ))
                             ) : filteredVariants.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="text-center py-12 text-slate-400">
+                                    <td colSpan={10} className="text-center py-12 text-slate-400">
                                         <Package className="mx-auto mb-2 text-slate-200" size={36} />
                                         <p>Không tìm thấy dữ liệu phù hợp.</p>
                                     </td>
@@ -218,15 +234,31 @@ export default function StockVariantManager() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 font-mono text-xs text-slate-600 max-w-[120px] truncate">{variant.sku}</td>
+                                        {/* Tồn thực tế */}
                                         <td className="px-4 py-3 text-right">
-                                            <span className={`text-lg font-extrabold ${variant.stock <= 0 ? 'text-rose-600' : variant.stock <= 10 ? 'text-amber-600' : 'text-slate-800'}`}>
+                                            <span className="text-lg font-extrabold text-blue-600">
                                                 {variant.stock}
+                                            </span>
+                                        </td>
+                                        {/* Đang giữ */}
+                                        <td className="px-4 py-3 text-right">
+                                            <span className={`text-lg font-extrabold ${(variant.reserved_stock || 0) > 0 ? 'text-violet-600' : 'text-slate-300'}`}>
+                                                {variant.reserved_stock || 0}
+                                            </span>
+                                        </td>
+                                        {/* Có thể bán */}
+                                        <td className="px-4 py-3 text-right">
+                                            <span className={`text-lg font-extrabold ${
+                                                variant.available_stock <= 0 ? 'text-rose-600' :
+                                                variant.available_stock <= 10 ? 'text-amber-600' : 'text-emerald-600'
+                                            }`}>
+                                                {variant.available_stock}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-right font-semibold text-slate-700 text-sm">
                                             {variant.price?.toLocaleString('vi-VN')}đ
                                         </td>
-                                        <td className="px-4 py-3 text-center">{getStockBadge(variant.stock)}</td>
+                                        <td className="px-4 py-3 text-center">{getStockBadge(variant.available_stock)}</td>
                                         <td className="px-4 py-3 text-center">
                                             <button
                                                 onClick={() => setSelectedVariant(variant)}

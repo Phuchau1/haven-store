@@ -229,7 +229,9 @@ const getStockList = async (req, res, next) => {
                 size_id: v.size_id,
                 color_id: v.color_id,
                 price: v.price || (prod ? prod.price : 0),
-                stock: v.stock,
+                stock: v.stock,                                             // Tồn thực tế (vật lý trong kho)
+                reserved_stock: v.reserved_stock || 0,                     // Đang giữ (khách đã đặt, chờ duyệt)
+                available_stock: Math.max(0, v.stock - (v.reserved_stock || 0)), // Có thể bán (hiển thị website)
                 status: v.status,
                 image: imageUrl
             };
