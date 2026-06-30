@@ -8,8 +8,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const logger = require('./utils/logger');
 
-// Nạp biến môi trường từ .env.local
-dotenv.config({ path: path.join(__dirname, '../../.env.local') });
+// Nạp biến môi trường từ .env
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const { connectDB } = require('./config/db');
 const { startCronJobs } = require('./services/cronService');
