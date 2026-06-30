@@ -29,6 +29,8 @@ services:
         value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
       - key: VNP_RETURN_URL
         value: https://fashion-backend-93lh.onrender.com/api/payment/vnpay-return
+      - key: VNP_IPN_URL
+        value: https://fashion-backend-93lh.onrender.com/api/payment/vnpay-ipn
       - key: MOMO_PARTNER_CODE
         value: MOMOBKUN20180529
       - key: MOMO_ACCESS_KEY
