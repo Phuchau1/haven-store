@@ -116,35 +116,68 @@ export default function ChatSupport() {
     loadProducts();
   }, []);
 
-  // ── Load chat session from local storage on mount ──
+  // ── Load chat session from local storage or user on mount ──
   useEffect(() => {
+    if (!isReady) return;
+
     const storedSessionId = localStorage.getItem('phstore-chat-session-id');
-    if (storedSessionId && isReady) {
-      setSessionId(storedSessionId);
-      const fetchHistory = async () => {
+
+    const fetchHistory = async (sessionId: string) => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/chats/sessions/${sessionId}/messages`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+          const formattedMessages: Message[] = data.messages.map((m: {id: string; message: string; sender_type: string; createdAt: string}) => {
+            const { cleanReply, suggested } = parseSuggestedProducts(m.message);
+            return {
+              id: m.id,
+              text: cleanReply,
+              sender: m.sender_type as Message['sender'],
+              timestamp: new Date(m.createdAt),
+              suggestedProducts: suggested
+            };
+          });
+          setMessages(formattedMessages);
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải lịch sử chat:', err);
+      }
+    };
+
+    const restoreSession = async () => {
+      // Nếu user đã đăng nhập, yêu cầu backend trả về session của user đó
+      if (user?.id) {
         try {
-          const res = await fetch(`${BACKEND_URL}/api/chats/sessions/${storedSessionId}/messages`);
+          const res = await fetch(`${BACKEND_URL}/api/chats/session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              customer_name: user.name,
+              phone: user.phone || '0900000000'
+            })
+          });
           const data = await res.json();
-          if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
-            const formattedMessages: Message[] = data.messages.map((m: {id: string; message: string; sender_type: string; createdAt: string}) => {
-              const { cleanReply, suggested } = parseSuggestedProducts(m.message);
-              return {
-                id: m.id,
-                text: cleanReply,
-                sender: m.sender_type as Message['sender'],
-                timestamp: new Date(m.createdAt),
-                suggestedProducts: suggested
-              };
-            });
-            setMessages(formattedMessages);
+          if (data.success && data.session) {
+            setSessionId(data.session.id);
+            localStorage.setItem('phstore-chat-session-id', data.session.id);
+            await fetchHistory(data.session.id);
+            return;
           }
         } catch (err) {
-          console.error('Lỗi khi tải lịch sử chat:', err);
+          console.error('Lỗi khi khôi phục session theo user:', err);
         }
-      };
-      fetchHistory();
-    }
-  }, [isReady, parseSuggestedProducts]);
+      }
+
+      // Khách vãng lai: Khôi phục bằng localStorage
+      if (!user?.id && storedSessionId) {
+        setSessionId(storedSessionId);
+        fetchHistory(storedSessionId);
+      }
+    };
+
+    restoreSession();
+  }, [isReady, user, parseSuggestedProducts]);
 
   // ── Poll for admin responses ──
   useEffect(() => {
