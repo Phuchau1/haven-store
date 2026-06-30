@@ -13,7 +13,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
     }
 
     let requestId = orderId + new Date().getTime();
-    let requestType = "captureWallet";
+    let requestType = "payWithATM"; // Chuyển thẳng vào trang nhập thẻ ATM thay vì quét mã QR
     let extraData = "";
 
     let rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData +
@@ -68,13 +68,21 @@ const verifyMoMoReturn = (query) => {
     let accessKey = process.env.MOMO_ACCESS_KEY;
     let secretKey = process.env.MOMO_SECRET_KEY;
 
-    let {
-        amount, extraData, message, orderId, orderInfo, 
-        orderType, partnerCode: qPartnerCode, payType, 
-        requestId, responseTime, resultCode, transId, signature
-    } = query;
+    let amount = query.amount || "";
+    let extraData = query.extraData || "";
+    let message = query.message || "";
+    let orderId = query.orderId || "";
+    let orderInfo = query.orderInfo || "";
+    let orderType = query.orderType || "";
+    let qPartnerCode = query.partnerCode || "";
+    let payType = query.payType || "";
+    let requestId = query.requestId || "";
+    let responseTime = query.responseTime || "";
+    let resultCode = query.resultCode || "";
+    let transId = query.transId || "";
+    let signature = query.signature || "";
 
-    let rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
+    let rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${qPartnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
 
     let checkSignature = crypto.createHmac('sha256', secretKey)
         .update(rawSignature)
