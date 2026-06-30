@@ -48,6 +48,7 @@ const createPaymentUrl = async (req, res) => {
 const vnpayReturn = async (req, res) => {
     let vnp_Params = req.query;
     const isValid = verifyVNPayReturn(vnp_Params);
+    const frontendResultUrl = `${process.env.FRONTEND_URL}/checkout/payment-result`;
     
     if (isValid) {
         let orderId = vnp_Params['vnp_TxnRef'];
@@ -56,13 +57,13 @@ const vnpayReturn = async (req, res) => {
         if (rspCode === '00') {
             // Thanh toán thành công: Cập nhật đơn hàng
             await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
-            res.redirect(`${process.env.VNP_RETURN_URL}?status=success&orderId=${orderId}`);
+            res.redirect(`${frontendResultUrl}?status=success&orderId=${orderId}`);
         } else {
             // Thanh toán thất bại
-            res.redirect(`${process.env.VNP_RETURN_URL}?status=failed&orderId=${orderId}`);
+            res.redirect(`${frontendResultUrl}?status=failed&orderId=${orderId}`);
         }
     } else {
-        res.redirect(`${process.env.VNP_RETURN_URL}?status=failed&reason=invalid_signature`);
+        res.redirect(`${frontendResultUrl}?status=failed&reason=invalid_signature`);
     }
 };
 
@@ -73,6 +74,7 @@ const vnpayReturn = async (req, res) => {
 const momoReturn = async (req, res) => {
     let query = req.query;
     const isValid = verifyMoMoReturn(query);
+    const frontendResultUrl = `${process.env.FRONTEND_URL}/checkout/payment-result`;
     
     if (isValid) {
         let orderId = query.orderId;
@@ -80,12 +82,12 @@ const momoReturn = async (req, res) => {
         
         if (resultCode == 0) { // Mã 0 của MoMo là thành công
             await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
-            res.redirect(`${process.env.MOMO_RETURN_URL}?status=success&orderId=${orderId}`);
+            res.redirect(`${frontendResultUrl}?status=success&orderId=${orderId}`);
         } else {
-            res.redirect(`${process.env.MOMO_RETURN_URL}?status=failed&orderId=${orderId}`);
+            res.redirect(`${frontendResultUrl}?status=failed&orderId=${orderId}`);
         }
     } else {
-        res.redirect(`${process.env.MOMO_RETURN_URL}?status=failed&reason=invalid_signature`);
+        res.redirect(`${frontendResultUrl}?status=failed&reason=invalid_signature`);
     }
 };
 
