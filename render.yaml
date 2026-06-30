@@ -22,9 +22,9 @@ services:
       - key: FRONTEND_URL
         value: https://fashion-frontend-imqb.onrender.com
       - key: VNP_TMN_CODE
-        value: CGXZLS0Z
+        value: EFUXNX9W
       - key: VNP_HASH_SECRET
-        value: XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN
+        value: BN7IT7FUUG2X8UUIAFH35ZNE4YJ9KH3G
       - key: VNP_URL
         value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
       - key: VNP_RETURN_URL
