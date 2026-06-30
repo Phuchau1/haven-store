@@ -6,7 +6,7 @@ function sortObject(obj) {
     let str = [];
     let key;
     for (key in obj){
-        if (obj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
         str.push(encodeURIComponent(key));
         }
     }
@@ -85,7 +85,7 @@ const verifyVNPayReturn = (vnp_Params) => {
     let signData = "";
     let i = 0;
     for (let key in vnp_Params) {
-        if (vnp_Params.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(vnp_Params, key)) {
             if (i > 0) { signData += '&'; }
             signData += key + '=' + vnp_Params[key];
             i++;
