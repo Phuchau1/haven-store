@@ -33,12 +33,40 @@ const initDefaultRewards = async () => {
 
 /**
  * @desc Lấy danh sách các phần thưởng đang kích hoạt (active)
+ * Response: { success, prizes: [...], config: { isActive, spinsPerDay, prizes } }
  */
 exports.getConfig = async (req, res) => {
     try {
         await initDefaultRewards();
         const rewards = await SpinReward.find({ active: true });
-        res.json({ success: true, prizes: rewards });
+
+        // Build config object phù hợp cho cả admin và client
+        const config = {
+            isActive: true,
+            spinsPerDay: 1,
+            prizes: rewards.map((r, i) => ({
+                id: r._id.toString(),
+                _id: r._id.toString(),
+                label: r.reward,
+                reward: r.reward,
+                type: r.type,
+                coupon_code: r.coupon_code,
+                discount_value: r.discount_value,
+                probability: r.probability,
+                valid_hours: r.valid_hours,
+                active: r.active,
+                color: ['#FFB300', '#FF8F00', '#E65100', '#BF360C', '#FFB300', '#FF8F00', '#E65100', '#BF360C'][i % 8],
+                value: r.type === 'fixed'
+                    ? `${r.discount_value / 1000}K`
+                    : r.type === 'percent'
+                        ? `${r.discount_value}%`
+                        : r.type === 'shipping'
+                            ? 'Freeship'
+                            : '-'
+            }))
+        };
+
+        res.json({ success: true, prizes: rewards, config });
     } catch (error) {
         logger.error('Error getting LuckyWheel config: ' + error.message);
         res.status(500).json({ success: false, message: error.message });
@@ -109,7 +137,18 @@ exports.spin = async (req, res) => {
             });
         }
 
-        res.json({ success: true, prize: winPrize, coupon: createdCoupon });
+        // Trả về prize kèm theo _id string để frontend có thể match
+        const prizeResponse = {
+            _id: winPrize._id.toString(),
+            id: winPrize._id.toString(),
+            reward: winPrize.reward,
+            type: winPrize.type,
+            coupon_code: winPrize.coupon_code,
+            discount_value: winPrize.discount_value,
+            probability: winPrize.probability
+        };
+
+        res.json({ success: true, prize: prizeResponse, coupon: createdCoupon });
     } catch (error) {
         logger.error('Error spinning wheel: ' + error.message);
         res.status(500).json({ success: false, message: error.message });
@@ -117,14 +156,52 @@ exports.spin = async (req, res) => {
 };
 
 /**
- * @desc Reset / Cập nhật cấu hình vòng quay
+ * @desc Cập nhật toàn bộ cấu hình phần thưởng từ Admin
+ * Body: { prizes: [ { id, reward, type, coupon_code, discount_value, probability, valid_hours } ] }
  */
 exports.updateConfig = async (req, res) => {
     try {
-        await SpinReward.deleteMany({});
-        await initDefaultRewards();
-        res.json({ success: true, message: 'Đã cập nhật tỉ lệ thành công.' });
+        const { prizes } = req.body;
+
+        if (!prizes || !Array.isArray(prizes) || prizes.length === 0) {
+            // Nếu không có prizes -> reset về default
+            await SpinReward.deleteMany({});
+            await initDefaultRewards();
+            return res.json({ success: true, message: 'Đã reset về cấu hình mặc định.' });
+        }
+
+        // Cập nhật từng prize theo _id
+        const updateOps = prizes.map(async (p) => {
+            const idStr = p._id || p.id;
+            if (idStr && idStr.length === 24) {
+                // Update existing
+                return SpinReward.findByIdAndUpdate(idStr, {
+                    reward: p.reward || p.label,
+                    type: p.type,
+                    coupon_code: p.coupon_code || '',
+                    discount_value: Number(p.discount_value) || 0,
+                    probability: Number(p.probability) || 0,
+                    valid_hours: Number(p.valid_hours) || 0,
+                    active: p.active !== false
+                }, { new: true });
+            } else {
+                // Insert new
+                return SpinReward.create({
+                    reward: p.reward || p.label,
+                    type: p.type,
+                    coupon_code: p.coupon_code || '',
+                    discount_value: Number(p.discount_value) || 0,
+                    probability: Number(p.probability) || 0,
+                    valid_hours: Number(p.valid_hours) || 0,
+                    active: p.active !== false
+                });
+            }
+        });
+
+        await Promise.all(updateOps);
+        res.json({ success: true, message: 'Đã lưu cấu hình vòng quay thành công.' });
     } catch (error) {
+        logger.error('Error updating wheel config: ' + error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };

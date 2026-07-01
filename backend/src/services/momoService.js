@@ -13,7 +13,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
     }
 
     let requestId = orderId + new Date().getTime();
-    let requestType = "payWithATM"; // Chuyển thẳng vào trang nhập thẻ ATM thay vì quét mã QR
+    let requestType = "captureWallet"; // Chuyển sang màn hình quét mã QR của Ví MoMo
     let extraData = "";
 
     let rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData +
