@@ -244,33 +244,35 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
     // Fetch config on open if not fetched
     useEffect(() => {
+        let isMounted = true;
         const fetchConfig = async () => {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/config`);
                 const data = await res.json();
-                if (data.success && data.prizes) {
-                    const mockConfig = { isActive: true, spinsPerDay: 1, prizes: data.prizes };
-                    setConfig(mockConfig as any);
+                if (data.success && data.prizes && isMounted) {
                     const mapped = data.prizes.map((p: any, i: number) => mapPrize(p, i));
+                    const mockConfig = { isActive: true, spinsPerDay: 1, prizes: mapped };
+                    setConfig(mockConfig as any);
                     setPrizes(mapped);
                     if (canvasRef.current) drawWheel(canvasRef.current, mapped);
                 }
             } catch (err) {
                 console.error('Fetch wheel config error:', err);
             } finally {
-                setLoadingConfig(false);
+                if (isMounted) setLoadingConfig(false);
             }
         };
 
-        if (!config || !config.prizes || config.prizes.length === 0 || !config.prizes[0].label) {
-            // Need refetch because store might have old schema
+        // If no config or prizes are not mapped properly (missing shortLabel)
+        if (!config || !config.prizes || config.prizes.length === 0 || !(config.prizes[0] as any).shortLabel) {
             fetchConfig();
         } else {
-            const mapped = config.prizes.map((p: any, i: number) => mapPrize(p, i));
-            setPrizes(mapped);
+            setPrizes(config.prizes);
             setLoadingConfig(false);
-            if (canvasRef.current) drawWheel(canvasRef.current, mapped);
+            if (canvasRef.current) drawWheel(canvasRef.current, config.prizes);
         }
+        
+        return () => { isMounted = false; };
     }, [config, setConfig]);
 
     useEffect(() => {
