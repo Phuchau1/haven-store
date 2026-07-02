@@ -24,10 +24,17 @@ export default function LocationsPage() {
                                 <p className="text-gray-600 mb-1"><strong>Địa chỉ:</strong> 123 Phố Huế, Quận Hai Bà Trưng, Hà Nội</p>
                                 <p className="text-gray-600 mb-1"><strong>Điện thoại:</strong> 024 1234 5678</p>
                                 <p className="text-gray-600 mb-4"><strong>Giờ mở cửa:</strong> 09:00 - 22:00 (Tất cả các ngày trong tuần)</p>
-                                <div>
-                                    <button className="px-5 py-2 bg-black text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors">
-                                        Xem bản đồ
-                                    </button>
+                                <div className="mt-4 w-full h-48 rounded-lg overflow-hidden border border-gray-200">
+                                    <iframe 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameBorder="0" 
+                                        scrolling="no" 
+                                        marginHeight={0} 
+                                        marginWidth={0} 
+                                        src="https://maps.google.com/maps?q=123%20Ph%E1%BB%91%20Hu%E1%BA%BF,%20Qu%E1%BA%ADn%20Hai%20B%C3%A0%20Tr%C6%B0ng,%20H%C3%A0%20N%E1%BB%99i&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                        title="Bản đồ Hà Nội"
+                                    ></iframe>
                                 </div>
                             </div>
                         </div>
@@ -47,10 +54,17 @@ export default function LocationsPage() {
                                 <p className="text-gray-600 mb-1"><strong>Địa chỉ:</strong> 456 Nguyễn Trãi, Quận 1, TP. Hồ Chí Minh</p>
                                 <p className="text-gray-600 mb-1"><strong>Điện thoại:</strong> 028 8765 4321</p>
                                 <p className="text-gray-600 mb-4"><strong>Giờ mở cửa:</strong> 09:00 - 22:30 (Tất cả các ngày trong tuần)</p>
-                                <div>
-                                    <button className="px-5 py-2 bg-black text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors">
-                                        Xem bản đồ
-                                    </button>
+                                <div className="mt-4 w-full h-48 rounded-lg overflow-hidden border border-gray-200">
+                                    <iframe 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameBorder="0" 
+                                        scrolling="no" 
+                                        marginHeight={0} 
+                                        marginWidth={0} 
+                                        src="https://maps.google.com/maps?q=456%20Nguy%E1%BB%85n%20Tr%C3%A3i,%20Qu%E1%BA%ADn%201,%20TP.%20H%E1%BB%93%20Ch%C3%AD%20Minh&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                        title="Bản đồ TP. Hồ Chí Minh"
+                                    ></iframe>
                                 </div>
                             </div>
                         </div>

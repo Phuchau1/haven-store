@@ -31,8 +31,8 @@ const login = async (req, res, next) => {
             return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' });
         }
 
-        // Hỗ trợ kiểm tra mật khẩu dạng thường (để tương thích ngược) hoặc dạng băm sha256
-        const isPasswordCorrect = user.password === password || user.password === hashedPassword;
+        // Chỉ kiểm tra mật khẩu đã được băm (Bảo mật: ngăn chặn Pass-the-Hash)
+        const isPasswordCorrect = user.password === hashedPassword;
         if (!isPasswordCorrect) {
             return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' });
         }
@@ -128,9 +128,9 @@ const updateProfile = async (req, res, next) => {
                 return res.status(400).json({ success: false, message: 'Thiếu mật khẩu hiện tại' });
             }
 
-            // Kiểm tra mật khẩu hiện tại có đúng không
+            // Kiểm tra mật khẩu hiện tại có đúng không (Chỉ dùng Hash)
             const currentHashed = crypto.createHash('sha256').update(currentPassword).digest('hex');
-            const isPasswordCorrect = user.password === currentPassword || user.password === currentHashed;
+            const isPasswordCorrect = user.password === currentHashed;
             if (!isPasswordCorrect) {
                 return res.status(400).json({ success: false, message: 'Mật khẩu hiện tại không chính xác' });
             }
