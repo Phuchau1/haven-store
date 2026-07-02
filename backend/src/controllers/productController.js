@@ -323,8 +323,8 @@ const getProductById = async (req, res, next) => {
         }
 
         // Tìm tất cả các biến thể thuộc sản phẩm này trong collection Variant
-        const variantList = await VariantModel.find({
-            id_san_pham: product.id
+        const variantList = await ProductVariantModel.find({
+            product_id: product.id
         });
 
         // Gộp data trả về (Product + Array Variants)
