@@ -23,6 +23,7 @@ import { formatPrice } from '@/lib/format';
 import Image from 'next/image';
 import AddressManager from './AddressManager';
 import ChangePasswordModal from './ChangePasswordModal';
+import { useCartStore } from '@/app/store/useCartStore';
 
 interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
     discountAmount?: number;
@@ -301,6 +302,7 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
 export default function NguoiDungPage() {
     const { user, logout, updateProfile } = useAuth();
     const { addItem } = useCart();
+    const clearCart = useCartStore(s => s.clearCart);
     const router = useRouter();
     const [activeMainTab, setActiveMainTab] = useState('orders');
     const [activeOrderTab, setActiveOrderTab] = useState('all');
@@ -381,9 +383,9 @@ export default function NguoiDungPage() {
         const method  = params.get('method') || 'online';
 
         if (status === 'success') {
-            localStorage.removeItem('phstore-cart');
+            // Xóa giỏ hàng đúng cách qua Zustand (cập nhật cả state lẫn localStorage)
+            clearCart();
             setPaymentResult({ status: 'success', orderId, method });
-            // Xóa query params khỏi URL sau khi đọc
             window.history.replaceState({}, '', '/nguoidung');
         } else if (status === 'failed') {
             setPaymentResult({ status: 'failed', orderId, method });
@@ -405,7 +407,7 @@ export default function NguoiDungPage() {
         };
 
         fetchOrders();
-    }, [user, router, mounted]);
+    }, [user, router, mounted, clearCart]);
 
     const filteredOrders = activeOrderTab === 'all'
         ? orders
