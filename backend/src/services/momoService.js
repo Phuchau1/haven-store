@@ -30,7 +30,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
     }
 
     const requestId   = `${partnerCode}${Date.now()}`;
-    const requestType = 'captureWallet'; // Quét QR hoặc App MoMo
+    const requestType = 'payWithATM'; // Mở thẳng màn hình nhập thẻ ATM nội địa
     const extraData   = '';              // Không truyền data phụ
     const lang        = 'vi';
 
