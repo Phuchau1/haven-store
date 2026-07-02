@@ -313,6 +313,13 @@ export default function NguoiDungPage() {
     // State cho Chi tiết đơn hàng
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
+    // State cho kết quả thanh toán MoMo/VNPay
+    const [paymentResult, setPaymentResult] = useState<{
+        status: 'success' | 'failed';
+        orderId: string;
+        method: string;
+    } | null>(null);
+
     // Form settings state
     const [formData, setFormData] = useState({
         name: user?.name || '',
@@ -367,10 +374,20 @@ export default function NguoiDungPage() {
             return;
         }
 
-        // Kiểm tra xem có phải vừa thanh toán thành công không
+        // Kiểm tra kết quả thanh toán từ VNPay / MoMo callback
         const params = new URLSearchParams(window.location.search);
-        if (params.get('status') === 'success') {
+        const status  = params.get('status') as 'success' | 'failed' | null;
+        const orderId = params.get('orderId') || '';
+        const method  = params.get('method') || 'online';
+
+        if (status === 'success') {
             localStorage.removeItem('phstore-cart');
+            setPaymentResult({ status: 'success', orderId, method });
+            // Xóa query params khỏi URL sau khi đọc
+            window.history.replaceState({}, '', '/nguoidung');
+        } else if (status === 'failed') {
+            setPaymentResult({ status: 'failed', orderId, method });
+            window.history.replaceState({}, '', '/nguoidung');
         }
 
         const fetchOrders = async () => {
@@ -388,7 +405,7 @@ export default function NguoiDungPage() {
         };
 
         fetchOrders();
-    }, [user, router]);
+    }, [user, router, mounted]);
 
     const filteredOrders = activeOrderTab === 'all'
         ? orders
@@ -421,6 +438,126 @@ export default function NguoiDungPage() {
 
     return (
         <div className="min-h-screen bg-slate-50/50 pt-28 pb-20">
+
+            {/* ===== PAYMENT RESULT MODAL ===== */}
+            <AnimatePresence>
+                {paymentResult && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                        onClick={() => setPaymentResult(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                            onClick={e => e.stopPropagation()}
+                            className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden"
+                        >
+                            {/* Top accent */}
+                            <div className={`h-2 w-full ${
+                                paymentResult.status === 'success'
+                                    ? paymentResult.method === 'momo' ? 'bg-gradient-to-r from-[#ae2070] to-[#d4357a]'
+                                    : 'bg-gradient-to-r from-blue-500 to-blue-700'
+                                    : 'bg-gradient-to-r from-rose-400 to-rose-600'
+                            }`} />
+
+                            <div className="p-8 text-center">
+                                {/* Icon */}
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: 0.15, type: 'spring', damping: 12 }}
+                                    className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 ${
+                                        paymentResult.status === 'success' ? 'bg-emerald-50' : 'bg-rose-50'
+                                    }`}
+                                >
+                                    {paymentResult.status === 'success' ? (
+                                        <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-10 h-10 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    )}
+                                </motion.div>
+
+                                {/* Method badge */}
+                                <div className="flex justify-center mb-4">
+                                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full ${
+                                        paymentResult.method === 'momo' ? 'bg-pink-100 text-[#ae2070]'
+                                        : paymentResult.method === 'vnpay' ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-slate-100 text-slate-600'
+                                    }`}>
+                                        {paymentResult.method === 'momo' ? '🟣 MoMo'
+                                        : paymentResult.method === 'vnpay' ? '🔵 VNPay'
+                                        : '💳 Online'}
+                                    </span>
+                                </div>
+
+                                {/* Title */}
+                                <h2 className={`text-2xl font-bold mb-2 ${
+                                    paymentResult.status === 'success' ? 'text-slate-900' : 'text-rose-600'
+                                }`}>
+                                    {paymentResult.status === 'success' ? 'Thanh toán thành công!' : 'Thanh toán thất bại'}
+                                </h2>
+
+                                {/* Description */}
+                                {paymentResult.status === 'success' ? (
+                                    <>
+                                        <p className="text-slate-500 text-sm mb-2">
+                                            Đơn hàng <span className="font-bold text-slate-800 font-mono">#{paymentResult.orderId}</span> đã được xác nhận.
+                                        </p>
+                                        <p className="text-slate-400 text-xs mb-6">
+                                            Chúng tôi sẽ chuẩn bị và giao hàng trong thời gian sớm nhất. Cảm ơn bạn đã mua sắm! 🎉
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-slate-500 text-sm mb-2">
+                                            Giao dịch cho đơn hàng <span className="font-bold text-slate-800 font-mono">#{paymentResult.orderId}</span> không thành công.
+                                        </p>
+                                        <p className="text-slate-400 text-xs mb-6">
+                                            Đơn hàng vẫn được giữ lại. Bạn có thể thử thanh toán lại hoặc chọn phương thức khác.
+                                        </p>
+                                    </>
+                                )}
+
+                                {/* Actions */}
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => {
+                                            setPaymentResult(null);
+                                            if (paymentResult.status === 'success') {
+                                                setActiveMainTab('orders');
+                                                const paid = orders.find(o => o.id === paymentResult.orderId);
+                                                if (paid) setSelectedOrderId(paid.id ?? null);
+                                            }
+                                        }}
+                                        className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all ${
+                                            paymentResult.status === 'success'
+                                                ? 'bg-slate-900 text-white hover:bg-slate-800'
+                                                : 'bg-rose-500 text-white hover:bg-rose-600'
+                                        }`}
+                                    >
+                                        {paymentResult.status === 'success' ? 'Xem đơn hàng của tôi' : 'Đóng'}
+                                    </button>
+                                    <button
+                                        onClick={() => setPaymentResult(null)}
+                                        className="w-full py-3 rounded-2xl text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        Đóng thông báo
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             <div className="max-w-7xl mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     {/* Sidebar Nav */}

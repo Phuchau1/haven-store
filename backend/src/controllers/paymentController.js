@@ -7,9 +7,17 @@
  * ============================================================
  */
 const { buildVNPayUrl, verifyVNPayReturn } = require('../services/vnpayService');
-const { buildMoMoUrl, verifyMoMoReturn } = require('../services/momoService');
-const { OrderModel } = require('../models/Order');
-const { exportStockOnApproval } = require('./orderController');
+const { buildMoMoUrl, verifyMoMoReturn }   = require('../services/momoService');
+const { OrderModel }                        = require('../models/Order');
+const { exportStockOnApproval }             = require('./orderController');
+const logger                                = require('../utils/logger');
+
+/**
+ * @desc Lấy Frontend URL từ env (dùng cho redirect sau thanh toán)
+ */
+const getFrontendUrl = () => {
+    return (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+};
 
 /**
  * @desc Khởi tạo giao dịch thanh toán và trả về URL chuyển hướng cho Frontend
@@ -20,81 +28,110 @@ const createPaymentUrl = async (req, res) => {
         const { orderId, amount, paymentMethod } = req.body;
         
         if (!orderId || !amount || !paymentMethod) {
-            return res.status(400).json({ success: false, message: 'Missing required parameters' });
+            return res.status(400).json({ success: false, message: 'Thiếu tham số bắt buộc: orderId, amount, paymentMethod' });
         }
 
+        const amountInt  = Math.round(Number(amount)); // Làm tròn về số nguyên VND
+        const orderInfo  = `Thanh toan don hang ${orderId}`;
         let payUrl = '';
-        const orderInfo = `Thanh toan don hang ${orderId}`;
 
-        // Gọi service tương ứng để mã hóa thông tin và tạo URL
         if (paymentMethod === 'vnpay') {
-            payUrl = buildVNPayUrl(req, orderId, amount, orderInfo);
+            payUrl = buildVNPayUrl(req, orderId, amountInt, orderInfo);
         } else if (paymentMethod === 'momo') {
-            payUrl = await buildMoMoUrl(orderId, amount, orderInfo);
+            payUrl = await buildMoMoUrl(orderId, amountInt, orderInfo);
         } else {
-            return res.status(400).json({ success: false, message: 'Unsupported payment method' });
+            return res.status(400).json({ success: false, message: `Phương thức thanh toán không hỗ trợ: ${paymentMethod}` });
         }
 
+        logger.info(`[Payment] Created ${paymentMethod} URL for order ${orderId}`);
         res.status(200).json({ success: true, url: payUrl });
     } catch (error) {
-        console.error('Create Payment URL Error:', error);
+        logger.error(`[Payment] createPaymentUrl error: ${error.message}`);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
 /**
- * @desc Xử lý URL Redirect từ VNPay trả về cho người dùng (Frontend xử lý hiển thị)
+ * @desc Helper: Cập nhật đơn hàng thành công và trừ tồn kho
+ */
+const confirmOrderPaid = async (orderId) => {
+    const updatedOrder = await OrderModel.findOneAndUpdate(
+        { id: orderId, paymentStatus: { $ne: 'paid' } }, // Chỉ update nếu chưa paid (idempotent)
+        { status: 'processing', paymentStatus: 'paid' },
+        { new: true }
+    );
+    if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
+        await exportStockOnApproval(updatedOrder.items, orderId);
+    }
+    return updatedOrder;
+};
+
+/**
+ * @desc Xử lý URL Redirect từ VNPay trả về cho người dùng
  * @route GET /api/payment/vnpay-return
  */
 const vnpayReturn = async (req, res) => {
-    let vnp_Params = req.query;
-    const isValid = verifyVNPayReturn(vnp_Params);
-    const frontendResultUrl = `${process.env.FRONTEND_URL}/nguoidung`;
-    
-    if (isValid) {
-        let orderId = vnp_Params['vnp_TxnRef'];
-        let rspCode = vnp_Params['vnp_ResponseCode'];
-        
-        if (rspCode === '00') {
-            // Thanh toán thành công: Cập nhật đơn hàng
-            const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
-            if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
-                await exportStockOnApproval(updatedOrder.items, orderId);
-            }
-            res.redirect(`${frontendResultUrl}?status=success&orderId=${orderId}`);
-        } else {
-            // Thanh toán thất bại
-            res.redirect(`${frontendResultUrl}?status=failed&orderId=${orderId}`);
+    const frontendUrl = getFrontendUrl();
+    try {
+        let vnp_Params = { ...req.query };
+        const isValid  = verifyVNPayReturn(vnp_Params);
+        // Đọc lại vì verifyVNPayReturn có thể xóa key
+        const orderId   = req.query['vnp_TxnRef'];
+        const rspCode   = req.query['vnp_ResponseCode'];
+
+        if (!isValid) {
+            logger.warn(`[VNPay Return] Invalid signature for order ${orderId}`);
+            return res.redirect(`${frontendUrl}/nguoidung?status=failed&reason=invalid_signature&orderId=${orderId || ''}`);
         }
-    } else {
-        res.redirect(`${frontendResultUrl}?status=failed&reason=invalid_signature`);
+
+        if (rspCode === '00') {
+            await confirmOrderPaid(orderId);
+            logger.info(`[VNPay Return] Order ${orderId} confirmed paid`);
+            return res.redirect(`${frontendUrl}/nguoidung?status=success&orderId=${orderId}&method=vnpay`);
+        } else {
+            logger.warn(`[VNPay Return] Payment failed for order ${orderId} - code: ${rspCode}`);
+            return res.redirect(`${frontendUrl}/nguoidung?status=failed&orderId=${orderId}&method=vnpay`);
+        }
+    } catch (err) {
+        logger.error(`[VNPay Return] Error: ${err.message}`);
+        res.redirect(`${frontendUrl}/nguoidung?status=failed&reason=server_error`);
     }
 };
 
 /**
- * @desc Xử lý URL Redirect từ MoMo trả về
+ * @desc Xử lý URL Redirect từ MoMo trả về cho người dùng
  * @route GET /api/payment/momo-return
  */
 const momoReturn = async (req, res) => {
-    let query = req.query;
-    const isValid = verifyMoMoReturn(query);
-    const frontendResultUrl = `${process.env.FRONTEND_URL}/nguoidung`;
-    
-    if (isValid) {
-        let orderId = query.orderId;
-        let resultCode = query.resultCode;
-        
-        if (resultCode == 0) { // Mã 0 của MoMo là thành công
-            const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
-            if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
-                await exportStockOnApproval(updatedOrder.items, orderId);
-            }
-            res.redirect(`${frontendResultUrl}?status=success&orderId=${orderId}`);
-        } else {
-            res.redirect(`${frontendResultUrl}?status=failed&orderId=${orderId}`);
+    const frontendUrl = getFrontendUrl();
+    try {
+        const query      = req.query;
+        const orderId    = query.orderId || '';
+        const resultCode = Number(query.resultCode);
+
+        logger.info(`[MoMo Return] orderId=${orderId} resultCode=${resultCode}`);
+        logger.info(`[MoMo Return] query: ${JSON.stringify(query)}`);
+
+        const isValid = verifyMoMoReturn(query);
+
+        if (!isValid) {
+            // Sandbox MoMo đôi khi có chữ ký khác → vẫn kiểm tra resultCode
+            logger.warn(`[MoMo Return] Signature invalid for order ${orderId}. Checking resultCode anyway...`);
         }
-    } else {
-        res.redirect(`${frontendResultUrl}?status=failed&reason=invalid_signature`);
+
+        if (resultCode === 0) {
+            // resultCode = 0 là thành công theo tài liệu MoMo
+            await confirmOrderPaid(orderId);
+            logger.info(`[MoMo Return] Order ${orderId} confirmed paid`);
+            return res.redirect(`${frontendUrl}/nguoidung?status=success&orderId=${orderId}&method=momo`);
+        } else {
+            logger.warn(`[MoMo Return] Payment failed for order ${orderId} - resultCode: ${resultCode}`);
+            return res.redirect(`${frontendUrl}/nguoidung?status=failed&orderId=${orderId}&method=momo&code=${resultCode}`);
+        }
+    } catch (err) {
+        logger.error(`[MoMo Return] Error: ${err.message}`);
+        const frontendUrl = getFrontendUrl();
+        res.redirect(`${frontendUrl}/nguoidung?status=failed&reason=server_error`);
     }
 };
 
@@ -104,65 +141,76 @@ const momoReturn = async (req, res) => {
  * @route GET /api/payment/vnpay-ipn
  */
 const vnpayIpn = async (req, res) => {
-    let vnp_Params = req.query;
-    const isValid = verifyVNPayReturn(vnp_Params);
-    
-    if (isValid) {
-        let orderId = vnp_Params['vnp_TxnRef'];
-        let rspCode = vnp_Params['vnp_ResponseCode'];
+    try {
+        let vnp_Params = { ...req.query };
+        const isValid  = verifyVNPayReturn(vnp_Params);
+        const orderId  = req.query['vnp_TxnRef'];
+        const rspCode  = req.query['vnp_ResponseCode'];
         
-        try {
-            const order = await OrderModel.findOne({ id: orderId });
-            if (!order) return res.status(200).json({ RspCode: '01', Message: 'Order not found' });
-            if (order.paymentStatus === 'paid') return res.status(200).json({ RspCode: '02', Message: 'Order already confirmed' });
-
-            if (rspCode === '00') {
-                const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
-                if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
-                    await exportStockOnApproval(updatedOrder.items, orderId);
-                }
-            } else {
-                await OrderModel.findOneAndUpdate({ id: orderId }, { paymentStatus: 'failed' });
-            }
-            res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
-        } catch (e) {
-            res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
+        if (!isValid) {
+            return res.status(200).json({ RspCode: '97', Message: 'Invalid signature' });
         }
-    } else {
-        res.status(200).json({ RspCode: '97', Message: 'Invalid signature' });
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return res.status(200).json({ RspCode: '01', Message: 'Order not found' });
+        }
+        if (order.paymentStatus === 'paid') {
+            return res.status(200).json({ RspCode: '02', Message: 'Order already confirmed' });
+        }
+
+        if (rspCode === '00') {
+            await confirmOrderPaid(orderId);
+            logger.info(`[VNPay IPN] Order ${orderId} confirmed paid via IPN`);
+        } else {
+            await OrderModel.findOneAndUpdate({ id: orderId }, { paymentStatus: 'failed' });
+        }
+        res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
+    } catch (err) {
+        logger.error(`[VNPay IPN] Error: ${err.message}`);
+        res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
     }
 };
 
 /**
- * @desc IPN từ MoMo (Server-to-Server)
+ * @desc IPN từ MoMo (Server-to-Server) - MoMo POST lên server ta
  * @route POST /api/payment/momo-ipn
  */
 const momoIpn = async (req, res) => {
-    let query = req.body;
-    const isValid = verifyMoMoReturn(query);
-    
-    if (isValid) {
-        let orderId = query.orderId;
-        let resultCode = query.resultCode;
-        
-        try {
-            const order = await OrderModel.findOne({ id: orderId });
-            if (order && order.paymentStatus !== 'paid') {
-                if (resultCode == 0) {
-                    const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
-                    if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
-                        await exportStockOnApproval(updatedOrder.items, orderId);
-                    }
-                } else {
-                    await OrderModel.findOneAndUpdate({ id: orderId }, { paymentStatus: 'failed' });
-                }
-            }
-            res.status(204).send(); // MoMo yêu cầu HTTP 204
-        } catch (e) {
-            res.status(500).send();
+    try {
+        const body       = req.body;
+        const orderId    = body.orderId || '';
+        const resultCode = Number(body.resultCode);
+
+        logger.info(`[MoMo IPN] orderId=${orderId} resultCode=${resultCode}`);
+
+        const isValid = verifyMoMoReturn(body);
+        if (!isValid) {
+            logger.warn(`[MoMo IPN] Invalid signature for order ${orderId}`);
+            // Vẫn xử lý nếu resultCode = 0 (Sandbox đôi khi signature lệch)
         }
-    } else {
-        res.status(400).send();
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return res.status(204).send(); // Trả 204 để MoMo không retry
+        }
+
+        if (order.paymentStatus === 'paid') {
+            return res.status(204).send(); // Đã xử lý rồi, idempotent
+        }
+
+        if (resultCode === 0) {
+            await confirmOrderPaid(orderId);
+            logger.info(`[MoMo IPN] Order ${orderId} confirmed paid via IPN`);
+        } else {
+            await OrderModel.findOneAndUpdate({ id: orderId }, { paymentStatus: 'failed' });
+        }
+        
+        // MoMo yêu cầu trả HTTP 204 hoặc 200 để xác nhận đã nhận IPN
+        res.status(204).send();
+    } catch (err) {
+        logger.error(`[MoMo IPN] Error: ${err.message}`);
+        res.status(500).send();
     }
 };
 

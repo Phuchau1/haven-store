@@ -704,13 +704,21 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
                 <div className="space-y-3">
                     {paymentMethods.length > 0 ? (
-                        paymentMethods.map(pm => (
+                        paymentMethods.map(pm => {
+                            const isVNPay = pm.id === 'vnpay' || pm.id.includes('vnpay');
+                            const isMoMo = pm.id === 'momo' || pm.id.includes('momo');
+                            const isCOD = pm.id === 'cod' || pm.id.includes('cod');
+                            const isBankTransfer = pm.id.includes('bank') || pm.id.includes('transfer');
+                            return (
                             <label
                                 key={pm.id}
-                                className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.paymentMethod === pm.id
-                                    ? 'border-black bg-gray-50'
-                                    : 'border-gray-100 hover:border-gray-200'
-                                    }`}
+                                className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                    formData.paymentMethod === pm.id
+                                        ? isVNPay ? 'border-blue-500 bg-blue-50'
+                                        : isMoMo ? 'border-[#ae2070] bg-pink-50'
+                                        : 'border-black bg-gray-50'
+                                        : 'border-gray-100 hover:border-gray-200'
+                                }`}
                             >
                                 <input
                                     type="radio"
@@ -721,27 +729,91 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                     className="sr-only"
                                 />
                                 <div
-                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.paymentMethod === pm.id ? 'border-black' : 'border-gray-300'
-                                        }`}
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                        formData.paymentMethod === pm.id
+                                            ? isVNPay ? 'border-blue-500' : isMoMo ? 'border-[#ae2070]' : 'border-black'
+                                            : 'border-gray-300'
+                                    }`}
                                 >
                                     {formData.paymentMethod === pm.id && (
                                         <motion.div
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="w-2.5 h-2.5 bg-black rounded-full"
+                                            className={`w-2.5 h-2.5 rounded-full ${
+                                                isVNPay ? 'bg-blue-500' : isMoMo ? 'bg-[#ae2070]' : 'bg-black'
+                                            }`}
                                         />
                                     )}
                                 </div>
-                                {pm.id.includes('bank') ? <CreditCard size={20} className="text-gray-600" /> : <Banknote size={20} className="text-gray-600" />}
-                                <div>
-                                    <p className="text-sm font-medium text-gray-800">{pm.name_methond}</p>
+                                {/* Payment Method Logo */}
+                                {isVNPay ? (
+                                    <div className="w-12 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                                        <span className="text-white text-[9px] font-black tracking-tight leading-none text-center">VN<br/>PAY</span>
+                                    </div>
+                                ) : isMoMo ? (
+                                    <div className="w-12 h-8 bg-[#ae2070] rounded-lg flex items-center justify-center shrink-0">
+                                        <span className="text-white text-[9px] font-black tracking-tight">MoMo</span>
+                                    </div>
+                                ) : isCOD ? (
+                                    <div className="w-12 h-8 bg-amber-500 rounded-lg flex items-center justify-center shrink-0">
+                                        <Banknote size={18} className="text-white" />
+                                    </div>
+                                ) : (
+                                    <div className="w-12 h-8 bg-slate-600 rounded-lg flex items-center justify-center shrink-0">
+                                        <CreditCard size={18} className="text-white" />
+                                    </div>
+                                )}
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold text-gray-800">{pm.name_methond}</p>
                                     <p className="text-xs text-gray-400 mt-0.5">{pm.description}</p>
                                 </div>
+                                {/* Badge */}
+                                {(isVNPay || isMoMo) && (
+                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                                        isVNPay ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-[#ae2070]'
+                                    }`}>Nhanh</span>
+                                )}
                             </label>
-                        ))
+                            );
+                        })
                     ) : (
-                        <p className="text-sm text-gray-500">Đang tải phương thức thanh toán...</p>
-                    )}
+                        /* Fallback khi DB chưa có payment methods */
+                        <div className="space-y-3">
+                            {[
+                                { id: 'cod', label: 'Thanh toán khi nhận hàng (COD)', desc: 'Trả tiền mặt khi nhận được hàng', type: 'cod' },
+                                { id: 'vnpay', label: 'Thanh toán VNPay', desc: 'ATM nội địa, Visa, MasterCard, QR Code', type: 'vnpay' },
+                                { id: 'momo', label: 'Ví MoMo', desc: 'Thanh toán qua ứng dụng MoMo', type: 'momo' },
+                            ].map(pm => (
+                                <label key={pm.id} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                    formData.paymentMethod === pm.id
+                                        ? pm.type === 'vnpay' ? 'border-blue-500 bg-blue-50'
+                                        : pm.type === 'momo' ? 'border-[#ae2070] bg-pink-50'
+                                        : 'border-black bg-gray-50'
+                                        : 'border-gray-100 hover:border-gray-200'
+                                }`}>
+                                    <input type="radio" name="paymentMethod" value={pm.id} checked={formData.paymentMethod === pm.id} onChange={handleChange} className="sr-only" />
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                        formData.paymentMethod === pm.id
+                                            ? pm.type === 'vnpay' ? 'border-blue-500' : pm.type === 'momo' ? 'border-[#ae2070]' : 'border-black'
+                                            : 'border-gray-300'
+                                    }`}>
+                                        {formData.paymentMethod === pm.id && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className={`w-2.5 h-2.5 rounded-full ${pm.type === 'vnpay' ? 'bg-blue-500' : pm.type === 'momo' ? 'bg-[#ae2070]' : 'bg-black'}`} />}
+                                    </div>
+                                    {pm.type === 'vnpay' ? (
+                                        <div className="w-12 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0"><span className="text-white text-[9px] font-black tracking-tight leading-none text-center">VN<br/>PAY</span></div>
+                                    ) : pm.type === 'momo' ? (
+                                        <div className="w-12 h-8 bg-[#ae2070] rounded-lg flex items-center justify-center shrink-0"><span className="text-white text-[9px] font-black">MoMo</span></div>
+                                    ) : (
+                                        <div className="w-12 h-8 bg-amber-500 rounded-lg flex items-center justify-center shrink-0"><Banknote size={18} className="text-white" /></div>
+                                    )}
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-gray-800">{pm.label}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{pm.desc}</p>
+                                    </div>
+                                    {pm.type !== 'cod' && <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 ${pm.type === 'vnpay' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-[#ae2070]'}`}>Nhanh</span>}
+                                </label>
+                            ))}
+                        </div>
                 </div>
 
                 {/* Additional info for selected method */}
