@@ -9,6 +9,7 @@
 const { buildVNPayUrl, verifyVNPayReturn } = require('../services/vnpayService');
 const { buildMoMoUrl, verifyMoMoReturn } = require('../services/momoService');
 const { OrderModel } = require('../models/Order');
+const { exportStockOnApproval } = require('./orderController');
 
 /**
  * @desc Khởi tạo giao dịch thanh toán và trả về URL chuyển hướng cho Frontend
@@ -56,7 +57,10 @@ const vnpayReturn = async (req, res) => {
         
         if (rspCode === '00') {
             // Thanh toán thành công: Cập nhật đơn hàng
-            await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
+            const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
+            if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
+                await exportStockOnApproval(updatedOrder.items, orderId);
+            }
             res.redirect(`${frontendResultUrl}?status=success&orderId=${orderId}`);
         } else {
             // Thanh toán thất bại
@@ -81,7 +85,10 @@ const momoReturn = async (req, res) => {
         let resultCode = query.resultCode;
         
         if (resultCode == 0) { // Mã 0 của MoMo là thành công
-            await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
+            const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
+            if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
+                await exportStockOnApproval(updatedOrder.items, orderId);
+            }
             res.redirect(`${frontendResultUrl}?status=success&orderId=${orderId}`);
         } else {
             res.redirect(`${frontendResultUrl}?status=failed&orderId=${orderId}`);
@@ -110,7 +117,10 @@ const vnpayIpn = async (req, res) => {
             if (order.paymentStatus === 'paid') return res.status(200).json({ RspCode: '02', Message: 'Order already confirmed' });
 
             if (rspCode === '00') {
-                await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
+                const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
+                if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
+                    await exportStockOnApproval(updatedOrder.items, orderId);
+                }
             } else {
                 await OrderModel.findOneAndUpdate({ id: orderId }, { paymentStatus: 'failed' });
             }
@@ -139,7 +149,10 @@ const momoIpn = async (req, res) => {
             const order = await OrderModel.findOne({ id: orderId });
             if (order && order.paymentStatus !== 'paid') {
                 if (resultCode == 0) {
-                    await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' });
+                    const updatedOrder = await OrderModel.findOneAndUpdate({ id: orderId }, { status: 'processing', paymentStatus: 'paid' }, { new: true });
+                    if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
+                        await exportStockOnApproval(updatedOrder.items, orderId);
+                    }
                 } else {
                     await OrderModel.findOneAndUpdate({ id: orderId }, { paymentStatus: 'failed' });
                 }

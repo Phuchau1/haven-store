@@ -282,7 +282,7 @@ const createOrder = async (req, res, next) => {
                 // Thực tế logic này có rủi ro nếu tính cả order hiện tại, nên cần cẩn thận logic
                 // Ở đây do order hiện tại đã lưu bằng session, nên countDocuments sẽ tìm thấy nó.
                 // Do đó, nếu user đã dùng trước đó >= limit, count sẽ > limit.
-                if (userUsedCount >= coupon.usage_limit_per_user) {
+                if (userUsedCount > coupon.usage_limit_per_user) {
                     throw new Error('Bạn đã hết lượt sử dụng mã giảm giá này.');
                 }
             }
@@ -427,5 +427,6 @@ module.exports = {
     getOrders,
     createOrder,
     updateOrderStatus,
-    requestRefund
+    requestRefund,
+    exportStockOnApproval
 };
