@@ -12,6 +12,10 @@ const { OrderModel }                        = require('../models/Order');
 const { exportStockOnApproval }             = require('./orderController');
 const logger                                = require('../utils/logger');
 
+// In-memory store cho OTP (production nên dùng Redis)
+// Map: orderId -> { otp, phone, expiresAt }
+const otpStore = new Map();
+
 /**
  * @desc Lấy Frontend URL từ env (dùng cho redirect sau thanh toán)
  */
@@ -214,10 +218,119 @@ const momoIpn = async (req, res) => {
     }
 };
 
+/**
+ * @desc Bước 1: Gửi OTP cho số điện thoại MoMo
+ * @route POST /api/payment/momo-send-otp
+ * Body: { orderId, phone, amount }
+ */
+const momoSendOtp = async (req, res) => {
+    try {
+        const { orderId, phone, amount } = req.body;
+
+        if (!orderId || !phone) {
+            return res.status(400).json({ success: false, message: 'Thiếu orderId hoặc số điện thoại.' });
+        }
+
+        // Validate order tồn tại
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
+        }
+        if (order.paymentStatus === 'paid') {
+            return res.status(400).json({ success: false, message: 'Đơn hàng này đã được thanh toán.' });
+        }
+
+        // Tạo OTP 6 số (sandbox: luôn là 000000 cho số test)
+        const isTestPhone = phone === '0909888999';
+        const otp = isTestPhone ? '000000' : String(Math.floor(100000 + Math.random() * 900000));
+
+        // Lưu OTP vào store (hiệu lực 5 phút)
+        otpStore.set(orderId, {
+            otp,
+            phone,
+            amount: Number(amount),
+            expiresAt: Date.now() + 5 * 60 * 1000 // 5 min
+        });
+
+        logger.info(`[MoMo OTP] Sent OTP=${otp} to phone=${phone} for order=${orderId}`);
+
+        // Production: Gửi SMS thật qua Twilio / ESMS / Viettel
+        // Sandbox: Chỉ log ra console
+        console.log(`\n=============================`);
+        console.log(`[MoMo OTP] Order: ${orderId}`);
+        console.log(`[MoMo OTP] Phone: ${phone}`);
+        console.log(`[MoMo OTP] OTP:   ${otp}`);
+        console.log(`=============================\n`);
+
+        res.json({
+            success: true,
+            message: `Đã gửi mã OTP đến số ${phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 *** $3')}`,
+            // Chỉ trả về masked phone, không trả OTP ra client
+        });
+    } catch (err) {
+        logger.error(`[MoMo OTP] momoSendOtp error: ${err.message}`);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+/**
+ * @desc Bước 2: Xác nhận OTP và hoàn tất thanh toán
+ * @route POST /api/payment/momo-confirm
+ * Body: { orderId, phone, otp, amount }
+ */
+const momoConfirm = async (req, res) => {
+    try {
+        const { orderId, phone, otp } = req.body;
+
+        if (!orderId || !phone || !otp) {
+            return res.status(400).json({ success: false, message: 'Thiếu thông tin xác nhận.' });
+        }
+
+        // Lấy OTP đã lưu
+        const stored = otpStore.get(orderId);
+        if (!stored) {
+            return res.status(400).json({ success: false, message: 'OTP đã hết hạn hoặc chưa được gửi. Vui lòng yêu cầu OTP mới.' });
+        }
+
+        // Kiểm tra hết hạn
+        if (Date.now() > stored.expiresAt) {
+            otpStore.delete(orderId);
+            return res.status(400).json({ success: false, message: 'Mã OTP đã hết hiệu lực (5 phút). Vui lòng yêu cầu mã mới.' });
+        }
+
+        // So sánh OTP và số điện thoại
+        const otpMatch   = stored.otp   === otp.trim();
+        const phoneMatch = stored.phone === phone.trim();
+
+        if (!otpMatch || !phoneMatch) {
+            logger.warn(`[MoMo OTP] Invalid OTP attempt for order=${orderId} phone=${phone} otp=${otp}`);
+            return res.status(400).json({ success: false, message: 'Mã OTP không đúng. Vui lòng kiểm tra lại.' });
+        }
+
+        // OTP đúng -> xác nhận đơn hàng
+        const updatedOrder = await confirmOrderPaid(orderId);
+        otpStore.delete(orderId); // Xóa OTP sau khi dùng
+
+        logger.info(`[MoMo OTP] Order ${orderId} confirmed paid via OTP. Phone: ${phone}`);
+
+        res.json({
+            success: true,
+            message: 'Thanh toán thành công!',
+            orderId,
+            finalAmount: updatedOrder?.finalAmount || stored.amount
+        });
+    } catch (err) {
+        logger.error(`[MoMo OTP] momoConfirm error: ${err.message}`);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 module.exports = {
     createPaymentUrl,
     vnpayReturn,
     momoReturn,
     vnpayIpn,
-    momoIpn
+    momoIpn,
+    momoSendOtp,
+    momoConfirm
 };

@@ -17,4 +17,10 @@ router.get('/vnpay-ipn', paymentController.vnpayIpn);
 // MoMo IPN (Webhook)
 router.post('/momo-ipn', paymentController.momoIpn);
 
+// MoMo OTP Flow (Bước 1: Gửi OTP)
+router.post('/momo-send-otp', paymentController.momoSendOtp);
+
+// MoMo OTP Flow (Bước 2: Xác nhận OTP + hoàn tất thanh toán)
+router.post('/momo-confirm', paymentController.momoConfirm);
+
 module.exports = router;

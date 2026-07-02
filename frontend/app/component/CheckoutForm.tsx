@@ -356,24 +356,31 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 }).catch(e => console.error(e));
             }
 
-            // Nếu thanh toán bằng VNPay hoặc MoMo
-            if (formData.paymentMethod === 'vnpay' || formData.paymentMethod === 'momo') {
+            // Nếu thanh toán bằng VNPay → redirect sang cổng VNPay
+            if (formData.paymentMethod === 'vnpay') {
                 const payRes = await fetch('/api/payment/create-url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         orderId: result.orderId,
                         amount: result.finalAmount || finalTotal,
-                        paymentMethod: formData.paymentMethod
+                        paymentMethod: 'vnpay'
                     })
                 });
                 const payData = await payRes.json();
                 if (payData.success && payData.url) {
                     window.location.href = payData.url;
-                    return; // Dừng tại đây, chờ quay lại từ cổng thanh toán
+                    return;
                 } else {
-                    throw new Error('Lỗi khởi tạo cổng thanh toán: ' + (payData.message || ''));
+                    throw new Error('Lỗi khởi tạo cổng VNPay: ' + (payData.message || ''));
                 }
+            }
+
+            // Nếu thanh toán bằng MoMo → redirect sang trang OTP nội bộ
+            if (formData.paymentMethod === 'momo') {
+                const momoAmount = result.finalAmount || finalTotal;
+                window.location.href = `/checkout/momo-payment?orderId=${result.orderId}&amount=${momoAmount}`;
+                return;
             }
 
             // Thành công (COD hoặc Chuyển khoản thông thường)!
