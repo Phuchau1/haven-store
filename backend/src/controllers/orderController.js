@@ -246,14 +246,92 @@ const createOrder = async (req, res, next) => {
         log('--- YÊU CẦU TẠO ĐƠN HÀNG MỚI ---');
         const body = req.body;
 
+        if (!body.items || body.items.length === 0) {
+            return res.status(400).json({ success: false, message: 'Giỏ hàng không được để trống' });
+        }
+
         // Mã đơn hàng: Lấy từ client hoặc tự sinh dạng LF-ABCXYZ
         const orderId = body.id || `LF-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+
+        // Bắt đầu tính toán lại giá từ backend
+        let calculatedTotalAmount = 0;
+        
+        // Loop qua từng item để tính giá chuẩn
+        for (const item of body.items) {
+            const productId = item.product.id;
+            const size = item.selectedSize;
+            const color = item.selectedColor.name;
+            const quantity = item.quantity;
+            
+            const dbProduct = await ProductModel.findOne({ id: productId }).session(session);
+            if (!dbProduct) {
+                throw new Error(`Sản phẩm ${item.product.name} không tồn tại.`);
+            }
+            
+            let itemPrice = dbProduct.price;
+            
+            // Tìm variant để xem có giá ghi đè không
+            if (dbProduct.variants) {
+                const variant = dbProduct.variants.find(v => v.color === color && v.size === size);
+                if (variant && variant.price !== undefined && variant.price !== null) {
+                    itemPrice = variant.price;
+                }
+            }
+            
+            // Ghi đè lại giá chuẩn cho item (để khi lưu vào DB, lịch sử có giá đúng)
+            item.product.price = itemPrice;
+            calculatedTotalAmount += itemPrice * quantity;
+        }
+
+        let calculatedDiscount = 0;
+
+        // Xử lý mã giảm giá (Gắn Session)
+        if (body.couponCode) {
+            const coupon = await CouponModel.findOne({ code: body.couponCode }).session(session);
+            
+            if (coupon) {
+                // Kiểm tra giới hạn sử dụng trên mỗi user (usage_limit_per_user)
+                if (coupon.usage_limit_per_user > 0) {
+                    const userUsedCount = await OrderModel.countDocuments({ 
+                        couponCode: coupon.code, 
+                        email: body.email, 
+                        status: { $ne: 'cancelled' } // Không tính các đơn đã hủy
+                    }).session(session);
+                    
+                    // countDocuments lúc này không bao gồm order đang được tạo vì ta chưa save
+                    if (userUsedCount >= coupon.usage_limit_per_user) {
+                        throw new Error('Bạn đã hết lượt sử dụng mã giảm giá này.');
+                    }
+                }
+                
+                // Tính toán số tiền được giảm
+                if (coupon.discount_type === 'percent') {
+                    calculatedDiscount = Math.round((calculatedTotalAmount * coupon.discount_value) / 100);
+                } else {
+                    calculatedDiscount = coupon.discount_value;
+                }
+                
+                // Tiền giảm không thể vượt quá tổng tiền
+                calculatedDiscount = Math.min(calculatedDiscount, calculatedTotalAmount);
+
+                // Trừ 1 lượt của tổng số lượng coupon có sẵn
+                await CouponModel.findOneAndUpdate(
+                    { code: body.couponCode },
+                    { $inc: { usage_limit: -1 } },
+                    { session }
+                );
+            }
+        }
+
+        const calculatedFinalAmount = calculatedTotalAmount - calculatedDiscount;
 
         const newOrderData = {
             ...body,
             id: orderId,
             status: 'pending', // Chờ xác nhận
-            finalAmount: body.finalAmount ?? body.totalAmount, // Đảm bảo luôn có finalAmount
+            totalAmount: calculatedTotalAmount,
+            discountAmount: calculatedDiscount,
+            finalAmount: calculatedFinalAmount,
             createdAt: new Date().toISOString()
         };
 
@@ -262,38 +340,7 @@ const createOrder = async (req, res, next) => {
         await newOrder.save({ session });
 
         // 2. Giảm tồn kho (Gắn Session)
-        if (newOrderData.items && newOrderData.items.length > 0) {
-            await decreaseStockOnOrder(newOrderData.items, orderId, session);
-        }
-
-        // 3. Áp dụng & Trừ lượt mã giảm giá (Gắn Session)
-        if (newOrderData.couponCode) {
-            const coupon = await CouponModel.findOne({ code: newOrderData.couponCode }).session(session);
-            
-            // Kiểm tra giới hạn sử dụng trên mỗi user (usage_limit_per_user)
-            if (coupon && coupon.usage_limit_per_user > 0) {
-                const userUsedCount = await OrderModel.countDocuments({ 
-                    couponCode: coupon.code, 
-                    email: newOrderData.email, 
-                    status: { $ne: 'cancelled' } // Không tính các đơn đã hủy
-                }).session(session);
-                
-                // Trừ đi 1 do bản ghi current Order (phía trên) đã được đếm vào
-                // Thực tế logic này có rủi ro nếu tính cả order hiện tại, nên cần cẩn thận logic
-                // Ở đây do order hiện tại đã lưu bằng session, nên countDocuments sẽ tìm thấy nó.
-                // Do đó, nếu user đã dùng trước đó >= limit, count sẽ > limit.
-                if (userUsedCount > coupon.usage_limit_per_user) {
-                    throw new Error('Bạn đã hết lượt sử dụng mã giảm giá này.');
-                }
-            }
-
-            // Trừ 1 lượt của tổng số lượng coupon có sẵn
-            await CouponModel.findOneAndUpdate(
-                { code: newOrderData.couponCode },
-                { $inc: { usage_limit: -1 } },
-                { session }
-            );
-        }
+        await decreaseStockOnOrder(newOrderData.items, orderId, session);
 
         // 4. Nếu mọi thứ thành công -> Xác nhận giao dịch
         await session.commitTransaction();
@@ -302,7 +349,7 @@ const createOrder = async (req, res, next) => {
         // 5. Gửi email xác nhận (Chạy bất đồng bộ qua Redis Queue - BullMQ)
         enqueueOrderEmail(newOrderData);
 
-        return res.json({ success: true, orderId: newOrderData.id });
+        return res.json({ success: true, orderId: newOrderData.id, finalAmount: calculatedFinalAmount });
     } catch (error) {
         // NẾU CÓ LỖI (Ví dụ: hết hàng) -> Hủy bỏ mọi thay đổi ở bước 1,2,3
         await session.abortTransaction();

@@ -276,6 +276,11 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         setError('');
 
         // Validate phía client
+        if (!items || items.length === 0) {
+            setError('Giỏ hàng của bạn đang trống.');
+            return;
+        }
+        
         if (!formData.customerName.trim()) {
             setError('Vui lòng nhập họ tên.');
             return;
@@ -358,7 +363,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         orderId: result.orderId,
-                        amount: finalTotal,
+                        amount: result.finalAmount || finalTotal,
                         paymentMethod: formData.paymentMethod
                     })
                 });
