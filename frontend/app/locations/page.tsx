@@ -5,7 +5,7 @@ export default function LocationsPage() {
         <div className="pt-24 pb-16 min-h-screen bg-gray-50">
             <div className="container-torano">
                 <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
-                    <h1 className="text-3xl md:text-4xl font-bold text-center mb-4 font-serif">Hệ Thống Cửa Hàng</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold text-center mb-4">Hệ Thống Cửa Hàng</h1>
                     <p className="text-gray-600 text-center mb-12">Khám phá các cửa hàng PH Store trên toàn quốc. Trải nghiệm không gian mua sắm hiện đại và đẳng cấp.</p>
 
                     <div className="space-y-8">
