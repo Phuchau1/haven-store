@@ -821,6 +821,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 </label>
                             ))}
                         </div>
+                    )}
                 </div>
 
                 {/* Additional info for selected method */}
