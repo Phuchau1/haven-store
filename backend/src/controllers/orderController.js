@@ -251,7 +251,18 @@ const createOrder = async (req, res, next) => {
         }
 
         // Mã đơn hàng: Lấy từ client hoặc tự sinh dạng LF-ABCXYZ
-        const orderId = body.id || `LF-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+        const orderId = body.id || `LF-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+        // Kiểm tra Idempotent: Nếu client gửi lên 1 ID đã tồn tại, trả về thành công luôn
+        if (body.id) {
+            const existingOrder = await OrderModel.findOne({ id: body.id }).session(session);
+            if (existingOrder) {
+                await session.abortTransaction();
+                session.endSession();
+                log(`Đơn hàng ${body.id} đã tồn tại, bỏ qua tạo mới (Idempotent).`);
+                return res.json({ success: true, orderId: existingOrder.id, finalAmount: existingOrder.finalAmount });
+            }
+        }
 
         // Bắt đầu tính toán lại giá từ backend
         let calculatedTotalAmount = 0;
@@ -354,6 +365,15 @@ const createOrder = async (req, res, next) => {
         // NẾU CÓ LỖI (Ví dụ: hết hàng) -> Hủy bỏ mọi thay đổi ở bước 1,2,3
         await session.abortTransaction();
         session.endSession();
+        
+        // Lỗi trùng lặp key (Vd: Khách hàng click đặt hàng 2 lần liên tục với cùng 1 mã ID - Race condition)
+        if (error.code === 11000) {
+            log(`[CẢNH BÁO] Trùng lặp đơn hàng (Double click): Bỏ qua lỗi E11000`);
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Đơn hàng này đã được hệ thống ghi nhận. Vui lòng không đặt lại, kiểm tra email hoặc liên hệ với admin.' 
+            });
+        }
         
         log('LỖI NGHIÊM TRỌNG khi tạo đơn: ' + error.message);
         
