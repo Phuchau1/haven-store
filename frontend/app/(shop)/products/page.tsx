@@ -20,7 +20,7 @@ function ProductsContent() {
     
     if (pathname && pathname.startsWith('/collections/')) {
         const slug = pathname.replace('/collections/', '');
-        parsedSubCategory = slug;
+        parsedSubCategory = (slug === 'nam' || slug === 'do-nu') ? '' : slug;
         
         // Map slug to top-level category
         if (slug.endsWith('-nam') || slug === 'nam') {
@@ -58,7 +58,8 @@ function ProductsContent() {
 
         if (pathname && pathname.startsWith('/collections/')) {
             const slug = pathname.replace('/collections/', '');
-            newSubCategory = slug;
+            newSubCategory = (slug === 'nam' || slug === 'do-nu') ? '' : slug;
+            
             if (slug.endsWith('-nam') || slug === 'nam') {
                 newCategory = 'cat-clothing';
             } else if (slug.endsWith('-nu') || slug === 'do-nu' || slug === 'vay-dam' || slug === 'vay-lien-dam' || slug === 'chan-vay' || slug === 'tui-xach') {
