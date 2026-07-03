@@ -382,8 +382,9 @@ export default function AdminOrders() {
                                                                             const isBackward = optIdx < currentIdx; 
                                                                             const isTerminal = order.status === 'cancelled' || order.status === 'delivered';
                                                                             const isSame = order.status === opt.id;
+                                                                            const isShippedCancel = order.status === 'shipped' && opt.id === 'cancelled';
                                                                             
-                                                                            const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame);
+                                                                            const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame) || isShippedCancel;
 
                                                                             return (
                                                                             <button

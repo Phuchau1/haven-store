@@ -403,6 +403,11 @@ const updateOrderStatus = async (req, res, next) => {
 
         const oldStatus = currentOrder.status;
         
+        // Không cho phép huỷ khi đơn hàng đang được vận chuyển
+        if (status === 'cancelled' && oldStatus === 'shipped') {
+            return res.status(400).json({ success: false, message: 'Không thể huỷ đơn hàng đang trong quá trình vận chuyển' });
+        }
+
         let updateData = { status };
         if (shippingProvider) {
             updateData.shippingProvider = shippingProvider;
