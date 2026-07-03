@@ -9,6 +9,7 @@ const { ProductModel } = require('../models/Product');
 const { getCache, setCache, delCache } = require('../utils/redisClient');
 const { ProductReviewModel } = require('../models/ProductReview');
 const { ProductVariantModel } = require('../models/ProductVariant');
+const { OrderModel } = require('../models/Order');
 
 const fs = require('fs');
 const path = require('path');
@@ -344,6 +345,59 @@ const getProductById = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Đồng bộ lại toàn bộ số lượng Đã bán (soldQuantity) dựa trên đơn hàng đã giao (delivered)
+ * @route   POST /api/products/sync-sold-quantity
+ * @access  Private/Admin
+ */
+const syncSoldQuantity = async (req, res, next) => {
+    try {
+        log('Bắt đầu đồng bộ số lượng đã bán (soldQuantity)...');
+        
+        // 1. Reset toàn bộ soldQuantity về 0
+        await ProductModel.updateMany({}, { soldQuantity: 0 });
+        
+        // 2. Tìm tất cả đơn hàng giao thành công
+        const deliveredOrders = await OrderModel.find({ status: 'delivered' });
+        
+        // 3. Tính toán tổng bán cho từng sản phẩm
+        const soldCounts = {}; // { productId: quantity }
+        for (const order of deliveredOrders) {
+            if (order.items && order.items.length > 0) {
+                for (const item of order.items) {
+                    const productId = item.product.id;
+                    const qty = item.quantity || 1;
+                    soldCounts[productId] = (soldCounts[productId] || 0) + qty;
+                }
+            }
+        }
+        
+        // 4. Cập nhật lại vào ProductModel
+        const updatePromises = Object.keys(soldCounts).map(productId => {
+            return ProductModel.findOneAndUpdate(
+                { id: productId },
+                { soldQuantity: soldCounts[productId] }
+            );
+        });
+        
+        await Promise.all(updatePromises);
+        
+        // Xóa cache
+        await delCache('products:*', true);
+        
+        log(`Hoàn tất đồng bộ soldQuantity. Đã quét ${deliveredOrders.length} đơn hàng.`);
+        res.json({ 
+            success: true, 
+            message: 'Đồng bộ lượt bán thành công',
+            totalDeliveredOrders: deliveredOrders.length,
+            productsUpdated: Object.keys(soldCounts).length
+        });
+    } catch (error) {
+        log(`Lỗi khi đồng bộ soldQuantity: ${error.message}`);
+        next(error);
+    }
+};
+
 module.exports = {
     getProducts,
     createProduct,
@@ -351,5 +405,6 @@ module.exports = {
     deleteProduct,
     getProductById,
     getProductReviews,
-    createProductReview
+    createProductReview,
+    syncSoldQuantity
 };

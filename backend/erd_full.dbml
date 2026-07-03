@@ -1,0 +1,443 @@
+// FULL ERD FOR FASHION STORE
+
+Table Address {
+  _id ObjectId [primary key]
+  id varchar
+  user_id varchar
+  full_name varchar
+  phone varchar
+  city varchar
+  district varchar
+  ward varchar
+  street varchar
+  is_default boolean
+  created_at timestamp
+}
+
+Table AISetting {
+  _id ObjectId [primary key]
+}
+
+Table Article {
+  _id ObjectId [primary key]
+}
+
+Table AuditLog {
+  _id ObjectId [primary key]
+  id varchar
+  user_id varchar
+  action varchar
+  entity_type varchar
+  entity_id varchar
+  old_values varchar
+  new_values varchar
+  ip_address varchar
+  created_at timestamp
+}
+
+Table Banner {
+  _id ObjectId [primary key]
+  id varchar
+  title varchar
+  image varchar
+  video varchar
+  link varchar
+  status varchar
+  created_at timestamp
+}
+
+Table Cart {
+  _id ObjectId [primary key]
+  variant_id varchar
+  quantity number
+  price number
+  id varchar
+  user_id varchar
+  created_at timestamp
+}
+
+Table Category {
+  _id ObjectId [primary key]
+  id varchar
+  name varchar
+  slug varchar
+  description varchar
+  image varchar
+  order number
+  isActive boolean
+  id varchar
+  name varchar
+  description varchar
+  image varchar
+  video varchar
+  count number
+  order number
+  isActive boolean
+  subcategories varchar
+}
+
+Table ChatMessage {
+  _id ObjectId [primary key]
+  id varchar
+  session_id varchar
+  sender_type varchar
+  message varchar
+}
+
+Table ChatSession {
+  _id ObjectId [primary key]
+  id varchar
+  customer_name varchar
+  phone varchar
+  userId varchar
+  status varchar
+}
+
+Table Color {
+  _id ObjectId [primary key]
+  id varchar
+  name varchar
+  code varchar
+}
+
+Table Coupon {
+  _id ObjectId [primary key]
+  id varchar
+  code varchar
+  discount_type varchar
+  discount_value number
+  start_date varchar
+  end_date varchar
+  usage_limit number
+  usage_limit_per_user number
+}
+
+Table FlashSale {
+  _id ObjectId [primary key]
+}
+
+Table InventoryHistory {
+  _id ObjectId [primary key]
+  id varchar
+  variant_id varchar
+  type varchar
+  quantity number
+  note varchar
+  created_at timestamp
+}
+
+Table LuckyWheelConfig {
+  _id ObjectId [primary key]
+}
+
+Table Menu {
+  _id ObjectId [primary key]
+  id varchar
+  title varchar
+  link varchar
+  order number
+  isActive boolean
+  children varchar
+}
+
+Table Order {
+  _id ObjectId [primary key]
+  id varchar
+  name varchar
+  price number
+  originalPrice number
+  category varchar
+  categoryLabel varchar
+  images array
+  sizes array
+  colors array
+  name varchar
+  hex varchar
+  description varchar
+  badge varchar
+  rating number
+  reviews number
+  inStock boolean
+  product varchar
+  quantity number
+  selectedSize varchar
+  selectedColor varchar
+  name varchar
+  hex varchar
+  id varchar
+  customerName varchar
+  phone varchar
+  email varchar
+  address varchar
+  paymentMethod varchar
+  totalAmount number
+  couponCode varchar
+  discountAmount number
+  finalAmount number
+  note varchar
+  transferReceipt varchar
+  shippingProvider varchar
+  status varchar
+  type varchar
+  createdAt varchar
+}
+
+Table OrderStatusHistory {
+  _id ObjectId [primary key]
+  id varchar
+  order_id varchar
+  status varchar
+  note varchar
+  created_at timestamp
+}
+
+Table PaymentMethod {
+  _id ObjectId [primary key]
+  id varchar
+  name_methond varchar
+  description varchar
+  bank_info varchar
+  qr_code_url varchar
+  is_active boolean
+}
+
+Table Product {
+  _id ObjectId [primary key]
+  name varchar
+  hex varchar
+  image varchar
+  color varchar
+  size varchar
+  stock number
+  price number
+  originalPrice number
+  id varchar
+  name varchar
+  price number
+  originalPrice number
+  category varchar
+  categoryLabel varchar
+  category_id json
+  subCategory varchar
+  subCategoryLabel varchar
+  images array
+  sizes array
+  description varchar
+  content varchar
+  shortDescription varchar
+  richContent varchar
+  specifications json
+  sizeGuide array
+  careInstructions array
+  features array
+  tags array
+  seo json
+  faqs array
+  question varchar
+  answer varchar
+  certificates array
+  fabric array
+  status varchar
+  publishAt timestamp
+  videos array
+  instructions array
+  notes array
+  sizeChartImage varchar
+  badge varchar
+  rating number
+  reviews number
+  inStock boolean
+  soldQuantity number
+}
+
+Table ProductReview {
+  _id ObjectId [primary key]
+  id varchar
+  user_id varchar
+  userName varchar
+  userEmail varchar
+  product_id varchar
+  rating number
+  content varchar
+  status varchar
+  created_at timestamp
+}
+
+Table ProductVariant {
+  _id ObjectId [primary key]
+  id varchar
+  product_id varchar
+  size_id varchar
+  color_id varchar
+  stock number
+  reserved_stock number
+  warehouse_stocks array
+  warehouse_id varchar
+  stock number
+  barcode varchar
+  qr_code varchar
+  image varchar
+  price number
+  sku varchar
+  status varchar
+}
+
+Table PurchaseOrder {
+  _id ObjectId [primary key]
+  variant_id varchar
+  quantity number
+  price number
+  id varchar
+  supplier_id varchar
+  warehouse_id varchar
+  status varchar
+  user_id varchar
+  expected_date varchar
+  total_amount number
+  note varchar
+}
+
+Table Review {
+  _id ObjectId [primary key]
+  productId varchar
+  userId varchar
+  customerName varchar
+  rating number
+  comment varchar
+  isApproved boolean
+}
+
+Table ShippingMethod {
+  _id ObjectId [primary key]
+  id varchar
+  name_methond varchar
+  description varchar
+  is_active boolean
+}
+
+Table SiteSetting {
+  _id ObjectId [primary key]
+}
+
+Table Size {
+  _id ObjectId [primary key]
+  id varchar
+  name varchar
+}
+
+Table SpinHistory {
+  _id ObjectId [primary key]
+}
+
+Table SpinReward {
+  _id ObjectId [primary key]
+}
+
+Table StockReceipt {
+  _id ObjectId [primary key]
+  variant_id varchar
+  quantity number
+  price number
+  id varchar
+  type varchar
+  warehouse_id varchar
+  dest_warehouse_id varchar
+  supplier_id varchar
+  po_id varchar
+  reason varchar
+  note varchar
+  user_id varchar
+  status varchar
+  total_quantity number
+  total_amount number
+}
+
+Table StockTransaction {
+  _id ObjectId [primary key]
+  id varchar
+  type varchar
+  reference_id varchar
+  warehouse_id varchar
+  variant_id varchar
+  quantity number
+  before_stock number
+  after_stock number
+  note varchar
+  user_id varchar
+}
+
+Table Supplier {
+  _id ObjectId [primary key]
+  id varchar
+  name varchar
+  email varchar
+  phone varchar
+  address varchar
+  tax_code varchar
+  status varchar
+}
+
+Table User {
+  _id ObjectId [primary key]
+  id varchar
+  name varchar
+  email varchar
+  password varchar
+  googleId varchar
+  facebookId varchar
+  avatar varchar
+  role varchar
+  phone varchar
+  address varchar
+  resetPasswordToken varchar
+  resetPasswordExpires timestamp
+}
+
+Table UserCoupon {
+  _id ObjectId [primary key]
+}
+
+Table UserVoucher {
+  _id ObjectId [primary key]
+  id varchar
+  user_id varchar
+  coupon_id varchar
+  is_use boolean
+}
+
+Table Warehouse {
+  _id ObjectId [primary key]
+  id varchar
+  name varchar
+  code varchar
+  address varchar
+  manager_id varchar
+  status varchar
+}
+
+Table Wishlist {
+  _id ObjectId [primary key]
+  id varchar
+  user_id varchar
+  product_id varchar
+  created_at timestamp
+}
+
+Ref: Product.category_id > Category._id
+Ref: OrderItem.product_id > Product._id
+Ref: OrderItem.order_id > Order._id
+Ref: Review.productId > Product._id
+Ref: Review.userEmail > User.email
+Ref: Cart.userId > User._id
+Ref: CartItem.cart_id > Cart._id
+Ref: CartItem.product_id > Product._id
+Ref: ProductVariant.productId > Product._id
+Ref: Wishlist.userId > User._id
+Ref: Wishlist.productId > Product._id
+Ref: StockTransaction.productId > Product._id
+Ref: PurchaseOrder.supplierId > Supplier._id
+Ref: StockReceipt.poId > PurchaseOrder._id
+Ref: OrderStatusHistory.orderId > Order._id
+Ref: ProductReview.productId > Product._id
+Ref: UserVoucher.userId > User._id
+Ref: ChatMessage.sessionId > ChatSession._id

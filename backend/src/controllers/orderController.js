@@ -41,17 +41,7 @@ const decreaseStockOnOrder = async (orderItems, orderId, session) => {
             const color = item.selectedColor.name;
             const quantity = item.quantity;
 
-            // 1. Cập nhật thống kê bán ra trên model Sản phẩm (Product) chính
-            const product = await ProductModel.findOne({ id: productId }).session(session);
-            if (product && product.variants) {
-                const variant = product.variants.find(v => v.color === color && v.size === size);
-                if (variant) {
-                    product.markModified('variants');
-                    // Tăng số lượng đã bán của toàn bộ sản phẩm
-                    product.soldQuantity = (product.soldQuantity || 0) + quantity;
-                    await product.save({ session });
-                }
-            }
+            // 1. (Đã gỡ bỏ logic cộng soldQuantity ở đây vì sẽ chỉ cộng khi giao hàng thành công)
 
             // 2. Cập nhật tồn kho (Stock) trên model Biến thể (ProductVariant)
             // Lọc: Phải đảm bảo (tồn kho - tồn kho đang giữ) >= số lượng khách mua
@@ -105,12 +95,7 @@ const releaseReservedStock = async (orderItems, orderId) => {
             const color = item.selectedColor.name;
             const quantity = item.quantity;
 
-            // Giảm soldQuantity trong ProductModel
-            const product = await ProductModel.findOne({ id: productId });
-            if (product) {
-                product.soldQuantity = Math.max(0, (product.soldQuantity || 0) - quantity);
-                await product.save();
-            }
+            // (Đã gỡ bỏ logic trừ soldQuantity ở đây vì soldQuantity chỉ tính trên đơn delivered)
 
             // Chỉ trả lại reserved_stock, stock vật lý KHÔNG thay đổi
             const pVariant = await ProductVariantModel.findOneAndUpdate(
@@ -445,6 +430,26 @@ const updateOrderStatus = async (req, res, next) => {
             if (updatedOrder.items && updatedOrder.items.length > 0) {
                 await returnExportedStock(updatedOrder.items, id);
             }
+        }
+
+        // [Logic mới] Cập nhật soldQuantity chỉ khi đơn hàng giao thành công
+        if (status === 'delivered' && oldStatus !== 'delivered') {
+            for (const item of updatedOrder.items) {
+                await ProductModel.findOneAndUpdate(
+                    { id: item.product.id },
+                    { $inc: { soldQuantity: item.quantity } }
+                );
+            }
+            log(`Đã cộng lượt bán (soldQuantity) cho đơn hàng thành công: ${id}`);
+        } else if (oldStatus === 'delivered' && status !== 'delivered') {
+            // Trường hợp hy hữu: Đổi từ delivered sang trạng thái khác (VD: hoàn trả sau khi giao)
+            for (const item of updatedOrder.items) {
+                await ProductModel.findOneAndUpdate(
+                    { id: item.product.id },
+                    { $inc: { soldQuantity: -item.quantity } }
+                );
+            }
+            log(`Đã trừ lượt bán (soldQuantity) do đơn hàng thay đổi khỏi trạng thái thành công: ${id}`);
         }
 
         // Emit realtime notification cho Client qua Socket.IO (Nếu có kết nối)
