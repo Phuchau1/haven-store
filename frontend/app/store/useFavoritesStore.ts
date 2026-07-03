@@ -4,10 +4,12 @@ import { Product } from '@/types';
 
 interface FavoritesState {
     favorites: Product[];
-    addFavorite: (product: Product) => void;
-    removeFavorite: (productId: string) => void;
-    toggleFavorite: (product: Product) => void;
+    addFavorite: (product: Product, userId?: string) => Promise<void>;
+    removeFavorite: (productId: string, userId?: string) => Promise<void>;
+    toggleFavorite: (product: Product, userId?: string) => Promise<void>;
     isFavorite: (productId: string) => boolean;
+    syncFavorites: (userId: string) => Promise<void>;
+    clearFavorites: (userId?: string) => Promise<void>;
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
@@ -15,32 +17,79 @@ export const useFavoritesStore = create<FavoritesState>()(
         (set, get) => ({
             favorites: [],
             
-            addFavorite: (product) => set((state) => {
-                if (!state.favorites.find(p => p.id === product.id)) {
-                    return { favorites: [...state.favorites, product] };
+            addFavorite: async (product, userId) => {
+                const current = get().favorites;
+                if (!current.find(p => p.id === product.id)) {
+                    set({ favorites: [...current, product] });
+                    if (userId) {
+                        try {
+                            await fetch('/api/wishlist', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ user_id: userId, product_id: product.id })
+                            });
+                        } catch (error) {
+                            console.error('Lỗi khi thêm wishlist server:', error);
+                        }
+                    }
                 }
-                return state;
-            }),
+            },
 
-            removeFavorite: (productId) => set((state) => ({
-                favorites: state.favorites.filter(p => p.id !== productId)
-            })),
+            removeFavorite: async (productId, userId) => {
+                set((state) => ({
+                    favorites: state.favorites.filter(p => p.id !== productId)
+                }));
+                if (userId) {
+                    try {
+                        await fetch(`/api/wishlist/${productId}?user_id=${userId}`, {
+                            method: 'DELETE'
+                        });
+                    } catch (error) {
+                        console.error('Lỗi khi xóa wishlist server:', error);
+                    }
+                }
+            },
 
-            toggleFavorite: (product) => set((state) => {
-                const isFav = state.favorites.some(p => p.id === product.id);
+            toggleFavorite: async (product, userId) => {
+                const isFav = get().favorites.some(p => p.id === product.id);
                 if (isFav) {
-                    return { favorites: state.favorites.filter(p => p.id !== product.id) };
+                    await get().removeFavorite(product.id, userId);
                 } else {
-                    return { favorites: [...state.favorites, product] };
+                    await get().addFavorite(product, userId);
                 }
-            }),
+            },
 
             isFavorite: (productId) => {
                 return get().favorites.some(p => p.id === productId);
+            },
+
+            syncFavorites: async (userId) => {
+                try {
+                    const res = await fetch(`/api/wishlist?user_id=${userId}`);
+                    const data = await res.json();
+                    if (data.success && data.wishlist) {
+                        set({ favorites: data.wishlist });
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi đồng bộ wishlist:', error);
+                }
+            },
+
+            clearFavorites: async (userId) => {
+                set({ favorites: [] });
+                if (userId) {
+                    try {
+                        await fetch(`/api/wishlist/clear?user_id=${userId}`, {
+                            method: 'DELETE'
+                        });
+                    } catch (error) {
+                        console.error('Lỗi khi xóa toàn bộ wishlist server:', error);
+                    }
+                }
             }
         }),
         {
-            name: 'phstore-favorites', // name of the item in the storage (must be unique)
+            name: 'phstore-favorites',
         }
     )
 );

@@ -9,6 +9,8 @@ import { Product } from '@/types';
 import { formatPrice } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
 import { useFavoritesStore } from '@/app/store/useFavoritesStore';
+import { useAuth } from '@/app/component/AuthContext';
+import toast from 'react-hot-toast';
 
 interface ProductCardProps {
     product: Product;
@@ -20,6 +22,7 @@ export default function ProductCard({ product, index = 0, showSold = false }: Pr
     const [isHovered, setIsHovered] = useState(false);
     const { addItem } = useCart();
     const { isFavorite, toggleFavorite } = useFavoritesStore();
+    const { user } = useAuth();
     
     // Check local hydration to avoid mismatch, but since we rely on zustand persist, we might need a small trick or just use it directly.
     // However, simplest way is direct usage.
@@ -92,10 +95,15 @@ export default function ProductCard({ product, index = 0, showSold = false }: Pr
 
                     {/* Like Button */}
                     <motion.button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            toggleFavorite(product);
+                            await toggleFavorite(product, user?.id);
+                            if (isLiked) {
+                                toast.success(`Đã xóa khỏi danh sách yêu thích`);
+                            } else {
+                                toast.success(`Đã thêm vào danh sách yêu thích`);
+                            }
                         }}
                         className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isLiked
                             ? 'bg-[#D32F2F] text-white shadow-md'

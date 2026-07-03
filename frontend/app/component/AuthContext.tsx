@@ -12,12 +12,25 @@
 import React, { ReactNode } from 'react';
 import { useAuthStore, User } from '@/app/store/useAuthStore';
 import { useCartStore } from '@/app/store/useCartStore';
+import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 
 /**
  * AuthProvider — Không cần Context Provider truyền thống
  * Zustand quản lý state toàn cục nên không cần bọc Provider
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
+    const user = useAuthStore((state) => state.user);
+    const syncFavorites = useFavoritesStore((state) => state.syncFavorites);
+    const clearFavorites = useFavoritesStore((state) => state.clearFavorites);
+
+    React.useEffect(() => {
+        if (user) {
+            syncFavorites(user.id);
+        } else {
+            // clearFavorites(); // Optional: If we want to clear local wishlist on logout
+        }
+    }, [user, syncFavorites]);
+
     // Zustand là global state → chỉ cần render children trực tiếp
     return <>{children}</>;
 }

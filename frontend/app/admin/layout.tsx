@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
     Menu, X, Bell, User, Star, Palette, Ruler,
-    ChevronRight, Search, MoreHorizontal, Zap, Home,
+    ChevronRight, Search, MoreHorizontal, Zap, Home, Heart,
     Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
     Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText
 } from 'lucide-react';
@@ -35,6 +35,7 @@ const MENU_ITEMS = [
     { icon: ImageIcon,       label: 'Banners',       href: '/admin/banners',           group: 'catalog' },
     { icon: Palette,         label: 'Màu sắc',       href: '/admin/colors',            group: 'catalog' },
     { icon: Ruler,           label: 'Kích thước',    href: '/admin/sizes',             group: 'catalog' },
+    { icon: Heart,           label: 'Sản phẩm yêu thích', href: '/admin/wishlist',     group: 'catalog' },
     { icon: Zap,             label: 'Flash Sale',    href: '/admin/flash-sales',       group: 'store' },
     { icon: Ticket,          label: 'Mã giảm giá',  href: '/admin/coupons',           group: 'store' },
     { icon: Gift,            label: 'Vòng quay',     href: '/admin/lucky-wheel',       group: 'store' },
