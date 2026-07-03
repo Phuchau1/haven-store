@@ -110,7 +110,8 @@ const momoReturn = async (req, res) => {
     const frontendUrl = getFrontendUrl();
     try {
         const query      = req.query;
-        const orderId    = query.orderId || '';
+        const fullOrderId = query.orderId || '';
+        const orderId    = fullOrderId.split('_')[0]; // Tách bỏ phần _timestamp
         const resultCode = Number(query.resultCode);
 
         logger.info(`[MoMo Return] orderId=${orderId} resultCode=${resultCode}`);
@@ -183,7 +184,8 @@ const vnpayIpn = async (req, res) => {
 const momoIpn = async (req, res) => {
     try {
         const body       = req.body;
-        const orderId    = body.orderId || '';
+        const fullOrderId = body.orderId || '';
+        const orderId    = fullOrderId.split('_')[0]; // Tách bỏ phần _timestamp
         const resultCode = Number(body.resultCode);
 
         logger.info(`[MoMo IPN] orderId=${orderId} resultCode=${resultCode}`);

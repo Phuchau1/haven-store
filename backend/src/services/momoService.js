@@ -30,6 +30,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
     }
 
     const requestId   = `${partnerCode}${Date.now()}`;
+    const momoOrderId = `${orderId}_${Date.now()}`; // Đảm bảo orderId gửi sang MoMo luôn duy nhất
     const requestType = 'payWithATM'; // Mở thẳng màn hình nhập thẻ ATM nội địa
     const extraData   = '';              // Không truyền data phụ
     const lang        = 'vi';
@@ -41,7 +42,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
         `amount=${amount}`,
         `extraData=${extraData}`,
         `ipnUrl=${ipnUrl}`,
-        `orderId=${orderId}`,
+        `orderId=${momoOrderId}`,
         `orderInfo=${orderInfo}`,
         `partnerCode=${partnerCode}`,
         `redirectUrl=${redirectUrl}`,
@@ -59,7 +60,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
         accessKey,
         requestId,
         amount:      String(amount),
-        orderId,
+        orderId:     momoOrderId,
         orderInfo,
         redirectUrl,
         ipnUrl,
