@@ -21,7 +21,6 @@ import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 export function AuthProvider({ children }: { children: ReactNode }) {
     const user = useAuthStore((state) => state.user);
     const syncFavorites = useFavoritesStore((state) => state.syncFavorites);
-    const clearFavorites = useFavoritesStore((state) => state.clearFavorites);
 
     React.useEffect(() => {
         if (user) {
