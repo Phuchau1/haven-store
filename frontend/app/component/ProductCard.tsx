@@ -16,9 +16,10 @@ interface ProductCardProps {
     product: Product;
     index?: number;
     showSold?: boolean;
+    showDiscount?: boolean;
 }
 
-export default function ProductCard({ product, index = 0, showSold = false }: ProductCardProps) {
+export default function ProductCard({ product, index = 0, showSold = false, showDiscount = true }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     const { addItem } = useCart();
     const { isFavorite, toggleFavorite } = useFavoritesStore();
@@ -86,7 +87,7 @@ export default function ProductCard({ product, index = 0, showSold = false }: Pr
                                 {product.badge}
                             </span>
                         )}
-                        {discount > 0 && (
+                        {showDiscount && discount > 0 && (
                             <span className="inline-block px-2 py-1 text-[10px] font-bold rounded-md bg-[#D32F2F] text-white">
                                 -{discount}%
                             </span>
@@ -154,9 +155,11 @@ export default function ProductCard({ product, index = 0, showSold = false }: Pr
                                     <span className="text-[13px] font-normal text-[#999999] line-through">
                                         {formatPrice(product.originalPrice || 0)}
                                     </span>
-                                    <span className="text-[11px] font-bold text-white bg-[#D32F2F] px-1.5 py-0.5 rounded">
-                                        -{Math.round(((( product.originalPrice || 0) - product.price) / (product.originalPrice || 1)) * 100)}%
-                                    </span>
+                                    {showDiscount && (
+                                        <span className="text-[11px] font-bold text-white bg-[#D32F2F] px-1.5 py-0.5 rounded">
+                                            -{Math.round((((product.originalPrice || 0) - product.price) / (product.originalPrice || 1)) * 100)}%
+                                        </span>
+                                    )}
                                 </>
                             )}
                         </div>
