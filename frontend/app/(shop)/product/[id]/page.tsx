@@ -413,7 +413,29 @@ export default function ProductDetailPage() {
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center border border-gray-300 h-[42px] overflow-hidden shrink-0">
                                     <button aria-label="Giảm số lượng" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">−</button>
-                                    <span className="px-4 h-full flex items-center text-sm font-semibold min-w-[36px] justify-center border-x border-gray-300">{quantity}</span>
+                                    <input 
+                                        type="number" 
+                                        min="1" 
+                                        value={quantity || ''} 
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            if (!isNaN(val)) {
+                                                const maxStock = getVariantStock();
+                                                if (maxStock !== null && val > maxStock) {
+                                                    setQuantity(maxStock);
+                                                    alert(`Chỉ còn ${maxStock} sản phẩm trong kho!`);
+                                                } else {
+                                                    setQuantity(val);
+                                                }
+                                            } else if (e.target.value === '') {
+                                                setQuantity(0 as any); // Tạm thời rỗng khi đang gõ
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            if (!quantity || quantity < 1) setQuantity(1);
+                                        }}
+                                        className="w-12 h-full text-center text-sm font-semibold border-x border-gray-300 focus:outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
                                     <button aria-label="Tăng số lượng" onClick={() => {
                                         const maxStock = getVariantStock();
                                         if (maxStock !== null && quantity >= maxStock) { alert(`Chỉ còn ${maxStock} sản phẩm trong kho!`); return; }

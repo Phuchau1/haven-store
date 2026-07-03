@@ -8,6 +8,43 @@ import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
 import { formatPrice } from '@/lib/format';
 
+const QuantityControl = ({ item, updateQuantity }: { item: any, updateQuantity: any }) => {
+    const [localQuantity, setLocalQuantity] = React.useState<number | string>(item.quantity);
+
+    React.useEffect(() => {
+        setLocalQuantity(item.quantity);
+    }, [item.quantity]);
+
+    return (
+        <input 
+            type="number"
+            min="1"
+            value={localQuantity}
+            onChange={(e) => {
+                const val = e.target.value;
+                if (val === '') {
+                    setLocalQuantity('');
+                } else {
+                    const num = parseInt(val);
+                    if (!isNaN(num)) {
+                        setLocalQuantity(num);
+                        if (num > 0) {
+                            updateQuantity(item.product.id, item.selectedSize, item.selectedColor.name, num);
+                        }
+                    }
+                }
+            }}
+            onBlur={() => {
+                if (localQuantity === '' || Number(localQuantity) < 1) {
+                    setLocalQuantity(1);
+                    updateQuantity(item.product.id, item.selectedSize, item.selectedColor.name, 1);
+                }
+            }}
+            className="w-10 text-center text-sm font-medium focus:outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-transparent"
+        />
+    );
+};
+
 export default function CartDrawer() {
     const { items, isOpen, closeCart, removeItem, updateQuantity, totalAmount, totalItems } = useCart();
 
@@ -120,9 +157,7 @@ export default function CartDrawer() {
                                                             >
                                                                 <Minus size={12} />
                                                             </button>
-                                                            <span className="px-3 text-sm font-medium min-w-[32px] text-center">
-                                                                {item.quantity}
-                                                            </span>
+                                                            <QuantityControl item={item} updateQuantity={updateQuantity} />
                                                             <button
                                                                 onClick={() =>
                                                                     updateQuantity(
