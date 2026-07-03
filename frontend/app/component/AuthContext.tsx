@@ -11,6 +11,7 @@
  */
 import React, { ReactNode } from 'react';
 import { useAuthStore, User } from '@/app/store/useAuthStore';
+import { useCartStore } from '@/app/store/useCartStore';
 
 /**
  * AuthProvider — Không cần Context Provider truyền thống
@@ -56,11 +57,18 @@ export const useAuth = () => {
         }
     };
 
+    const clearCart = useCartStore((state) => state.clearCart);
+
+    const handleLogout = () => {
+        store.logout();
+        clearCart();
+    };
+
     return {
         user:          store.user,                          // Thông tin user hiện tại (null nếu chưa đăng nhập)
         token:         store.user?.id || null,             // Dùng user.id làm token gửi lên backend headers
         login:         store.login,                        // Action đăng nhập (lưu user vào store + localStorage)
-        logout:        store.logout,                       // Action đăng xuất (xóa user khỏi store + localStorage)
+        logout:        handleLogout,                       // Action đăng xuất (xóa user khỏi store + localStorage + xóa giỏ hàng)
         updateProfile,                                     // Action cập nhật hồ sơ cá nhân
         isAdmin:       store.user?.role === 'admin'        // Kiểm tra nhanh có phải quản trị viên không
     };
