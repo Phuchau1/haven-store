@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import LayoutShell from '@/app/component/LayoutShell';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'PH Store - Thời trang cao cấp | Quần áo & Giày dép',
@@ -33,6 +34,26 @@ export default function RootLayout({
       <body className="antialiased">
         <GoogleOAuthProvider clientId="70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com">
           <LayoutShell>{children}</LayoutShell>
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#111',
+                color: '#fff',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+              },
+              success: {
+                iconTheme: { primary: '#4ade80', secondary: '#111' },
+              },
+              error: {
+                iconTheme: { primary: '#f87171', secondary: '#111' },
+              },
+            }}
+          />
         </GoogleOAuthProvider>
       </body>
     </html>
