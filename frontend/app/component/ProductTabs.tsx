@@ -301,73 +301,13 @@ export default function ProductTabs({ product }: ProductTabsProps) {
                                         <p className="text-sm text-gray-500">Dựa trên {product.reviews || 0} đánh giá</p>
                                     </div>
 
-                                    {/* Review Form */}
+                                    {/* Review Form - Replaced by notice */}
                                     <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
                                         <h4 className="text-lg font-medium text-gray-900 mb-6">Viết đánh giá của bạn</h4>
-                                        <form onSubmit={handleSubmitReview} className="space-y-5">
-                                            {/* Star Rating Picker */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-3">Đánh giá sao</label>
-                                                <div className="flex items-center gap-1">
-                                                    {[1, 2, 3, 4, 5].map((star) => (
-                                                        <button
-                                                            key={star}
-                                                            type="button"
-                                                            onClick={() => setRating(star)}
-                                                            onMouseEnter={() => setHoverRating(star)}
-                                                            onMouseLeave={() => setHoverRating(0)}
-                                                            className="p-1 focus:outline-none transition-transform hover:scale-125 active:scale-110"
-                                                        >
-                                                            <Star
-                                                                size={28}
-                                                                className={`transition-colors ${
-                                                                    star <= (hoverRating || rating)
-                                                                        ? 'text-yellow-400 fill-yellow-400'
-                                                                        : 'text-gray-200'
-                                                                }`}
-                                                            />
-                                                        </button>
-                                                    ))}
-                                                    <span className="ml-2 text-sm font-medium text-gray-500">
-                                                        {starLabels[(hoverRating || rating) - 1]}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Content */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Nội dung đánh giá
-                                                    <span className="text-gray-400 font-normal ml-1">({reviewContent.trim().length}/2000)</span>
-                                                </label>
-                                                <textarea
-                                                    required
-                                                    rows={4}
-                                                    value={reviewContent}
-                                                    onChange={(e) => setReviewContent(e.target.value)}
-                                                    maxLength={2000}
-                                                    placeholder="Chia sẻ cảm nhận về chất liệu, size, màu sắc..."
-                                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-black outline-none transition-all resize-none"
-                                                />
-                                            </div>
-
-                                            {/* Tên người dùng (nếu chưa đăng nhập) */}
-                                            {!user && (
-                                                <div className="text-xs text-amber-600 bg-amber-50 rounded-xl px-4 py-3 border border-amber-100">
-                                                    💡 Bạn đang đánh giá với tư cách <strong>Khách ẩn danh</strong>. Đăng nhập để hiển thị tên của bạn.
-                                                </div>
-                                            )}
-
-                                            <button
-                                                type="submit"
-                                                disabled={isSubmittingReview || reviewContent.trim().length < 5}
-                                                className="w-full flex items-center justify-center gap-2 py-3.5 bg-black text-white rounded-xl text-sm font-medium hover:bg-gray-900 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
-                                            >
-                                                {isSubmittingReview
-                                                    ? <><Loader2 className="animate-spin" size={18} /> Đang lưu...</>
-                                                    : <><Send size={18} /> Gửi đánh giá</>}
-                                            </button>
-                                        </form>
+                                        <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-800 leading-relaxed text-center">
+                                            <p>Bạn chỉ có thể đánh giá sản phẩm sau khi đã <strong>mua hàng thành công</strong>.</p>
+                                            <p className="mt-2">Vui lòng truy cập <strong>Lịch sử đơn hàng</strong> để đánh giá các sản phẩm bạn đã nhận.</p>
+                                        </div>
                                     </div>
                                 </div>
 

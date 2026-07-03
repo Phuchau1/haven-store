@@ -13,7 +13,8 @@ import {
     CreditCard,
     MapPin,
     Save,
-    Loader2
+    Loader2,
+    Star
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { useCart } from '@/app/component/CartContext';
@@ -24,12 +25,7 @@ import Image from 'next/image';
 import AddressManager from './AddressManager';
 import ChangePasswordModal from './ChangePasswordModal';
 import { useCartStore } from '@/app/store/useCartStore';
-
-interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
-    discountAmount?: number;
-    couponCode?: string;
-    finalAmount?: number;
-}
+import ReviewModal from '@/app/component/ReviewModal';
 
 interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
     discountAmount?: number;
@@ -52,7 +48,7 @@ const ORDER_STATUS_TABS = [
 ];
 
 // Component Chi tiết đơn hàng mới
-const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (id: string) => void }) => {
+const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (order: OrderData) => void }) => {
     const getStatusText = (status: string) => {
         switch (status) {
             case 'pending': return 'Chờ xử lý';
@@ -308,6 +304,9 @@ export default function NguoiDungPage() {
     const [activeOrderTab, setActiveOrderTab] = useState('all');
     const [orders, setOrders] = useState<OrderData[]>([]);
     const [mounted, setMounted] = useState(false);
+    
+    // State cho Review Modal
+    const [reviewOrder, setReviewOrder] = useState<OrderData | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -359,8 +358,8 @@ export default function NguoiDungPage() {
         alert('Đã thêm sản phẩm vào giỏ hàng!');
     };
 
-    const handleRateOrder = (orderId: string) => {
-        alert('Cảm ơn bạn đã đánh giá đơn hàng #' + orderId + '!');
+    const handleRateOrder = (order: OrderData) => {
+        setReviewOrder(order);
     };
 
 
@@ -705,7 +704,7 @@ export default function NguoiDungPage() {
                                                                         </button>
                                                                     )}
                                                                     {order.status === 'delivered' && (
-                                                                        <button onClick={() => handleRateOrder(order.id ?? '')} className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-colors flex-1 sm:flex-none">
+                                                                        <button onClick={() => handleRateOrder(order)} className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-colors flex-1 sm:flex-none">
                                                                             Đánh giá
                                                                         </button>
                                                                     )}
@@ -848,6 +847,14 @@ export default function NguoiDungPage() {
                 onClose={() => setIsPasswordModalOpen(false)} 
                 email={user.email} 
             />
+            
+            {reviewOrder && user && (
+                <ReviewModal 
+                    order={reviewOrder} 
+                    onClose={() => setReviewOrder(null)} 
+                    user={user} 
+                />
+            )}
         </div>
     );
 }
