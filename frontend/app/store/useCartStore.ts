@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, Product, Color } from '@/types';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 interface CartStore {
     items: CartItem[];
@@ -14,6 +15,8 @@ interface CartStore {
     clearCart: () => void;
     totalItems: number;
     totalAmount: number;
+    syncCart: (userId: string) => Promise<void>;
+    saveCart: (userId: string, items: CartItem[]) => Promise<void>;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -46,6 +49,8 @@ export const useCartStore = create<CartStore>()(
                     const newItems = [...state.items, { product, quantity, selectedSize: size, selectedColor: color }];
                     return { items: newItems, isOpen: true };
                 });
+                const user = useAuthStore.getState().user;
+                if (user) get().saveCart(user.id, get().items);
             },
             
             removeItem: (productId, size, colorName) => {
@@ -55,6 +60,8 @@ export const useCartStore = create<CartStore>()(
                             !(item.product.id === productId && item.selectedSize === size && item.selectedColor.name === colorName)
                     ),
                 }));
+                const user = useAuthStore.getState().user;
+                if (user) get().saveCart(user.id, get().items);
             },
             
             updateQuantity: (productId, size, colorName, quantity) => {
@@ -69,9 +76,39 @@ export const useCartStore = create<CartStore>()(
                             : item
                     ),
                 }));
+                const user = useAuthStore.getState().user;
+                if (user) get().saveCart(user.id, get().items);
             },
             
-            clearCart: () => set({ items: [], isOpen: false }),
+            clearCart: () => {
+                set({ items: [], isOpen: false });
+                const user = useAuthStore.getState().user;
+                if (user) get().saveCart(user.id, []);
+            },
+
+            syncCart: async (userId) => {
+                try {
+                    const res = await fetch(`/api/cart?user_id=${userId}`);
+                    const data = await res.json();
+                    if (data.success && data.cart) {
+                        set({ items: data.cart.items });
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi đồng bộ giỏ hàng:', error);
+                }
+            },
+
+            saveCart: async (userId, items) => {
+                try {
+                    await fetch('/api/cart', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: userId, items })
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi lưu giỏ hàng:', error);
+                }
+            },
             
             // Note: with Zustand, totalItems and totalAmount can be derived getters or just computed properties.
             // Zustand state doesn't dynamically evaluate getters within the state object well without external derived state libraries or recalculating it.
