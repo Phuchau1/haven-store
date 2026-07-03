@@ -145,14 +145,19 @@ export default function ProductCard({ product, index = 0, showSold = false }: Pr
 
                     {/* Price & Sold */}
                     <div className="flex items-center justify-between mt-auto pt-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-[16px] font-bold text-[#111111]">
                                 {formatPrice(product.price)}
                             </span>
-                            {(product.originalPrice || 0) > 0 && (
-                                <span className="text-[13px] font-normal text-[#999999] line-through">
-                                    {formatPrice(product.originalPrice || 0)}
-                                </span>
+                            {(product.originalPrice || 0) > product.price && (
+                                <>
+                                    <span className="text-[13px] font-normal text-[#999999] line-through">
+                                        {formatPrice(product.originalPrice || 0)}
+                                    </span>
+                                    <span className="text-[11px] font-bold text-white bg-[#D32F2F] px-1.5 py-0.5 rounded">
+                                        -{Math.round(((( product.originalPrice || 0) - product.price) / (product.originalPrice || 1)) * 100)}%
+                                    </span>
+                                </>
                             )}
                         </div>
                         {showSold && product.soldQuantity !== undefined && (
