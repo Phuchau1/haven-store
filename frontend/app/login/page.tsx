@@ -5,15 +5,18 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function LoginPage() {
+function LoginContent() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams?.get('redirect');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,7 +33,9 @@ export default function LoginPage() {
 
             if (data.success) {
                 login(data.user);
-                if (data.user.role === 'admin') {
+                if (redirectUrl) {
+                    router.push(redirectUrl);
+                } else if (data.user.role === 'admin') {
                     router.push('/admin');
                 } else {
                     router.push('/');
@@ -151,7 +156,11 @@ export default function LoginPage() {
                                         const data = await res.json();
                                         if (data.success) {
                                             login(data.user);
-                                            router.push('/');
+                                            if (redirectUrl) {
+                                                router.push(redirectUrl);
+                                            } else {
+                                                router.push('/');
+                                            }
                                         } else {
                                             setError(data.message || 'Đăng nhập Google thất bại');
                                         }
@@ -180,5 +189,13 @@ export default function LoginPage() {
                 </motion.div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" size={24} /></div>}>
+            <LoginContent />
+        </Suspense>
     );
 }

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCard, Banknote, Loader2, MapPin, Phone, Mail, User, FileText, Tag, ChevronDown, Check, X, Gift, Ticket, Percent } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/app/component/CartContext';
 import { useAuth } from '@/app/component/AuthContext';
 import { formatPrice } from '@/lib/format';
@@ -50,13 +51,28 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const [error, setError] = useState('');
     const [orderId] = useState(`LF-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
 
-    const [formData, setFormData] = useState({
-        customerName: user?.name || '',
-        phone: '',
-        email: user?.email || '',
-        address: '',
-        paymentMethod: 'cod',
-        note: '',
+    const router = useRouter();
+
+    const [formData, setFormData] = useState(() => {
+        let initialData = {
+            customerName: user?.name || '',
+            phone: '',
+            email: user?.email || '',
+            address: '',
+            paymentMethod: 'cod',
+            note: '',
+        };
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('phstore-checkout-temp');
+            if (saved) {
+                try {
+                    initialData = { ...initialData, ...JSON.parse(saved) };
+                } catch (e) {
+                    console.error('Lỗi khi đọc phstore-checkout-temp:', e);
+                }
+            }
+        }
+        return initialData;
     });
 
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -302,6 +318,13 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             return;
         }
 
+        if (!user) {
+            // Save form data so it's not lost when redirecting to login
+            localStorage.setItem('phstore-checkout-temp', JSON.stringify(formData));
+            router.push('/login?redirect=/checkout');
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -377,6 +400,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }
 
             // Thành công (COD hoặc Chuyển khoản thông thường)!
+            localStorage.removeItem('phstore-checkout-temp');
             onSuccess(result.orderId, formData.email);
         } catch (err: unknown) {
             console.error('Checkout error:', err);
