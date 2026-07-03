@@ -12,7 +12,8 @@ interface CartStore {
     addItem: (product: Product, size: string, color: Color, quantity?: number) => void;
     removeItem: (productId: string, size: string, colorName: string) => void;
     updateQuantity: (productId: string, size: string, colorName: string, quantity: number) => void;
-    clearCart: () => void;
+    clearCart: () => void;          // Xóa local + xóa DB (dùng sau thanh toán)
+    clearCartLocal: () => void;    // Chỉ xóa hiển thị local (dùng khi logout)
     totalItems: number;
     totalAmount: number;
     syncCart: (userId: string) => Promise<void>;
@@ -80,10 +81,16 @@ export const useCartStore = create<CartStore>()(
                 if (user) get().saveCart(user.id, get().items);
             },
             
+            // Xóa hoàn toàn giỏ hàng (local + DB) - dùng sau thanh toán thành công
             clearCart: () => {
-                set({ items: [], isOpen: false });
                 const user = useAuthStore.getState().user;
+                set({ items: [], isOpen: false });
                 if (user) get().saveCart(user.id, []);
+            },
+
+            // Chỉ xóa trên giao diện local, KHÔNG chạm DB - dùng khi logout
+            clearCartLocal: () => {
+                set({ items: [], isOpen: false });
             },
 
             syncCart: async (userId) => {

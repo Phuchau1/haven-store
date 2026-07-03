@@ -69,13 +69,13 @@ export const useAuth = () => {
         }
     };
 
-    const clearCart = useCartStore((state) => state.clearCart);
+    const clearCartLocal = useCartStore((state) => state.clearCartLocal);
     const clearFavorites = useFavoritesStore((state) => state.clearFavorites);
 
     const handleLogout = () => {
         store.logout();
-        clearCart();
-        clearFavorites(); // Chỉ truyền undefined thì sẽ clear local, không gọi API xóa toàn bộ của DB
+        clearCartLocal();      // Chỉ xóa giao diện, KHÔNG xóa DB
+        clearFavorites();      // Chỉ xóa giao diện (không có userId → không gọi API)
     };
 
     return {
