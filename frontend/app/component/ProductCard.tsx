@@ -13,9 +13,10 @@ import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 interface ProductCardProps {
     product: Product;
     index?: number;
+    showSold?: boolean;
 }
 
-export default function ProductCard({ product, index = 0 }: ProductCardProps) {
+export default function ProductCard({ product, index = 0, showSold = false }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     const { addItem } = useCart();
     const { isFavorite, toggleFavorite } = useFavoritesStore();
@@ -134,14 +135,21 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                         {product.name}
                     </h3>
 
-                    {/* Price */}
-                    <div className="flex items-center gap-2 pt-1 mt-auto">
-                        <span className="text-[16px] font-bold text-[#111111]">
-                            {formatPrice(product.price)}
-                        </span>
-                        {(product.originalPrice || 0) > 0 && (
-                            <span className="text-[13px] font-normal text-[#999999] line-through">
-                                {formatPrice(product.originalPrice || 0)}
+                    {/* Price & Sold */}
+                    <div className="flex items-center justify-between mt-auto pt-1">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[16px] font-bold text-[#111111]">
+                                {formatPrice(product.price)}
+                            </span>
+                            {(product.originalPrice || 0) > 0 && (
+                                <span className="text-[13px] font-normal text-[#999999] line-through">
+                                    {formatPrice(product.originalPrice || 0)}
+                                </span>
+                            )}
+                        </div>
+                        {showSold && product.soldQuantity !== undefined && (
+                            <span className="text-[11px] text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded">
+                                Đã bán: {product.soldQuantity}
                             </span>
                         )}
                     </div>
