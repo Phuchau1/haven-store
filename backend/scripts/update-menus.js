@@ -22,8 +22,8 @@ async function run() {
                 title: 'Danh mục sale',
                 children: [
                     { id: 'sale-30', title: 'Sale 30%', link: '/products?discounted=true', order: 1, isActive: true },
-                    { id: 'sale-50', title: 'Sale 50%', link: '/products?discounted=true', order: 2, isActive: true },
-                    { id: 'sale-70', title: 'Sale 70%', link: '/products?discounted=true', order: 3, isActive: true }
+                    { id: 'sale-40', title: 'Sale 40%', link: '/products?discounted=true', order: 2, isActive: true },
+                    { id: 'sale-50', title: 'Sale 50%', link: '/products?discounted=true', order: 3, isActive: true }
                 ]
             } 
         }

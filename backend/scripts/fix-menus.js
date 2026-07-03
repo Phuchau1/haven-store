@@ -23,8 +23,8 @@ const menus = [
         isActive: true,
         children: [
             { id: 'sale-30', title: 'Sale 30%', link: '/products?discount=30', order: 1, isActive: true },
-            { id: 'sale-50', title: 'Sale 50%', link: '/products?discount=50', order: 2, isActive: true },
-            { id: 'sale-70', title: 'Sale 70%', link: '/products?discount=70', order: 3, isActive: true }
+            { id: 'sale-40', title: 'Sale 40%', link: '/products?discount=40', order: 2, isActive: true },
+            { id: 'sale-50', title: 'Sale 50%', link: '/products?discount=50', order: 3, isActive: true }
         ]
     },
     {
