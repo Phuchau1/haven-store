@@ -91,7 +91,34 @@ export const useCartStore = create<CartStore>()(
                     const res = await fetch(`/api/cart?user_id=${userId}`);
                     const data = await res.json();
                     if (data.success && data.cart) {
-                        set({ items: data.cart.items });
+                        const backendItems = data.cart.items || [];
+                        const localItems = get().items;
+                        
+                        let mergedItems = [...backendItems];
+                        let changed = false;
+                        
+                        localItems.forEach((localItem) => {
+                            const existingIndex = mergedItems.findIndex((item: any) => 
+                                item.product.id === localItem.product.id && 
+                                item.selectedSize === localItem.selectedSize && 
+                                item.selectedColor.name === localItem.selectedColor.name
+                            );
+                            if (existingIndex > -1) {
+                                // Add quantities
+                                mergedItems[existingIndex].quantity += localItem.quantity;
+                                changed = true;
+                            } else {
+                                mergedItems.push(localItem);
+                                changed = true;
+                            }
+                        });
+
+                        set({ items: mergedItems });
+                        
+                        // Save merged items to backend if local had items
+                        if (localItems.length > 0) {
+                            get().saveCart(userId, mergedItems);
+                        }
                     }
                 } catch (error) {
                     console.error('Lỗi khi đồng bộ giỏ hàng:', error);

@@ -68,7 +68,36 @@ export const useFavoritesStore = create<FavoritesState>()(
                     const res = await fetch(`/api/wishlist?user_id=${userId}`);
                     const data = await res.json();
                     if (data.success && data.wishlist) {
-                        set({ favorites: data.wishlist });
+                        const backendFavs = data.wishlist || [];
+                        const localFavs = get().favorites;
+                        
+                        let mergedFavs = [...backendFavs];
+                        let changed = false;
+                        
+                        localFavs.forEach((localItem) => {
+                            if (!mergedFavs.find((p: any) => p.id === localItem.id)) {
+                                mergedFavs.push(localItem);
+                                changed = true;
+                            }
+                        });
+
+                        set({ favorites: mergedFavs });
+                        
+                        if (changed) {
+                            localFavs.forEach(async (item) => {
+                                if (!backendFavs.find((p: any) => p.id === item.id)) {
+                                    try {
+                                        await fetch('/api/wishlist', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ user_id: userId, product_id: item.id })
+                                        });
+                                    } catch (err) {
+                                        console.error('Lỗi khi merge wishlist server:', err);
+                                    }
+                                }
+                            });
+                        }
                     }
                 } catch (error) {
                     console.error('Lỗi khi đồng bộ wishlist:', error);
