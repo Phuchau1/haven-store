@@ -1,36 +1,42 @@
-import { useState, useEffect } from 'react';
+'use client';
+import { useState, useEffect, useCallback } from 'react';
 import { Product } from '@/types';
 
-const STORAGE_KEY = 'torano_recently_viewed';
-const MAX_ITEMS = 10;
-
-export function useRecentlyViewed() {
+export function useRecentlyViewed(userId?: string) {
     const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
 
+    // Load từ DB khi có userId
     useEffect(() => {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
-                setRecentlyViewed(JSON.parse(stored));
-            } catch (e) {
-                console.error('Failed to parse recently viewed items', e);
-            }
+        if (!userId) {
+            setRecentlyViewed([]);
+            return;
         }
-    }, []);
+        fetch(`/api/recently-viewed?user_id=${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.items) {
+                    setRecentlyViewed(data.items);
+                }
+            })
+            .catch(err => console.error('Lỗi khi tải sản phẩm đã xem:', err));
+    }, [userId]);
 
-    const addProduct = (product: Product) => {
-        setRecentlyViewed((prev) => {
-            // Loại bỏ sản phẩm nếu đã có trong danh sách (để đưa lên đầu)
+    const addProduct = useCallback((product: Product) => {
+        // Cập nhật local state ngay lập tức để UI mượt
+        setRecentlyViewed(prev => {
             const filtered = prev.filter(p => p.id !== product.id);
-            
-            // Thêm vào đầu danh sách
-            const updated = [product, ...filtered].slice(0, MAX_ITEMS);
-            
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-            return updated;
+            return [product, ...filtered].slice(0, 10);
         });
-    };
+
+        // Lưu lên DB nếu đã đăng nhập
+        if (userId) {
+            fetch('/api/recently-viewed', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, product_id: product.id })
+            }).catch(err => console.error('Lỗi khi lưu sản phẩm đã xem:', err));
+        }
+    }, [userId]);
 
     return { recentlyViewed, addProduct };
 }

@@ -205,3 +205,36 @@ exports.updateConfig = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+/**
+ * @desc Kiểm tra người dùng có thể quay hôm nay không (không cần auth)
+ * @route GET /api/lucky-wheel/can-spin?user_id=xxx
+ */
+exports.canSpin = async (req, res) => {
+    try {
+        const { user_id } = req.query;
+        if (!user_id) return res.status(400).json({ success: false, message: 'Thiếu user_id' });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const spinsToday = await SpinHistory.countDocuments({
+            user_id: String(user_id),
+            spin_date: { $gte: today }
+        });
+
+        // Tính thời gian đến lần quay tiếp theo (00:00 ngày mai)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+
+        res.json({
+            success: true,
+            canSpin: spinsToday < 1,
+            nextSpinAt: spinsToday >= 1 ? tomorrow.toISOString() : null
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+

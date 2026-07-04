@@ -4,8 +4,9 @@ const luckyWheelController = require('../controllers/luckyWheelController');
 const { protect, admin } = require('../middleware/auth');
 
 // Public / User routes
-router.get('/config', luckyWheelController.getConfig); // Lấy danh sách giải thưởng để vẽ vòng quay
-router.post('/spin', protect, luckyWheelController.spin); // Yêu cầu đăng nhập để quay
+router.get('/config', luckyWheelController.getConfig);
+router.get('/can-spin', luckyWheelController.canSpin);  // GET /api/lucky-wheel/can-spin?user_id=xxx
+router.post('/spin', protect, luckyWheelController.spin);
 
 // Admin routes
 router.put('/config', protect, admin, luckyWheelController.updateConfig);

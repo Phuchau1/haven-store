@@ -238,9 +238,14 @@ function WheelModal({ onClose }: { onClose: () => void }) {
     const [loadingConfig, setLoadingConfig] = useState(true);
     const [prizes, setPrizes] = useState<WheelPrize[]>([]);
     
-    const { config, setConfig, canSpinToday, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
-    const canSpin = canSpinToday();
+    const { config, setConfig, canSpin, checkCanSpin, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
+    const { user } = useAuth();
     const timeLeft = !canSpin ? getTimeUntilNextSpin() : '';
+
+    // Check spin availability from DB on mount
+    useEffect(() => {
+        if (user?.id) checkCanSpin(user.id);
+    }, [user?.id, checkCanSpin]);
 
     // Fetch config on open if not fetched
     useEffect(() => {

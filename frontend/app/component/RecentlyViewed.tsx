@@ -2,13 +2,15 @@
 import React from 'react';
 import { useRecentlyViewed } from '@/app/hooks/useRecentlyViewed';
 import ProductCard from './ProductCard';
+import { useAuth } from '@/app/component/AuthContext';
 
 interface RecentlyViewedProps {
     currentProductId?: string;
 }
 
 export default function RecentlyViewed({ currentProductId }: RecentlyViewedProps) {
-    const { recentlyViewed } = useRecentlyViewed();
+    const { user } = useAuth();
+    const { recentlyViewed } = useRecentlyViewed(user?.id);
 
     // Loại bỏ sản phẩm hiện tại đang xem khỏi danh sách
     const displayProducts = recentlyViewed.filter(p => p.id !== currentProductId).slice(0, 4);

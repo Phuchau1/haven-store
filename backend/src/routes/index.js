@@ -31,6 +31,7 @@ const barcodeRoutes = require('./barcodeRoutes');
 const exportRoutes = require('./exportRoutes');
 const aiRoutes = require('./aiRoutes');
 const luckyWheelRoutes = require('./luckyWheelRoutes');
+const recentlyViewedRoutes = require('./recentlyViewedRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
@@ -53,6 +54,7 @@ router.use('/articles', articleRoutes);
 router.use('/export', exportRoutes);
 router.use('/ai', aiRoutes);
 router.use('/lucky-wheel', luckyWheelRoutes);
+router.use('/recently-viewed', recentlyViewedRoutes);
 
 // WMS API
 router.use('/menus', menuRoutes);

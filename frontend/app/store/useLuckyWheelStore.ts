@@ -1,13 +1,12 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 export interface WheelPrize {
     id: number | string;
     label: string;
     shortLabel: string;
     type: 'voucher' | 'freeship' | 'retry';
-    value?: number;       // % hoặc số tiền
-    code?: string;        // mã voucher
+    value?: number;
+    code?: string;
     color: string;
     textColor: string;
     emoji: string;
@@ -23,44 +22,56 @@ export interface WheelConfig {
 interface LuckyWheelStore {
     isOpen: boolean;
     config: WheelConfig | null;
-    lastSpinDate: string | null;
+    canSpin: boolean;
+    nextSpinAt: string | null;
     wonPrize: WheelPrize | null;
     setConfig: (config: WheelConfig) => void;
     openWheel: () => void;
     closeWheel: () => void;
     recordSpin: (prize: WheelPrize) => void;
     clearPrize: () => void;
-    canSpinToday: () => boolean;
+    checkCanSpin: (userId: string) => Promise<void>;
     getTimeUntilNextSpin: () => string;
 }
 
 export const useLuckyWheelStore = create<LuckyWheelStore>()(
-    persist(
-        (set, get) => ({
-            isOpen: false,
-            config: null,
-            lastSpinDate: null,
-            wonPrize: null,
+    (set, get) => ({
+        isOpen: false,
+        config: null,
+        canSpin: true,
+        nextSpinAt: null,
+        wonPrize: null,
 
-            setConfig: (config) => set({ config }),
+        setConfig: (config) => set({ config }),
 
-            openWheel: () => set({ isOpen: true }),
-            closeWheel: () => set({ isOpen: false }),
+        openWheel: () => set({ isOpen: true }),
+        closeWheel: () => set({ isOpen: false }),
 
-            recordSpin: (prize) => {
-                const today = new Date().toDateString();
-                set({ lastSpinDate: today, wonPrize: prize });
-            },
+        recordSpin: (prize) => {
+            set({ wonPrize: prize, canSpin: false });
+        },
 
-            clearPrize: () => set({ wonPrize: null }),
+        clearPrize: () => set({ wonPrize: null }),
 
-            canSpinToday: () => {
-                const { lastSpinDate } = get();
-                if (!lastSpinDate) return true;
-                return lastSpinDate !== new Date().toDateString();
-            },
+        // Kiểm tra từ DB thay vì localStorage
+        checkCanSpin: async (userId) => {
+            try {
+                const res = await fetch(`/api/lucky-wheel/can-spin?user_id=${userId}`);
+                const data = await res.json();
+                if (data.success !== undefined) {
+                    set({
+                        canSpin: data.canSpin,
+                        nextSpinAt: data.nextSpinAt || null
+                    });
+                }
+            } catch (error) {
+                console.error('Lỗi khi kiểm tra lượt quay:', error);
+            }
+        },
 
-            getTimeUntilNextSpin: () => {
+        getTimeUntilNextSpin: () => {
+            const { nextSpinAt } = get();
+            if (!nextSpinAt) {
                 const now = new Date();
                 const tomorrow = new Date(now);
                 tomorrow.setDate(tomorrow.getDate() + 1);
@@ -69,15 +80,12 @@ export const useLuckyWheelStore = create<LuckyWheelStore>()(
                 const h = Math.floor(diff / 3600000);
                 const m = Math.floor((diff % 3600000) / 60000);
                 return `${h}h ${m}m`;
-            },
-        }),
-        {
-            name: 'lucky-wheel-store',
-            skipHydration: true,
-        }
-    )
+            }
+            const diff = new Date(nextSpinAt).getTime() - Date.now();
+            if (diff <= 0) return '0h 0m';
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            return `${h}h ${m}m`;
+        },
+    })
 );
-
-if (typeof window !== 'undefined') {
-    useLuckyWheelStore.persist.rehydrate();
-}

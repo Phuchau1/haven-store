@@ -14,6 +14,7 @@ import ProductCard from '@/app/component/ProductCard';
 import ProductTabs from '@/app/component/ProductTabs';
 import { useRecentlyViewed } from '@/app/hooks/useRecentlyViewed';
 import RecentlyViewed from '@/app/component/RecentlyViewed';
+import { useAuth } from '@/app/component/AuthContext';
 
 const COLOR_CLASS_MAP: Record<string, string> = {
     'Đen': 'bg-black',
@@ -50,7 +51,8 @@ export default function ProductDetailPage() {
     const [isLiked, setIsLiked] = useState(false);
     const [showAddedNotification, setShowAddedNotification] = useState(false);
 
-    const { addProduct } = useRecentlyViewed();
+    const { user } = useAuth();
+    const { addProduct } = useRecentlyViewed(user?.id);
 
     useEffect(() => {
         const fetchProductData = async () => {
