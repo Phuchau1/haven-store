@@ -2,16 +2,17 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const CartItemSchema = new Schema({
-    variant_id: { type: String, required: true },
+    product: { type: Schema.Types.Mixed, required: true },
     quantity: { type: Number, required: true, default: 1 },
-    price: { type: Number, required: true }
+    selectedSize: { type: String },
+    selectedColor: { type: Schema.Types.Mixed }
 }, { _id: false });
 
 const CartSchema = new Schema({
     id: { type: String, required: true, unique: true },
-    user_id: { type: String, required: true },
+    user_id: { type: String, required: true, index: true },
     items: [CartItemSchema],
-    created_at: { type: String, required: true, default: () => new Date().toISOString() }
+    created_at: { type: Date, default: Date.now }
 }, { timestamps: true });
 
 const CartModel = mongoose.models.Cart || mongoose.model('Cart', CartSchema);

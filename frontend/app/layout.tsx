@@ -3,6 +3,7 @@ import './globals.css';
 import LayoutShell from '@/app/component/LayoutShell';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from '@/app/component/AuthContext';
 
 export const metadata: Metadata = {
   title: 'PH Store - Thời trang cao cấp | Quần áo & Giày dép',
@@ -33,7 +34,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <GoogleOAuthProvider clientId="70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com">
-          <LayoutShell>{children}</LayoutShell>
+          <AuthProvider>
+            <LayoutShell>{children}</LayoutShell>
+          </AuthProvider>
           <Toaster
             position="bottom-right"
             toastOptions={{
