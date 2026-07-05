@@ -9,26 +9,34 @@
  * với localStorage để duy trì đăng nhập sau khi reload trang.
  * ============================================================
  */
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useAuthStore, User } from '@/app/store/useAuthStore';
 import { useCartStore } from '@/app/store/useCartStore';
 import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 
 /**
- * AuthProvider — Không cần Context Provider truyền thống
- * Zustand quản lý state toàn cục nên không cần bọc Provider
+ * AuthProvider — Đồng bộ dữ liệu Cart & Wishlist từ DB mỗi khi user thay đổi.
+ * Sử dụng cờ `hydrated` để đảm bảo Zustand persist đã rehydrate xong
+ * từ localStorage TRƯỚC khi gọi API sync — tránh sync với user=null.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
     const user = useAuthStore((state) => state.user);
     const syncFavorites = useFavoritesStore((state) => state.syncFavorites);
     const syncCart = useCartStore((state) => state.syncCart);
 
-    React.useEffect(() => {
+    // Đảm bảo Zustand persist đã rehydrate xong trước khi sync
+    const [hydrated, setHydrated] = useState(false);
+    useEffect(() => {
+        setHydrated(true);
+    }, []);
+
+    useEffect(() => {
+        if (!hydrated) return; // Chờ rehydrate xong
         if (user) {
             syncFavorites(user.id);
             syncCart(user.id);
         }
-    }, [user, syncFavorites, syncCart]);
+    }, [user, hydrated, syncFavorites, syncCart]);
 
     // Zustand là global state → chỉ cần render children trực tiếp
     return <>{children}</>;

@@ -28,39 +28,41 @@ export const useCartStore = create<CartStore>()(
         toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
 
         addItem: (product, size, color, quantity = 1) => {
-            set((state) => {
-                const existingIndex = state.items.findIndex(
-                    item =>
-                        item.product.id === product.id &&
-                        item.selectedSize === size &&
-                        item.selectedColor.name === color.name
-                );
+            // Tính toán newItems TRƯỚC rồi set — tránh race condition
+            const state = get();
+            const existingIndex = state.items.findIndex(
+                item =>
+                    item.product.id === product.id &&
+                    item.selectedSize === size &&
+                    item.selectedColor.name === color.name
+            );
 
-                if (existingIndex > -1) {
-                    const updated = [...state.items];
-                    updated[existingIndex] = {
-                        ...updated[existingIndex],
-                        quantity: updated[existingIndex].quantity + quantity,
-                    };
-                    return { items: updated, isOpen: true };
-                }
+            let newItems: CartItem[];
+            if (existingIndex > -1) {
+                newItems = [...state.items];
+                newItems[existingIndex] = {
+                    ...newItems[existingIndex],
+                    quantity: newItems[existingIndex].quantity + quantity,
+                };
+            } else {
+                newItems = [...state.items, { product, quantity, selectedSize: size, selectedColor: color }];
+            }
 
-                const newItems = [...state.items, { product, quantity, selectedSize: size, selectedColor: color }];
-                return { items: newItems, isOpen: true };
-            });
+            set({ items: newItems, isOpen: true });
+
+            // Lưu DB với newItems đã tính sẵn (không dùng get().items — tránh race condition)
             const user = useAuthStore.getState().user;
-            if (user) get().saveCart(user.id, get().items);
+            if (user) get().saveCart(user.id, newItems);
         },
 
         removeItem: (productId, size, colorName) => {
-            set((state) => ({
-                items: state.items.filter(
-                    item =>
-                        !(item.product.id === productId && item.selectedSize === size && item.selectedColor.name === colorName)
-                ),
-            }));
+            const newItems = get().items.filter(
+                item =>
+                    !(item.product.id === productId && item.selectedSize === size && item.selectedColor.name === colorName)
+            );
+            set({ items: newItems });
             const user = useAuthStore.getState().user;
-            if (user) get().saveCart(user.id, get().items);
+            if (user) get().saveCart(user.id, newItems);
         },
 
         updateQuantity: (productId, size, colorName, quantity) => {
@@ -68,15 +70,14 @@ export const useCartStore = create<CartStore>()(
                 get().removeItem(productId, size, colorName);
                 return;
             }
-            set((state) => ({
-                items: state.items.map(item =>
-                    item.product.id === productId && item.selectedSize === size && item.selectedColor.name === colorName
-                        ? { ...item, quantity }
-                        : item
-                ),
-            }));
+            const newItems = get().items.map(item =>
+                item.product.id === productId && item.selectedSize === size && item.selectedColor.name === colorName
+                    ? { ...item, quantity }
+                    : item
+            );
+            set({ items: newItems });
             const user = useAuthStore.getState().user;
-            if (user) get().saveCart(user.id, get().items);
+            if (user) get().saveCart(user.id, newItems);
         },
 
         // Xóa hoàn toàn giỏ hàng (local + DB) — dùng sau thanh toán thành công
