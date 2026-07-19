@@ -12,6 +12,7 @@ import { formatPrice } from '@/lib/format';
 import { SkeletonCard } from './components/SkeletonLoaders';
 import { EmptyState } from './components/EmptyState';
 import { useToast } from './components/AdminToast';
+import AnalyticsCharts from './components/AnalyticsCharts';
 
 interface DashboardStats {
     totalRevenue: number;
@@ -299,6 +300,9 @@ export default function AdminDashboard() {
                     })
                 ) : null}
             </div>
+
+            {/* ─ Analytics Charts ─ */}
+            {stats && <AnalyticsCharts stats={stats} />}
 
             {/* ─ Main Grid ─ */}
             {stats && (

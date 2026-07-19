@@ -33,7 +33,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <GoogleOAuthProvider clientId="70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com">
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com"}>
           <AuthProvider>
             <LayoutShell>{children}</LayoutShell>
           </AuthProvider>

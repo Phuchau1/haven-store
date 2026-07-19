@@ -1,5 +1,6 @@
 'use client';
 import { GoogleLogin } from '@react-oauth/google';
+import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -176,6 +177,57 @@ function LoginContent() {
                                 size="large"
                                 text="continue_with"
                                 width="300"
+                            />
+                        </div>
+
+                        <div className="mt-4 flex justify-center w-full">
+                            <FacebookLogin
+                                appId={process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "100000000000000"}
+                                autoLoad={false}
+                                fields="name,email,picture"
+                                callback={async (response: any) => {
+                                    if (response.accessToken) {
+                                        setLoading(true);
+                                        try {
+                                            const res = await fetch('/api/auth/facebook', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ accessToken: response.accessToken, userID: response.userID })
+                                            });
+                                            const data = await res.json();
+                                            if (data.success) {
+                                                login(data.user);
+                                                if (redirectUrl) {
+                                                    router.push(redirectUrl);
+                                                } else {
+                                                    router.push('/');
+                                                }
+                                            } else {
+                                                setError(data.message || 'Đăng nhập Facebook thất bại');
+                                            }
+                                        } catch (error) {
+                                            console.error('Facebook login error:', error);
+                                            setError('Lỗi kết nối máy chủ');
+                                        } finally {
+                                            setLoading(false);
+                                        }
+                                    } else {
+                                        setError('Đăng nhập Facebook bị huỷ');
+                                    }
+                                }}
+                                render={(renderProps: any) => (
+                                    <button
+                                        type="button"
+                                        onClick={renderProps.onClick}
+                                        disabled={renderProps.isDisabled}
+                                        className="w-[300px] flex items-center justify-center gap-3 px-4 py-2.5 bg-[#1877F2] text-white rounded-full font-medium hover:bg-[#166FE5] transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-[#1877F2]"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z" />
+                                        </svg>
+                                        Tiếp tục với Facebook
+                                    </button>
+                                )}
                             />
                         </div>
                     </div>

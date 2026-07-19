@@ -343,7 +343,11 @@ const createOrder = async (req, res, next) => {
         session.endSession();
 
         // 5. Gửi email xác nhận (Chạy bất đồng bộ qua Redis Queue - BullMQ)
-        enqueueOrderEmail(newOrderData);
+        // Chỉ gửi email ngay lập tức nếu là thanh toán khi nhận hàng hoặc chuyển khoản thủ công
+        // Nếu là VNPay/MoMo, email sẽ được gửi sau khi thanh toán thành công (callback)
+        if (body.paymentMethod === 'cod' || body.paymentMethod === 'bank-transfer') {
+            enqueueOrderEmail(newOrderData);
+        }
 
         return res.json({ success: true, orderId: newOrderData.id, finalAmount: calculatedFinalAmount });
     } catch (error) {

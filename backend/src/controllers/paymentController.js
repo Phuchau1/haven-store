@@ -10,6 +10,7 @@ const { buildVNPayUrl, verifyVNPayReturn } = require('../services/vnpayService')
 const { buildMoMoUrl, verifyMoMoReturn }   = require('../services/momoService');
 const { OrderModel }                        = require('../models/Order');
 const { exportStockOnApproval }             = require('./orderController');
+const { enqueueOrderEmail }                 = require('../services/queueService');
 const logger                                = require('../utils/logger');
 
 // In-memory store cho OTP (production nên dùng Redis)
@@ -66,6 +67,8 @@ const confirmOrderPaid = async (orderId) => {
     );
     if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
         await exportStockOnApproval(updatedOrder.items, orderId);
+        // Gửi email xác nhận thanh toán thành công
+        enqueueOrderEmail(updatedOrder.toObject());
     }
     return updatedOrder;
 };

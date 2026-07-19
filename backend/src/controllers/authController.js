@@ -6,6 +6,7 @@
  * ============================================================
  */
 const crypto = require('crypto');
+const axios = require('axios');
 const { UserModel } = require('../models/User');
 const { sendOtpEmail } = require('../services/emailService');
 
