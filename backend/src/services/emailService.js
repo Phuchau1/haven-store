@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const { formatPrice } = require('../utils');
 const fs = require('fs');
 const path = require('path');
@@ -9,22 +9,9 @@ function log(msg) {
     console.log(`[EmailService] ${msg}`);
 }
 
-// Create a function to get transporter to ensure env vars are loaded
-function getTransporter() {
-    return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,          // Dùng port 587 (STARTTLS) thay vì 465 (SSL) để tránh lỗi IPv6 trên Render
-        secure: false,      // false = STARTTLS (tự động upgrade lên TLS)
-        requireTLS: true,   // Bắt buộc phải dùng TLS
-        family: 4,          // BẮT BUỘC dùng IPv4 (Render Free không hỗ trợ IPv6)
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-        tls: {
-            rejectUnauthorized: false   // Bỏ qua lỗi certificate nếu có
-        }
-    });
+// Dùng Resend API thay vì SMTP (tránh bị Render chặn port SMTP)
+function getResend() {
+    return new Resend(process.env.RESEND_API_KEY);
 }
 
 function generateOrderEmailHTML(data) {
@@ -173,8 +160,8 @@ async function sendOrderConfirmationEmail(orderData) {
     log('EMAIL_USER env: ' + (process.env.EMAIL_USER || 'CHƯA SET'));
     log('EMAIL_PASS env: ' + (process.env.EMAIL_PASS ? 'ĐÃ SET (' + process.env.EMAIL_PASS.length + ' ký tự)' : 'CHƯA SET'));
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        log('LỖI: Chưa cấu hình EMAIL_USER hoặc EMAIL_PASS trong biến môi trường!');
+    if (!process.env.RESEND_API_KEY) {
+        log('LỖI: Chưa cấu hình RESEND_API_KEY trong biến môi trường!');
         return;
     }
 
@@ -183,33 +170,34 @@ async function sendOrderConfirmationEmail(orderData) {
         orderId: orderData.id,
         orderDate: new Date(orderData.createdAt).toLocaleString('vi-VN')
     });
-    log('HTML email đã được tạo. Bắt đầu gửi...');
+    log('HTML email đã được tạo. Bắt đầu gửi qua Resend API...');
 
+    const resend = getResend();
     const adminEmail = 'ntphau21@gmail.com';
-    const transporter = getTransporter();
 
     // Gửi email cho KHÁCH HÀNG
     try {
-        await transporter.sendMail({
-            from: `"Haven Store" <${process.env.EMAIL_USER}>`,
-            to: orderData.email,
+        const { error } = await resend.emails.send({
+            from: 'Haven Store <onboarding@resend.dev>',
+            to: [orderData.email],
             subject: `✅ Xác nhận đơn hàng #${orderData.id} - Haven Store`,
             html: emailHtml,
         });
+        if (error) throw new Error(JSON.stringify(error));
         log('✅ Gửi email cho KHÁCH HÀNG thành công: ' + orderData.email);
     } catch (e) {
         log('❌ LỖI gửi email cho khách hàng ' + orderData.email + ': ' + e.message);
-        log('Chi tiết lỗi: ' + JSON.stringify(e));
     }
 
     // Gửi email thông báo cho ADMIN
     try {
-        await transporter.sendMail({
-            from: `"Haven Store" <${process.env.EMAIL_USER}>`,
-            to: adminEmail,
+        const { error } = await resend.emails.send({
+            from: 'Haven Store <onboarding@resend.dev>',
+            to: [adminEmail],
             subject: `🛒 [Admin] Đơn hàng mới #${orderData.id} - ${orderData.customerName}`,
             html: emailHtml,
         });
+        if (error) throw new Error(JSON.stringify(error));
         log('✅ Gửi email cho ADMIN thành công: ' + adminEmail);
     } catch (e) {
         log('❌ LỖI gửi email cho admin ' + adminEmail + ': ' + e.message);
