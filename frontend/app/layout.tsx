@@ -56,6 +56,7 @@ export default function RootLayout({
               error: {
                 iconTheme: { primary: '#f87171', secondary: '#111' },
               },
+            }}
           />
           <LiveChat />
         </GoogleOAuthProvider>
