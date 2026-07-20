@@ -342,22 +342,9 @@ const createOrder = async (req, res, next) => {
         await session.commitTransaction();
         session.endSession();
 
-        // 5. Gửi email xác nhận đơn hàng
-        // Chỉ KHÔNG gửi ngay nếu là VNPay/MoMo (chờ callback thanh toán thành công mới gửi)
-        // Tất cả các phương thức khác (COD, chuyển khoản, v.v.) đều gửi email ngay
-        const onlinePaymentMethods = ['vnpay', 'momo'];
-        const isOnlinePayment = onlinePaymentMethods.some(m => 
-            body.paymentMethod && body.paymentMethod.toLowerCase().includes(m)
-        );
-        
-        log(`[Order] paymentMethod = "${body.paymentMethod}" | isOnlinePayment = ${isOnlinePayment}`);
-        
-        if (!isOnlinePayment) {
-            log(`[Order] Gửi email cho đơn hàng ${newOrderData.id} (phương thức: ${body.paymentMethod})`);
-            enqueueOrderEmail(newOrderData);
-        } else {
-            log(`[Order] Bỏ qua gửi email ngay - chờ callback thanh toán online cho đơn ${newOrderData.id}`);
-        }
+        // 5. Gửi email xác nhận đơn hàng cho TẤT CẢ phương thức thanh toán
+        log(`[Order] Gửi email xác nhận cho đơn hàng ${newOrderData.id} (phương thức: ${body.paymentMethod})`);
+        enqueueOrderEmail(newOrderData);
 
 
         return res.json({ success: true, orderId: newOrderData.id, finalAmount: calculatedFinalAmount });
