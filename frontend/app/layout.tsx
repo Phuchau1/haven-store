@@ -4,7 +4,6 @@ import LayoutShell from '@/app/component/LayoutShell';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/app/component/AuthContext';
-import LiveChat from '@/app/component/LiveChat';
 
 export const metadata: Metadata = {
   title: 'PH Store - Thời trang cao cấp | Quần áo & Giày dép',
@@ -58,7 +57,6 @@ export default function RootLayout({
               },
             }}
           />
-          <LiveChat />
         </GoogleOAuthProvider>
       </body>
     </html>
