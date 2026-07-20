@@ -48,18 +48,21 @@ const enqueueOrderEmail = async (orderData) => {
                 attempts: 3,
                 backoff: { type: 'exponential', delay: 2000 }
             });
-            logger.info(`[Email Queue] Đã thêm đơn hàng ${orderData.id} vào hàng đợi.`);
+            logger.info(`[Email Queue] Đã thêm đơn hàng ${orderData.id} vào hàng đợi Redis.`);
             return;
         } catch (error) {
-            logger.warn(`[Email Queue] Queue error, fallback to sync: ${error.message}`);
+            logger.warn(`[Email Queue] Queue error, fallback sang gửi trực tiếp: ${error.message}`);
         }
+    } else {
+        logger.info(`[Email] Không có Redis Queue → Gửi email trực tiếp cho đơn hàng ${orderData.id}`);
     }
     
-    // Fallback: Gửi đồng bộ
+    // Gửi email trực tiếp (không có Redis hoặc Redis lỗi)
     try {
         await sendOrderConfirmationEmail(orderData);
+        logger.info(`[Email] Gửi email trực tiếp thành công cho đơn hàng ${orderData.id}`);
     } catch (e) {
-        logger.error(`[Email Fallback Error] ${e.message}`);
+        logger.error(`[Email] LỖI gửi email trực tiếp cho đơn hàng ${orderData.id}: ${e.message}`);
     }
 };
 

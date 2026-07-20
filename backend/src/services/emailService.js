@@ -161,28 +161,58 @@ function generateOrderEmailHTML(data) {
   `;
 }
 
-function sendOrderConfirmationEmail(orderData) {
-    log('Generating email HTML...');
+async function sendOrderConfirmationEmail(orderData) {
+    log('=== BẮT ĐẦU GỬI EMAIL ĐƠN HÀNG ===');
+    log('Order ID: ' + orderData.id);
+    log('Customer Email: ' + orderData.email);
+    log('EMAIL_USER env: ' + (process.env.EMAIL_USER || 'CHƯA SET'));
+    log('EMAIL_PASS env: ' + (process.env.EMAIL_PASS ? 'ĐÃ SET (' + process.env.EMAIL_PASS.length + ' ký tự)' : 'CHƯA SET'));
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        log('LỖI: Chưa cấu hình EMAIL_USER hoặc EMAIL_PASS trong biến môi trường!');
+        return;
+    }
+
     const emailHtml = generateOrderEmailHTML({
         ...orderData,
         orderId: orderData.id,
         orderDate: new Date(orderData.createdAt).toLocaleString('vi-VN')
     });
-    log('Email HTML generated. Sending email asynchronously...');
+    log('HTML email đã được tạo. Bắt đầu gửi...');
 
     const adminEmail = 'ntphau21@gmail.com';
-    getTransporter().sendMail({
-        from: `"Haven Store" <${process.env.EMAIL_USER}>`,
-        to: orderData.email,
-        bcc: adminEmail,
-        subject: `Xác nhận đơn hàng #${orderData.id} - Haven Store`,
-        html: emailHtml,
-    }).then(() => {
-        log('Email sent successfully for order: ' + orderData.id);
-    }).catch((e) => {
-        log('Email error for order ' + orderData.id + ': ' + e.message);
-    });
+    const transporter = getTransporter();
+
+    // Gửi email cho KHÁCH HÀNG
+    try {
+        await transporter.sendMail({
+            from: `"Haven Store" <${process.env.EMAIL_USER}>`,
+            to: orderData.email,
+            subject: `✅ Xác nhận đơn hàng #${orderData.id} - Haven Store`,
+            html: emailHtml,
+        });
+        log('✅ Gửi email cho KHÁCH HÀNG thành công: ' + orderData.email);
+    } catch (e) {
+        log('❌ LỖI gửi email cho khách hàng ' + orderData.email + ': ' + e.message);
+        log('Chi tiết lỗi: ' + JSON.stringify(e));
+    }
+
+    // Gửi email thông báo cho ADMIN
+    try {
+        await transporter.sendMail({
+            from: `"Haven Store" <${process.env.EMAIL_USER}>`,
+            to: adminEmail,
+            subject: `🛒 [Admin] Đơn hàng mới #${orderData.id} - ${orderData.customerName}`,
+            html: emailHtml,
+        });
+        log('✅ Gửi email cho ADMIN thành công: ' + adminEmail);
+    } catch (e) {
+        log('❌ LỖI gửi email cho admin ' + adminEmail + ': ' + e.message);
+    }
+
+    log('=== KẾT THÚC GỬI EMAIL ===');
 }
+
 
 function sendPasswordResetEmail(email, resetUrl) {
     log('Sending password reset email to: ' + email);
