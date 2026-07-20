@@ -333,21 +333,20 @@ const facebookLogin = async (req, res, next) => {
         const fbRes = await axios.get(`https://graph.facebook.com/v13.0/me?fields=id,name,email,picture.type(large)&access_token=${accessToken}`);
         const payload = fbRes.data;
         
-        // Bắt buộc tài khoản Facebook phải có email
-        if (!payload.email) {
-            return res.status(400).json({ success: false, message: 'Không thể lấy email từ Facebook. Vui lòng thử phương thức khác.' });
-        }
+        // Nếu tài khoản Facebook đăng ký bằng SĐT, có thể không có email
+        // Ta sẽ tự tạo một email giả để lưu vào DB cho hợp lệ
+        const userEmail = payload.email || `${payload.id}@facebook.com`;
 
-        let user = await UserModel.findOne({ email: payload.email });
+        let user = await UserModel.findOne({ email: userEmail });
         
         if (!user) {
             // Tạo tài khoản tự động
             user = new UserModel({
-                id: `usr-${Math.random().toString(36).substr(2, 9)}`,
+                id: `FB-${payload.id}`,
                 name: payload.name,
-                email: payload.email,
+                email: userEmail,
                 facebookId: payload.id,
-                avatar: payload.picture?.data?.url,
+                avatar: payload.picture?.data?.url || '',
                 role: 'user',
             });
             await user.save();
