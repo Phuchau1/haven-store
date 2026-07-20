@@ -267,7 +267,6 @@ const resetPassword = async (req, res, next) => {
  * PHẦN XỬ LÝ ĐĂNG NHẬP QUA MẠNG XÃ HỘI (Google, Facebook)
  * ============================================================ */
 const { OAuth2Client } = require('google-auth-library');
-const axios = require('axios');
 
 // Khởi tạo Google Client
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com');
