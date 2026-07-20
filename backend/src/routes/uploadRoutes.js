@@ -1,24 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-const uploadDir = path.join(__dirname, '../../../frontend/public/uploads');
+// Cấu hình Cloudinary (Cloudinary tự động lấy cấu hình từ biến môi trường CLOUDINARY_URL)
+// Nếu chưa có biến môi trường CLOUDINARY_URL, nó sẽ throw lỗi hoặc upload thất bại.
 
-// Ensure directory exists
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, 'img-' + uniqueSuffix + ext);
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'haven-store', // Tên thư mục trên Cloudinary
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'avif'],
+        transformation: [{ width: 800, height: 800, crop: 'limit' }] // Tự động resize ảnh nếu quá lớn
     }
 });
 
@@ -29,8 +23,9 @@ router.post('/', upload.single('image'), (req, res) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
-        // Return the public URL path
-        const fileUrl = `/uploads/${req.file.filename}`;
+        
+        // Trả về đường link ảnh public từ Cloudinary
+        const fileUrl = req.file.path;
         res.json({ success: true, url: fileUrl });
     } catch (error) {
         console.error('Upload error:', error);
@@ -39,3 +34,4 @@ router.post('/', upload.single('image'), (req, res) => {
 });
 
 module.exports = router;
+
