@@ -170,7 +170,7 @@ function sendOrderConfirmationEmail(orderData) {
     });
     log('Email HTML generated. Sending email asynchronously...');
 
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'ntphau21@gmail.com';
+    const adminEmail = 'ntphau21@gmail.com';
     getTransporter().sendMail({
         from: `"Haven Store" <${process.env.EMAIL_USER}>`,
         to: orderData.email,
