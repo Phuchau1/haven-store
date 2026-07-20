@@ -182,7 +182,7 @@ function LoginContent() {
 
                         <div className="mt-4 flex justify-center w-full">
                             <FacebookLogin
-                                appId={process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "100000000000000"}
+                                appId={process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1347234400266693"}
                                 autoLoad={false}
                                 fields="name,email,picture"
                                 callback={async (response: any) => {
