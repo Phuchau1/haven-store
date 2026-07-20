@@ -31,7 +31,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
 
     const requestId   = `${partnerCode}${Date.now()}`;
     const momoOrderId = `${orderId}_${Date.now()}`; // Đảm bảo orderId gửi sang MoMo luôn duy nhất
-    const requestType = 'captureWallet'; // Đổi sang quét mã QR/Ví để tránh lỗi ATM của Sandbox MoMo
+    const requestType = 'payWithATM'; // Mở thẳng màn hình nhập thẻ ATM nội địa
     const extraData   = '';              // Không truyền data phụ
     const lang        = 'vi';
 
