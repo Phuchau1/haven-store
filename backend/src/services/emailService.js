@@ -13,12 +13,17 @@ function log(msg) {
 function getTransporter() {
     return nodemailer.createTransport({
         host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
+        port: 587,          // Dùng port 587 (STARTTLS) thay vì 465 (SSL) để tránh lỗi IPv6 trên Render
+        secure: false,      // false = STARTTLS (tự động upgrade lên TLS)
+        requireTLS: true,   // Bắt buộc phải dùng TLS
+        family: 4,          // BẮT BUỘC dùng IPv4 (Render Free không hỗ trợ IPv6)
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
         },
+        tls: {
+            rejectUnauthorized: false   // Bỏ qua lỗi certificate nếu có
+        }
     });
 }
 
