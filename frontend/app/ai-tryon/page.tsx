@@ -276,9 +276,7 @@ export default function AITryOnPage() {
         setResultImage(null);
 
         try {
-            await new Promise(r => setTimeout(r, 500));
-            setStep('processing');
-
+            // Bước 1: Khởi tạo Job (phản hồi tức thì < 0.2s)
             const res = await fetch('/api/tryon/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -286,33 +284,50 @@ export default function AITryOnPage() {
                     userImageBase64: userPhoto,
                     garmentImageUrl: selectedProduct.images[0],
                     category: selectedProduct.category || selectedProduct.subCategory || 'tops'
-                }),
-                signal: AbortSignal.timeout(100000)
+                })
             });
 
             if (!res.ok) {
-                if (res.status === 404) {
-                    throw new Error('Server backend đang khởi động lại (404). Vui lòng thử lại sau 1 phút!');
-                }
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.message || `Lỗi server (${res.status})`);
             }
 
             const data = await res.json();
-
-            if (data.success && data.resultImage) {
-                setResultImage(data.resultImage);
-                setStep('done');
-                toast.success('✨ Thử đồ AI thành công!');
-            } else {
-                throw new Error(data.message || 'Xử lý AI thất bại.');
+            if (!data.success || !data.jobId) {
+                throw new Error(data.message || 'Không thể tạo tiến trình thử đồ.');
             }
+
+            setStep('processing');
+            const jobId = data.jobId;
+
+            // Bước 2: Polling trạng thái ngầm mỗi 2.5 giây
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch(`/api/tryon/job-status/${jobId}`);
+                    if (!statusRes.ok) return;
+
+                    const statusData = await statusRes.json();
+                    if (statusData.success && statusData.job) {
+                        const job = statusData.job;
+                        if (job.status === 'completed') {
+                            clearInterval(pollInterval);
+                            setResultImage(job.resultImage || userPhoto);
+                            setStep('done');
+                            toast.success('✨ Thử đồ AI thành công!');
+                        } else if (job.status === 'failed') {
+                            clearInterval(pollInterval);
+                            setStep('error');
+                            toast.error(job.error || 'Xử lý AI gặp sự cố.');
+                        }
+                    }
+                } catch (pollErr) {
+                    console.warn('Polling error:', pollErr);
+                }
+            }, 2500);
+
         } catch (err: any) {
             setStep('error');
-            const msg = err?.name === 'TimeoutError'
-                ? 'AI mất quá nhiều thời gian. Vui lòng thử lại.'
-                : (err.message || 'Lỗi không xác định.');
-            toast.error(msg);
+            toast.error(err.message || 'Lỗi không xác định.');
         }
     };
 

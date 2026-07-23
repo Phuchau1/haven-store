@@ -98,27 +98,47 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
                     userImageBase64: userPhoto,
                     garmentImageUrl: product.image,
                     category: product.category || 'tops'
-                }),
-                signal: AbortSignal.timeout(100000)
+                })
             });
 
             if (!res.ok) {
-                if (res.status === 404) throw new Error('Server backend đang cập nhật (404). Vui lòng thử lại sau 1 phút!');
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.message || `Lỗi server (${res.status})`);
             }
 
             const data = await res.json();
-            if (data.success && data.resultImage) {
-                setResultImage(data.resultImage);
-                setStatus('done');
-                toast.success('✨ AI thử đồ thành công!');
-            } else {
-                throw new Error(data.message || 'Thất bại');
+            if (!data.success || !data.jobId) {
+                throw new Error(data.message || 'Không thể khởi tạo thử đồ');
             }
+
+            const jobId = data.jobId;
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch(`/api/tryon/job-status/${jobId}`);
+                    if (!statusRes.ok) return;
+
+                    const statusData = await statusRes.json();
+                    if (statusData.success && statusData.job) {
+                        const job = statusData.job;
+                        if (job.status === 'completed') {
+                            clearInterval(pollInterval);
+                            setResultImage(job.resultImage || userPhoto);
+                            setStatus('done');
+                            toast.success('✨ AI thử đồ thành công!');
+                        } else if (job.status === 'failed') {
+                            clearInterval(pollInterval);
+                            setStatus('error');
+                            toast.error(job.error || 'Thất bại');
+                        }
+                    }
+                } catch (pollErr) {
+                    console.warn('Poll error:', pollErr);
+                }
+            }, 2500);
+
         } catch (err: any) {
             setStatus('error');
-            toast.error(err?.name === 'TimeoutError' ? 'Hết thời gian. Thử lại!' : (err.message || 'Lỗi xử lý AI'));
+            toast.error(err.message || 'Lỗi xử lý AI');
         }
     };
 
