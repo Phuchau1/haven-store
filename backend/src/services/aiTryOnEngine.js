@@ -1,142 +1,102 @@
 /**
  * ============================================================
- * SERVICE: MULTI-MODEL AI VIRTUAL TRY-ON ENGINE v3
- * Thứ tự ưu tiên:
- *   1. HuggingFace CatVTON (MIỄN PHÍ, không cần token)
- *   2. Replicate IDM-VTON  (Cần REPLICATE_API_TOKEN — chất lượng cao nhất)
- *   3. FASHN AI            (Cần FASHN_API_KEY — Ultra HD)
- *   4. Gemini Mock         (Fallback cuối, phân tích text)
+ * SERVICE: AI VIRTUAL TRY-ON ENGINE v4 — PRODUCTION READY
+ *
+ * Flow chuẩn:
+ *   1. Upload ảnh người dùng (base64) lên Cloudinary → lấy public URL
+ *   2. Gửi (personUrl + garmentUrl) đến Replicate IDM-VTON
+ *   3. Polling kết quả → download → trả về base64
+ *   4. Fallback: Gemini Mock nếu mọi thứ thất bại
+ *
+ * Tại sao cần Cloudinary?
+ *   Replicate và hầu hết AI API KHÔNG chấp nhận base64 trực tiếp
+ *   trong body (quá lớn, timeout). Họ cần public HTTPS URL.
  * ============================================================
  */
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const axios = require('axios');
-const FormData = require('form-data');
-const logger = require('../utils/logger');
+
+const axios    = require('axios');
+const cloudinary = require('cloudinary').v2;
+const logger   = require('../utils/logger');
 
 // ─────────────────────────────────────────────────────────────
-// Helper: Tải ảnh từ URL về Buffer
+// HELPER: Upload base64 image lên Cloudinary → trả về public URL
 // ─────────────────────────────────────────────────────────────
-async function fetchImageBuffer(url) {
-    const res = await axios.get(url, { responseType: 'arraybuffer', timeout: 20000 });
-    return Buffer.from(res.data);
+async function uploadBase64ToCloudinary(base64DataUrl, folder = 'haven-tryon') {
+    // base64DataUrl có thể có hoặc không có data:image/jpeg;base64, prefix
+    const dataUrl = base64DataUrl.startsWith('data:')
+        ? base64DataUrl
+        : `data:image/jpeg;base64,${base64DataUrl}`;
+
+    const result = await cloudinary.uploader.upload(dataUrl, {
+        folder,
+        resource_type: 'image',
+        transformation: [{ width: 768, height: 1024, crop: 'fit', quality: 90 }]
+    });
+    return result.secure_url; // Public HTTPS URL
 }
 
 // ─────────────────────────────────────────────────────────────
-// Helper: Chuyển Base64 data URL → Buffer
-// ─────────────────────────────────────────────────────────────
-function base64ToBuffer(base64Str) {
-    const data = base64Str.replace(/^data:image\/\w+;base64,/, '');
-    return Buffer.from(data, 'base64');
-}
-
-// ─────────────────────────────────────────────────────────────
-// Helper: Map category sang định dạng model chuẩn
+// HELPER: Map danh mục sản phẩm → định dạng IDM-VTON
 // ─────────────────────────────────────────────────────────────
 function mapCategory(category) {
     const cat = (category || '').toLowerCase();
-    if (['bottoms', 'pants', 'quan', 'jeans', 'shorts', 'skirt'].some(c => cat.includes(c))) return 'lower_body';
-    if (['dress', 'vay', 'one-piece', 'jumpsuit', 'set', 'ao-vay'].some(c => cat.includes(c))) return 'dresses';
-    return 'upper_body'; // Default: áo (tops)
-}
-
-/**
- * ─────────────────────────────────────────────────────────────
- * ADAPTER 1: HuggingFace Spaces — nymbo/Virtual-Try-On (CatVTON)
- * MIỄN PHÍ — Không cần API key
- * Ref: https://huggingface.co/spaces/nymbo/Virtual-Try-On
- * ─────────────────────────────────────────────────────────────
- */
-class HuggingFaceCatVtonAdapter {
-    static async process({ userImageBase64, garmentImageUrl, productInfo }) {
-        const hfToken = process.env.HF_TOKEN; // Optional — tăng rate limit nếu có
-        logger.info('[AIEngine:HuggingFace] Gọi CatVTON (nymbo/Virtual-Try-On)...');
-
-        // Convert ảnh người dùng từ base64 sang binary blob
-        const humanBuffer = base64ToBuffer(userImageBase64);
-        const garmentBuffer = await fetchImageBuffer(garmentImageUrl);
-
-        const formData = new FormData();
-        formData.append('human_img', humanBuffer, { filename: 'human.jpg', contentType: 'image/jpeg' });
-        formData.append('garm_img',  garmentBuffer, { filename: 'garment.jpg', contentType: 'image/jpeg' });
-        formData.append('garment_des', productInfo.name || 'fashion item');
-        formData.append('is_checked', 'true');
-        formData.append('is_checked_crop', 'false');
-        formData.append('denoise_steps', '30');
-        formData.append('seed', '42');
-        formData.append('category', mapCategory(productInfo.category));
-
-        const headers = {
-            ...formData.getHeaders(),
-            ...(hfToken ? { 'Authorization': `Bearer ${hfToken}` } : {})
-        };
-
-        // Gọi HuggingFace Spaces Gradio API
-        const res = await axios.post(
-            'https://nymbo-virtual-try-on.hf.space/gradio_api/call/tryon',
-            formData,
-            { headers, timeout: 90000 }
-        );
-
-        const eventId = res.data?.event_id;
-        if (!eventId) throw new Error('HuggingFace không trả về event_id.');
-
-        // Polling kết quả (max 120 giây)
-        logger.info(`[AIEngine:HuggingFace] Event ID: ${eventId} — Đang chờ kết quả...`);
-        for (let i = 0; i < 40; i++) {
-            await new Promise(r => setTimeout(r, 3000));
-            const pollRes = await axios.get(
-                `https://nymbo-virtual-try-on.hf.space/gradio_api/call/tryon/${eventId}`,
-                { headers, timeout: 30000, responseType: 'text' }
-            );
-            const text = pollRes.data || '';
-            if (text.includes('event: complete')) {
-                // Parse URL ảnh kết quả từ SSE response
-                const match = text.match(/"url"\s*:\s*"([^"]+)"/);
-                if (match) {
-                    const resultUrl = match[1].startsWith('http')
-                        ? match[1]
-                        : `https://nymbo-virtual-try-on.hf.space${match[1]}`;
-
-                    // Download về base64
-                    const imgBuf = await fetchImageBuffer(resultUrl);
-                    logger.info('[AIEngine:HuggingFace] ✅ CatVTON hoàn thành!');
-                    return {
-                        resultImage: `data:image/png;base64,${imgBuf.toString('base64')}`
-                    };
-                }
-            }
-            if (text.includes('event: error')) {
-                throw new Error('HuggingFace CatVTON trả về lỗi.');
-            }
-        }
-        throw new Error('HuggingFace CatVTON quá thời gian chờ.');
+    if (['pants', 'quan', 'jeans', 'shorts', 'skirt', 'bottoms', 'trou'].some(c => cat.includes(c))) {
+        return 'lower_body';
     }
+    if (['dress', 'vay', 'dam', 'one-piece', 'jumpsuit', 'overall'].some(c => cat.includes(c))) {
+        return 'dresses';
+    }
+    return 'upper_body'; // Default: áo các loại
+}
+
+// ─────────────────────────────────────────────────────────────
+// HELPER: Download ảnh từ URL → base64 data URL
+// ─────────────────────────────────────────────────────────────
+async function urlToBase64(url) {
+    const res = await axios.get(url, {
+        responseType: 'arraybuffer',
+        timeout: 30000,
+        headers: { 'User-Agent': 'HavenStore/1.0' }
+    });
+    const mime = res.headers['content-type'] || 'image/png';
+    return `data:${mime};base64,${Buffer.from(res.data).toString('base64')}`;
 }
 
 /**
  * ─────────────────────────────────────────────────────────────
- * ADAPTER 2: Replicate — IDM-VTON (Cần token — chất lượng SOTA)
+ * ADAPTER: Replicate IDM-VTON (State-of-the-Art VTON Model)
+ *
+ * Model: yisol/idm-vton
+ * Docs: https://replicate.com/yisol/idm-vton
+ * Yêu cầu: REPLICATE_API_TOKEN trong env
+ *
+ * Input (đều phải là URL công khai — KHÔNG nhận base64):
+ *   human_img: URL ảnh người (đã upload lên Cloudinary)
+ *   garm_img:  URL ảnh trang phục (từ Cloudinary của sản phẩm)
  * ─────────────────────────────────────────────────────────────
  */
-class ReplicateIdmVtonAdapter {
-    static async process({ userImageBase64, garmentImageUrl, productInfo }) {
+class ReplicateVtonAdapter {
+    static async run({ personUrl, garmentUrl, productInfo }) {
         const token = process.env.REPLICATE_API_TOKEN;
-        if (!token) throw new Error('REPLICATE_API_TOKEN chưa được cấu hình.');
+        if (!token) throw new Error('Thiếu REPLICATE_API_TOKEN trong environment.');
 
-        logger.info('[AIEngine:Replicate] Gọi IDM-VTON trên Replicate...');
+        logger.info(`[VTON:Replicate] Bắt đầu IDM-VTON | person=${personUrl.slice(-40)} | garment=${garmentUrl.slice(-40)}`);
 
+        const category = mapCategory(productInfo.category);
+
+        // ── Bước 1: Tạo prediction trên Replicate
         const createRes = await axios.post(
             'https://api.replicate.com/v1/models/yisol/idm-vton/predictions',
             {
                 input: {
-                    human_img: userImageBase64,
-                    garm_img: garmentImageUrl,
-                    garment_des: productInfo.name || 'clothing item',
-                    category: mapCategory(productInfo.category),
-                    is_checked: true,
-                    is_checked_crop: false,
-                    denoise_steps: 30,
-                    seed: 42
+                    human_img:    personUrl,                              // ✅ Public URL
+                    garm_img:     garmentUrl,                             // ✅ Public URL
+                    garment_des:  productInfo.name || 'fashion clothing', // Mô tả trang phục
+                    category:     category,                               // upper_body/lower_body/dresses
+                    is_checked:       true,                               // Auto-detect pose
+                    is_checked_crop:  false,
+                    denoise_steps:    30,                                 // Chất lượng vs tốc độ (20-40)
+                    seed:             42
                 }
             },
             {
@@ -144,129 +104,129 @@ class ReplicateIdmVtonAdapter {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                timeout: 60000
+                timeout: 30000
             }
         );
 
-        const predictionId = createRes.data?.id;
-        if (!predictionId) throw new Error('Replicate không trả về prediction ID.');
+        const predId = createRes.data?.id;
+        if (!predId) {
+            throw new Error(`Replicate không trả về prediction ID. Response: ${JSON.stringify(createRes.data)}`);
+        }
+        logger.info(`[VTON:Replicate] Prediction created: ${predId} — bắt đầu polling...`);
 
-        logger.info(`[AIEngine:Replicate] Prediction: ${predictionId} — Polling...`);
-        for (let i = 0; i < 30; i++) {
-            await new Promise(r => setTimeout(r, 4000));
+        // ── Bước 2: Polling kết quả (tối đa 3 phút, poll mỗi 5 giây)
+        const MAX_POLLS    = 36;   // 36 × 5s = 180s = 3 phút
+        const POLL_DELAY   = 5000; // 5 giây
+
+        for (let attempt = 1; attempt <= MAX_POLLS; attempt++) {
+            await new Promise(r => setTimeout(r, POLL_DELAY));
+
             const pollRes = await axios.get(
-                `https://api.replicate.com/v1/predictions/${predictionId}`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
+                `https://api.replicate.com/v1/predictions/${predId}`,
+                {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    timeout: 15000
+                }
             );
-            const { status, output, error } = pollRes.data;
-            if (status === 'succeeded' && output) {
+
+            const { status, output, error: replicateError, logs } = pollRes.data;
+            logger.info(`[VTON:Replicate] Poll #${attempt} | status=${status}`);
+
+            if (status === 'succeeded') {
+                // Output là array URLs hoặc string URL
                 const resultUrl = Array.isArray(output) ? output[0] : output;
-                const imgBuf = await fetchImageBuffer(resultUrl);
-                logger.info('[AIEngine:Replicate] ✅ IDM-VTON hoàn thành!');
-                return { resultImage: `data:image/png;base64,${imgBuf.toString('base64')}` };
+                if (!resultUrl) throw new Error('Replicate trả về output rỗng.');
+
+                logger.info(`[VTON:Replicate] ✅ Thành công! Downloading result: ${resultUrl}`);
+                const base64Result = await urlToBase64(resultUrl);
+                return { resultImage: base64Result, source: 'replicate_idm_vton' };
             }
-            if (status === 'failed') throw new Error(error || 'Replicate prediction thất bại.');
+
+            if (status === 'failed' || status === 'canceled') {
+                throw new Error(`Replicate prediction ${status}: ${replicateError || 'Không có thông tin lỗi'}`);
+            }
+
+            // status: 'starting' | 'processing' — tiếp tục chờ
         }
-        throw new Error('Replicate IDM-VTON timeout (120s).');
+
+        throw new Error('Replicate IDM-VTON timeout sau 3 phút.');
     }
 }
 
 /**
  * ─────────────────────────────────────────────────────────────
- * ADAPTER 3: FASHN AI (Cần apiKey — chất lượng Ultra HD)
+ * FALLBACK MOCK — Khi tất cả AI thất bại
+ * Trả về ảnh người gốc + analysis text giả
  * ─────────────────────────────────────────────────────────────
  */
-class FashnAdapter {
-    static async process({ userImageBase64, garmentImageUrl, productInfo }) {
-        const key = process.env.FASHN_API_KEY;
-        if (!key) throw new Error('FASHN_API_KEY chưa cấu hình.');
-
-        logger.info('[AIEngine:Fashn] Gọi FASHN.ai...');
-        const cat = mapCategory(productInfo.category);
-        const fashnCat = cat === 'lower_body' ? 'bottoms' : cat === 'dresses' ? 'one-pieces' : 'tops';
-
-        const res = await axios.post('https://api.fashn.ai/v1/run', {
-            model_image: userImageBase64,
-            garment_image: garmentImageUrl,
-            category: fashnCat,
-            mode: 'quality',
-            nsfw_filter: true
-        }, {
-            headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-            timeout: 90000
-        });
-
-        if (res.data?.output) {
-            const imgBuf = await fetchImageBuffer(res.data.output[0]);
-            return { resultImage: `data:image/png;base64,${imgBuf.toString('base64')}` };
-        }
-        throw new Error('FASHN không trả về ảnh.');
-    }
+function getMockResult(userImageBase64, productInfo) {
+    return {
+        resultImage: userImageBase64,
+        source: 'mock',
+        analysisText: `### ✨ Haven AI Stylist — Phân Tích Trang Phục\n\n**1. Độ Khớp Dáng: 9.2/10**\nTrang phục **${productInfo.name || 'sản phẩm'}** rất phù hợp với vóc dáng của bạn.\n\n**2. Phối Màu & Ánh Sáng: 9.4/10**\nTông màu trang phục hài hòa hoàn hảo với tổng thể outfit.\n\n**3. Gợi Ý Mix & Match:**\n- Kết hợp với sneaker trắng hoặc giày da đen để tăng điểm phong cách\n- Thêm đồng hồ và dây chuyền đơn giản để hoàn thiện look\n\n**4. Đánh Giá Tổng Thể: 9.3/10** ⭐ — Rất phù hợp với bạn!`
+    };
 }
 
 /**
  * ─────────────────────────────────────────────────────────────
- * ADAPTER 4: Gemini Mock (Fallback cuối cùng)
- * ─────────────────────────────────────────────────────────────
- */
-class GeminiMockAdapter {
-    static async process({ userImageBase64, productInfo }) {
-        logger.warn('[AIEngine:Mock] Tất cả AI Engine thất bại — Dùng Mock Feedback.');
-        return {
-            resultImage: userImageBase64,
-            analysisText: `### ✨ AI Stylist Haven — Phân Tích Thử Đồ\n\n**1. Độ Khớp Dáng: 9.2/10**\nTrang phục **${productInfo.name || 'sản phẩm'}** rất phù hợp với dáng người của bạn.\n\n**2. Phối Màu: 9.4/10**\nTông màu hài hòa tuyệt đối với tổng thể style.\n\n**3. Gợi Ý Mix & Match:**\nKết hợp với giày da hoặc sneaker trắng để tăng điểm phong cách.\n\n**4. Đánh Giá Tổng Thể: 9.3/10** ⭐`
-        };
-    }
-}
-
-/**
- * ─────────────────────────────────────────────────────────────
- * MAIN ENGINE — Điều phối thứ tự ưu tiên
+ * MAIN ENGINE — Entry point duy nhất
+ *
+ * Gọi từ tryOnController.js với:
+ *   { userImageBase64, garmentImageUrl, productInfo }
  * ─────────────────────────────────────────────────────────────
  */
 class AITryOnEngine {
     static async executeTryOn({ userImageBase64, garmentImageUrl, productInfo }) {
         const startTime = Date.now();
-        let result = null;
-        let modelUsed = 'mock';
 
-        // ── 1. HuggingFace CatVTON (FREE — Thử trước tiên)
+        // ── Step A: Upload ảnh người lên Cloudinary → lấy public URL
+        let personUrl = null;
         try {
-            result = await HuggingFaceCatVtonAdapter.process({ userImageBase64, garmentImageUrl, productInfo });
-            modelUsed = 'huggingface_catvton';
-        } catch (err) {
-            logger.warn(`[AIEngine] HuggingFace thất bại: ${err.message}`);
+            logger.info('[VTON:Engine] Uploading person image to Cloudinary...');
+            personUrl = await uploadBase64ToCloudinary(userImageBase64, 'haven-tryon/persons');
+            logger.info(`[VTON:Engine] Person URL: ${personUrl}`);
+        } catch (uploadErr) {
+            logger.error(`[VTON:Engine] Cloudinary upload thất bại: ${uploadErr.message}`);
+            // Không thể upload → dùng mock ngay
+            return {
+                ...getMockResult(userImageBase64, productInfo),
+                processingTimeMs: Date.now() - startTime,
+                aiModelUsed: 'mock_cloudinary_failed'
+            };
         }
 
-        // ── 2. Replicate IDM-VTON (Cần token)
-        if (!result && process.env.REPLICATE_API_TOKEN) {
+        // ── Step B: Dùng garmentImageUrl trực tiếp (đã là Cloudinary URL từ sản phẩm)
+        const garmentUrl = garmentImageUrl;
+        if (!garmentUrl) {
+            logger.warn('[VTON:Engine] Không có garmentImageUrl — dùng mock.');
+            return {
+                ...getMockResult(userImageBase64, productInfo),
+                processingTimeMs: Date.now() - startTime,
+                aiModelUsed: 'mock_no_garment'
+            };
+        }
+
+        // ── Step C: Gọi Replicate IDM-VTON
+        if (process.env.REPLICATE_API_TOKEN) {
             try {
-                result = await ReplicateIdmVtonAdapter.process({ userImageBase64, garmentImageUrl, productInfo });
-                modelUsed = 'replicate_idm_vton';
-            } catch (err) {
-                logger.warn(`[AIEngine] Replicate thất bại: ${err.message}`);
+                const result = await ReplicateVtonAdapter.run({ personUrl, garmentUrl, productInfo });
+                return {
+                    ...result,
+                    processingTimeMs: Date.now() - startTime,
+                    aiModelUsed: result.source
+                };
+            } catch (replicateErr) {
+                logger.warn(`[VTON:Engine] Replicate thất bại: ${replicateErr.message} — Fallback mock.`);
             }
+        } else {
+            logger.warn('[VTON:Engine] REPLICATE_API_TOKEN không có — dùng mock.');
         }
 
-        // ── 3. FASHN AI (Cần key)
-        if (!result && process.env.FASHN_API_KEY) {
-            try {
-                result = await FashnAdapter.process({ userImageBase64, garmentImageUrl, productInfo });
-                modelUsed = 'fashn';
-            } catch (err) {
-                logger.warn(`[AIEngine] FASHN thất bại: ${err.message}`);
-            }
-        }
-
-        // ── 4. Fallback Mock
-        if (!result) {
-            result = await GeminiMockAdapter.process({ userImageBase64, productInfo });
-        }
-
+        // ── Step D: Fallback Mock
         return {
-            ...result,
+            ...getMockResult(userImageBase64, productInfo),
             processingTimeMs: Date.now() - startTime,
-            aiModelUsed: modelUsed
+            aiModelUsed: 'mock_fallback'
         };
     }
 }
