@@ -51,7 +51,7 @@ export default function CompareSlider({
             <img
                 src={afterImage}
                 alt="AI Try-On Result"
-                className="absolute inset-0 w-full h-full object-contain bg-neutral-900"
+                className="absolute inset-0 w-full h-full object-contain bg-slate-950"
             />
             <span className="absolute top-4 right-4 z-10 bg-amber-500/90 text-white font-bold text-xs px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg">
                 ✨ {afterLabel}
@@ -65,7 +65,7 @@ export default function CompareSlider({
                 <img
                     src={beforeImage}
                     alt="Original User Photo"
-                    className="absolute inset-0 w-full h-full object-contain bg-neutral-900 max-w-none"
+                    className="absolute inset-0 w-full h-full object-contain bg-slate-950 max-w-none"
                     style={{ width: '100%', height: '100%' }}
                 />
                 <span className="absolute top-4 left-4 z-10 bg-black/60 text-white font-medium text-xs px-3 py-1.5 rounded-full backdrop-blur-md">
