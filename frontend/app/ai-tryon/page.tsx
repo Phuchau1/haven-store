@@ -80,27 +80,7 @@ export default function ProfessionalAITryOnPage() {
         fetchProducts();
     }, []);
 
-    // Auto-generate Quick Preview khi có ảnh người dùng + chọn sản phẩm
-    useEffect(() => {
-        if (!userPhotoUrl || !selectedProduct?.images?.[0]) {
-            setQuickPreview('');
-            return;
-        }
-        let cancelled = false;
-        (async () => {
-            try {
-                const preview = await compositeGarmentOnPerson(
-                    userPhotoUrl,
-                    selectedProduct.images[0],
-                    selectedProduct.category || 'tops'
-                );
-                if (!cancelled) setQuickPreview(preview);
-            } catch {
-                if (!cancelled) setQuickPreview('');
-            }
-        })();
-        return () => { cancelled = true; };
-    }, [userPhotoUrl, selectedProduct]);
+    // Remove Quick Preview Canvas Effect to avoid distorted fake overlay
 
     // Handle Upload & Quality Check
     const handlePhotoUpload = async (file: File) => {
@@ -146,26 +126,12 @@ export default function ProfessionalAITryOnPage() {
                     setStepMessage(data.job.currentStepMessage || '');
 
                     if (data.job.status === 'completed') {
-                        // Chạy Canvas Compositor — Ghép áo vào ảnh người thật sự ngay trên trình duyệt
-                        let finalImage = data.job.resultImage || userPhotoUrl;
-                        if (userPhotoUrl && selectedProduct?.images?.[0]) {
-                            try {
-                                setStepMessage('Đang ghép trang phục vào ảnh của bạn...');
-                                finalImage = await compositeGarmentOnPerson(
-                                    userPhotoUrl,
-                                    selectedProduct.images[0],
-                                    selectedProduct.category || 'tops'
-                                );
-                            } catch (compErr) {
-                                console.warn('Canvas composite failed, using fallback:', compErr);
-                                finalImage = data.job.resultImage || userPhotoUrl;
-                            }
-                        }
                         setIsProcessing(false);
-                        setResultImage(finalImage);
+                        setResultImage(data.job.resultImage);
                         setAiFeedback(data.job.aiAnalysisText || '');
                         toast.success('AI Thử đồ thành công! ✨');
                         clearInterval(interval);
+                    }
                     } else if (data.job.status === 'failed') {
                         setIsProcessing(false);
                         toast.error(data.job.errorMessage || 'Xử lý AI thất bại.');
@@ -523,19 +489,25 @@ export default function ProfessionalAITryOnPage() {
                                         )}
                                     </div>
 
-                                ) : userPhotoUrl && quickPreview && !isProcessing ? (
-                                    /* Quick Preview — Hiển thị ngay khi chọn ảnh + sản phẩm, trước khi bấm nút */
+                                ) : userPhotoUrl && selectedProduct && !isProcessing ? (
+                                    /* Ready State — Cho người dùng xem ảnh sản phẩm & ảnh cá nhân trước khi thử */
                                     <div className="space-y-4">
-                                        <div className="relative">
-                                            <CompareSlider beforeImage={userPhotoUrl} afterImage={quickPreview} beforeLabel="Ảnh gốc" afterLabel="Xem thử" />
-                                            <div className="absolute top-0 inset-x-0 flex justify-center pt-3 pointer-events-none">
-                                                <span className="bg-slate-800/90 text-amber-300 text-[11px] font-bold px-3 py-1.5 rounded-full border border-amber-400/20 backdrop-blur-md">
-                                                    ⚡ Preview nhanh — Bấm "BẮt ĐẦu Thử Đồ AI" để có kết quả chất lượng cao hơn
-                                                </span>
+                                        <div className="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                            <div className="text-center space-y-2">
+                                                <span className="text-xs font-semibold text-slate-400">Ảnh dáng người của bạn</span>
+                                                <div className="relative aspect-[3/4] rounded-xl overflow-hidden border border-slate-800">
+                                                    <Image src={userPhotoUrl} alt="User" fill className="object-cover" />
+                                                </div>
+                                            </div>
+                                            <div className="text-center space-y-2">
+                                                <span className="text-xs font-semibold text-slate-400">Trang phục đã chọn</span>
+                                                <div className="relative aspect-[3/4] rounded-xl overflow-hidden border border-slate-800 bg-white">
+                                                    <Image src={selectedProduct.images[0]} alt="Product" fill className="object-contain p-2" />
+                                                </div>
                                             </div>
                                         </div>
-                                        <p className="text-center text-xs text-slate-500">
-                                            AI đang ghép thử — Bấm <span className="text-amber-400 font-bold">BẨT ĐẦU THỬ ĐỒ AI</span> để xử lý toàn diện với chất lượng Ultra HD.
+                                        <p className="text-center text-xs text-amber-400 font-medium">
+                                            ✨ Hãy bấm nút <span className="underline font-bold">"BẮT ĐẦU THỬ ĐỒ AI"</span> để AI tiến hành bóc tách & ghép trang phục chân thực!
                                         </p>
                                     </div>
 
