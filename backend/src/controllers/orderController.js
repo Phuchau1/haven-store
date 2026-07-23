@@ -14,6 +14,8 @@ const { InventoryHistoryModel } = require('../models/InventoryHistory');
 const { CouponModel } = require('../models/Coupon');
 // Sử dụng BullMQ queue để gửi email bất đồng bộ (không làm chậm tốc độ tạo đơn)
 const { enqueueOrderEmail } = require('../services/queueService');
+// Điểm tích lũy: cộng điểm sau khi tạo đơn, thu hồi khi hủy đơn
+const { earnPoints, revokePoints } = require('./loyaltyController');
 
 const fs = require('fs');
 const path = require('path');
@@ -346,6 +348,17 @@ const createOrder = async (req, res, next) => {
         log(`[Order] Gửi email xác nhận cho đơn hàng ${newOrderData.id} (phương thức: ${body.paymentMethod})`);
         enqueueOrderEmail(newOrderData);
 
+        // 6. Cộng điểm tích lũy cho người dùng (nếu có userId)
+        if (body.userId) {
+            try {
+                await earnPoints(body.userId, calculatedFinalAmount, orderId);
+                log(`[Loyalty] Đã cộng điểm cho user ${body.userId} từ đơn hàng ${orderId}`);
+            } catch (loyaltyErr) {
+                // Lỗi loyalty không nên ảnh hưởng đến đơn hàng
+                log(`[Loyalty] Lỗi khi cộng điểm: ${loyaltyErr.message}`);
+            }
+        }
+
 
         return res.json({ success: true, orderId: newOrderData.id, finalAmount: calculatedFinalAmount });
     } catch (error) {
@@ -423,6 +436,18 @@ const updateOrderStatus = async (req, res, next) => {
         if ((status === 'cancelled' || status === 'refunded') && pendingStatuses.includes(oldStatus)) {
             if (updatedOrder.items && updatedOrder.items.length > 0) {
                 await releaseReservedStock(updatedOrder.items, id);
+            }
+        }
+
+        // Thu hồi điểm tích lũy nếu đơn bị hủy/hoàn
+        if (status === 'cancelled' || status === 'refunded') {
+            if (currentOrder.userId) {
+                try {
+                    await revokePoints(currentOrder.userId, id);
+                    log(`[Loyalty] Thu hồi điểm cho user ${currentOrder.userId} do hủy đơn ${id}`);
+                } catch (loyaltyErr) {
+                    log(`[Loyalty] Lỗi khi thu hồi điểm: ${loyaltyErr.message}`);
+                }
             }
         }
 

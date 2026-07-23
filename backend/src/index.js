@@ -16,6 +16,7 @@ const { startCronJobs } = require('./services/cronService');
 const apiRoutes = require('./routes');
 const notFoundHandler = require('./middleware/notFoundHandler');
 const errorHandler = require('./middleware/errorHandler');
+const { globalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const server = http.createServer(app);
@@ -77,6 +78,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- ROUTES ---
+app.use('/api', globalLimiter); // Rate limiting toàn cục — Chống DDoS
 app.use('/api', apiRoutes);
 
 // --- XỬ LÝ LỖI (ERROR HANDLING) ---

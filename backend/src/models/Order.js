@@ -56,6 +56,7 @@ const OrderSchema = new Schema({
     discountAmount:  { type: Number, default: 0 },                   // Số tiền được giảm
     finalAmount:     { type: Number, default: 0 },                   // Tổng tiền cuối cùng phải thanh toán
     note:            { type: String },                                // Ghi chú của khách hàng
+    userId:          { type: String, default: null },                 // ID người dùng đặt hàng (dùng để tích điểm)
     transferReceipt: { type: String, default: '' },                  // Ảnh biên lai chuyển khoản (nếu có)
     shippingProvider:{ type: String },                               // Đơn vị vận chuyển (J&T Express, Viettel Post, v.v.)
     // Trạng thái đơn hàng theo luồng xử lý

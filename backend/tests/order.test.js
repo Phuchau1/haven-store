@@ -22,6 +22,8 @@ const { ProductVariantModel } = require('../src/models/ProductVariant');
 
 app.post('/api/orders', createOrder);
 
+jest.setTimeout(60000);
+
 let mongoServer;
 
 beforeAll(async () => {

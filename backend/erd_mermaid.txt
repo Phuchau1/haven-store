@@ -1,0 +1,407 @@
+erDiagram
+    Address {
+        ObjectId _id
+        varchar id
+        varchar user_id
+        varchar full_name
+        varchar phone
+        varchar city
+        varchar district
+        varchar ward
+        varchar street
+        boolean is_default
+        timestamp created_at
+    }
+    AISetting {
+        ObjectId _id
+    }
+    Article {
+        ObjectId _id
+    }
+    AuditLog {
+        ObjectId _id
+        varchar id
+        varchar user_id
+        varchar action
+        varchar entity_type
+        varchar entity_id
+        varchar old_values
+        varchar new_values
+        varchar ip_address
+        timestamp created_at
+    }
+    Banner {
+        ObjectId _id
+        varchar id
+        varchar title
+        varchar image
+        varchar video
+        varchar link
+        varchar status
+        timestamp created_at
+    }
+    Cart {
+        ObjectId _id
+        varchar variant_id
+        number quantity
+        number price
+        varchar id
+        varchar user_id
+        timestamp created_at
+    }
+    Category {
+        ObjectId _id
+        varchar id
+        varchar name
+        varchar slug
+        varchar description
+        varchar image
+        number order
+        boolean isActive
+        varchar id
+        varchar name
+        varchar description
+        varchar image
+        varchar video
+        number count
+        number order
+        boolean isActive
+        varchar subcategories
+    }
+    ChatMessage {
+        ObjectId _id
+        varchar id
+        varchar session_id
+        varchar sender_type
+        varchar message
+    }
+    ChatSession {
+        ObjectId _id
+        varchar id
+        varchar customer_name
+        varchar phone
+        varchar userId
+        varchar status
+    }
+    Color {
+        ObjectId _id
+        varchar id
+        varchar name
+        varchar code
+    }
+    Coupon {
+        ObjectId _id
+        varchar id
+        varchar code
+        varchar discount_type
+        number discount_value
+        varchar start_date
+        varchar end_date
+        number usage_limit
+        number usage_limit_per_user
+    }
+    FlashSale {
+        ObjectId _id
+    }
+    InventoryHistory {
+        ObjectId _id
+        varchar id
+        varchar variant_id
+        varchar type
+        number quantity
+        varchar note
+        timestamp created_at
+    }
+    LuckyWheelConfig {
+        ObjectId _id
+    }
+    Menu {
+        ObjectId _id
+        varchar id
+        varchar title
+        varchar link
+        number order
+        boolean isActive
+        varchar children
+    }
+    Order {
+        ObjectId _id
+        varchar id
+        varchar name
+        number price
+        number originalPrice
+        varchar category
+        varchar categoryLabel
+        array images
+        array sizes
+        array colors
+        varchar name
+        varchar hex
+        varchar description
+        varchar badge
+        number rating
+        number reviews
+        boolean inStock
+        varchar product
+        number quantity
+        varchar selectedSize
+        varchar selectedColor
+        varchar name
+        varchar hex
+        varchar id
+        varchar customerName
+        varchar phone
+        varchar email
+        varchar address
+        varchar paymentMethod
+        number totalAmount
+        varchar couponCode
+        number discountAmount
+        number finalAmount
+        varchar note
+        varchar transferReceipt
+        varchar shippingProvider
+        varchar status
+        varchar type
+        varchar createdAt
+    }
+    OrderStatusHistory {
+        ObjectId _id
+        varchar id
+        varchar order_id
+        varchar status
+        varchar note
+        timestamp created_at
+    }
+    PaymentMethod {
+        ObjectId _id
+        varchar id
+        varchar name_methond
+        varchar description
+        varchar bank_info
+        varchar qr_code_url
+        boolean is_active
+    }
+    Product {
+        ObjectId _id
+        varchar name
+        varchar hex
+        varchar image
+        varchar color
+        varchar size
+        number stock
+        number price
+        number originalPrice
+        varchar id
+        varchar name
+        number price
+        number originalPrice
+        varchar category
+        varchar categoryLabel
+        json category_id
+        varchar subCategory
+        varchar subCategoryLabel
+        array images
+        array sizes
+        varchar description
+        varchar content
+        varchar shortDescription
+        varchar richContent
+        json specifications
+        array sizeGuide
+        array careInstructions
+        array features
+        array tags
+        json seo
+        array faqs
+        varchar question
+        varchar answer
+        array certificates
+        array fabric
+        varchar status
+        timestamp publishAt
+        array videos
+        array instructions
+        array notes
+        varchar sizeChartImage
+        varchar badge
+        number rating
+        number reviews
+        boolean inStock
+        number soldQuantity
+    }
+    ProductReview {
+        ObjectId _id
+        varchar id
+        varchar user_id
+        varchar userName
+        varchar userEmail
+        varchar product_id
+        number rating
+        varchar content
+        varchar status
+        timestamp created_at
+    }
+    ProductVariant {
+        ObjectId _id
+        varchar id
+        varchar product_id
+        varchar size_id
+        varchar color_id
+        number stock
+        number reserved_stock
+        array warehouse_stocks
+        varchar warehouse_id
+        number stock
+        varchar barcode
+        varchar qr_code
+        varchar image
+        number price
+        varchar sku
+        varchar status
+    }
+    PurchaseOrder {
+        ObjectId _id
+        varchar variant_id
+        number quantity
+        number price
+        varchar id
+        varchar supplier_id
+        varchar warehouse_id
+        varchar status
+        varchar user_id
+        varchar expected_date
+        number total_amount
+        varchar note
+    }
+    Review {
+        ObjectId _id
+        varchar productId
+        varchar userId
+        varchar customerName
+        number rating
+        varchar comment
+        boolean isApproved
+    }
+    ShippingMethod {
+        ObjectId _id
+        varchar id
+        varchar name_methond
+        varchar description
+        boolean is_active
+    }
+    SiteSetting {
+        ObjectId _id
+    }
+    Size {
+        ObjectId _id
+        varchar id
+        varchar name
+    }
+    SpinHistory {
+        ObjectId _id
+    }
+    SpinReward {
+        ObjectId _id
+    }
+    StockReceipt {
+        ObjectId _id
+        varchar variant_id
+        number quantity
+        number price
+        varchar id
+        varchar type
+        varchar warehouse_id
+        varchar dest_warehouse_id
+        varchar supplier_id
+        varchar po_id
+        varchar reason
+        varchar note
+        varchar user_id
+        varchar status
+        number total_quantity
+        number total_amount
+    }
+    StockTransaction {
+        ObjectId _id
+        varchar id
+        varchar type
+        varchar reference_id
+        varchar warehouse_id
+        varchar variant_id
+        number quantity
+        number before_stock
+        number after_stock
+        varchar note
+        varchar user_id
+    }
+    Supplier {
+        ObjectId _id
+        varchar id
+        varchar name
+        varchar email
+        varchar phone
+        varchar address
+        varchar tax_code
+        varchar status
+    }
+    User {
+        ObjectId _id
+        varchar id
+        varchar name
+        varchar email
+        varchar password
+        varchar googleId
+        varchar facebookId
+        varchar avatar
+        varchar role
+        varchar phone
+        varchar address
+        varchar resetPasswordToken
+        timestamp resetPasswordExpires
+    }
+    UserCoupon {
+        ObjectId _id
+    }
+    UserVoucher {
+        ObjectId _id
+        varchar id
+        varchar user_id
+        varchar coupon_id
+        boolean is_use
+    }
+    Warehouse {
+        ObjectId _id
+        varchar id
+        varchar name
+        varchar code
+        varchar address
+        varchar manager_id
+        varchar status
+    }
+    Wishlist {
+        ObjectId _id
+        varchar id
+        varchar user_id
+        varchar product_id
+        timestamp created_at
+    }
+
+    Product }|--|| Category : "uses"
+    OrderItem }|--|| Product : "uses"
+    OrderItem }|--|| Order : "uses"
+    Review }|--|| Product : "uses"
+    Review }|--|| User : "uses"
+    Cart }|--|| User : "uses"
+    CartItem }|--|| Cart : "uses"
+    CartItem }|--|| Product : "uses"
+    ProductVariant }|--|| Product : "uses"
+    Wishlist }|--|| User : "uses"
+    Wishlist }|--|| Product : "uses"
+    StockTransaction }|--|| Product : "uses"
+    PurchaseOrder }|--|| Supplier : "uses"
+    StockReceipt }|--|| PurchaseOrder : "uses"
+    OrderStatusHistory }|--|| Order : "uses"
+    ProductReview }|--|| Product : "uses"
+    UserVoucher }|--|| User : "uses"
+    ChatMessage }|--|| ChatSession : "uses"

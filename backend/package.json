@@ -7,7 +7,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed": "node scripts/seed.js",
-    "test": "jest"
+    "test": "jest tests/"
   },
   "keywords": [],
   "author": "",
