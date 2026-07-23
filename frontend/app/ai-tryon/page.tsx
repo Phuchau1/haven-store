@@ -9,7 +9,6 @@ import {
 import Image from 'next/image';
 import CompareSlider from '@/app/component/CompareSlider';
 import { toast } from 'react-hot-toast';
-import { compositeGarmentOnPerson } from '@/lib/canvasCompositor';
 
 interface Product {
     id: string;
@@ -131,7 +130,6 @@ export default function ProfessionalAITryOnPage() {
                         setAiFeedback(data.job.aiAnalysisText || '');
                         toast.success('AI Thử đồ thành công! ✨');
                         clearInterval(interval);
-                    }
                     } else if (data.job.status === 'failed') {
                         setIsProcessing(false);
                         toast.error(data.job.errorMessage || 'Xử lý AI thất bại.');
