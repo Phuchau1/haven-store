@@ -4,78 +4,66 @@
  *
  * Flow hoàn chỉnh:
  *   1. Nhận base64 ảnh người + URL ảnh sản phẩm từ frontend
- *   2. Tạo public URL cho ảnh người (Lưu Express Static Uploads hoặc Cloudinary)
+ *   2. Tạo HTTPS Public URL cho ảnh người (dùng ImgBB / Cloudinary Unsigned API)
  *   3. Gọi Replicate IDM-VTON với (personUrl, garmentUrl)
  *   4. Polling kết quả Replicate (tối đa 90 giây)
  *   5. Download ảnh kết quả → trả về base64
  * ============================================================
  */
 
-const fs         = require('fs');
-const path       = require('path');
-const cloudinary = require('cloudinary').v2;
-const axios      = require('axios');
-const logger     = require('../utils/logger');
-
-// ─────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────
+const axios  = require('axios');
+const logger = require('../utils/logger');
 
 /**
- * Tạo Public HTTPS URL cho ảnh Base64
- * Ưu tiên:
- *   1. Thử Cloudinary (nếu credentials đúng)
- *   2. Fallback: Lưu vào folder static public/uploads của Express Server
+ * Upload ảnh Base64 lên ImgBB / Cloudinary Unsigned API để lấy HTTPS Public URL chuẩn 100%
+ * Replicate yêu cầu URL phải là HTTPS công khai tốc độ cao.
  */
-async function uploadToPublicUrl(base64DataUrl, req) {
-    // ── 1. Thử Cloudinary nếu có cấu hình
-    if (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_URL) {
-        try {
-            const dataUrl = base64DataUrl.startsWith('data:')
-                ? base64DataUrl
-                : `data:image/jpeg;base64,${base64DataUrl}`;
+async function uploadToPublicHttpsUrl(base64DataUrl) {
+    const cleanBase64 = base64DataUrl.replace(/^data:image\/\w+;base64,/, '');
 
-            const result = await cloudinary.uploader.upload(dataUrl, {
-                folder: 'haven-tryon',
-                resource_type: 'image'
-            });
-
-            if (result && result.secure_url) {
-                logger.info(`[TryOn] Cloudinary upload thành công: ${result.secure_url}`);
-                return result.secure_url;
-            }
-        } catch (cErr) {
-            logger.warn(`[TryOn] Cloudinary upload thất bại (${cErr.message}). Chuyển sang Express Local Upload...`);
-        }
-    }
-
-    // ── 2. Fallback bọc thép: Lưu file vào Express static /uploads
+    // ── Solution 1: ImgBB Public API (Nhanh & 100% HTTPS)
     try {
-        const matches = base64DataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-        const base64String = matches ? matches[2] : base64DataUrl;
-        const buffer = Buffer.from(base64String, 'base64');
+        const formData = new URLSearchParams();
+        formData.append('image', cleanBase64);
+        formData.append('key', '6d207e02198a847aa98d0a2a901485a5'); // Public Free API Key
 
-        const filename = `tryon-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.jpg`;
-        const uploadDir = path.join(__dirname, '../../public/uploads');
+        const res = await axios.post('https://api.imgbb.com/1/upload', formData, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            timeout: 15000
+        });
 
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
+        if (res.data?.data?.url) {
+            const httpsUrl = res.data.data.url.replace(/^http:/, 'https:');
+            logger.info(`[TryOn:Upload] ImgBB upload thành công: ${httpsUrl}`);
+            return httpsUrl;
         }
-
-        const filePath = path.join(uploadDir, filename);
-        fs.writeFileSync(filePath, buffer);
-
-        // Xác định host domain của backend
-        const host = req.get('host');
-        const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
-        const publicUrl = `${protocol}://${host}/uploads/${filename}`;
-
-        logger.info(`[TryOn] Lưu Express Static Upload thành công: ${publicUrl}`);
-        return publicUrl;
-    } catch (lErr) {
-        logger.error(`[TryOn] Tất cả phương thức upload public URL đều thất bại: ${lErr.message}`);
-        throw new Error('Không thể tạo public URL cho ảnh. Vui lòng thử lại.');
+    } catch (imgbbErr) {
+        logger.warn(`[TryOn:Upload] ImgBB upload thất bại (${imgbbErr.message}). Thử giải pháp 2...`);
     }
+
+    // ── Solution 2: FreeImage.host API
+    try {
+        const formData = new URLSearchParams();
+        formData.append('source', cleanBase64);
+        formData.append('key', '6d207e02198a847aa98d0a2a901485a5');
+        formData.append('action', 'upload');
+        formData.append('format', 'json');
+
+        const res = await axios.post('https://freeimage.host/api/1/upload', formData, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            timeout: 15000
+        });
+
+        if (res.data?.image?.url) {
+            const httpsUrl = res.data.image.url.replace(/^http:/, 'https:');
+            logger.info(`[TryOn:Upload] FreeImage upload thành công: ${httpsUrl}`);
+            return httpsUrl;
+        }
+    } catch (freeImgErr) {
+        logger.warn(`[TryOn:Upload] FreeImage upload thất bại (${freeImgErr.message})`);
+    }
+
+    throw new Error('Không thể tải ảnh lên bộ nhớ tạm công khai. Vui lòng thử lại!');
 }
 
 /** Map danh mục sản phẩm → chuẩn IDM-VTON */
@@ -94,13 +82,12 @@ async function downloadToBase64(url) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Controller
+// Controller Main
 // ─────────────────────────────────────────────────────────────
 
 /**
  * @route  POST /api/tryon/run
  * @desc   Gọi Replicate IDM-VTON, trả ảnh kết quả
- * @body   { userImageBase64, garmentImageUrl, category }
  */
 exports.runTryOn = async (req, res) => {
     req.setTimeout && req.setTimeout(120000);
@@ -119,15 +106,18 @@ exports.runTryOn = async (req, res) => {
     if (!token) {
         return res.status(500).json({
             success: false,
-            message: 'REPLICATE_API_TOKEN chưa được cấu hình trên server.'
+            message: 'REPLICATE_API_TOKEN chưa được cấu hình trên Render server.'
         });
     }
 
     try {
-        // ── Bước 1: Tạo public URL cho ảnh người
-        logger.info('[TryOn] Creating public URL for user image...');
-        const personUrl = await uploadToPublicUrl(userImageBase64, req);
-        logger.info(`[TryOn] Person URL: ${personUrl}`);
+        // ── Bước 1: Tạo Public HTTPS URL cho ảnh người
+        logger.info('[TryOn] Uploading user photo to high-speed HTTPS public cloud...');
+        const personUrl = await uploadToPublicHttpsUrl(userImageBase64);
+        logger.info(`[TryOn] Person Public HTTPS URL: ${personUrl}`);
+
+        // Đảm bảo garmentImageUrl cũng là https
+        const secureGarmentUrl = garmentImageUrl.replace(/^http:/, 'https:');
 
         // ── Bước 2: Tạo Prediction trên Replicate
         logger.info('[TryOn] Creating Replicate IDM-VTON prediction...');
@@ -135,8 +125,8 @@ exports.runTryOn = async (req, res) => {
             'https://api.replicate.com/v1/models/yisol/idm-vton/predictions',
             {
                 input: {
-                    human_img:       personUrl,       // ✅ Public HTTPS URL
-                    garm_img:        garmentImageUrl, // ✅ Public HTTPS URL từ sản phẩm
+                    human_img:       personUrl,        // ✅ HTTPS Public URL
+                    garm_img:        secureGarmentUrl, // ✅ HTTPS Public URL
                     garment_des:     'fashion clothing item',
                     category:        mapCategory(category),
                     is_checked:      true,
@@ -150,7 +140,7 @@ exports.runTryOn = async (req, res) => {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type':  'application/json'
                 },
-                timeout: 30000
+                timeout: 35000
             }
         );
 
@@ -160,7 +150,7 @@ exports.runTryOn = async (req, res) => {
         }
         logger.info(`[TryOn] Prediction ID: ${predId} — Polling...`);
 
-        // ── Bước 3: Polling kết quả (tối đa 90 giây, poll mỗi 4 giây)
+        // ── Bước 3: Polling kết quả (tối đa 90 giây)
         for (let attempt = 1; attempt <= 22; attempt++) {
             await new Promise(r => setTimeout(r, 4000));
 
@@ -177,9 +167,8 @@ exports.runTryOn = async (req, res) => {
 
             if (status === 'succeeded') {
                 const resultUrl = Array.isArray(output) ? output[0] : output;
-                if (!resultUrl) throw new Error('Replicate trả về output rỗng.');
+                if (!resultUrl) throw new Error('Replicate trả về kết quả rỗng.');
 
-                // ── Bước 4: Download kết quả → base64
                 logger.info(`[TryOn] ✅ Download result: ${resultUrl}`);
                 const resultBase64 = await downloadToBase64(resultUrl);
 
@@ -191,11 +180,11 @@ exports.runTryOn = async (req, res) => {
             }
 
             if (status === 'failed' || status === 'canceled') {
-                throw new Error(`Replicate ${status}: ${rErr || 'Unknown error'}`);
+                throw new Error(`Replicate IDM-VTON ${status}: ${rErr || 'Prediction error'}`);
             }
         }
 
-        throw new Error('Timeout: Replicate không trả kết quả sau 90 giây.');
+        throw new Error('Timeout: AI quá thời gian xử lý (90s). Vui lòng thử lại!');
 
     } catch (err) {
         logger.error(`[TryOn] Error: ${err.message}`);
