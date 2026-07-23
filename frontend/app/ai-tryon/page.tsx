@@ -287,8 +287,16 @@ export default function AITryOnPage() {
                     garmentImageUrl: selectedProduct.images[0],
                     category: selectedProduct.category || selectedProduct.subCategory || 'tops'
                 }),
-                signal: AbortSignal.timeout(100000) // 100s timeout
+                signal: AbortSignal.timeout(100000)
             });
+
+            if (!res.ok) {
+                if (res.status === 404) {
+                    throw new Error('Server backend đang khởi động lại (404). Vui lòng thử lại sau 1 phút!');
+                }
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || `Lỗi server (${res.status})`);
+            }
 
             const data = await res.json();
 

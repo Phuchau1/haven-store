@@ -102,6 +102,12 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
                 signal: AbortSignal.timeout(100000)
             });
 
+            if (!res.ok) {
+                if (res.status === 404) throw new Error('Server backend đang cập nhật (404). Vui lòng thử lại sau 1 phút!');
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || `Lỗi server (${res.status})`);
+            }
+
             const data = await res.json();
             if (data.success && data.resultImage) {
                 setResultImage(data.resultImage);
