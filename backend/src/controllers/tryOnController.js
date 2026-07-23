@@ -4,18 +4,15 @@
  *
  * Flow hoàn chỉnh:
  *   1. Nhận base64 ảnh người + URL ảnh sản phẩm từ frontend
- *   2. Upload ảnh người lên Cloudinary → lấy public URL
+ *   2. Tạo public URL cho ảnh người (Lưu Express Static Uploads hoặc Cloudinary)
  *   3. Gọi Replicate IDM-VTON với (personUrl, garmentUrl)
  *   4. Polling kết quả Replicate (tối đa 90 giây)
  *   5. Download ảnh kết quả → trả về base64
- *
- * Tại sao synchronous?
- *   - Đơn giản hơn nhiều (không cần DB, Job queue, polling frontend)
- *   - Frontend chỉ cần 1 request duy nhất, chờ kết quả
- *   - Phù hợp với Render (timeout mặc định 120s)
  * ============================================================
  */
 
+const fs         = require('fs');
+const path       = require('path');
 const cloudinary = require('cloudinary').v2;
 const axios      = require('axios');
 const logger     = require('../utils/logger');
@@ -24,17 +21,61 @@ const logger     = require('../utils/logger');
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-/** Upload base64 lên Cloudinary → trả về public HTTPS URL */
-async function uploadToCloudinary(base64DataUrl) {
-    const dataUrl = base64DataUrl.startsWith('data:')
-        ? base64DataUrl
-        : `data:image/jpeg;base64,${base64DataUrl}`;
+/**
+ * Tạo Public HTTPS URL cho ảnh Base64
+ * Ưu tiên:
+ *   1. Thử Cloudinary (nếu credentials đúng)
+ *   2. Fallback: Lưu vào folder static public/uploads của Express Server
+ */
+async function uploadToPublicUrl(base64DataUrl, req) {
+    // ── 1. Thử Cloudinary nếu có cấu hình
+    if (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_URL) {
+        try {
+            const dataUrl = base64DataUrl.startsWith('data:')
+                ? base64DataUrl
+                : `data:image/jpeg;base64,${base64DataUrl}`;
 
-    const result = await cloudinary.uploader.upload(dataUrl, {
-        folder: 'haven-tryon',
-        resource_type: 'image'
-    });
-    return result.secure_url;
+            const result = await cloudinary.uploader.upload(dataUrl, {
+                folder: 'haven-tryon',
+                resource_type: 'image'
+            });
+
+            if (result && result.secure_url) {
+                logger.info(`[TryOn] Cloudinary upload thành công: ${result.secure_url}`);
+                return result.secure_url;
+            }
+        } catch (cErr) {
+            logger.warn(`[TryOn] Cloudinary upload thất bại (${cErr.message}). Chuyển sang Express Local Upload...`);
+        }
+    }
+
+    // ── 2. Fallback bọc thép: Lưu file vào Express static /uploads
+    try {
+        const matches = base64DataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        const base64String = matches ? matches[2] : base64DataUrl;
+        const buffer = Buffer.from(base64String, 'base64');
+
+        const filename = `tryon-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.jpg`;
+        const uploadDir = path.join(__dirname, '../../public/uploads');
+
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const filePath = path.join(uploadDir, filename);
+        fs.writeFileSync(filePath, buffer);
+
+        // Xác định host domain của backend
+        const host = req.get('host');
+        const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+        const publicUrl = `${protocol}://${host}/uploads/${filename}`;
+
+        logger.info(`[TryOn] Lưu Express Static Upload thành công: ${publicUrl}`);
+        return publicUrl;
+    } catch (lErr) {
+        logger.error(`[TryOn] Tất cả phương thức upload public URL đều thất bại: ${lErr.message}`);
+        throw new Error('Không thể tạo public URL cho ảnh. Vui lòng thử lại.');
+    }
 }
 
 /** Map danh mục sản phẩm → chuẩn IDM-VTON */
@@ -62,7 +103,6 @@ async function downloadToBase64(url) {
  * @body   { userImageBase64, garmentImageUrl, category }
  */
 exports.runTryOn = async (req, res) => {
-    // Set timeout dài hơn mặc định cho response này
     req.setTimeout && req.setTimeout(120000);
     res.setTimeout && res.setTimeout(120000);
 
@@ -79,14 +119,14 @@ exports.runTryOn = async (req, res) => {
     if (!token) {
         return res.status(500).json({
             success: false,
-            message: 'AI Try-On chưa được cấu hình. Vui lòng liên hệ quản trị viên.'
+            message: 'REPLICATE_API_TOKEN chưa được cấu hình trên server.'
         });
     }
 
     try {
-        // ── Bước 1: Upload ảnh người lên Cloudinary
-        logger.info('[TryOn] Uploading person image to Cloudinary...');
-        const personUrl = await uploadToCloudinary(userImageBase64);
+        // ── Bước 1: Tạo public URL cho ảnh người
+        logger.info('[TryOn] Creating public URL for user image...');
+        const personUrl = await uploadToPublicUrl(userImageBase64, req);
         logger.info(`[TryOn] Person URL: ${personUrl}`);
 
         // ── Bước 2: Tạo Prediction trên Replicate
@@ -95,8 +135,8 @@ exports.runTryOn = async (req, res) => {
             'https://api.replicate.com/v1/models/yisol/idm-vton/predictions',
             {
                 input: {
-                    human_img:       personUrl,       // ✅ Public URL
-                    garm_img:        garmentImageUrl, // ✅ Public URL từ Cloudinary sản phẩm
+                    human_img:       personUrl,       // ✅ Public HTTPS URL
+                    garm_img:        garmentImageUrl, // ✅ Public HTTPS URL từ sản phẩm
                     garment_des:     'fashion clothing item',
                     category:        mapCategory(category),
                     is_checked:      true,
@@ -153,7 +193,6 @@ exports.runTryOn = async (req, res) => {
             if (status === 'failed' || status === 'canceled') {
                 throw new Error(`Replicate ${status}: ${rErr || 'Unknown error'}`);
             }
-            // status: 'starting' | 'processing' → tiếp tục chờ
         }
 
         throw new Error('Timeout: Replicate không trả kết quả sau 90 giây.');
