@@ -130,10 +130,11 @@ async function runAsyncTryOnProcess(jobId, userImageBase64, productInfo, aiModel
             currentStepMessage: 'Đang đồng bộ ánh sáng, bóng đổ & phối màu...'
         });
 
-        // Executing AI Engine
+        // Executing AI Engine (Replicate IDM-VTON → FASHN → Gemini)
         const engineResult = await AITryOnEngine.executeTryOn({
             modelType: aiModel,
             userImageBase64,
+            garmentImageUrl: productInfo.image,
             productInfo
         });
 
