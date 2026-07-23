@@ -395,17 +395,6 @@ export default function AIStylePage() {
                             </div>
                         </div>
 
-                        {/* AI Try-On CTA */}
-                        <Link href="/ai-tryon" className="block bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl p-5 text-white hover:shadow-lg transition-shadow">
-                            <div className="flex items-center gap-3">
-                                <div className="text-3xl">👗</div>
-                                <div>
-                                    <p className="font-black text-sm">AI Thử Đồ</p>
-                                    <p className="text-white/80 text-xs mt-0.5">Upload ảnh và thử đồ với AI</p>
-                                </div>
-                                <ChevronRight size={18} className="ml-auto opacity-70" />
-                            </div>
-                        </Link>
                     </div>
                 </div>
 

@@ -34,7 +34,6 @@ const luckyWheelRoutes = require('./luckyWheelRoutes');
 const recentlyViewedRoutes = require('./recentlyViewedRoutes');
 const loyaltyRoutes = require('./loyaltyRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
-const tryOnRoutes = require('./tryOnRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
@@ -60,7 +59,6 @@ router.use('/lucky-wheel', luckyWheelRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
 router.use('/loyalty', loyaltyRoutes); // Hệ thống điểm tích lũy
 router.use('/analytics', analyticsRoutes); // Hệ thống analytics & tracking
-router.use('/tryon', tryOnRoutes); // AI Virtual Try-On API
 
 // WMS API
 router.use('/menus', menuRoutes);

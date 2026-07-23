@@ -93,7 +93,7 @@ export default function AISettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                {settings.map(setting => (
+                {settings.filter(s => s.type !== 'tryon').map(setting => (
                     <div key={setting.type} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
                         <div className="flex items-center justify-between border-b border-slate-50 pb-4">
                             <div className="flex items-center gap-3">
