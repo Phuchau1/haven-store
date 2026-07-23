@@ -2,14 +2,11 @@
 
 /**
  * ============================================================
- * AI VIRTUAL TRY-ON — PROFESSIONAL CANVAS ENGINE v3
+ * AI VIRTUAL TRY-ON — CANVAS COMPOSITOR v4 (EXACT FIT)
  * 
- * Tính năng đột phá:
- *   1. TỰ ĐỘNG TÁCH NỀN ÁO (Chroma-key / Threshold Background Removal)
- *      Loại bỏ hoàn toàn ô vuông nền trắng/xám & móc treo quần áo.
- *   2. SOLID BODY FIT (Ghép thật 100%, che phủ hoàn toàn áo cũ)
- *      Không bị trong suốt mờ mờ lấp ló mặt hay áo cũ phía sau.
- *   3. CĂN CHỈNH VAI & DÁNG NGƯỜI TỰ ĐỘNG (Shoulder & Torso Alignment)
+ * 1. TỰ ĐỘNG CẮT BỎ MÓC TREO (Top 22% removal)
+ * 2. TỰ ĐỘNG TÁCH NỀN TRẮNG/XÁM
+ * 3. ĐẶT ĐÚNG VỊ TRÍ VAI & THÂN NGƯỜI (Y = 36% H, không che mặt)
  * ============================================================
  */
 
@@ -29,9 +26,9 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 /**
- * Tự động tách nền khỏi ảnh sản phẩm (Xóa màu trắng/xám sáng và móc treo gỗ ở trên)
+ * Tách nền & Cắt bỏ móc treo gỗ ở trên cùng
  */
-function removeGarmentBackground(garmentImg: HTMLImageElement): HTMLCanvasElement {
+function processGarmentImage(garmentImg: HTMLImageElement): HTMLCanvasElement {
     const w = garmentImg.naturalWidth || garmentImg.width;
     const h = garmentImg.naturalHeight || garmentImg.height;
 
@@ -45,43 +42,29 @@ function removeGarmentBackground(garmentImg: HTMLImageElement): HTMLCanvasElemen
     const imgData = ctx.getImageData(0, 0, w, h);
     const data = imgData.data;
 
-    // 1. Loại bỏ móc treo gỗ ở 12% đầu chiều cao nếu phát hiện màu gỗ/nền trắng
-    const hangerCutoffY = Math.round(h * 0.14);
+    // Cắt bỏ 22% phần trên cùng của chiếc áo (nơi có móc treo gỗ)
+    const hangerCutoffY = Math.round(h * 0.22);
 
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
             const idx = (y * w + x) * 4;
+
+            // Xóa sạch phần móc treo gỗ phía trên
+            if (y < hangerCutoffY) {
+                data[idx + 3] = 0;
+                continue;
+            }
+
             const r = data[idx];
             const g = data[idx + 1];
             const b = data[idx + 2];
 
-            // Nếu nằm trong vùng móc treo ở trên cùng (y < hangerCutoffY) -> Xóa sạch
-            if (y < hangerCutoffY) {
-                // Kiểm tra nếu là màu sáng/trắng/xám nhạt của ô vuông background
-                if (r > 160 && g > 160 && b > 160) {
-                    data[idx + 3] = 0; // Alpha = 0 (Trong suốt)
-                    continue;
-                }
-                // Nếu là màu nâu/vàng của móc gỗ
-                if (r > 130 && g > 70 && b < 70) {
-                    data[idx + 3] = 0;
-                    continue;
-                }
-            }
-
-            // Tách nền trắng / xám nhạt xung quanh áo
-            // Nền studio thường có R, G, B gần bằng nhau và sáng (> 210)
-            const isLightBg = r > 200 && g > 200 && b > 200 && Math.abs(r - g) < 25 && Math.abs(r - b) < 25;
-            // Nền xám nhạt (như trong ảnh chụp)
-            const isGrayBg = r > 180 && g > 180 && b > 180 && Math.abs(r - g) < 15 && Math.abs(g - b) < 15;
+            // Tách màu nền trắng / xám nhạt studio
+            const isLightBg = r > 190 && g > 190 && b > 190 && Math.abs(r - g) < 30 && Math.abs(r - b) < 30;
+            const isGrayBg  = r > 165 && g > 165 && b > 165 && Math.abs(r - g) < 20 && Math.abs(g - b) < 20;
 
             if (isLightBg || isGrayBg) {
-                // Xóa nền trong suốt
-                data[idx + 3] = 0;
-            } else if (r > 160 && g > 160 && b > 160) {
-                // Làm mờ dần viền (anti-aliasing)
-                const alpha = Math.max(0, 255 - (r - 160) * 3);
-                data[idx + 3] = Math.min(data[idx + 3], alpha);
+                data[idx + 3] = 0; // Trong suốt
             }
         }
     }
@@ -91,7 +74,7 @@ function removeGarmentBackground(garmentImg: HTMLImageElement): HTMLCanvasElemen
 }
 
 /**
- * Ghép trang phục lên thân người dùng với độ chính xác cao
+ * Ghép áo chính xác vị trí vai người dùng
  */
 export async function compositeGarmentOnPerson(
     userImageSrc: string,
@@ -111,52 +94,50 @@ export async function compositeGarmentOnPerson(
     canvas.width = W;
     canvas.height = H;
 
-    // 1. Vẽ ảnh người gốc làm nền
+    // 1. Vẽ ảnh người gốc
     ctx.drawImage(personImg, 0, 0, W, H);
 
     if (!rawGarmentImg) return canvas.toDataURL('image/jpeg', 0.93);
 
-    // 2. Tự động tách nền chiếc áo (Remove Background)
-    const cleanGarmentCanvas = removeGarmentBackground(rawGarmentImg);
+    // 2. Tách nền & cắt móc áo
+    const cleanGarmentCanvas = processGarmentImage(rawGarmentImg);
 
-    // 3. Tính toán vị trí thân người (Torso Positioning)
+    // 3. Tính vị trí chuẩn vai & thân (Cổ áo bắt đầu từ Y = 36% H để không che khuôn mặt)
     const cat = (category || 'tops').toLowerCase();
     let destX: number, destY: number, destW: number, destH: number;
 
     if (['bottoms', 'pants', 'quan', 'jeans', 'shorts'].some(c => cat.includes(c))) {
         // Quần
-        destW = W * 0.62;
-        destH = H * 0.48;
+        destW = W * 0.54;
+        destH = H * 0.44;
         destX = (W - destW) / 2;
-        destY = H * 0.49;
+        destY = H * 0.52;
     } else if (['dress', 'vay', 'dam'].some(c => cat.includes(c))) {
-        // Đầm / Váy liền
-        destW = W * 0.72;
-        destH = H * 0.78;
+        // Đầm
+        destW = W * 0.64;
+        destH = H * 0.60;
         destX = (W - destW) / 2;
-        destY = H * 0.18;
+        destY = H * 0.32;
     } else {
-        // Áo (Tops / Khoác / Polo)
-        // Vùng vai đến thắt lưng: Từ 24% chiều cao người (dưới cổ) đến 66% chiều cao
-        destW = W * 0.76;
-        destH = H * 0.46;
+        // Áo (Tops / Polo)
+        // Vị trí vai chuẩn người đứng: Y = 35.5% chiều cao, chiều rộng = 56% chiều rộng ảnh
+        destW = W * 0.56;
+        destH = H * 0.38;
         destX = (W - destW) / 2;
-        destY = H * 0.23; // Căn chính xác vị trí cổ & vai người
+        destY = H * 0.355; // Vừa vặn dưới cằm & vai người
     }
 
-    // 4. Vẽ Áo đè Solid (100% đục - Opacity 1.0) che kín áo cũ
+    // 4. Vẽ áo đè solid 100% che phủ áo cũ
     ctx.save();
-    // Đổ bóng tự nhiên cho chiếc áo mới
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-    ctx.shadowBlur = Math.round(W * 0.02);
-    ctx.shadowOffsetY = Math.round(H * 0.008);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = Math.round(W * 0.015);
+    ctx.shadowOffsetY = Math.round(H * 0.006);
 
-    // Xoay nhẹ hoặc vẽ chuẩn đè kín áo cũ
-    ctx.globalAlpha = 1.0; // Che hoàn toàn 100% áo cũ
+    ctx.globalAlpha = 1.0;
     ctx.drawImage(cleanGarmentCanvas, destX, destY, destW, destH);
     ctx.restore();
 
-    // 5. Thêm watermark
+    // 5. Watermark
     ctx.save();
     ctx.globalAlpha = 0.6;
     const fontSize = Math.max(11, Math.round(W / 55));
