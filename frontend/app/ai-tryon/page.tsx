@@ -9,6 +9,7 @@ import {
 import Image from 'next/image';
 import CompareSlider from '@/app/component/CompareSlider';
 import { toast } from 'react-hot-toast';
+import { compositeGarmentOnPerson } from '@/lib/canvasCompositor';
 
 interface Product {
     id: string;
@@ -53,6 +54,7 @@ export default function ProfessionalAITryOnPage() {
     const [stepMessage, setStepMessage] = useState<string>('');
     const [resultImage, setResultImage] = useState<string>('');
     const [aiFeedback, setAiFeedback] = useState<string>('');
+    const [quickPreview, setQuickPreview] = useState<string>(''); // Preview tực thì khi chọn sản phẩm
     
     // UI States
     const [fullscreen, setFullscreen] = useState<boolean>(false);
@@ -77,6 +79,28 @@ export default function ProfessionalAITryOnPage() {
         }
         fetchProducts();
     }, []);
+
+    // Auto-generate Quick Preview khi có ảnh người dùng + chọn sản phẩm
+    useEffect(() => {
+        if (!userPhotoUrl || !selectedProduct?.images?.[0]) {
+            setQuickPreview('');
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            try {
+                const preview = await compositeGarmentOnPerson(
+                    userPhotoUrl,
+                    selectedProduct.images[0],
+                    selectedProduct.category || 'tops'
+                );
+                if (!cancelled) setQuickPreview(preview);
+            } catch {
+                if (!cancelled) setQuickPreview('');
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [userPhotoUrl, selectedProduct]);
 
     // Handle Upload & Quality Check
     const handlePhotoUpload = async (file: File) => {
@@ -122,8 +146,23 @@ export default function ProfessionalAITryOnPage() {
                     setStepMessage(data.job.currentStepMessage || '');
 
                     if (data.job.status === 'completed') {
+                        // Chạy Canvas Compositor — Ghép áo vào ảnh người thật sự ngay trên trình duyệt
+                        let finalImage = data.job.resultImage || userPhotoUrl;
+                        if (userPhotoUrl && selectedProduct?.images?.[0]) {
+                            try {
+                                setStepMessage('Đang ghép trang phục vào ảnh của bạn...');
+                                finalImage = await compositeGarmentOnPerson(
+                                    userPhotoUrl,
+                                    selectedProduct.images[0],
+                                    selectedProduct.category || 'tops'
+                                );
+                            } catch (compErr) {
+                                console.warn('Canvas composite failed, using fallback:', compErr);
+                                finalImage = data.job.resultImage || userPhotoUrl;
+                            }
+                        }
                         setIsProcessing(false);
-                        setResultImage(data.job.resultImage);
+                        setResultImage(finalImage);
                         setAiFeedback(data.job.aiAnalysisText || '');
                         toast.success('AI Thử đồ thành công! ✨');
                         clearInterval(interval);
@@ -468,7 +507,7 @@ export default function ProfessionalAITryOnPage() {
                                     </div>
                                 )}
 
-                                {/* Compare Slider View */}
+                                {/* Compare Slider View — Kết quả AI hoàn chỉnh */}
                                 {userPhotoUrl && resultImage ? (
                                     <div className="space-y-4">
                                         <CompareSlider beforeImage={userPhotoUrl} afterImage={resultImage} />
@@ -479,10 +518,27 @@ export default function ProfessionalAITryOnPage() {
                                                 <p className="font-bold text-amber-400 flex items-center gap-1.5 text-sm">
                                                     <Sparkles size={16} /> AI Stylist Phân Tích & Tư Vấn:
                                                 </p>
-                                                <div dangerouslySetInnerHTML={{ __html: aiFeedback.replace(/\n/g, '<br/>') }} />
+                                                <div dangerouslySetInnerHTML={{ __html: aiFeedback.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                                             </div>
                                         )}
                                     </div>
+
+                                ) : userPhotoUrl && quickPreview && !isProcessing ? (
+                                    /* Quick Preview — Hiển thị ngay khi chọn ảnh + sản phẩm, trước khi bấm nút */
+                                    <div className="space-y-4">
+                                        <div className="relative">
+                                            <CompareSlider beforeImage={userPhotoUrl} afterImage={quickPreview} beforeLabel="Ảnh gốc" afterLabel="Xem thử" />
+                                            <div className="absolute top-0 inset-x-0 flex justify-center pt-3 pointer-events-none">
+                                                <span className="bg-slate-800/90 text-amber-300 text-[11px] font-bold px-3 py-1.5 rounded-full border border-amber-400/20 backdrop-blur-md">
+                                                    ⚡ Preview nhanh — Bấm "BẮt ĐẦu Thử Đồ AI" để có kết quả chất lượng cao hơn
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className="text-center text-xs text-slate-500">
+                                            AI đang ghép thử — Bấm <span className="text-amber-400 font-bold">BẨT ĐẦU THỬ ĐỒ AI</span> để xử lý toàn diện với chất lượng Ultra HD.
+                                        </p>
+                                    </div>
+
                                 ) : (
                                     !isProcessing && (
                                         <div className="h-80 rounded-2xl border-2 border-dashed border-slate-800 flex flex-col items-center justify-center text-slate-500 text-center p-6">
