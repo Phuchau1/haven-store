@@ -15,6 +15,8 @@ import ProductTabs from '@/app/component/ProductTabs';
 import { useRecentlyViewed } from '@/app/hooks/useRecentlyViewed';
 import RecentlyViewed from '@/app/component/RecentlyViewed';
 import { useAuth } from '@/app/component/AuthContext';
+import { Sparkles } from 'lucide-react';
+import TryOnModal from '@/app/component/TryOnModal';
 
 const COLOR_CLASS_MAP: Record<string, string> = {
     'Đen': 'bg-black',
@@ -50,6 +52,7 @@ export default function ProductDetailPage() {
     const [quantity, setQuantity] = useState(1);
     const [isLiked, setIsLiked] = useState(false);
     const [showAddedNotification, setShowAddedNotification] = useState(false);
+    const [isTryOnOpen, setIsTryOnOpen] = useState(false);
 
     const { user } = useAuth();
     const { addProduct } = useRecentlyViewed(user?.id);
@@ -468,6 +471,16 @@ export default function ProductDetailPage() {
                                     {getVariantStock() === 0 ? 'Hết hàng' : 'Mua Ngay'}
                                 </motion.button>
                             </div>
+
+                            {/* Nút Thử đồ AI trực tiếp */}
+                            <motion.button
+                                onClick={() => setIsTryOnOpen(true)}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="w-full h-[44px] mt-1 rounded-none text-[14px] font-bold tracking-wide uppercase flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-md shadow-amber-500/20"
+                            >
+                                <Sparkles size={16} /> Thử Đồ Với AI
+                            </motion.button>
                         </div>
 
                         {/* Added Notification */}
@@ -547,6 +560,18 @@ export default function ProductDetailPage() {
                 {/* Recently Viewed Products */}
                 <RecentlyViewed currentProductId={product.id} />
             </div>
+            {/* Modal Thử Đồ AI */}
+            {product && (
+                <TryOnModal
+                    isOpen={isTryOnOpen}
+                    onClose={() => setIsTryOnOpen(false)}
+                    product={{
+                        name: product.name,
+                        image: product.images?.[selectedImage] || product.images?.[0],
+                        category: product.category || product.subCategory
+                    }}
+                />
+            )}
         </div>
     );
 }
