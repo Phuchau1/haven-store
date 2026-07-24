@@ -69,11 +69,11 @@ export default function ReturnManagementPage() {
         try {
             const params = new URLSearchParams();
             if (search) params.set('search', search);
+            params.set('t', Date.now().toString());
             const res = await fetch(`/api/orders?${params}`);
             const data = await res.json();
             if (data.success) {
                 const all = data.orders || [];
-                // Ưu tiên đưa các đơn return_requested lên đầu
                 const sorted = [...all].sort((a, b) => (a.status === 'return_requested' ? -1 : 1));
                 setOrders(sorted);
             }
@@ -87,6 +87,12 @@ export default function ReturnManagementPage() {
     useEffect(() => {
         const t = setTimeout(() => fetchOrders(), 300);
         return () => clearTimeout(t);
+    }, [fetchOrders]);
+
+    // Auto-poll mỗi 15 giây — phát hiện yêu cầu hoàn hàng mới từ khách
+    useEffect(() => {
+        const interval = setInterval(() => fetchOrders(), 15000);
+        return () => clearInterval(interval);
     }, [fetchOrders]);
 
     // Admin Review action (Approve vs Reject)

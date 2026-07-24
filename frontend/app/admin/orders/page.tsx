@@ -69,6 +69,7 @@ export default function AdminOrders() {
     const [searchQuery, setSearchQuery] = useState('');
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [liveSync, setLiveSync] = useState(false);
     
     // Shipping Modal State
     const [shippingModalOpen, setShippingModalOpen] = useState(false);
@@ -92,22 +93,37 @@ export default function AdminOrders() {
         return () => document.removeEventListener('mousedown', handleOutsideClick);
     }, [handleOutsideClick]);
 
-    // Fetch orders
-    const fetchOrders = async () => {
+    // Fetch orders (silent = tránh loading spinner khi auto-poll)
+    const fetchOrders = useCallback(async (silent = false) => {
         try {
-            setLoading(true);
-            const res = await fetch('/api/orders');
+            if (!silent) setLoading(true);
+            const res = await fetch(`/api/orders?t=${Date.now()}`);
             if (!res.ok) throw new Error(`Lỗi server (${res.status})`);
             const data = await res.json();
-            if (data.success) setOrders(data.orders);
+            if (data.success) {
+                setOrders(prev => {
+                    const prevSig = prev.map(o => `${o.id}-${o.status}`).join(',');
+                    const newSig  = (data.orders || []).map((o: OrderData) => `${o.id}-${o.status}`).join(',');
+                    return prevSig !== newSig ? data.orders : prev;
+                });
+            }
         } catch (error) {
             console.error('Error fetching orders:', error);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
-    };
+    }, []);
 
-    useEffect(() => { fetchOrders(); }, []);
+    useEffect(() => {
+        fetchOrders();
+        // Auto-poll mỗi 10 giây — đồng bộ 2 chiều với khách hàng
+        const interval = setInterval(async () => {
+            setLiveSync(true);
+            await fetchOrders(true);
+            setTimeout(() => setLiveSync(false), 700);
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [fetchOrders]);
 
     // Update status
     const handleUpdateStatus = async (orderId: string, newStatus: string, shippingProvider?: string) => {
@@ -200,11 +216,17 @@ export default function AdminOrders() {
             {/* ── Page Header ─────────────────────────────────────────────── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: 'var(--adm-text)' }}>
-                        Quản lý đơn hàng
-                    </h3>
+                    <div className="flex items-center gap-3">
+                        <h3 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: 'var(--adm-text)' }}>
+                            Quản lý đơn hàng
+                        </h3>
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all duration-500 ${liveSync ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : 'bg-slate-500/10 border-slate-600/20 text-slate-400'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${liveSync ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
+                            {liveSync ? 'Đang đồng bộ...' : 'Live Sync 10s'}
+                        </div>
+                    </div>
                     <p className="text-sm mt-1" style={{ color: 'var(--adm-text-muted)' }}>
-                        Theo dõi, kiểm tra và cập nhật tiến độ vận chuyển.
+                        Theo dõi, kiểm tra và cập nhật tiến độ vận chuyển • Tự động đồng bộ 2 chiều với khách hàng
                     </p>
                 </div>
 

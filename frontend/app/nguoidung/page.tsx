@@ -531,6 +531,7 @@ export default function NguoiDungPage() {
     const [activeOrderTab, setActiveOrderTab] = useState('all');
     const [orders, setOrders] = useState<OrderData[]>([]);
     const [mounted, setMounted] = useState(false);
+    const [liveSync, setLiveSync] = useState(false); // live sync indicator
     
     // State cho Review Modal & Return Modal
     const [reviewOrder, setReviewOrder] = useState<OrderData | null>(null);
@@ -623,21 +624,36 @@ export default function NguoiDungPage() {
             window.history.replaceState({}, '', '/nguoidung');
         }
 
-        const fetchOrders = async () => {
+        const fetchOrders = async (silent = false) => {
             try {
-                const res = await fetch(`/api/orders?email=${user.email}`);
+                if (!silent) setLoading(true);
+                const res = await fetch(`/api/orders?email=${user.email}&t=${Date.now()}`);
                 const data = await res.json();
                 if (data.success) {
-                    setOrders(data.orders);
+                    setOrders(prev => {
+                        // Chỉ cập nhật nếu có thay đổi thực sự (tránh re-render thừa)
+                        const prevIds = prev.map(o => `${o.id}-${o.status}`).join(',');
+                        const newIds  = (data.orders || []).map((o: OrderData) => `${o.id}-${o.status}`).join(',');
+                        return prevIds !== newIds ? data.orders : prev;
+                    });
                 }
             } catch (error) {
                 console.error('Error fetching orders:', error);
             } finally {
-                setLoading(false);
+                if (!silent) setLoading(false);
             }
         };
 
         fetchOrders();
+
+        // Auto-poll mỗi 12 giây — đồng bộ status với Admin
+        const interval = setInterval(async () => {
+            setLiveSync(true);
+            await fetchOrders(true);
+            setTimeout(() => setLiveSync(false), 800);
+        }, 12000);
+
+        return () => clearInterval(interval);
     }, [user, router, mounted, clearCart]);
 
     const filteredOrders = activeOrderTab === 'all'
@@ -861,7 +877,13 @@ export default function NguoiDungPage() {
                                             className="space-y-6"
                                         >
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                                <h3 className="text-xl font-bold text-slate-900">Lịch sử đơn hàng</h3>
+                                                <div className="flex items-center gap-3">
+                                                    <h3 className="text-xl font-bold text-slate-900">Lịch sử đơn hàng</h3>
+                                                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all duration-500 ${liveSync ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-100 border-slate-200 text-slate-400'}`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${liveSync ? 'bg-emerald-500 animate-ping' : 'bg-slate-300'}`} />
+                                                        {liveSync ? 'Đang cập nhật...' : '● Tự động đồng bộ'}
+                                                    </div>
+                                                </div>
                                                 <div className="flex bg-white p-1 rounded-xl border border-slate-100 shadow-sm overflow-x-auto no-scrollbar">
                                                     {ORDER_STATUS_TABS.map(tab => (
                                                         <button
