@@ -405,6 +405,152 @@ exports.processReturnOrder = async (req, res) => {
 };
 
 /**
+ * @route   POST /api/wms/customer-return-request
+ * @desc    Khách hàng gửi yêu cầu hoàn hàng kèm hình ảnh bằng chứng & lý do (Chỉ khi order status == delivered)
+ */
+exports.submitCustomerReturnRequest = async (req, res) => {
+    try {
+        const { orderId, reason, images } = req.body;
+        if (!orderId || !reason?.trim()) {
+            return res.status(400).json({ success: false, message: 'Thiếu mã đơn hàng hoặc lý do hoàn hàng.' });
+        }
+        if (!Array.isArray(images) || images.length === 0) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp ít nhất 1 hình ảnh sản phẩm/hóa đơn làm bằng chứng hoàn hàng!' });
+        }
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
+        }
+
+        // Bắt buộc: Chỉ đơn hàng mua thành công (delivered) mới được hoàn hàng
+        if (order.status !== 'delivered') {
+            return res.status(400).json({
+                success: false,
+                message: 'Chỉ các đơn hàng đã giao thành công (Mua hàng thành công) mới được phép gửi yêu cầu hoàn hàng!'
+            });
+        }
+
+        order.status = 'return_requested';
+        order.returnRequest = {
+            status: 'pending',
+            reason,
+            images,
+            requestedAt: new Date()
+        };
+        await order.save();
+
+        if (AuditLog) {
+            await AuditLog.create({
+                action: 'CUSTOMER_RETURN_REQUEST',
+                entity: 'Order',
+                entityId: orderId,
+                performedBy: order.customerName || order.email || 'Customer',
+                ipAddress: req.ip || '127.0.0.1',
+                notes: `Khách hàng gửi yêu cầu hoàn đơn #${orderId} với ${images.length} hình ảnh bằng chứng. Lý do: ${reason}`
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: '✅ Đã gửi yêu cầu hoàn hàng! Ban quản trị sẽ kiểm tra hình ảnh & phản hồi trong 24h.',
+            order
+        });
+    } catch (err) {
+        logger.error(`[WMS] Customer return request error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message || 'Lỗi gửi yêu cầu hoàn hàng' });
+    }
+};
+
+/**
+ * @route   POST /api/wms/review-return-request
+ * @desc    Admin xem xét & Duyệt (Approve) hoặc Từ Chối (Reject) yêu cầu hoàn hàng của khách
+ */
+exports.reviewReturnRequest = async (req, res) => {
+    try {
+        const { orderId, action, returnType = 'RETURN_GOOD', rejectReason = '', adminName = 'Admin WMS' } = req.body;
+        if (!orderId || !['approve', 'reject'].includes(action)) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp mã đơn hàng và hành động (approve / reject).' });
+        }
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
+        }
+
+        if (order.status !== 'return_requested' && order.returnRequest?.status !== 'pending') {
+            return res.status(400).json({ success: false, message: 'Đơn hàng này không có yêu cầu hoàn hàng đang chờ duyệt.' });
+        }
+
+        if (action === 'approve') {
+            // Chuyển các món sang WMS Service để cộng tồn khả dụng hoặc hỏng
+            const returnItems = order.items.map(it => ({
+                sku: `${it.product?.id || 'PROD'}-${it.selectedColor?.name?.replace(/\s/g, '-') || ''}-${it.selectedSize || ''}`,
+                quantity: it.quantity,
+                isDamaged: returnType === 'RETURN_DAMAGE'
+            }));
+
+            await wmsInventoryService.processReturnOrder(orderId, returnItems, returnType, adminName, order.returnRequest?.reason || 'Approved return');
+
+            order.status = 'refunded';
+            if (!order.returnRequest) order.returnRequest = {};
+            order.returnRequest.status = 'approved';
+            order.returnRequest.reviewedAt = new Date();
+            order.returnRequest.reviewedBy = adminName;
+            await order.save();
+
+            if (AuditLog) {
+                await AuditLog.create({
+                    action: 'ADMIN_APPROVE_RETURN',
+                    entity: 'Order',
+                    entityId: orderId,
+                    performedBy: adminName,
+                    notes: `Admin ${adminName} ĐÃ DUYỆT yêu cầu hoàn hàng đơn #${orderId} (${returnType})`
+                });
+            }
+
+            return res.json({
+                success: true,
+                message: `✅ Đã ĐÃ DUYỆT hoàn hàng cho đơn #${orderId}! Hàng đã được nhập kho (${returnType}).`,
+                order
+            });
+        } else {
+            // Từ chối yêu cầu hoàn hàng
+            if (!rejectReason?.trim()) {
+                return res.status(400).json({ success: false, message: 'Vui lòng nhập lý do từ chối để thông báo cho khách hàng.' });
+            }
+
+            order.status = 'delivered'; // Trả về đã giao
+            if (!order.returnRequest) order.returnRequest = {};
+            order.returnRequest.status = 'rejected';
+            order.returnRequest.rejectReason = rejectReason;
+            order.returnRequest.reviewedAt = new Date();
+            order.returnRequest.reviewedBy = adminName;
+            await order.save();
+
+            if (AuditLog) {
+                await AuditLog.create({
+                    action: 'ADMIN_REJECT_RETURN',
+                    entity: 'Order',
+                    entityId: orderId,
+                    performedBy: adminName,
+                    notes: `Admin ${adminName} TỪ CHỐI yêu cầu hoàn đơn #${orderId}. Lý do từ chối: ${rejectReason}`
+                });
+            }
+
+            return res.json({
+                success: true,
+                message: `❌ Đã TỪ CHỐI yêu cầu hoàn hàng cho đơn #${orderId}.`,
+                order
+            });
+        }
+    } catch (err) {
+        logger.error(`[WMS] Review return request error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message || 'Lỗi duyệt yêu cầu hoàn hàng' });
+    }
+};
+
+/**
  * @route   GET /api/wms/tracking/:trackingNumber
  * @desc    Lấy lịch trình vận chuyển Live
  */

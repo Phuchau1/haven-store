@@ -71,10 +71,20 @@ const OrderSchema = new Schema({
             'shipped',           // Đã giao cho đơn vị vận chuyển
             'delivered',         // Đã giao hàng thành công
             'cancelled',         // Đã hủy
+            'return_requested',   // Khách hàng gửi yêu cầu hoàn hàng (chờ Admin duyệt)
             'refund_requested',  // Khách hàng yêu cầu hoàn tiền
-            'refunded'           // Đã hoàn tiền
+            'refunded'           // Đã hoàn tiền / hoàn hàng
         ],
         default: 'pending'
+    },
+    returnRequest: {
+        status:       { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
+        reason:       { type: String, default: '' },
+        images:       [{ type: String }],
+        requestedAt:  { type: Date },
+        reviewedAt:   { type: Date },
+        reviewedBy:   { type: String, default: '' },
+        rejectReason: { type: String, default: '' }
     },
     createdAt: { type: String, required: true }                      // Thời gian tạo đơn (dạng String ISO)
 }, { timestamps: true }); // Mongoose tự thêm createdAt, updatedAt dạng Date

@@ -100,9 +100,18 @@ export interface OrderData {
     discountAmount?: number;
     finalAmount: number;
     note?: string;
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'refunded';
+    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'return_requested' | 'refunded';
     shippingProvider?: string;
     createdAt: string;
+    returnRequest?: {
+        status?: 'none' | 'pending' | 'approved' | 'rejected';
+        reason?: string;
+        images?: string[];
+        requestedAt?: string;
+        reviewedAt?: string;
+        reviewedBy?: string;
+        rejectReason?: string;
+    };
 }
 
 export interface OrderResponse {

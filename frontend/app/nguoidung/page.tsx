@@ -160,13 +160,18 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                             Hủy đơn hàng
                                         </button>
                                     )}
-                                    {(order.status === 'delivered' || order.status === 'shipped' || order.status === 'processing') && (
+                                    {order.status === 'delivered' && (
                                         <button 
                                             onClick={() => onReturn(order)}
                                             className="px-4 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all shadow-sm flex items-center gap-1.5"
                                         >
                                             <RotateCcw size={14} /> Hoàn hàng / Trả hàng
                                         </button>
+                                    )}
+                                    {order.status === 'return_requested' && (
+                                        <span className="px-4 py-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                            ⏳ Yêu cầu hoàn hàng đang chờ Admin duyệt
+                                        </span>
                                     )}
                                     {order.status === 'delivered' && (
                                         <button 
@@ -333,62 +338,72 @@ const CustomerReturnModal = ({
 }) => {
     const [reason, setReason] = useState('');
     const [customReason, setCustomReason] = useState('');
+    const [images, setImages] = useState<string[]>([]);
+    const [imageUrlInput, setImageUrlInput] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     const REASONS = [
-        'Khách đổi ý không muốn mua nữa',
-        'Sản phẩm không vừa size / đổi size',
-        'Sản phẩm bị lỗi hoặc hư hỏng',
-        'Sản phẩm không giống hình mô tả',
-        'Giao sai màu sắc hoặc kích thước',
+        'Sản phẩm bị lỗi / hư hỏng từ nhà sản xuất',
+        'Giao sai sản phẩm / sai màu / sai kích thước',
+        'Sản phẩm không đúng hình ảnh & mô tả',
+        'Sản phẩm không vừa size / cần đổi trả',
         'Khác'
     ];
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (reader.result) setImages(prev => [...prev, reader.result as string]);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleAddImageUrl = () => {
+        if (imageUrlInput.trim()) {
+            setImages(prev => [...prev, imageUrlInput.trim()]);
+            setImageUrlInput('');
+        }
+    };
+
     const handleSubmit = async () => {
+        if (order.status !== 'delivered') {
+            alert('❌ Chỉ các đơn hàng đã giao thành công (Mua hàng thành công) mới được gửi yêu cầu hoàn hàng!');
+            return;
+        }
+
         const finalReason = reason === 'Khác' ? customReason : reason;
         if (!finalReason.trim()) {
             alert('Vui lòng chọn hoặc nhập lý do hoàn hàng');
             return;
         }
+
+        if (images.length === 0) {
+            alert('📸 BẮT BUỘC: Vui lòng chụp ảnh hoặc tải lên hình ảnh sản phẩm làm bằng chứng để gửi Admin xem xét và duyệt!');
+            return;
+        }
+
         setSubmitting(true);
         try {
-            const returnItems = order.items.map(it => ({
-                sku: `${it.product?.id || 'PROD'}-${it.selectedColor?.name?.replace(/\s/g, '-') || ''}-${it.selectedSize || ''}`,
-                quantity: it.quantity,
-                isDamaged: false
-            }));
-
-            const res = await fetch('/api/wms/return-order', {
+            const res = await fetch('/api/wms/customer-return-request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     orderId: order.id,
-                    returnItems,
-                    returnType: 'RETURN_GOOD',
                     reason: finalReason,
-                    user: (order as any).name || (order as any).customerName || 'Khách hàng'
+                    images
                 })
             });
 
             const data = await res.json();
             if (data.success) {
-                alert('✅ Yêu cầu hoàn hàng của bạn đã được gửi và ghi nhận thành công!');
+                alert('✅ Yêu cầu hoàn hàng của bạn đã được gửi thành công!\n\nAdmin sẽ xem xét hình ảnh thực tế và tiến hành duyệt hoặc từ chối đơn trong thời gian sớm nhất.');
                 onSuccess(order.id ?? '');
                 onClose();
             } else {
-                const res2 = await fetch('/api/orders', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: order.id, status: 'refunded' })
-                });
-                const data2 = await res2.json();
-                if (data2.success) {
-                    alert('✅ Yêu cầu hoàn hàng của bạn đã được gửi thành công!');
-                    onSuccess(order.id ?? '');
-                    onClose();
-                } else {
-                    alert('Lỗi: ' + (data.message || data2.message || 'Không thể thực hiện yêu cầu'));
-                }
+                alert('Lỗi: ' + (data.message || 'Không thể gửi yêu cầu'));
             }
         } catch {
             alert('Đã xảy ra lỗi khi gửi yêu cầu hoàn hàng');
@@ -403,31 +418,34 @@ const CustomerReturnModal = ({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl border border-slate-100"
+                className="bg-white rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto"
             >
                 <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                    <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                        <RotateCcw className="text-rose-500" size={20} /> Yêu cầu Hoàn Hàng
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <RotateCcw className="text-rose-500" size={18} /> Yêu Cầu Hoàn Hàng (Chờ Admin Duyệt)
                     </h3>
                     <button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100">
                         <XCircle size={20} />
                     </button>
                 </div>
 
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs space-y-1">
-                    <p className="font-bold text-slate-900">Đơn hàng #{order.id}</p>
-                    <p className="text-slate-500">{order.items?.length || 0} sản phẩm • Tổng tiền: {formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
+                <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-xs space-y-1">
+                    <p className="font-bold text-amber-900">Đơn hàng đã mua: #{order.id}</p>
+                    <p className="text-amber-700 text-[11px]">
+                        ⚠️ Quy định: Ảnh chụp bằng chứng sản phẩm & lý do sẽ được chuyển đến Admin xem xét kỹ trước khi duyệt hoàn tiền/kho.
+                    </p>
                 </div>
 
+                {/* Reasons */}
                 <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Chọn lý do hoàn hàng:</label>
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">1. Chọn lý do hoàn hàng *</label>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                         {REASONS.map(r => (
                             <button
                                 key={r}
                                 type="button"
                                 onClick={() => setReason(r)}
-                                className={`w-full text-left p-3 rounded-xl text-xs font-medium transition-all border ${reason === r ? 'bg-rose-50 border-rose-300 text-rose-700 font-bold' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'}`}
+                                className={`w-full text-left p-2.5 rounded-xl text-xs font-medium transition-all border ${reason === r ? 'bg-rose-50 border-rose-300 text-rose-700 font-bold' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'}`}
                             >
                                 {r}
                             </button>
@@ -435,12 +453,55 @@ const CustomerReturnModal = ({
                     </div>
                     {reason === 'Khác' && (
                         <textarea
-                            rows={3}
+                            rows={2}
                             placeholder="Nhập lý do chi tiết..."
                             value={customReason}
                             onChange={e => setCustomReason(e.target.value)}
-                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-rose-400"
+                            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-rose-400"
                         />
+                    )}
+                </div>
+
+                {/* Images Proof Upload */}
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">2. Chụp/Tải ảnh bằng chứng hàng lỗi/hỏng *</label>
+                    
+                    <div className="flex items-center gap-2">
+                        <label className="flex-1 cursor-pointer bg-slate-100 hover:bg-slate-200 border border-dashed border-slate-300 rounded-xl py-3 px-4 text-center text-xs font-semibold text-slate-600 transition-colors flex items-center justify-center gap-2">
+                            📸 Chọn ảnh từ thiết bị
+                            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                        </label>
+                    </div>
+
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Hoặc dán Link URL hình ảnh..."
+                            value={imageUrlInput}
+                            onChange={e => setImageUrlInput(e.target.value)}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        />
+                        <button type="button" onClick={handleAddImageUrl} className="px-3 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700">
+                            Thêm
+                        </button>
+                    </div>
+
+                    {/* Preview Images */}
+                    {images.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                            {images.map((img, idx) => (
+                                <div key={idx} className="relative w-16 h-16 rounded-xl border border-slate-200 overflow-hidden group">
+                                    <img src={img} alt={`Proof ${idx}`} className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setImages(prev => prev.filter((_, i) => i !== idx))}
+                                        className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center opacity-90 hover:opacity-100"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
 
@@ -450,10 +511,10 @@ const CustomerReturnModal = ({
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={submitting || !reason}
-                        className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                        disabled={submitting || !reason || images.length === 0}
+                        className="flex-1 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
                     >
-                        {submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
+                        {submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu Cho Admin Duyệt'}
                     </button>
                 </div>
             </motion.div>
