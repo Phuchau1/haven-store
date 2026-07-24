@@ -59,6 +59,8 @@ const OrderSchema = new Schema({
     userId:          { type: String, default: null },                 // ID người dùng đặt hàng (dùng để tích điểm)
     transferReceipt: { type: String, default: '' },                  // Ảnh biên lai chuyển khoản (nếu có)
     shippingProvider:{ type: String },                               // Đơn vị vận chuyển (J&T Express, Viettel Post, v.v.)
+    carrierCode:     { type: String, default: '' },                  // Mã nhà vận chuyển (GHN, GHTK, VIETTELPOST, VNPOST)
+    trackingNumber:  { type: String, default: '' },                  // Mã vận đơn giao hàng
     // Trạng thái đơn hàng theo luồng xử lý
     status: {
         type: String,

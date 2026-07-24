@@ -6,6 +6,7 @@
 
 const Inventory            = require('../models/Inventory');
 const InventoryTransaction = require('../models/InventoryTransaction');
+const { OrderModel }       = require('../models/Order');
 const { AuditLogModel: AuditLog } = require('../models/AuditLog');
 const wmsInventoryService  = require('../services/wmsInventoryService');
 const logisticsService     = require('../services/logisticsService');
@@ -164,14 +165,29 @@ exports.createCarrierWaybill = async (req, res) => {
 
         const waybill = await logisticsService.createWaybill(orderData, carrierCode);
 
-        // Chuyển hàng từ reserved -> sold
+        // 1. Cập nhật trực tiếp vào MongoDB Database (LƯU PERSISTENT)
+        const updatedOrder = await OrderModel.findOneAndUpdate(
+            { id: orderData.id },
+            {
+                $set: {
+                    status: 'shipped',
+                    carrierCode: waybill.carrierCode,
+                    trackingNumber: waybill.trackingNumber,
+                    shippingProvider: waybill.carrierName
+                }
+            },
+            { new: true }
+        );
+
+        // 2. Chuyển tồn kho từ reserved -> sold
         if (orderData.items) {
             await wmsInventoryService.deductStockOnShipment(orderData.id || orderData._id, orderData.items);
         }
 
         return res.json({
             success: true,
-            waybill
+            waybill,
+            order: updatedOrder
         });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });

@@ -208,15 +208,83 @@ const exportStockOnApproval = async (orderItems, orderId) => {
 const getOrders = async (req, res, next) => {
     try {
         const email = typeof req.query.email === 'string' ? req.query.email : undefined;
-        // Nếu user bình thường gọi, gửi query ?email=...
-        // Nếu Admin gọi, không truyền email sẽ lấy toàn bộ
         const filter = email ? { email } : {};
-        const orders = await OrderModel.find(filter).sort({ createdAt: -1 });
+        let orders = await OrderModel.find(filter).sort({ createdAt: -1 });
+
+        // Tự động Seed đơn hàng mẫu vào MongoDB nếu chưa có đơn nào trong DB
+        if (orders.length === 0 && !email) {
+            await autoSeedOrdersData();
+            orders = await OrderModel.find(filter).sort({ createdAt: -1 });
+        }
+
         res.json({ success: true, orders });
     } catch (error) {
         next(error);
     }
 };
+
+/**
+ * Hàm Tự Động Tạo Đơn Hàng Mẫu Vẫn Lưu Trực Tiếp Vào MongoDB Database
+ */
+async function autoSeedOrdersData() {
+    try {
+        const seedOrders = [
+            {
+                id: 'ORD-2026-9901',
+                customerName: 'Nguyễn Văn Hùng',
+                phone: '0988123456',
+                email: 'hung.nguyen@gmail.com',
+                address: '123 Đường Lê Lợi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh',
+                paymentMethod: 'COD',
+                totalAmount: 699000,
+                finalAmount: 699000,
+                status: 'processing',
+                createdAt: new Date().toISOString(),
+                items: [{
+                    product: {
+                        id: 'HAVEN-POLO-BLK-L',
+                        name: 'Áo Polo Nam Can Phối Thân Cotton',
+                        price: 350000,
+                        images: ['https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=600']
+                    },
+                    quantity: 1,
+                    selectedSize: 'L',
+                    selectedColor: { name: 'Đen', hex: '#000000' }
+                }]
+            },
+            {
+                id: 'ORD-2026-9902',
+                customerName: 'Trần Thị Mai',
+                phone: '0912345678',
+                email: 'mai.tran@gmail.com',
+                address: '45 Phố Tràng Tiền, Quận Hoàn Kiếm, Hà Nội',
+                paymentMethod: 'MoMo',
+                totalAmount: 1250000,
+                finalAmount: 1250000,
+                status: 'processing',
+                createdAt: new Date().toISOString(),
+                items: [{
+                    product: {
+                        id: 'HAVEN-SHIRT-WHT-M',
+                        name: 'Áo Sơ Mi Nam Kẻ Sọc Oxford Premium',
+                        price: 450000,
+                        images: ['https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600']
+                    },
+                    quantity: 2,
+                    selectedSize: 'M',
+                    selectedColor: { name: 'Trắng', hex: '#FFFFFF' }
+                }]
+            }
+        ];
+
+        for (const ord of seedOrders) {
+            await OrderModel.updateOne({ id: ord.id }, { $set: ord }, { upsert: true });
+        }
+        log('[getOrders] Auto-seeded sample orders into MongoDB Database!');
+    } catch (err) {
+        log(`[autoSeedOrdersData] Error: ${err.message}`);
+    }
+}
 
 /**
  * @desc    Tạo đơn hàng mới (Checkout)

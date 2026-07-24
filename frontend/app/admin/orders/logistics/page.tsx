@@ -45,32 +45,8 @@ export default function LogisticsManagementPage() {
         try {
             const res = await fetch('/api/orders');
             const data = await res.json();
-            if (data.success && data.orders && data.orders.length > 0) {
+            if (data.success && data.orders) {
                 setOrders(data.orders);
-            } else {
-                // Fallback dữ liệu từ Database thực tế nếu chưa có đơn nào trong DB
-                setOrders([
-                    {
-                        id: 'ORD-2026-9901',
-                        customerName: 'Nguyễn Văn Hùng',
-                        phone: '0988123456',
-                        address: '123 Đường Lê Lợi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh',
-                        finalAmount: 699000,
-                        status: 'processing',
-                        items: [{ product: { id: 'p1', name: 'Áo Polo Nam Can Phối Thân Cotton' }, selectedSize: 'L', selectedColor: { name: 'Đen' }, quantity: 1 }]
-                    },
-                    {
-                        id: 'ORD-2026-9902',
-                        customerName: 'Trần Thị Mai',
-                        phone: '0912345678',
-                        address: '45 Phố Tràng Tiền, Quận Hoàn Kiếm, Hà Nội',
-                        finalAmount: 1250000,
-                        status: 'shipped',
-                        carrierCode: 'GHN',
-                        trackingNumber: 'GHN-881920-109',
-                        items: [{ product: { id: 'p2', name: 'Áo Sơ Mi Nam Kẻ Sọc Oxford Premium' }, selectedSize: 'M', selectedColor: { name: 'Trắng' }, quantity: 2 }]
-                    }
-                ]);
             }
         } catch (err) {
             toast.error('Không thể lấy danh sách đơn hàng từ server');
