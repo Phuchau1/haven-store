@@ -80,6 +80,184 @@ exports.getWmsDashboard = async (req, res) => {
 };
 
 /**
+ * @route   POST /api/wms/adjust
+ * @desc    Điều chỉnh tăng/giảm tồn kho thủ công có lý do bắt buộc và lưu vết bất biến
+ */
+exports.adjustStock = async (req, res) => {
+    try {
+        const { sku, adjustQty, reason, performedBy } = req.body;
+        if (!sku || adjustQty === undefined || adjustQty === 0 || !reason?.trim()) {
+            return res.status(400).json({ success: false, message: 'Thiếu thông tin SKU, số lượng điều chỉnh hoặc lý do bắt buộc' });
+        }
+
+        const user = performedBy || req.user?.name || 'Admin WMS';
+        const userIp = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+
+        const result = await wmsInventoryService.adjustStock({
+            sku,
+            adjustQty: Number(adjustQty),
+            reason,
+            performedBy: user,
+            deviceIp: userIp
+        });
+
+        // Ghi Audit Log
+        await AuditLog.create({
+            action: 'INVENTORY_MANUAL_ADJUST',
+            entity: 'Inventory',
+            entityId: sku,
+            beforeState: { available: result.beforeQty },
+            afterState: { available: result.afterQty },
+            performedBy: user,
+            ipAddress: userIp,
+            notes: `Điều chỉnh tồn kho ${adjustQty > 0 ? '+' : ''}${adjustQty} cho SKU ${sku}. Lý do: ${reason}`
+        });
+
+        return res.json({
+            success: true,
+            message: `✅ Đã điều chỉnh tồn kho SKU ${sku} thành công`,
+            data: result
+        });
+    } catch (err) {
+        logger.error(`[WMS] Adjust stock error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message || 'Lỗi hệ thống khi điều chỉnh tồn kho' });
+    }
+};
+
+/**
+ * @route   GET /api/wms/notifications
+ * @desc    Lấy danh sách thông báo & cảnh báo tồn kho (Low Stock / Out of Stock)
+ */
+exports.getNotifications = async (req, res) => {
+    try {
+        const lowStockItems = await Inventory.find({
+            $expr: { $lte: ['$available', '$minStock'] }
+        }).lean();
+
+        const notifications = lowStockItems.map(item => ({
+            id: item._id,
+            type: item.available === 0 ? 'OUT_OF_STOCK' : 'LOW_STOCK',
+            title: item.available === 0 ? `🚨 Hết hàng: ${item.sku}` : `⚠️ Sắp hết hàng: ${item.sku}`,
+            message: `${item.productName} (${item.color}/${item.size}) hiện còn ${item.available} sp trong kho (Ngưỡng an toàn: ${item.minStock} sp).`,
+            sku: item.sku,
+            available: item.available,
+            minStock: item.minStock,
+            createdAt: item.updatedAt || item.createdAt
+        }));
+
+        return res.json({
+            success: true,
+            total: notifications.length,
+            data: notifications
+        });
+    } catch (err) {
+        logger.error(`[WMS] Get notifications error: ${err.message}`);
+        return res.status(500).json({ success: false, message: 'Lỗi lấy danh sách thông báo kho' });
+    }
+};
+
+/**
+ * @route   GET /api/wms/export
+ * @desc    Xuất báo cáo tồn kho SKU dưới dạng CSV/Excel
+ */
+exports.exportInventory = async (req, res) => {
+    try {
+        const items = await Inventory.find({}).lean();
+        const headers = ['SKU', 'Tên Sản Phẩm', 'Màu', 'Size', 'Vị Trí Kệ', 'Tồn Bán (Available)', 'Tồn Giữ (Reserved)', 'Đã Bán', 'Lỗi (Damaged)', 'Giá Nhập (VND)', 'Trạng Thái'];
+        
+        const rows = items.map(i => [
+            `"${i.sku}"`,
+            `"${i.productName?.replace(/"/g, '""') || ''}"`,
+            `"${i.color || ''}"`,
+            `"${i.size || ''}"`,
+            `"${i.locationRack || ''}"`,
+            i.available || 0,
+            i.reserved || 0,
+            i.sold || 0,
+            i.damaged || 0,
+            i.costPrice || 0,
+            `"${i.status || 'IN_STOCK'}"`
+        ]);
+
+        const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename=Bao_Cao_Ton_Kho_WMS_${Date.now()}.csv`);
+        return res.send(csvContent);
+    } catch (err) {
+        logger.error(`[WMS] Export CSV error: ${err.message}`);
+        return res.status(500).json({ success: false, message: 'Lỗi xuất file dữ liệu tồn kho' });
+    }
+};
+
+/**
+ * @route   POST /api/wms/import
+ * @desc    Bulk Import / Cập nhật tồn kho SKU từ dữ liệu hàng loạt
+ */
+exports.importInventory = async (req, res) => {
+    try {
+        const { items } = req.body;
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ success: false, message: 'Vui lòng truyền mảng danh sách items cần import' });
+        }
+
+        let updatedCount = 0;
+        const performedBy = req.body.performedBy || 'Admin Import';
+
+        for (const item of items) {
+            if (!item.sku) continue;
+            
+            const existing = await Inventory.findOne({ sku: item.sku });
+            const beforeAvailable = existing ? existing.available : 0;
+            const newAvailable = Number(item.available !== undefined ? item.available : (existing ? existing.available : 0));
+
+            await Inventory.updateOne(
+                { sku: item.sku },
+                {
+                    $set: {
+                        productName: item.productName || existing?.productName || item.sku,
+                        color: item.color || existing?.color || '',
+                        size: item.size || existing?.size || '',
+                        available: newAvailable,
+                        minStock: item.minStock || existing?.minStock || 5,
+                        costPrice: item.costPrice || existing?.costPrice || 0,
+                        locationRack: item.locationRack || existing?.locationRack || 'KHO-MAIN-01',
+                        status: newAvailable === 0 ? 'OUT_OF_STOCK' : (newAvailable <= (item.minStock || 5) ? 'LOW_STOCK' : 'IN_STOCK')
+                    }
+                },
+                { upsert: true }
+            );
+
+            // Ghi nhận lịch sử giao dịch
+            if (newAvailable !== beforeAvailable) {
+                await InventoryTransaction.create({
+                    transactionCode: `IMP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    type: newAvailable > beforeAvailable ? 'IMPORT' : 'ADJUST_DECREASE',
+                    sku: item.sku,
+                    productName: item.productName || item.sku,
+                    quantityBefore: beforeAvailable,
+                    quantityChange: newAvailable - beforeAvailable,
+                    quantityAfter: newAvailable,
+                    stockType: 'available',
+                    performedBy,
+                    notes: 'Bulk Import/Cập nhật tồn kho từ dữ liệu file'
+                });
+            }
+            updatedCount++;
+        }
+
+        return res.json({
+            success: true,
+            message: `✅ Đã import / cập nhật thành công ${updatedCount} SKU vào kho`,
+            updatedCount
+        });
+    } catch (err) {
+        logger.error(`[WMS] Import inventory error: ${err.message}`);
+        return res.status(500).json({ success: false, message: 'Lỗi xử lý import hàng loạt' });
+    }
+};
+
+/**
  * @route   GET /api/wms/inventory
  * @desc    Danh sách tồn kho có Pagination, Search, Filter, Sort
  */
