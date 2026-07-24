@@ -17,7 +17,13 @@ const logger               = require('../utils/logger');
  */
 exports.getWmsDashboard = async (req, res) => {
     try {
-        const allItems = await Inventory.find({}).lean();
+        let allItems = await Inventory.find({}).lean();
+
+        // Tự động Seed dữ liệu tồn kho mẫu nếu chưa có dữ liệu trong WMS
+        if (allItems.length === 0) {
+            await autoSeedWmsData();
+            allItems = await Inventory.find({}).lean();
+        }
 
         let totalSkus = allItems.length;
         let totalValuation = 0;
@@ -93,7 +99,14 @@ exports.getInventoryList = async (req, res) => {
         }
         if (status) query.status = status;
 
-        const totalItems = await Inventory.countDocuments(query);
+        let totalItems = await Inventory.countDocuments(query);
+
+        // Tự động Seed nếu trống
+        if (totalItems === 0 && !search && !status) {
+            await autoSeedWmsData();
+            totalItems = await Inventory.countDocuments(query);
+        }
+
         const items = await Inventory.find(query)
             .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
@@ -238,3 +251,128 @@ exports.getTransactions = async (req, res) => {
         return res.status(500).json({ success: false, message: err.message });
     }
 };
+
+/**
+ * Hàm Tự Động Tạo Dữ Liệu Tồn Kho Mẫu (Auto-Seed WMS Data)
+ */
+async function autoSeedWmsData() {
+    try {
+        const seedItems = [
+            {
+                sku: 'HAVEN-POLO-BLK-L',
+                productName: 'Áo Polo Nam Can Phối Thân Cotton',
+                color: 'Đen',
+                size: 'L',
+                warehouseName: 'Tổng Kho Hà Nội',
+                locationRack: 'KHO-A1-03',
+                available: 45,
+                reserved: 5,
+                sold: 120,
+                damaged: 2,
+                minStock: 10,
+                costPrice: 180000,
+                sellingPrice: 350000,
+                status: 'IN_STOCK'
+            },
+            {
+                sku: 'HAVEN-POLO-BLK-M',
+                productName: 'Áo Polo Nam Can Phối Thân Cotton',
+                color: 'Đen',
+                size: 'M',
+                warehouseName: 'Tổng Kho Hà Nội',
+                locationRack: 'KHO-A1-02',
+                available: 30,
+                reserved: 2,
+                sold: 95,
+                damaged: 0,
+                minStock: 10,
+                costPrice: 180000,
+                sellingPrice: 350000,
+                status: 'IN_STOCK'
+            },
+            {
+                sku: 'HAVEN-SHIRT-WHT-L',
+                productName: 'Áo Sơ Mi Nam Kẻ Sọc Oxford Premium',
+                color: 'Trắng',
+                size: 'L',
+                warehouseName: 'Tổng Kho Hồ Chí Minh',
+                locationRack: 'KHO-B2-01',
+                available: 8,
+                reserved: 3,
+                sold: 210,
+                damaged: 1,
+                minStock: 15,
+                costPrice: 220000,
+                sellingPrice: 450000,
+                status: 'LOW_STOCK'
+            },
+            {
+                sku: 'HAVEN-JEAN-BLU-32',
+                productName: 'Quần Jean Nam Co Giãn Dáng Slimfit',
+                color: 'Xanh Chàm',
+                size: '32',
+                warehouseName: 'Tổng Kho Hồ Chí Minh',
+                locationRack: 'KHO-C1-05',
+                available: 0,
+                reserved: 0,
+                sold: 340,
+                damaged: 5,
+                minStock: 20,
+                costPrice: 280000,
+                sellingPrice: 590000,
+                status: 'OUT_OF_STOCK'
+            },
+            {
+                sku: 'HAVEN-VEST-NVY-XL',
+                productName: 'Bộ Vest Nam 2 Cúc Phong Cách Ý',
+                color: 'Xanh Navy',
+                size: 'XL',
+                warehouseName: 'Tổng Kho Hà Nội',
+                locationRack: 'KHO-VIP-01',
+                available: 18,
+                reserved: 1,
+                sold: 40,
+                damaged: 0,
+                minStock: 5,
+                costPrice: 850000,
+                sellingPrice: 1850000,
+                status: 'IN_STOCK'
+            }
+        ];
+
+        for (const item of seedItems) {
+            await Inventory.updateOne(
+                { sku: item.sku },
+                { $set: item },
+                { upsert: true }
+            );
+
+            // Tạo luôn giao dịch mẫu
+            await InventoryTransaction.updateOne(
+                { sku: item.sku, type: 'IMPORT' },
+                {
+                    $set: {
+                        transactionCode: `SEED-${item.sku}`,
+                        type: 'IMPORT',
+                        sku: item.sku,
+                        productId: `PROD-${item.sku}`,
+                        productName: item.productName,
+                        color: item.color,
+                        size: item.size,
+                        quantityBefore: 0,
+                        quantityChange: item.available + item.reserved + item.sold,
+                        quantityAfter: item.available,
+                        stockType: 'available',
+                        performedBy: 'System Auto-Seed',
+                        notes: 'Khởi tạo tồn kho ban đầu',
+                        warehouseName: item.warehouseName
+                    }
+                },
+                { upsert: true }
+            );
+        }
+        logger.info('[WMS] Auto-seeded 5 inventory items and transactions successfully!');
+    } catch (e) {
+        logger.error(`[WMS] Auto-seed error: ${e.message}`);
+    }
+}
