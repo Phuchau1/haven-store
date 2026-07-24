@@ -36,6 +36,7 @@ const loyaltyRoutes        = require('./loyaltyRoutes');
 const analyticsRoutes      = require('./analyticsRoutes');
 const tryOnRoutes          = require('./tryOnRoutes');
 const aiStylistRoutes      = require('./aiStylistRoutes');
+const wmsRoutes            = require('./wmsRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
@@ -63,6 +64,7 @@ router.use('/loyalty',  loyaltyRoutes);   // Hệ thống điểm tích lũy
 router.use('/analytics', analyticsRoutes); // Analytics & tracking
 router.use('/tryon',    tryOnRoutes);      // AI Virtual Try-On
 router.use('/ai-stylist', aiStylistRoutes); // World-class AI Recommendation Engine
+router.use('/wms',      wmsRoutes);        // Enterprise WMS & Logistics Management
 
 // WMS API
 router.use('/menus', menuRoutes);
