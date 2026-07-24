@@ -10,8 +10,13 @@
 const mongoose             = require('mongoose');
 const Inventory            = require('../models/Inventory');
 const InventoryTransaction = require('../models/InventoryTransaction');
-const AuditLog             = require('../models/AuditLog');
+const { AuditLogModel: AuditLog } = require('../models/AuditLog');
 const logger               = require('../utils/logger');
+
+// Helper: sinh mã giao dịch kho
+function genTxCode(type) {
+    return `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+}
 
 /**
  * Reserve Stock: Chuyển available -> reserved khi khách đặt mua thành công

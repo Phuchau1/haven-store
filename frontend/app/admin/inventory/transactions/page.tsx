@@ -1,222 +1,249 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Search, Download, History, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import {
+    History, Search, ArrowUpCircle, ArrowDownCircle,
+    RefreshCw, ChevronLeft, ChevronRight, Info
+} from 'lucide-react';
+import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
-export default function TransactionsPage() {
-    const [history, setHistory] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('');
-    
-    const [shippingModalOpen, setShippingModalOpen] = useState(false);
-    const [orderToApprove, setOrderToApprove] = useState<string | null>(null);
-    const [selectedShippingProvider, setSelectedShippingProvider] = useState<string>('J&T Express');
-    const [isApproving, setIsApproving] = useState(false);
+interface TxItem {
+    _id: string;
+    transactionCode: string;
+    type: string;
+    sku: string;
+    productName: string;
+    color: string;
+    size: string;
+    quantityBefore: number;
+    quantityChange: number;
+    quantityAfter: number;
+    stockType: string;
+    orderId?: string;
+    performedBy: string;
+    notes: string;
+    warehouseName: string;
+    createdAt: string;
+}
 
-    const handleApproveOrder = async () => {
-        if (!orderToApprove) return;
-        setIsApproving(true);
+const TX_TYPE_CONFIG: Record<string, { label: string; color: string; icon: 'up' | 'down' }> = {
+    IMPORT:        { label: 'Nhập kho',           color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', icon: 'up' },
+    EXPORT_SALE:   { label: 'Xuất bán',           color: 'text-purple-400 bg-purple-500/10 border-purple-500/20',   icon: 'down' },
+    EXPORT_DAMAGE: { label: 'Xuất hủy',           color: 'text-rose-400 bg-rose-500/10 border-rose-500/20',         icon: 'down' },
+    RESERVE:       { label: 'Giữ chỗ đơn',        color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',      icon: 'down' },
+    RELEASE:       { label: 'Hoàn giữ chỗ',       color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',         icon: 'up' },
+    DEDUCT:        { label: 'Trừ tồn giao hàng',  color: 'text-orange-400 bg-orange-500/10 border-orange-500/20',   icon: 'down' },
+    ADJUST_UP:     { label: 'Điều chỉnh tăng',    color: 'text-teal-400 bg-teal-500/10 border-teal-500/20',         icon: 'up' },
+    ADJUST_DOWN:   { label: 'Điều chỉnh giảm',    color: 'text-pink-400 bg-pink-500/10 border-pink-500/20',         icon: 'down' },
+    STOCKTAKE:     { label: 'Kiểm kê cân bằng',   color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',         icon: 'up' },
+    RETURN_IN:     { label: 'Nhập hoàn hàng',     color: 'text-lime-400 bg-lime-500/10 border-lime-500/20',         icon: 'up' },
+    RETURN_DAMAGE: { label: 'Hoàn hàng hỏng',     color: 'text-red-400 bg-red-500/10 border-red-500/20',            icon: 'down' },
+    TRANSFER_IN:   { label: 'Nhận chuyển kho',    color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',   icon: 'up' },
+    TRANSFER_OUT:  { label: 'Xuất chuyển kho',    color: 'text-violet-400 bg-violet-500/10 border-violet-500/20',   icon: 'down' },
+};
+
+export default function InventoryTransactionsPage() {
+    const [transactions, setTransactions] = useState<TxItem[]>([]);
+    const [loading, setLoading]           = useState(true);
+    const [search, setSearch]             = useState('');
+    const [typeFilter, setTypeFilter]     = useState('');
+    const [page, setPage]                 = useState(1);
+    const [totalPages, setTotalPages]     = useState(1);
+    const [totalItems, setTotalItems]     = useState(0);
+
+    const fetchTransactions = useCallback(async (pg = 1) => {
+        setLoading(true);
         try {
-            const res = await fetch('/api/orders', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    id: orderToApprove, 
-                    status: 'processing',
-                    shippingProvider: selectedShippingProvider
-                }),
+            const params = new URLSearchParams({
+                page: String(pg),
+                limit: '20',
+                ...(search && { search }),
+                ...(typeFilter && { type: typeFilter })
             });
+            const res = await fetch(`/api/wms/transactions?${params}`);
             const data = await res.json();
             if (data.success) {
-                alert(`Đã duyệt đơn hàng ${orderToApprove} thành công!`);
-                setShippingModalOpen(false);
-                setOrderToApprove(null);
-            } else {
-                alert(`Lỗi: ${data.message || 'Không thể duyệt đơn hàng'}`);
+                setTransactions(data.items || []);
+                setTotalPages(data.pagination?.totalPages || 1);
+                setTotalItems(data.pagination?.totalItems || 0);
             }
-        } catch (error) {
-            alert('Lỗi kết nối khi duyệt đơn hàng.');
+        } catch (err) {
+            toast.error('Không thể tải lịch sử giao dịch kho');
         } finally {
-            setIsApproving(false);
+            setLoading(false);
         }
-    };
+    }, [search, typeFilter]);
 
     useEffect(() => {
-        // Lấy dữ liệu từ API Lịch sử kho thực tế (đã ghi nhận từ đơn hàng)
-        fetch('/api/inventory/history')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    setHistory(data.history || []);
-                }
-            })
-            .finally(() => setLoading(false));
-    }, []);
+        const t = setTimeout(() => fetchTransactions(1), 300);
+        return () => clearTimeout(t);
+    }, [fetchTransactions]);
 
-    const filteredHistory = history.filter(item => 
-        (item.productName && item.productName.toLowerCase().includes(filter.toLowerCase())) ||
-        (item.note && item.note.toLowerCase().includes(filter.toLowerCase())) ||
-        (item.variant_id && item.variant_id.toLowerCase().includes(filter.toLowerCase()))
-    );
+    const formatVND = (n: number) => new Intl.NumberFormat('vi-VN').format(n || 0);
 
     return (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="space-y-5">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 backdrop-blur-xl">
                 <div>
-                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <History size={24} className="text-black" />
-                        Lịch sử xuất/nhập kho
-                    </h3>
-                    <p className="text-sm text-slate-500 mt-1">Theo dõi biến động số lượng kho của các sản phẩm</p>
+                    <h1 className="text-xl font-black text-white flex items-center gap-2">
+                        <History size={20} className="text-amber-400" />
+                        Lịch Sử Giao Dịch Kho
+                    </h1>
+                    <p className="text-slate-400 text-xs mt-0.5">
+                        Immutable Audit Trail • {totalItems} giao dịch • 13 loại biến động kho
+                    </p>
                 </div>
-                
-                <div className="flex gap-3 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input 
-                            placeholder="Tìm kiếm SP, mã, ghi chú..." 
-                            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                        />
-                    </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => fetchTransactions(page)}
+                        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-700"
+                    >
+                        <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Làm mới
+                    </button>
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-slate-100 bg-slate-50/80">
-                            <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl">Thời gian</th>
-                            <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Loại</th>
-                            <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Sản phẩm</th>
-                            <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Phân loại</th>
-                            <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Số lượng</th>
-                            <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl">Ghi chú</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {loading ? (
-                            <tr><td colSpan={6} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</td></tr>
-                        ) : filteredHistory.length === 0 ? (
-                            <tr><td colSpan={6} className="text-center py-8 text-slate-500">Chưa có lịch sử kho nào.</td></tr>
-                        ) : (
-                            filteredHistory.map(item => (
-                                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-4 py-4 text-sm text-slate-500 whitespace-nowrap">
-                                        {new Date(item.created_at).toLocaleString('vi-VN')}
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
-                                            item.type === 'import' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                                        }`}>
-                                            {item.type === 'import' ? <ArrowDownRight size={14} /> : <ArrowUpRight size={14} />}
-                                            {item.type === 'import' ? 'NHẬP' : 'XUẤT'}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <div className="font-semibold text-slate-800 line-clamp-1">{item.productName}</div>
-                                        <div className="text-xs text-slate-400 font-mono mt-0.5">{item.productId}</div>
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <div className="flex gap-1.5">
-                                            {item.color && item.color !== 'N/A' && (
-                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">{item.color}</span>
-                                            )}
-                                            {item.size && item.size !== 'N/A' && (
-                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">{item.size}</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4 text-right">
-                                        <span className={`font-bold ${item.type === 'import' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                            {item.type === 'import' ? '+' : '-'}{item.quantity}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-4 text-sm text-slate-600">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span>{item.note || '-'}</span>
-                                            {item.note && item.note.includes('Đơn hàng #') && (() => {
-                                                const match = item.note.match(/Đơn hàng #(LF-[A-Z0-9]+)/);
-                                                const orderId = match ? match[1] : null;
-                                                if (orderId) {
-                                                    return (
-                                                        <button 
-                                                            onClick={() => {
-                                                                setOrderToApprove(orderId);
-                                                                setShippingModalOpen(true);
-                                                            }}
-                                                            className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-100 transition-colors whitespace-nowrap"
-                                                        >
-                                                            Duyệt nhanh
-                                                        </button>
-                                                    );
-                                                }
-                                                return null;
-                                            })()}
-                                        </div>
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 flex items-center gap-2 bg-slate-900/70 rounded-xl px-4 py-2.5 border border-slate-800">
+                    <Search size={15} className="text-slate-500 shrink-0" />
+                    <input
+                        type="text"
+                        placeholder="Tìm theo SKU, Tên sản phẩm, Mã đơn hàng..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="flex-1 bg-transparent text-white placeholder-slate-500 text-xs focus:outline-none"
+                    />
+                </div>
+                <select
+                    value={typeFilter}
+                    onChange={e => setTypeFilter(e.target.value)}
+                    className="bg-slate-900/70 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-300 text-xs focus:outline-none cursor-pointer"
+                >
+                    <option value="">Tất cả loại GD</option>
+                    {Object.entries(TX_TYPE_CONFIG).map(([key, cfg]) => (
+                        <option key={key} value={key}>{cfg.label}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Transaction Table */}
+            <div className="bg-slate-900/70 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-950/90 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th className="px-4 py-3">Mã Giao Dịch</th>
+                                <th className="px-4 py-3">Loại</th>
+                                <th className="px-4 py-3">SKU / Sản phẩm</th>
+                                <th className="px-4 py-3 text-center">Trước</th>
+                                <th className="px-4 py-3 text-center">Thay đổi</th>
+                                <th className="px-4 py-3 text-center">Sau</th>
+                                <th className="px-4 py-3">Loại tồn</th>
+                                <th className="px-4 py-3">Mã đơn</th>
+                                <th className="px-4 py-3">Người thực hiện</th>
+                                <th className="px-4 py-3">Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60">
+                            {loading ? (
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <tr key={i}>
+                                        {Array.from({ length: 10 }).map((__, j) => (
+                                            <td key={j} className="px-4 py-3">
+                                                <div className="h-3 bg-slate-800 rounded animate-pulse" />
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))
+                            ) : transactions.length === 0 ? (
+                                <tr>
+                                    <td colSpan={10} className="px-4 py-12 text-center text-slate-500">
+                                        <History size={32} className="mx-auto mb-2 opacity-30" />
+                                        <p>Chưa có giao dịch kho nào được ghi lại</p>
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                            ) : (
+                                transactions.map((tx, idx) => {
+                                    const cfg = TX_TYPE_CONFIG[tx.type] || { label: tx.type, color: 'text-slate-400 bg-slate-800 border-slate-700', icon: 'up' as const };
+                                    const isUp = tx.quantityChange >= 0;
+                                    return (
+                                        <motion.tr
+                                            key={tx._id}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: idx * 0.02 }}
+                                            className="hover:bg-slate-800/40 transition-colors"
+                                        >
+                                            <td className="px-4 py-3 font-mono text-amber-400 text-[11px] whitespace-nowrap">{tx.transactionCode}</td>
+                                            <td className="px-4 py-3">
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${cfg.color}`}>
+                                                    {cfg.label}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <p className="font-bold text-white">{tx.sku}</p>
+                                                <p className="text-slate-500 text-[10px] line-clamp-1">{tx.productName} {tx.color && `• ${tx.color}`} {tx.size && `/ ${tx.size}`}</p>
+                                            </td>
+                                            <td className="px-4 py-3 text-center text-slate-300 font-semibold">{tx.quantityBefore}</td>
+                                            <td className="px-4 py-3 text-center">
+                                                <span className={`font-black flex items-center justify-center gap-0.5 ${isUp ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                    {isUp ? <ArrowUpCircle size={12} /> : <ArrowDownCircle size={12} />}
+                                                    {isUp ? '+' : ''}{tx.quantityChange}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-center font-black text-white">{tx.quantityAfter}</td>
+                                            <td className="px-4 py-3">
+                                                <span className="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] rounded-md border border-slate-700 font-mono">
+                                                    {tx.stockType}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {tx.orderId ? (
+                                                    <span className="text-blue-400 font-mono text-[10px]">{tx.orderId}</span>
+                                                ) : (
+                                                    <span className="text-slate-600 text-[10px]">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-slate-400 text-[11px]">{tx.performedBy}</td>
+                                            <td className="px-4 py-3 text-slate-500 text-[10px] whitespace-nowrap">
+                                                {new Date(tx.createdAt).toLocaleString('vi-VN')}
+                                            </td>
+                                        </motion.tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-            {/* Modal Chọn đơn vị vận chuyển */}
-            {shippingModalOpen && (
-                <>
-                    <div 
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200]" 
-                        onClick={() => setShippingModalOpen(false)} 
-                    />
-                    <div 
-                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[201] p-6 rounded-2xl shadow-2xl border"
-                        style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
-                    >
-                        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--adm-text)' }}>
-                            Chọn đơn vị vận chuyển (Đơn #{orderToApprove})
-                        </h3>
-                        <p className="text-sm mb-6" style={{ color: 'var(--adm-text-muted)' }}>
-                            Vui lòng chọn một đơn vị vận chuyển để duyệt đơn hàng này.
-                        </p>
-                        
-                        <div className="space-y-3 mb-6">
-                            {['J&T Express', 'Viettel Post', 'Giao Hàng Nhanh'].map(provider => (
-                                <label key={provider} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShippingProvider === provider ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-[var(--adm-border)] hover:border-indigo-300'}`}>
-                                    <input
-                                        type="radio"
-                                        name="shippingProvider"
-                                        value={provider}
-                                        checked={selectedShippingProvider === provider}
-                                        onChange={(e) => setSelectedShippingProvider(e.target.value)}
-                                        className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <span className="font-medium" style={{ color: 'var(--adm-text)' }}>{provider}</span>
-                                </label>
-                            ))}
-                        </div>
-
-                        <div className="flex gap-3 justify-end">
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="px-4 py-3 border-t border-slate-800 flex items-center justify-between">
+                        <span className="text-slate-500 text-xs">Trang {page} / {totalPages} • {totalItems} giao dịch</span>
+                        <div className="flex items-center gap-1.5">
                             <button
-                                onClick={() => setShippingModalOpen(false)}
-                                className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-                                style={{ color: 'var(--adm-text-muted)' }}
-                                disabled={isApproving}
+                                onClick={() => { setPage(p => p - 1); fetchTransactions(page - 1); }}
+                                disabled={page <= 1}
+                                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center disabled:opacity-30"
                             >
-                                Hủy
+                                <ChevronLeft size={13} />
                             </button>
+                            <span className="text-xs text-slate-400 px-2">{page}</span>
                             <button
-                                onClick={handleApproveOrder}
-                                disabled={isApproving}
-                                className="px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl shadow-indigo-200 dark:shadow-none disabled:opacity-50"
+                                onClick={() => { setPage(p => p + 1); fetchTransactions(page + 1); }}
+                                disabled={page >= totalPages}
+                                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center disabled:opacity-30"
                             >
-                                {isApproving ? 'Đang xử lý...' : 'Xác nhận & Duyệt'}
+                                <ChevronRight size={13} />
                             </button>
                         </div>
                     </div>
-                </>
-            )}
+                )}
+            </div>
         </div>
     );
 }

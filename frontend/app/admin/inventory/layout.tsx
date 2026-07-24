@@ -3,16 +3,19 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Home, Users, FileText, ShoppingCart, History } from 'lucide-react';
+import { LayoutDashboard, Home, Users, FileText, ShoppingCart, History, BarChart3, ClipboardList, Navigation, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const tabs = [
-    { name: 'Dashboard',      href: '/admin/inventory',                    icon: LayoutDashboard },
-    { name: 'Quản lý Kho',   href: '/admin/inventory/warehouses',         icon: Home            },
-    { name: 'Nhà cung cấp',  href: '/admin/inventory/suppliers',          icon: Users           },
-    { name: 'Đơn mua hàng',  href: '/admin/inventory/purchase-orders',    icon: ShoppingCart    },
-    { name: 'Phiếu kho',     href: '/admin/inventory/receipts',           icon: FileText        },
-    { name: 'Lịch sử kho',   href: '/admin/inventory/transactions',       icon: History         },
+    { name: 'WMS Dashboard',     href: '/admin/inventory/wms-dashboard', icon: BarChart3      },
+    { name: 'Tồn kho SKU',       href: '/admin/inventory/stock',         icon: Home           },
+    { name: 'Phiếu kho',         href: '/admin/inventory/receipts',      icon: FileText       },
+    { name: 'Kiểm kê',           href: '/admin/inventory/stocktake',    icon: ClipboardList  },
+    { name: 'Lịch sử GD',         href: '/admin/inventory/transactions', icon: History        },
+    { name: 'Vận đơn',            href: '/admin/inventory/logistics',   icon: Navigation     },
+    { name: 'Audit Log',         href: '/admin/inventory/audit-log',    icon: ShieldCheck    },
+    { name: 'Nhà cung cấp',      href: '/admin/inventory/suppliers',   icon: Users          },
+    { name: 'Đơn mua hàng',       href: '/admin/inventory/purchase-orders', icon: ShoppingCart },
 ];
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {
@@ -29,10 +32,7 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
                 className="flex items-center gap-1 overflow-x-auto rounded-2xl border p-1.5 shadow-sm scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
                 {tabs.map((tab) => {
-                    const isActive =
-                        tab.href === '/admin/inventory'
-                            ? pathname === tab.href
-                            : pathname.startsWith(tab.href);
+                    const isActive = pathname.startsWith(tab.href);
 
                     return (
                         <div

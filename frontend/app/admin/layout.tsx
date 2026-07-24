@@ -8,7 +8,8 @@ import {
     Menu, X, Bell, User, Star, Palette, Ruler,
     ChevronRight, Search, MoreHorizontal, Zap, Home, Heart,
     Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
-    Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText
+    Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText,
+    ClipboardList, BarChart3, Navigation, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
@@ -22,11 +23,14 @@ const MENU_ITEMS = [
     { icon: Users,           label: 'Người dùng',    href: '/admin/users',             group: 'main' },
     
     // Kho hàng (WMS)
-    { icon: LayoutDashboard, label: 'Tổng quan Kho', href: '/admin/inventory',         group: 'inventory' },
-    { icon: Boxes,           label: 'Tồn kho',       href: '/admin/inventory/stock',   group: 'inventory' },
-    { icon: FileDown,        label: 'Phiếu Kho',     href: '/admin/inventory/receipts',group: 'inventory' },
-    { icon: History,         label: 'Nhật ký kho',   href: '/admin/inventory/transactions',group: 'inventory' },
-    { icon: Truck,           label: 'Nhà cung cấp',  href: '/admin/inventory/suppliers',group: 'inventory' },
+    { icon: BarChart3,       label: 'WMS Dashboard',   href: '/admin/inventory/wms-dashboard',   group: 'inventory' },
+    { icon: Boxes,           label: 'Tồn kho SKU',     href: '/admin/inventory/stock',            group: 'inventory' },
+    { icon: FileDown,        label: 'Phiếu Kho',       href: '/admin/inventory/receipts',         group: 'inventory' },
+    { icon: ClipboardList,   label: 'Kiểm kê kho',    href: '/admin/inventory/stocktake',        group: 'inventory' },
+    { icon: History,         label: 'Lịch sử giao dịch', href: '/admin/inventory/transactions',   group: 'inventory' },
+    { icon: Navigation,      label: 'Vận đơn GHN/J&T', href: '/admin/inventory/logistics',       group: 'inventory' },
+    { icon: ShieldCheck,     label: 'Audit Log kho',  href: '/admin/inventory/audit-log',        group: 'inventory' },
+    { icon: Truck,           label: 'Nhà cung cấp',   href: '/admin/inventory/suppliers',        group: 'inventory' },
     
     { icon: Star,            label: 'Đánh giá',      href: '/admin/reviews',           group: 'catalog' },
     { icon: MessageSquare,   label: 'Live Chat',     href: '/admin/chats',             group: 'catalog' },

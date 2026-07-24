@@ -5,7 +5,8 @@
  */
 
 const Inventory            = require('../models/Inventory');
-const AuditLog             = require('../models/AuditLog');
+const InventoryTransaction = require('../models/InventoryTransaction');
+const { AuditLogModel: AuditLog } = require('../models/AuditLog');
 const wmsInventoryService  = require('../services/wmsInventoryService');
 const logisticsService     = require('../services/logisticsService');
 const logger               = require('../utils/logger');
@@ -184,9 +185,56 @@ exports.getWaybillTracking = async (req, res) => {
  */
 exports.getAuditLogs = async (req, res) => {
     try {
-        const logs = await AuditLog.find({}).sort({ createdAt: -1 }).limit(50).lean();
+        const page  = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const logs = await AuditLog
+            ? await AuditLog.find({}).sort({ createdAt: -1 }).skip((page-1)*limit).limit(limit).lean()
+            : [];
         return res.json({ success: true, logs });
     } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+/**
+ * @route   GET /api/wms/transactions
+ * @desc    Lịch sử giao dịch kho (Inventory Transactions)
+ */
+exports.getTransactions = async (req, res) => {
+    try {
+        const page   = parseInt(req.query.page) || 1;
+        const limit  = parseInt(req.query.limit) || 20;
+        const search = req.query.search || '';
+        const type   = req.query.type || '';
+
+        const query = {};
+        if (type) query.type = type;
+        if (search) {
+            query.$or = [
+                { sku: { $regex: search, $options: 'i' } },
+                { productName: { $regex: search, $options: 'i' } },
+                { orderId: { $regex: search, $options: 'i' } },
+                { transactionCode: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const totalItems = await InventoryTransaction.countDocuments(query);
+        const items = await InventoryTransaction.find(query)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean();
+
+        return res.json({
+            success: true,
+            items,
+            pagination: {
+                page, limit, totalItems,
+                totalPages: Math.ceil(totalItems / limit)
+            }
+        });
+    } catch (err) {
+        logger.error(`[WMSController:getTransactions] ${err.message}`);
         return res.status(500).json({ success: false, message: err.message });
     }
 };
