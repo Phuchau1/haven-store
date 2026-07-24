@@ -58,6 +58,17 @@ const ProductSchema = new Schema({
     certificates:     [{ type: String }],                             // Chứng nhận
     fabric:           [{ type: String }],                             // Thành phần vải %
     status:           { type: String, enum: ['draft', 'published', 'scheduled'], default: 'published' }, // Trạng thái
+    
+    // --- AI FASHION RECOMMENDATION EXTENSIONS ---
+    gender:           { type: String, enum: ['Men', 'Women', 'Unisex'], default: 'Unisex' },
+    styleCategory:    { type: String, default: 'Casual' },            // Minimal, Korean, Streetwear, Luxury, Vintage, Business, Sport, Smart Casual, Classic
+    colorPalette:     { type: String, enum: ['Warm', 'Cool', 'Neutral', 'Universal'], default: 'Universal' },
+    dominantColor:    { type: String, default: 'Multi' },
+    season:           { type: String, default: 'All' },               // Spring, Summer, Autumn, Winter, All
+    occasion:         { type: String, default: 'Casual' },            // Work, Date, Party, Casual, Sport, Formal
+    fitType:          { type: String, default: 'Regular' },           // Slim, Regular, Oversized, Loose
+    material:         { type: String, default: 'Cotton' },
+    aiVector:         [{ type: Number }],                             // Feature Embedding Vector
     publishAt:        { type: Date },                                 // Ngày lên lịch xuất bản
     videos:           [{ type: String }],                             // URL video
     
