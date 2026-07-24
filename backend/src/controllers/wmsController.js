@@ -195,6 +195,38 @@ exports.createCarrierWaybill = async (req, res) => {
 };
 
 /**
+ * @route   POST /api/wms/return-order
+ * @desc    Xử lý Hoàn Hàng Trả Về Kho (Phân loại Hàng Tốt vs Hàng Hỏng)
+ */
+exports.processReturnOrder = async (req, res) => {
+    try {
+        const { orderId, returnItems, returnType = 'RETURN_GOOD', reason = '', user = 'Admin WMS' } = req.body;
+        if (!orderId || !returnItems || !Array.isArray(returnItems) || returnItems.length === 0) {
+            return res.status(400).json({ success: false, message: 'Thiếu thông tin đơn hàng hoặc sản phẩm hoàn.' });
+        }
+
+        // 1. Gọi WMS Service xử lý hoàn hàng & ghi log
+        const results = await wmsInventoryService.processReturnOrder(orderId, returnItems, returnType, user, reason);
+
+        // 2. Cập nhật trạng thái Đơn Hàng trong MongoDB Database sang refunded / cancelled
+        const updatedOrder = await OrderModel.findOneAndUpdate(
+            { id: orderId },
+            { $set: { status: 'refunded' } },
+            { new: true }
+        );
+
+        return res.json({
+            success: true,
+            message: `Đã xử lý hoàn hàng thành công cho Đơn #${orderId}!`,
+            results,
+            order: updatedOrder
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+/**
  * @route   GET /api/wms/tracking/:trackingNumber
  * @desc    Lấy lịch trình vận chuyển Live
  */

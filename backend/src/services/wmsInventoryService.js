@@ -178,9 +178,88 @@ async function auditStocktake(stocktakeItems = [], user = 'Admin', notes = '') {
     }
 }
 
+/**
+ * Process Return Order: Xử lý Hoàn Hàng Trả Về Kho (Return Order Management)
+ * Phân loại:
+ *   - Hàng nguyên vẹn: Tăng available (bán lại được) + Giảm sold
+ *   - Hàng hỏng/lỗi: Tăng damaged (chờ xuất hủy) + Giảm sold
+ */
+async function processReturnOrder(orderId, returnItems = [], returnType = 'RETURN_GOOD', user = 'Admin WMS', reason = '') {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const returnResults = [];
+
+        for (const item of returnItems) {
+            const { sku, quantity = 1, isDamaged = false } = item;
+            const inv = await Inventory.findOne({ sku }).session(session);
+
+            if (!inv) continue;
+
+            const qtyBefore = inv.available;
+            const isGood = !isDamaged && returnType !== 'RETURN_DAMAGE';
+
+            if (isGood) {
+                // Hàng tốt nguyên vẹn -> Nhập lại tồn khả dụng
+                inv.available += quantity;
+                inv.sold = Math.max(0, inv.sold - quantity);
+                if (inv.available > inv.minStock) inv.status = 'IN_STOCK';
+            } else {
+                // Hàng lỗi/hỏng -> Chuyển vào kho hỏng
+                inv.damaged += quantity;
+                inv.sold = Math.max(0, inv.sold - quantity);
+            }
+
+            await inv.save({ session });
+
+            // Ghi nhật ký giao dịch kho Immutable Audit Trail
+            const txCode = `RET-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+            const tx = new InventoryTransaction({
+                transactionCode: txCode,
+                type: isGood ? 'RETURN_IN' : 'RETURN_DAMAGE',
+                sku: inv.sku,
+                productId: `PROD-${inv.sku}`,
+                productName: inv.productName,
+                color: inv.color,
+                size: inv.size,
+                quantityBefore: qtyBefore,
+                quantityChange: quantity,
+                quantityAfter: inv.available,
+                stockType: isGood ? 'available' : 'damaged',
+                orderId: orderId,
+                performedBy: user,
+                notes: `Hoàn hàng cho đơn #${orderId}. Lý do: ${reason || (isGood ? 'Hàng nguyên vẹn' : 'Hàng lỗi/hỏng')}`,
+                warehouseName: inv.warehouseName
+            });
+            await tx.save({ session });
+
+            returnResults.push({
+                sku: inv.sku,
+                productName: inv.productName,
+                quantity,
+                condition: isGood ? 'NGUYÊN VẸN (ĐÃ TĂNG KHẢ DỤNG)' : 'HỎNG/LỖI (ĐÃ VÀO KHO LỖI)',
+                availableAfter: inv.available,
+                damagedAfter: inv.damaged
+            });
+        }
+
+        await session.commitTransaction();
+        logger.info(`[WMS] Processed Return Order #${orderId} successfully.`);
+        return returnResults;
+    } catch (err) {
+        await session.abortTransaction();
+        logger.error(`[WMS] Process Return Order #${orderId} failed: ${err.message}`);
+        throw err;
+    } finally {
+        session.endSession();
+    }
+}
+
 module.exports = {
     reserveStock,
     releaseStock,
     deductStockOnShipment,
-    auditStocktake
+    auditStocktake,
+    processReturnOrder
 };

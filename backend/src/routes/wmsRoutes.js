@@ -7,6 +7,7 @@ router.get('/inventory',                wmsController.getInventoryList);
 router.get('/transactions',             wmsController.getTransactions);
 router.post('/stocktake',               wmsController.performStocktake);
 router.post('/waybill',                 wmsController.createCarrierWaybill);
+router.post('/return-order',            wmsController.processReturnOrder);
 router.get('/tracking/:trackingNumber', wmsController.getWaybillTracking);
 router.get('/audit-logs',               wmsController.getAuditLogs);
 

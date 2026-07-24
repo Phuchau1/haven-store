@@ -38,6 +38,9 @@ export default function LogisticsManagementPage() {
     const [selectedCarrier, setSelectedCarrier] = useState('GHN');
     const [submitting, setSubmitting] = useState(false);
     const [trackingModal, setTrackingModal] = useState<any>(null);
+    const [returnModalOrder, setReturnModalOrder] = useState<OrderData | null>(null);
+    const [returnType, setReturnType] = useState<'RETURN_GOOD' | 'RETURN_DAMAGE'>('RETURN_GOOD');
+    const [returnReason, setReturnReason] = useState('');
     const [search, setSearch] = useState('');
 
     const fetchOrders = useCallback(async () => {
@@ -99,6 +102,44 @@ export default function LogisticsManagementPage() {
             }
         } catch (err: any) {
             toast.error(err.message || 'Không thể tạo vận đơn');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleProcessReturn = async () => {
+        if (!returnModalOrder) return;
+        setSubmitting(true);
+        try {
+            const returnItems = returnModalOrder.items.map(it => ({
+                sku: `${it.product?.id || 'PROD'}-${it.selectedColor?.name || ''}-${it.selectedSize || ''}`,
+                quantity: it.quantity,
+                isDamaged: returnType === 'RETURN_DAMAGE'
+            }));
+
+            const res = await fetch('/api/wms/return-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: returnModalOrder.id,
+                    returnItems,
+                    returnType,
+                    reason: returnReason,
+                    user: 'Admin WMS'
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                toast.success(`✨ Đã xử lý hoàn hàng cho đơn #${returnModalOrder.id}!`);
+                setOrders(prev => prev.map(o => o.id === returnModalOrder.id ? { ...o, status: 'refunded' } : o));
+                setReturnModalOrder(null);
+                setReturnReason('');
+            } else {
+                throw new Error(data.message || 'Không thể xử lý hoàn hàng');
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'Lỗi khi xử lý hoàn hàng');
         } finally {
             setSubmitting(false);
         }
@@ -210,12 +251,22 @@ export default function LogisticsManagementPage() {
                                 </div>
 
                                 {order.trackingNumber ? (
-                                    <button
-                                        onClick={() => handleFetchTracking(order.trackingNumber!)}
-                                        className="px-4 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-xs border border-blue-500/30 flex items-center gap-1.5 transition-all"
-                                    >
-                                        <Truck size={14} /> Live Tracking: {order.trackingNumber}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleFetchTracking(order.trackingNumber!)}
+                                            className="px-3 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-xs border border-blue-500/30 flex items-center gap-1.5 transition-all"
+                                        >
+                                            <Truck size={14} /> Tracking: {order.trackingNumber}
+                                        </button>
+                                        {order.status !== 'refunded' && (
+                                            <button
+                                                onClick={() => setReturnModalOrder(order)}
+                                                className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-xs border border-rose-500/30 flex items-center gap-1 transition-all"
+                                            >
+                                                <X size={14} /> Hoàn Hàng
+                                            </button>
+                                        )}
+                                    </div>
                                 ) : (
                                     <button
                                         onClick={() => setSelectedOrder(order)}
@@ -311,6 +362,71 @@ export default function LogisticsManagementPage() {
                                     </div>
                                 ))}
                             </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+            {/* Return Order Modal */}
+            <AnimatePresence>
+                {returnModalOrder && (
+                    <>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setReturnModalOrder(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50" />
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-2xl">
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                                <h3 className="text-white font-bold text-base flex items-center gap-2">
+                                    <ShieldAlert size={18} className="text-rose-400" />
+                                    Xử Lý Hoàn Hàng Trả Về Kho
+                                </h3>
+                                <button onClick={() => setReturnModalOrder(null)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-slate-400 text-xs font-medium block mb-2">Phân loại tình trạng hàng hoàn về:</label>
+                                    <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+                                        <button
+                                            onClick={() => setReturnType('RETURN_GOOD')}
+                                            className={`p-3 rounded-2xl border text-left transition-all ${
+                                                returnType === 'RETURN_GOOD' ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400'
+                                            }`}
+                                        >
+                                            <p className="font-bold">✨ Nguyên Vẹn</p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Tăng kho Khả dụng (Available)</p>
+                                        </button>
+                                        <button
+                                            onClick={() => setReturnType('RETURN_DAMAGE')}
+                                            className={`p-3 rounded-2xl border text-left transition-all ${
+                                                returnType === 'RETURN_DAMAGE' ? 'bg-rose-500/20 border-rose-400 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400'
+                                            }`}
+                                        >
+                                            <p className="font-bold">🚨 Lỗi / Hỏng Hóc</p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Vào kho Hàng hỏng (Damaged)</p>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-xs font-medium block mb-1.5">Lý do hoàn hàng:</label>
+                                    <textarea
+                                        rows={3}
+                                        placeholder="Ví dụ: Khách đổi ý không nhận, áo bị rách chỉ, sai size..."
+                                        value={returnReason}
+                                        onChange={e => setReturnReason(e.target.value)}
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-white text-xs placeholder-slate-600 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleProcessReturn}
+                                disabled={submitting}
+                                className="w-full h-11 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20"
+                            >
+                                {submitting ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                                Xác Nhận Hoàn Hàng & Cập Nhật Tồn Kho
+                            </button>
                         </motion.div>
                     </>
                 )}
