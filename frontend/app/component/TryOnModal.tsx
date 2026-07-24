@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
+import { renderSmartTryOn } from '@/lib/smartTryOnEngine';
 
 // ─── Compare Slider (nhẹ, không deps ngoài) ───────────────────
 function CompareSlider({ before, after }: { before: string; after: string }) {
@@ -122,7 +123,22 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
                         const job = statusData.job;
                         if (job.status === 'completed') {
                             clearInterval(pollInterval);
-                            setResultImage(job.resultImage || userPhoto);
+                            
+                            let finalImg = job.resultImage;
+                            if (!finalImg || job.requireComposite) {
+                                try {
+                                    finalImg = await renderSmartTryOn(
+                                        job.userImage || userPhoto,
+                                        job.garmentUrl || product.image,
+                                        job.category || product.category || 'upper_body'
+                                    );
+                                } catch (cErr) {
+                                    console.warn('Smart render fallback error:', cErr);
+                                    finalImg = userPhoto;
+                                }
+                            }
+
+                            setResultImage(finalImg);
                             setStatus('done');
                             toast.success('✨ AI thử đồ thành công!');
                         } else if (job.status === 'failed') {

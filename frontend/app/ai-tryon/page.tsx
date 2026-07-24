@@ -9,6 +9,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { renderSmartTryOn } from '@/lib/smartTryOnEngine';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -311,7 +312,22 @@ export default function AITryOnPage() {
                         const job = statusData.job;
                         if (job.status === 'completed') {
                             clearInterval(pollInterval);
-                            setResultImage(job.resultImage || userPhoto);
+                            
+                            let finalImg = job.resultImage;
+                            if (!finalImg || job.requireComposite) {
+                                try {
+                                    finalImg = await renderSmartTryOn(
+                                        job.userImage || userPhoto,
+                                        job.garmentUrl || selectedProduct.images[0],
+                                        job.category || selectedProduct.category || 'upper_body'
+                                    );
+                                } catch (cErr) {
+                                    console.warn('Smart render fallback error:', cErr);
+                                    finalImg = userPhoto;
+                                }
+                            }
+                            
+                            setResultImage(finalImg);
                             setStep('done');
                             toast.success('✨ Thử đồ AI thành công!');
                         } else if (job.status === 'failed') {
