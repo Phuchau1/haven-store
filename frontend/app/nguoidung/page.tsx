@@ -14,7 +14,8 @@ import {
     MapPin,
     Save,
     Loader2,
-    Star
+    Star,
+    RotateCcw
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { useCart } from '@/app/component/CartContext';
@@ -48,7 +49,7 @@ const ORDER_STATUS_TABS = [
 ];
 
 // Component Chi tiết đơn hàng mới
-const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (order: OrderData) => void }) => {
+const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (order: OrderData) => void, onReturn: (order: OrderData) => void }) => {
     const getStatusText = (status: string) => {
         switch (status) {
             case 'pending': return 'Chờ xử lý';
@@ -56,6 +57,7 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
             case 'shipped': return 'Đang giao hàng';
             case 'delivered': return 'Hoàn thành';
             case 'cancelled': return 'Đã hủy';
+            case 'refunded': return 'Đã hoàn trả';
             default: return status;
         }
     };
@@ -67,6 +69,7 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
             case 'shipped': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
             case 'delivered': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
             case 'cancelled': return 'bg-rose-100 text-rose-700 border-rose-200';
+            case 'refunded': return 'bg-orange-100 text-orange-700 border-orange-200';
             default: return 'bg-slate-100 text-slate-700 border-slate-200';
         }
     };
@@ -148,16 +151,40 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
                                     <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Số điện thoại</p>
                                     <p className="text-sm font-medium text-slate-800">{order.phone}</p>
                                 </div>
-                                {order.status === 'pending' && (
-                                    <div className="pt-2">
+                                <div className="pt-3 flex flex-wrap gap-2">
+                                    {order.status === 'pending' && (
                                         <button 
                                             onClick={() => onCancel(order.id ?? '')}
-                                            className="px-4 py-2 bg-rose-500 text-white rounded-lg text-xs font-bold hover:bg-rose-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                                            className="px-4 py-2 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
                                         >
                                             Hủy đơn hàng
                                         </button>
-                                    </div>
-                                )}
+                                    )}
+                                    {(order.status === 'delivered' || order.status === 'shipped' || order.status === 'processing') && (
+                                        <button 
+                                            onClick={() => onReturn(order)}
+                                            className="px-4 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all shadow-sm flex items-center gap-1.5"
+                                        >
+                                            <RotateCcw size={14} /> Hoàn hàng / Trả hàng
+                                        </button>
+                                    )}
+                                    {order.status === 'delivered' && (
+                                        <button 
+                                            onClick={() => onRate(order)}
+                                            className="px-4 py-2 bg-amber-50 border border-amber-200 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-all shadow-sm flex items-center gap-1.5"
+                                        >
+                                            <Star size={14} /> Đánh giá sản phẩm
+                                        </button>
+                                    )}
+                                    {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
+                                        <button 
+                                            onClick={() => onRebuy(order)}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md flex items-center gap-1.5"
+                                        >
+                                            <ShoppingBag size={14} /> Mua lại đơn hàng
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -295,6 +322,145 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate }: { order: 
     );
 };
 
+const CustomerReturnModal = ({
+    order,
+    onClose,
+    onSuccess
+}: {
+    order: OrderData;
+    onClose: () => void;
+    onSuccess: (orderId: string) => void;
+}) => {
+    const [reason, setReason] = useState('');
+    const [customReason, setCustomReason] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const REASONS = [
+        'Khách đổi ý không muốn mua nữa',
+        'Sản phẩm không vừa size / đổi size',
+        'Sản phẩm bị lỗi hoặc hư hỏng',
+        'Sản phẩm không giống hình mô tả',
+        'Giao sai màu sắc hoặc kích thước',
+        'Khác'
+    ];
+
+    const handleSubmit = async () => {
+        const finalReason = reason === 'Khác' ? customReason : reason;
+        if (!finalReason.trim()) {
+            alert('Vui lòng chọn hoặc nhập lý do hoàn hàng');
+            return;
+        }
+        setSubmitting(true);
+        try {
+            const returnItems = order.items.map(it => ({
+                sku: `${it.product?.id || 'PROD'}-${it.selectedColor?.name?.replace(/\s/g, '-') || ''}-${it.selectedSize || ''}`,
+                quantity: it.quantity,
+                isDamaged: false
+            }));
+
+            const res = await fetch('/api/wms/return-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: order.id,
+                    returnItems,
+                    returnType: 'RETURN_GOOD',
+                    reason: finalReason,
+                    user: (order as any).name || (order as any).customerName || 'Khách hàng'
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Yêu cầu hoàn hàng của bạn đã được gửi và ghi nhận thành công!');
+                onSuccess(order.id ?? '');
+                onClose();
+            } else {
+                const res2 = await fetch('/api/orders', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: order.id, status: 'refunded' })
+                });
+                const data2 = await res2.json();
+                if (data2.success) {
+                    alert('✅ Yêu cầu hoàn hàng của bạn đã được gửi thành công!');
+                    onSuccess(order.id ?? '');
+                    onClose();
+                } else {
+                    alert('Lỗi: ' + (data.message || data2.message || 'Không thể thực hiện yêu cầu'));
+                }
+            }
+        } catch {
+            alert('Đã xảy ra lỗi khi gửi yêu cầu hoàn hàng');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl border border-slate-100"
+            >
+                <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                        <RotateCcw className="text-rose-500" size={20} /> Yêu cầu Hoàn Hàng
+                    </h3>
+                    <button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+                        <XCircle size={20} />
+                    </button>
+                </div>
+
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs space-y-1">
+                    <p className="font-bold text-slate-900">Đơn hàng #{order.id}</p>
+                    <p className="text-slate-500">{order.items?.length || 0} sản phẩm • Tổng tiền: {formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Chọn lý do hoàn hàng:</label>
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        {REASONS.map(r => (
+                            <button
+                                key={r}
+                                type="button"
+                                onClick={() => setReason(r)}
+                                className={`w-full text-left p-3 rounded-xl text-xs font-medium transition-all border ${reason === r ? 'bg-rose-50 border-rose-300 text-rose-700 font-bold' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'}`}
+                            >
+                                {r}
+                            </button>
+                        ))}
+                    </div>
+                    {reason === 'Khác' && (
+                        <textarea
+                            rows={3}
+                            placeholder="Nhập lý do chi tiết..."
+                            value={customReason}
+                            onChange={e => setCustomReason(e.target.value)}
+                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-rose-400"
+                        />
+                    )}
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                    <button onClick={onClose} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                        Hủy
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting || !reason}
+                        className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                    >
+                        {submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
 export default function NguoiDungPage() {
     const { user, logout, updateProfile } = useAuth();
     const { addItem } = useCart();
@@ -305,8 +471,9 @@ export default function NguoiDungPage() {
     const [orders, setOrders] = useState<OrderData[]>([]);
     const [mounted, setMounted] = useState(false);
     
-    // State cho Review Modal
+    // State cho Review Modal & Return Modal
     const [reviewOrder, setReviewOrder] = useState<OrderData | null>(null);
+    const [returnOrder, setReturnOrder] = useState<OrderData | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -360,6 +527,10 @@ export default function NguoiDungPage() {
 
     const handleRateOrder = (order: OrderData) => {
         setReviewOrder(order);
+    };
+
+    const handleReturnOrder = (order: OrderData) => {
+        setReturnOrder(order);
     };
 
 
@@ -429,6 +600,7 @@ export default function NguoiDungPage() {
             case 'shipped': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
             case 'delivered': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
             case 'cancelled': return 'bg-rose-50 text-rose-600 border-rose-100';
+            case 'refunded': return 'bg-orange-50 text-orange-600 border-orange-100';
             default: return 'bg-slate-50 text-slate-600 border-slate-100';
         }
     };
@@ -617,6 +789,7 @@ export default function NguoiDungPage() {
                                             onCancel={handleCancelOrder}
                                             onRebuy={handleRebuy}
                                             onRate={handleRateOrder}
+                                            onReturn={handleReturnOrder}
                                         />
                                     ) : (
                                         // VIEW: Danh sách đơn hàng
@@ -698,14 +871,19 @@ export default function NguoiDungPage() {
                                                                             Hủy đơn
                                                                         </button>
                                                                     )}
-                                                                    {(order.status === 'delivered' || order.status === 'cancelled') && (
-                                                                        <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex-1 sm:flex-none">
-                                                                            Mua lại
+                                                                    {(order.status === 'delivered' || order.status === 'shipped' || order.status === 'processing') && (
+                                                                        <button onClick={() => handleReturnOrder(order)} className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
+                                                                            <RotateCcw size={13} /> Hoàn hàng
+                                                                        </button>
+                                                                    )}
+                                                                    {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
+                                                                        <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
+                                                                            <ShoppingBag size={13} /> Mua lại
                                                                         </button>
                                                                     )}
                                                                     {order.status === 'delivered' && (
-                                                                        <button onClick={() => handleRateOrder(order)} className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-colors flex-1 sm:flex-none">
-                                                                            Đánh giá
+                                                                        <button onClick={() => handleRateOrder(order)} className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
+                                                                            <Star size={13} /> Đánh giá
                                                                         </button>
                                                                     )}
                                                                 </div>
@@ -853,6 +1031,16 @@ export default function NguoiDungPage() {
                     order={reviewOrder} 
                     onClose={() => setReviewOrder(null)} 
                     user={user} 
+                />
+            )}
+
+            {returnOrder && (
+                <CustomerReturnModal 
+                    order={returnOrder}
+                    onClose={() => setReturnOrder(null)}
+                    onSuccess={(orderId) => {
+                        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'refunded' } : o));
+                    }}
                 />
             )}
         </div>
