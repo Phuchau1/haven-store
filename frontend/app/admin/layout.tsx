@@ -9,7 +9,7 @@ import {
     ChevronRight, Search, MoreHorizontal, Zap, Home, Heart,
     Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
     Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText,
-    ClipboardList, BarChart3, Navigation, ShieldCheck
+    ClipboardList, BarChart3, Navigation, ShieldCheck, ArrowLeftRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
@@ -28,6 +28,7 @@ const MENU_ITEMS = [
     { icon: FileDown,        label: 'Phiếu Kho',       href: '/admin/inventory/receipts',         group: 'inventory' },
     { icon: ClipboardList,   label: 'Kiểm kê kho',    href: '/admin/inventory/stocktake',        group: 'inventory' },
     { icon: History,         label: 'Lịch sử giao dịch', href: '/admin/inventory/transactions',   group: 'inventory' },
+    { icon: ArrowLeftRight,  label: 'Quản lý Hoàn Hàng', href: '/admin/inventory/returns',       group: 'inventory' },
     { icon: Navigation,      label: 'Vận đơn GHN/J&T', href: '/admin/inventory/logistics',       group: 'inventory' },
     { icon: ShieldCheck,     label: 'Audit Log kho',  href: '/admin/inventory/audit-log',        group: 'inventory' },
     { icon: Truck,           label: 'Nhà cung cấp',   href: '/admin/inventory/suppliers',        group: 'inventory' },

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Home, Users, FileText, ShoppingCart, History, BarChart3, ClipboardList, Navigation, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Home, Users, FileText, ShoppingCart, History, BarChart3, ClipboardList, Navigation, ShieldCheck, ArrowLeftRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const tabs = [
@@ -12,6 +12,7 @@ const tabs = [
     { name: 'Phiếu kho',         href: '/admin/inventory/receipts',      icon: FileText       },
     { name: 'Kiểm kê',           href: '/admin/inventory/stocktake',    icon: ClipboardList  },
     { name: 'Lịch sử GD',         href: '/admin/inventory/transactions', icon: History        },
+    { name: 'Hoàn Hàng',          href: '/admin/inventory/returns',      icon: ArrowLeftRight },
     { name: 'Vận đơn',            href: '/admin/inventory/logistics',   icon: Navigation     },
     { name: 'Audit Log',         href: '/admin/inventory/audit-log',    icon: ShieldCheck    },
     { name: 'Nhà cung cấp',      href: '/admin/inventory/suppliers',   icon: Users          },
