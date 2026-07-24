@@ -60,10 +60,13 @@ async function connectDB(retries = MAX_RETRIES) {
 
     try {
         await mongoose.connect(uri, {
-            serverSelectionTimeoutMS: 5000,  // Timeout khi chọn MongoDB server (5 giây)
-            socketTimeoutMS:          45000, // Đóng socket sau 45 giây không hoạt động
-            maxPoolSize:              50,    // Số kết nối song song tối đa trong connection pool
-            connectTimeoutMS:         10000, // Timeout kết nối lần đầu (10 giây)
+            serverSelectionTimeoutMS: 8000,   // Timeout khi chọn MongoDB server
+            socketTimeoutMS:          60000,  // Đóng socket sau 60 giây không hoạt động
+            maxPoolSize:              100,     // Tăng từ 50 → 100 connections song song
+            minPoolSize:              5,       // Giữ sẵn 5 connection ấm (giảm latency)
+            connectTimeoutMS:         15000,  // Timeout kết nối lần đầu
+            maxIdleTimeMS:            60000,  // Đóng connection nhàn rỗi sau 60 giây
+            heartbeatFrequencyMS:     10000,  // Ping MongoDB mỗi 10 giây để giữ connection
         });
         // Lưu ý: không cần set dbConnected = true ở đây
         // vì sự kiện 'connected' ở trên sẽ tự xử lý

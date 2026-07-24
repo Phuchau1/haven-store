@@ -13,7 +13,7 @@ const rateLimit = require('express-rate-limit');
  */
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 200,
+    max: 500,  // Tăng từ 200 → 500 — hỗ trợ 1000 users traffic cao hơn
     standardHeaders: true,
     legacyHeaders: false,
     message: {

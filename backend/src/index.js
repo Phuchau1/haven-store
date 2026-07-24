@@ -17,6 +17,7 @@ const apiRoutes = require('./routes');
 const notFoundHandler = require('./middleware/notFoundHandler');
 const errorHandler = require('./middleware/errorHandler');
 const { globalLimiter } = require('./middleware/rateLimiter');
+const { cacheMiddleware } = require('./middleware/cacheMiddleware');
 
 const app = express();
 const server = http.createServer(app);
@@ -86,7 +87,8 @@ if (!fs.existsSync(publicUploads)) {
 app.use('/uploads', express.static(publicUploads));
 
 // --- ROUTES ---
-app.use('/api', globalLimiter); // Rate limiting toàn cục — Chống DDoS
+app.use('/api', globalLimiter);       // Rate limiting toàn cục — Chống DDoS
+app.use('/api', cacheMiddleware);     // ⚡ Cache tầng 1 — Giảm tải MongoDB khi 1000+ users
 app.use('/api', apiRoutes);
 
 // --- XỬ LÝ LỖI (ERROR HANDLING) ---
