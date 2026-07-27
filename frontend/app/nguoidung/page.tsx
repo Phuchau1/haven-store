@@ -155,45 +155,52 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                     <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Số điện thoại</p>
                                     <p className="text-sm font-medium text-slate-800">{order.phone}</p>
                                 </div>
-                                <div className="pt-3 flex flex-wrap gap-2">
-                                    {order.status === 'pending' && (
-                                        <button 
-                                            onClick={() => onCancel(order.id ?? '')}
-                                            className="px-4 py-2 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-                                        >
-                                            Hủy đơn hàng
-                                        </button>
-                                    )}
-                                    {order.status === 'delivered' && (
-                                        <button 
-                                            onClick={() => onReturn(order)}
-                                            className="px-4 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all shadow-sm flex items-center gap-1.5"
-                                        >
-                                            <RotateCcw size={14} /> Hoàn hàng / Trả hàng
-                                        </button>
-                                    )}
-                                    {order.status === 'return_requested' && (
-                                        <span className="px-4 py-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                                            ⏳ Yêu cầu hoàn hàng đang chờ Admin duyệt
-                                        </span>
-                                    )}
-                                    {order.status === 'delivered' && (
-                                        <button 
-                                            onClick={() => onRate(order)}
-                                            className="px-4 py-2 bg-amber-50 border border-amber-200 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-all shadow-sm flex items-center gap-1.5"
-                                        >
-                                            <Star size={14} /> Đánh giá sản phẩm
-                                        </button>
-                                    )}
-                                    {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
-                                        <button 
-                                            onClick={() => onRebuy(order)}
-                                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md flex items-center gap-1.5"
-                                        >
-                                            <ShoppingBag size={14} /> Mua lại đơn hàng
-                                        </button>
-                                    )}
-                                </div>
+                            </div>
+                        </div>
+
+                        {/* Full-width Dedicated Action Bar */}
+                        <div className="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                            <span className="text-xs font-semibold text-slate-500 hidden md:block">
+                                Thao tác với đơn hàng #{order.id}:
+                            </span>
+                            <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto ml-auto">
+                                {order.status === 'pending' && (
+                                    <button 
+                                        onClick={() => onCancel(order.id ?? '')}
+                                        className="px-4 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 transition-all shadow-sm hover:shadow active:scale-95"
+                                    >
+                                        Hủy đơn hàng
+                                    </button>
+                                )}
+                                {order.status === 'delivered' && (
+                                    <button 
+                                        onClick={() => onReturn(order)}
+                                        className="px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 hover:border-rose-300 transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
+                                    >
+                                        <RotateCcw size={14} className="text-rose-500" /> Hoàn hàng / Trả hàng
+                                    </button>
+                                )}
+                                {order.status === 'return_requested' && (
+                                    <span className="px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm animate-pulse">
+                                        ⏳ Yêu cầu hoàn hàng đang chờ Admin duyệt
+                                    </span>
+                                )}
+                                {order.status === 'delivered' && (
+                                    <button 
+                                        onClick={() => onRate(order)}
+                                        className="px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-100 hover:border-amber-300 transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
+                                    >
+                                        <Star size={14} className="text-amber-500 fill-amber-400" /> Đánh giá sản phẩm
+                                    </button>
+                                )}
+                                {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
+                                    <button 
+                                        onClick={() => onRebuy(order)}
+                                        className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 active:scale-95 flex items-center gap-1.5"
+                                    >
+                                        <ShoppingBag size={14} /> Mua lại đơn hàng
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -963,30 +970,30 @@ export default function NguoiDungPage() {
                                                             </div>
 
                                                             <div className="mt-6 pt-6 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                                                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                                                                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                                                                     {order.status === 'pending' && (
-                                                                        <button onClick={() => handleCancelOrder(order.id ?? '')} className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors flex-1 sm:flex-none">
+                                                                        <button onClick={() => handleCancelOrder(order.id ?? '')} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none active:scale-95">
                                                                             Hủy đơn
                                                                         </button>
                                                                     )}
                                                                     {order.status === 'delivered' && (
-                                                                        <button onClick={() => handleReturnOrder(order)} className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
-                                                                            <RotateCcw size={13} /> Hoàn hàng
+                                                                        <button onClick={() => handleReturnOrder(order)} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
+                                                                            <RotateCcw size={13} className="text-rose-500" /> Hoàn hàng
                                                                         </button>
                                                                     )}
                                                                     {order.status === 'return_requested' && (
-                                                                        <span className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1">
+                                                                        <span className="px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-pulse">
                                                                             ⏳ Chờ Admin duyệt hoàn
                                                                         </span>
                                                                     )}
-                                                                    {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
-                                                                        <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
-                                                                            <ShoppingBag size={13} /> Mua lại
+                                                                    {order.status === 'delivered' && (
+                                                                        <button onClick={() => handleRateOrder(order)} className="px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
+                                                                            <Star size={13} className="text-amber-500 fill-amber-400" /> Đánh giá
                                                                         </button>
                                                                     )}
-                                                                    {order.status === 'delivered' && (
-                                                                        <button onClick={() => handleRateOrder(order)} className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
-                                                                            <Star size={13} /> Đánh giá
+                                                                    {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
+                                                                        <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-100 flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
+                                                                            <ShoppingBag size={13} /> Mua lại
                                                                         </button>
                                                                     )}
                                                                 </div>
