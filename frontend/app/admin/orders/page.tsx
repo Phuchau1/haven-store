@@ -159,10 +159,11 @@ export default function AdminOrders() {
         setShippingModalOpen(true);
     };
 
-    const confirmApproveOrder = () => {
+    const confirmApproveOrder = async () => {
         if (orderToApprove) {
-            handleUpdateStatus(orderToApprove, 'processing', selectedShippingProvider);
+            const carrierCode = selectedShippingProvider || 'GHN';
             setShippingModalOpen(false);
+            await handleInitCarrier(orderToApprove, carrierCode);
             setOrderToApprove(null);
         }
     };
@@ -1021,18 +1022,30 @@ export default function AdminOrders() {
                                 Vui lòng chọn một đơn vị vận chuyển để duyệt đơn hàng này và chuẩn bị giao hàng.
                             </p>
                             
-                            <div className="space-y-3 mb-6">
-                                {['J&T Express', 'Viettel Post', 'Giao Hàng Nhanh'].map(provider => (
-                                    <label key={provider} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShippingProvider === provider ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-[var(--adm-border)] hover:border-indigo-300'}`}>
+                            <div className="space-y-2.5 mb-6 max-h-[320px] overflow-y-auto pr-1">
+                                {[
+                                    { code: 'GHN',  name: 'Giao Hàng Nhanh (GHN)', color: '#E83B34', tag: 'Chuyển phát nhanh' },
+                                    { code: 'GHTK', name: 'Giao Hàng Tiết Kiệm (GHTK)', color: '#009B57', tag: 'Tiết kiệm' },
+                                    { code: 'JNT',  name: 'J&T Express', color: '#E30613', tag: 'Toàn quốc' },
+                                    { code: 'VTP',  name: 'Viettel Post', color: '#C9272B', tag: 'Bưu điện Viettel' },
+                                    { code: 'BEST', name: 'BEST Express', color: '#F5A623', tag: 'Giao hỏa tốc' },
+                                    { code: 'NJV',  name: 'Ninja Van', color: '#E60B17', tag: 'Dịch vụ cao cấp' },
+                                ].map(c => (
+                                    <label key={c.code} className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${selectedShippingProvider === c.code ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-900/30 shadow-sm' : 'border-[var(--adm-border)] hover:border-indigo-300'}`}>
                                         <input
                                             type="radio"
                                             name="shippingProvider"
-                                            value={provider}
-                                            checked={selectedShippingProvider === provider}
+                                            value={c.code}
+                                            checked={selectedShippingProvider === c.code}
                                             onChange={(e) => setSelectedShippingProvider(e.target.value)}
                                             className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="font-medium" style={{ color: 'var(--adm-text)' }}>{provider}</span>
+                                        <div className="flex-1 flex items-center justify-between">
+                                            <span className="font-semibold text-sm" style={{ color: 'var(--adm-text)' }}>{c.name}</span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: c.color, borderColor: `${c.color}40`, backgroundColor: `${c.color}10` }}>
+                                                {c.tag}
+                                            </span>
+                                        </div>
                                     </label>
                                 ))}
                             </div>

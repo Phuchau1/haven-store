@@ -16,6 +16,8 @@ const { CouponModel } = require('../models/Coupon');
 const { enqueueOrderEmail } = require('../services/queueService');
 // Điểm tích lũy: cộng điểm sau khi tạo đơn, thu hồi khi hủy đơn
 const { earnPoints, revokePoints } = require('./loyaltyController');
+// Carrier Simulator: tự động khởi tạo vận đơn khi chọn nhà vận chuyển
+const { initShipping } = require('../services/carrierSimulator');
 
 const fs = require('fs');
 const path = require('path');
@@ -484,6 +486,27 @@ const updateOrderStatus = async (req, res, next) => {
         const updatedOrder = await OrderModel.findOneAndUpdate({ id }, updateData, { new: true });
         
         log(`Cập nhật đơn ${id} từ ${oldStatus} sang ${status}`);
+
+        // Tự động khởi tạo vận chuyển nếu có carrier và chưa có vận đơn
+        let carrierCodeToInit = req.body.carrierCode;
+        if (!carrierCodeToInit && shippingProvider) {
+            if (shippingProvider.includes('GHN') || shippingProvider.includes('Nhanh')) carrierCodeToInit = 'GHN';
+            else if (shippingProvider.includes('GHTK') || shippingProvider.includes('Tiết')) carrierCodeToInit = 'GHTK';
+            else if (shippingProvider.includes('J&T') || shippingProvider.includes('JNT')) carrierCodeToInit = 'JNT';
+            else if (shippingProvider.includes('Viettel') || shippingProvider.includes('VTP')) carrierCodeToInit = 'VTP';
+            else if (shippingProvider.includes('BEST')) carrierCodeToInit = 'BEST';
+            else if (shippingProvider.includes('Ninja') || shippingProvider.includes('NJV')) carrierCodeToInit = 'NJV';
+            else carrierCodeToInit = 'GHN';
+        }
+
+        if (carrierCodeToInit && !currentOrder.trackingNumber && ['processing', 'waiting_pickup', 'shipped'].includes(status)) {
+            try {
+                await initShipping(id, carrierCodeToInit, 'Admin System');
+                log(`[Carrier AutoInit] Đã khởi tạo vận chuyển cho đơn ${id} qua ${carrierCodeToInit}`);
+            } catch (simErr) {
+                log(`[Carrier AutoInit Error]: ${simErr.message}`);
+            }
+        }
 
         // ─────────────────────────────────────────────────────────────────
         // LUỒNG XỬ LÝ KHO THÔNG MINH (Inventory State Machine)
