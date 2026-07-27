@@ -2,14 +2,15 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const AuditLogSchema = new Schema({
-    id: { type: String, required: true, unique: true },
-    user_id: { type: String }, // Có thể null nếu hệ thống tự chạy
-    action: { type: String, required: true }, // vd: 'update_product', 'delete_category'
-    entity_type: { type: String, required: true }, // vd: 'Product', 'Category'
-    entity_id: { type: String }, 
-    old_values: { type: Schema.Types.Mixed }, // Dữ liệu trước thay đổi
-    new_values: { type: Schema.Types.Mixed }, // Dữ liệu sau thay đổi
-    ip_address: { type: String },
+    id: { type: String, required: true, default: () => 'LOG-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7) },
+    user_id: { type: String, default: null }, // Có thể null nếu hệ thống tự chạy
+    action: { type: String, required: true, default: 'SYSTEM_ACTION' }, // vd: 'update_product', 'delete_category'
+    entity_type: { type: String, required: true, default: 'General' }, // vd: 'Product', 'Category', 'Order'
+    entity_id: { type: String, default: null }, 
+    old_values: { type: Schema.Types.Mixed, default: null }, // Dữ liệu trước thay đổi
+    new_values: { type: Schema.Types.Mixed, default: null }, // Dữ liệu sau thay đổi
+    ip_address: { type: String, default: '127.0.0.1' },
+    notes: { type: String, default: '' },
     created_at: { type: String, required: true, default: () => new Date().toISOString() }
 }, { timestamps: true });
 

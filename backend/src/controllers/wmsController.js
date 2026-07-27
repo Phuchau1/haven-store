@@ -102,16 +102,18 @@ exports.adjustStock = async (req, res) => {
         });
 
         // Ghi Audit Log
-        await AuditLog.create({
-            action: 'INVENTORY_MANUAL_ADJUST',
-            entity: 'Inventory',
-            entityId: sku,
-            beforeState: { available: result.beforeQty },
-            afterState: { available: result.afterQty },
-            performedBy: user,
-            ipAddress: userIp,
-            notes: `Điều chỉnh tồn kho ${adjustQty > 0 ? '+' : ''}${adjustQty} cho SKU ${sku}. Lý do: ${reason}`
-        });
+        try {
+            await AuditLog.create({
+                action: 'INVENTORY_MANUAL_ADJUST',
+                entity_type: 'Inventory',
+                entity_id: sku,
+                user_id: user || 'system',
+                ip_address: userIp || '127.0.0.1',
+                notes: `Điều chỉnh tồn kho ${adjustQty > 0 ? '+' : ''}${adjustQty} cho SKU ${sku}. Lý do: ${reason}`
+            });
+        } catch (auditErr) {
+            logger.error(`[AuditLog] Không ghi được log điều chỉnh kho: ${auditErr.message}`);
+        }
 
         return res.json({
             success: true,
@@ -440,15 +442,17 @@ exports.submitCustomerReturnRequest = async (req, res) => {
         };
         await order.save();
 
-        if (AuditLog) {
+        try {
             await AuditLog.create({
                 action: 'CUSTOMER_RETURN_REQUEST',
-                entity: 'Order',
-                entityId: orderId,
-                performedBy: order.customerName || order.email || 'Customer',
-                ipAddress: req.ip || '127.0.0.1',
+                entity_type: 'Order',
+                entity_id: orderId,
+                user_id: order.userId || order.email || 'customer',
+                ip_address: req.ip || '127.0.0.1',
                 notes: `Khách hàng gửi yêu cầu hoàn đơn #${orderId} với ${images.length} hình ảnh bằng chứng. Lý do: ${reason}`
             });
+        } catch (auditErr) {
+            logger.error(`[AuditLog] Không ghi được log return request: ${auditErr.message}`);
         }
 
         return res.json({
@@ -499,14 +503,17 @@ exports.reviewReturnRequest = async (req, res) => {
             order.returnRequest.reviewedBy = adminName;
             await order.save();
 
-            if (AuditLog) {
+            try {
                 await AuditLog.create({
                     action: 'ADMIN_APPROVE_RETURN',
-                    entity: 'Order',
-                    entityId: orderId,
-                    performedBy: adminName,
+                    entity_type: 'Order',
+                    entity_id: orderId,
+                    user_id: adminName || 'admin',
+                    ip_address: req.ip || '127.0.0.1',
                     notes: `Admin ${adminName} ĐÃ DUYỆT yêu cầu hoàn hàng đơn #${orderId} (${returnType})`
                 });
+            } catch (auditErr) {
+                logger.error(`[AuditLog] Không ghi được log approve return: ${auditErr.message}`);
             }
 
             return res.json({
@@ -528,14 +535,17 @@ exports.reviewReturnRequest = async (req, res) => {
             order.returnRequest.reviewedBy = adminName;
             await order.save();
 
-            if (AuditLog) {
+            try {
                 await AuditLog.create({
                     action: 'ADMIN_REJECT_RETURN',
-                    entity: 'Order',
-                    entityId: orderId,
-                    performedBy: adminName,
+                    entity_type: 'Order',
+                    entity_id: orderId,
+                    user_id: adminName || 'admin',
+                    ip_address: req.ip || '127.0.0.1',
                     notes: `Admin ${adminName} TỪ CHỐI yêu cầu hoàn đơn #${orderId}. Lý do từ chối: ${rejectReason}`
                 });
+            } catch (auditErr) {
+                logger.error(`[AuditLog] Không ghi được log reject return: ${auditErr.message}`);
             }
 
             return res.json({
