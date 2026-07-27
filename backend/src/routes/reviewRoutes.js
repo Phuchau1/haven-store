@@ -17,6 +17,7 @@ const router = express.Router();
 const {
     getReviewsByProduct,
     createReview,
+    getMyReviews,
     getAllReviews,
     updateReviewStatus,
     deleteReview
@@ -25,6 +26,7 @@ const {
 // ─── PUBLIC ──────────────────────────────────────────────────────────────────
 router.get('/', getReviewsByProduct);       // GET /api/reviews?product_id=sp-xxx
 router.post('/', createReview);             // POST /api/reviews
+router.get('/my-reviews', getMyReviews);        // GET /api/reviews/my-reviews?user_id=xxx
 
 // ─── ADMIN ───────────────────────────────────────────────────────────────────
 router.get('/all', getAllReviews);          // GET /api/reviews/all

@@ -108,7 +108,7 @@ const createReview = async (req, res, next) => {
             });
         }
 
-        // Kiểm tra xem sản phẩm có tồn tại thật hay không
+        // Kiểm tra sản phẩm tồn tại
         const product = await ProductModel.findOne({ id: product_id });
         if (!product) {
             return res.status(404).json({
@@ -117,7 +117,17 @@ const createReview = async (req, res, next) => {
             });
         }
 
-        // Khởi tạo Review
+        // ─── KIỂM TRA: MỖI USER CHỈ ĐƯỢC ĐÁNH GIÁ MỖI SẢN PHẨM 1 LẦN ───
+        if (user_id && user_id !== 'guest') {
+            const existingReview = await ProductReviewModel.findOne({ user_id, product_id });
+            if (existingReview) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'Bạn đã đánh giá sản phẩm này rồi. Mỗi sản phẩm chỉ được đánh giá 1 lần duy nhất.',
+                    alreadyReviewed: true
+                });
+            }
+        }
         const reviewId = `rv-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
         const newReview = new ProductReviewModel({
             id: reviewId,
@@ -147,6 +157,28 @@ const createReview = async (req, res, next) => {
         });
     } catch (error) {
         log(`createReview error: ${error.message}`);
+        next(error);
+    }
+};
+
+/**
+ * @desc Kiểm tra / lấy danh sách product_id mà user đã từng đánh giá
+ * @route GET /api/reviews/my-reviews?user_id=xxx
+ * Dùng để Frontend disable nút "Đánh giá" cho sản phẩm đã review rồi
+ */
+const getMyReviews = async (req, res, next) => {
+    try {
+        const { user_id } = req.query;
+        if (!user_id || user_id === 'guest') {
+            return res.json({ success: true, reviewedProductIds: [] });
+        }
+
+        const myReviews = await ProductReviewModel.find({ user_id }).select('product_id rating created_at -_id').lean();
+        const reviewedProductIds = myReviews.map(r => r.product_id);
+
+        return res.json({ success: true, reviewedProductIds, reviews: myReviews });
+    } catch (error) {
+        log(`getMyReviews error: ${error.message}`);
         next(error);
     }
 };
@@ -262,6 +294,7 @@ const deleteReview = async (req, res, next) => {
 module.exports = {
     getReviewsByProduct,
     createReview,
+    getMyReviews,
     getAllReviews,
     updateReviewStatus,
     deleteReview,
