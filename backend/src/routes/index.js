@@ -38,6 +38,9 @@ const tryOnRoutes          = require('./tryOnRoutes');
 const aiStylistRoutes      = require('./aiStylistRoutes');
 const wmsRoutes            = require('./wmsRoutes');
 
+const crmRoutes          = require('./crmRoutes');
+const aiEnterpriseRoutes = require('./aiEnterpriseRoutes');
+
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
@@ -65,6 +68,8 @@ router.use('/analytics', analyticsRoutes); // Analytics & tracking
 router.use('/tryon',    tryOnRoutes);      // AI Virtual Try-On
 router.use('/ai-stylist', aiStylistRoutes); // World-class AI Recommendation Engine
 router.use('/wms',      wmsRoutes);        // Enterprise WMS & Logistics Management
+router.use('/crm',      crmRoutes);        // Enterprise CRM 360 & Referral
+router.use('/ai-enterprise', aiEnterpriseRoutes); // AI Enterprise Copywriter, Fraud Check & Demand Forecast
 
 // WMS API
 router.use('/menus', menuRoutes);
