@@ -265,7 +265,7 @@ async function generate10Outfits(userProfile, context = {}) {
 async function chatWithAIStylist(userMessage, userProfile = {}, context = {}) {
     logger.info(`[AIStylist:Chat] Query: "${userMessage}"`);
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_KEY || process.env.NEXT_PUBLIC_GEMINI_KEY;
 
     // Search relevant products for reference
     const products = await Product.find({}).limit(8).lean();
@@ -277,7 +277,7 @@ async function chatWithAIStylist(userMessage, userProfile = {}, context = {}) {
     if (apiKey) {
         try {
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeAIModel({ model: 'gemini-1.5-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
             const prompt = `
 Bạn là Chuyên gia Thời trang AI Stylist cấp cao của thương hiệu Haven Store.
