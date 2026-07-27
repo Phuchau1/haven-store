@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-    const baseUrl = 'https://your-domain.com';
+    const baseUrl = 'https://haven-store-web-green.vercel.app';
 
     return {
         rules: {

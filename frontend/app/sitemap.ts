@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://your-domain.com'; // User sẽ thay đổi domain này sau khi deploy
+    const baseUrl = 'https://haven-store-web-green.vercel.app';
 
     return [
         {
