@@ -164,12 +164,12 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                 Thao tác với đơn hàng #{order.id}:
                             </span>
                             <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto ml-auto">
-                                {order.status === 'pending' && (
+                                {(order.status === 'pending' || order.status === 'processing') && (
                                     <button 
                                         onClick={() => onCancel(order.id ?? '')}
-                                        className="px-4 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 transition-all shadow-sm hover:shadow active:scale-95"
+                                        className="px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 hover:border-rose-300 transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
                                     >
-                                        Hủy đơn hàng
+                                        <XCircle size={14} className="text-rose-500" /> Hủy đơn hàng
                                     </button>
                                 )}
                                 {order.status === 'delivered' && (
@@ -971,9 +971,9 @@ export default function NguoiDungPage() {
 
                                                             <div className="mt-6 pt-6 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
                                                                 <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                                                                    {order.status === 'pending' && (
-                                                                        <button onClick={() => handleCancelOrder(order.id ?? '')} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none active:scale-95">
-                                                                            Hủy đơn
+                                                                    {(order.status === 'pending' || order.status === 'processing') && (
+                                                                        <button onClick={() => handleCancelOrder(order.id ?? '')} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
+                                                                            <XCircle size={13} className="text-rose-500" /> Hủy đơn
                                                                         </button>
                                                                     )}
                                                                     {order.status === 'delivered' && (
