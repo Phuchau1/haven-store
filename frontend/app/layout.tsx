@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     description: 'Khám phá bộ sưu tập thời trang cao cấp mới nhất',
     type: 'website',
   },
+  verification: {
+    google: 'google5769b7fee58b2a81',
+  },
 };
 
 export default function RootLayout({
