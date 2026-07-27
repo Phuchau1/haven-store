@@ -55,9 +55,11 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
             case 'pending': return 'Chờ xử lý';
             case 'processing': return 'Đang chuẩn bị';
             case 'shipped': return 'Đang giao hàng';
-            case 'delivered': return 'Hoàn thành';
+            case 'delivered': return 'Hoàn thành ✓';
             case 'cancelled': return 'Đã hủy';
-            case 'refunded': return 'Đã hoàn trả';
+            case 'return_requested': return '⏳ Chờ Admin duyệt hoàn';
+            case 'refund_requested': return 'Yêu cầu hoàn tiền';
+            case 'refunded': return 'Đã hoàn hàng';
             default: return status;
         }
     };
@@ -69,6 +71,8 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
             case 'shipped': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
             case 'delivered': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
             case 'cancelled': return 'bg-rose-100 text-rose-700 border-rose-200';
+            case 'return_requested': return 'bg-amber-100 text-amber-700 border-amber-300';
+            case 'refund_requested': return 'bg-orange-100 text-orange-700 border-orange-200';
             case 'refunded': return 'bg-orange-100 text-orange-700 border-orange-200';
             default: return 'bg-slate-100 text-slate-700 border-slate-200';
         }
@@ -677,6 +681,8 @@ export default function NguoiDungPage() {
             case 'shipped': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
             case 'delivered': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
             case 'cancelled': return 'bg-rose-50 text-rose-600 border-rose-100';
+            case 'return_requested': return 'bg-amber-50 text-amber-700 border-amber-200';
+            case 'refund_requested': return 'bg-orange-50 text-orange-600 border-orange-100';
             case 'refunded': return 'bg-orange-50 text-orange-600 border-orange-100';
             default: return 'bg-slate-50 text-slate-600 border-slate-100';
         }
@@ -924,7 +930,16 @@ export default function NguoiDungPage() {
                                                                     </div>
                                                                 </div>
                                                                 <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase border ${getStatusStyle(order.status)}`}>
-                                                                    {order.status}
+                                                                    {({
+                                                                        pending: 'Chờ xử lý',
+                                                                        processing: 'Đang chuẩn bị',
+                                                                        shipped: 'Đang giao',
+                                                                        delivered: 'Hoàn thành ✓',
+                                                                        cancelled: 'Đã hủy',
+                                                                        return_requested: '⏳ Chờ duyệt hoàn',
+                                                                        refund_requested: 'Yêu cầu hoàn tiền',
+                                                                        refunded: 'Đã hoàn hàng',
+                                                                    } as Record<string,string>)[order.status] || order.status}
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-3">
@@ -954,10 +969,15 @@ export default function NguoiDungPage() {
                                                                             Hủy đơn
                                                                         </button>
                                                                     )}
-                                                                    {(order.status === 'delivered' || order.status === 'shipped' || order.status === 'processing') && (
+                                                                    {order.status === 'delivered' && (
                                                                         <button onClick={() => handleReturnOrder(order)} className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
                                                                             <RotateCcw size={13} /> Hoàn hàng
                                                                         </button>
+                                                                    )}
+                                                                    {order.status === 'return_requested' && (
+                                                                        <span className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1">
+                                                                            ⏳ Chờ Admin duyệt hoàn
+                                                                        </span>
                                                                     )}
                                                                     {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
                                                                         <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex-1 sm:flex-none flex items-center justify-center gap-1">
