@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Package,
@@ -15,7 +15,14 @@ import {
     Save,
     Loader2,
     Star,
-    RotateCcw
+    RotateCcw,
+    Truck,
+    CheckCircle2,
+    AlertTriangle,
+    Navigation,
+    Clock,
+    PackageCheck,
+    PackageX
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { useCart } from '@/app/component/CartContext';
@@ -41,56 +48,111 @@ const TABS = [
 ];
 
 const ORDER_STATUS_TABS = [
-    { id: 'all', label: 'Tất cả' },
-    { id: 'pending', label: 'Chờ xử lý' },
-    { id: 'processing', label: 'Đang chuẩn bị' },
-    { id: 'shipped', label: 'Đang giao' },
-    { id: 'delivered', label: 'Hoàn thành' },
+    { id: 'all',               label: 'Tất cả' },
+    { id: 'pending',           label: 'Chờ xác nhận' },
+    { id: 'confirmed',         label: 'Đã xác nhận' },
+    { id: 'processing',        label: 'Đang chuẩn bị' },
+    { id: 'waiting_pickup',    label: 'Chờ lấy hàng' },
+    { id: 'picked_up',         label: 'Đã lấy hàng' },
+    { id: 'in_transit',        label: 'Đang vận chuyển' },
+    { id: 'out_for_delivery',  label: 'Đang giao' },
+    { id: 'delivered',         label: 'Hoàn thành' },
+    { id: 'return_requested',  label: 'Yêu cầu hoàn' },
+    { id: 'cancelled',         label: 'Đã hủy' },
 ];
 
 // Component Chi tiết đơn hàng mới
 const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (order: OrderData) => void, onReturn: (order: OrderData) => void }) => {
     const getStatusText = (status: string) => {
-        switch (status) {
-            case 'pending': return 'Chờ xử lý';
-            case 'processing': return 'Đang chuẩn bị';
-            case 'shipped': return 'Đang giao hàng';
-            case 'delivered': return 'Hoàn thành ✓';
-            case 'cancelled': return 'Đã hủy';
-            case 'return_requested': return '⏳ Chờ Admin duyệt hoàn';
-            case 'refund_requested': return 'Yêu cầu hoàn tiền';
-            case 'refunded': return 'Đã hoàn hàng';
-            default: return status;
-        }
+        const map: Record<string,string> = {
+            pending: 'Chờ xác nhận',
+            confirmed: 'Đã xác nhận',
+            processing: 'Đang chuẩn bị / Đóng gói',
+            waiting_pickup: 'Chờ vận chuyển lấy hàng',
+            picked_up: 'Đã lấy hàng',
+            in_transit: 'Đang vận chuyển',
+            out_for_delivery: 'Đang giao đến bạn',
+            delivered: 'Giao hàng thành công ✓',
+            completed: 'Hoàn tất',
+            awaiting_review: 'Chờ đánh giá',
+            reviewed: 'Đã đánh giá',
+            return_requested: '⏳ Chờ Admin duyật hoàn',
+            returning: 'Đang gửi hàng trả',
+            return_received: 'Shop đã nhận hàng trả',
+            refunded: 'Đã hoàn tiền',
+            cancelled: 'Đã hủy',
+            delivery_failed: 'Giao hàng thất bại',
+            returned_to_seller: 'Hàng hoàn về shop',
+            dispute: 'Đang khiếu nại',
+            refund_requested: 'Yêu cầu hoàn tiền',
+            shipped: 'Đang vận chuyển',
+        };
+        return map[status] || status;
     };
-    
+
     const getStatusStyle = (status: string) => {
-        switch (status) {
-            case 'pending': return 'bg-amber-100 text-amber-700 border-amber-200';
-            case 'processing': return 'bg-blue-100 text-blue-700 border-blue-200';
-            case 'shipped': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
-            case 'delivered': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-            case 'cancelled': return 'bg-rose-100 text-rose-700 border-rose-200';
-            case 'return_requested': return 'bg-amber-100 text-amber-700 border-amber-300';
-            case 'refund_requested': return 'bg-orange-100 text-orange-700 border-orange-200';
-            case 'refunded': return 'bg-orange-100 text-orange-700 border-orange-200';
-            default: return 'bg-slate-100 text-slate-700 border-slate-200';
-        }
+        const map: Record<string,string> = {
+            pending: 'bg-amber-100 text-amber-700 border-amber-200',
+            confirmed: 'bg-blue-100 text-blue-700 border-blue-200',
+            processing: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            waiting_pickup: 'bg-violet-100 text-violet-700 border-violet-200',
+            picked_up: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+            in_transit: 'bg-sky-100 text-sky-700 border-sky-200',
+            out_for_delivery: 'bg-orange-100 text-orange-700 border-orange-200',
+            delivered: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            awaiting_review: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            reviewed: 'bg-green-100 text-green-700 border-green-200',
+            return_requested: 'bg-amber-100 text-amber-800 border-amber-300',
+            returning: 'bg-orange-100 text-orange-700 border-orange-200',
+            return_received: 'bg-teal-100 text-teal-700 border-teal-200',
+            refunded: 'bg-green-100 text-green-700 border-green-200',
+            cancelled: 'bg-rose-100 text-rose-700 border-rose-200',
+            delivery_failed: 'bg-red-100 text-red-700 border-red-200',
+            returned_to_seller: 'bg-slate-100 text-slate-700 border-slate-200',
+            dispute: 'bg-purple-100 text-purple-700 border-purple-200',
+            refund_requested: 'bg-orange-100 text-orange-700 border-orange-200',
+            shipped: 'bg-sky-100 text-sky-700 border-sky-200',
+        };
+        return map[status] || 'bg-slate-100 text-slate-700 border-slate-200';
     };
 
-    const getTimelineIndex = (status: string) => {
-        if (status === 'cancelled') return -1;
-        const mapping: Record<string, number> = { 'pending': 0, 'processing': 1, 'shipped': 2, 'delivered': 3 };
-        return mapping[status] ?? 0;
-    };
-
-    const timelineIndex = getTimelineIndex(order.status);
-    const steps = [
-        { key: 'pending', title: 'Đã đặt hàng' },
-        { key: 'processing', title: 'Đang xử lý' },
-        { key: 'shipped', title: 'Đang giao hàng' },
-        { key: 'delivered', title: 'Đã giao hàng' }
+    // Timeline 8 bước chính (sắp xếp từ thấp đến cao)
+    const MAIN_TIMELINE_STEPS = [
+        { key: 'pending',           label: 'Chờ xác nhận',     icon: Clock },
+        { key: 'confirmed',         label: 'Đã xác nhận',        icon: CheckCircle2 },
+        { key: 'processing',        label: 'Đang chuẩn bị',     icon: Package },
+        { key: 'waiting_pickup',    label: 'Chờ lấy hàng',     icon: MapPin },
+        { key: 'picked_up',         label: 'Đã lấy hàng',       icon: PackageCheck },
+        { key: 'in_transit',        label: 'Đang vận chuyển', icon: Truck },
+        { key: 'out_for_delivery',  label: 'Đang giao',           icon: Navigation },
+        { key: 'delivered',         label: 'Giao thành công',    icon: CheckCircle2 },
     ];
+
+    const statusOrder = ['pending','confirmed','processing','waiting_pickup','picked_up','in_transit','out_for_delivery','delivered','completed'];
+    const currentIdx = statusOrder.indexOf(order.status);
+
+    const orderExt = order as any;
+    const shippingTimeline: any[] = orderExt.shippingTimeline || [];
+    const hasCarrier = !!(orderExt.trackingNumber || orderExt.carrierCode);
+    const isCancelled = ['cancelled','delivery_failed','returned_to_seller','dispute'].includes(order.status);
+    const isReturn = ['return_requested','returning','return_received','refunded','refund_requested'].includes(order.status);
+
+    // SVG Map: Các điểm mốc vận chuyển
+    const MAP_NODES = [
+        { id: 'shop',   label: 'Shop', x: 180, y: 320, emoji: '🏪' },
+        { id: 'hcm',    label: 'Kho HCM', x: 200, y: 280, emoji: '🏗️' },
+        { id: 'transit',label: 'Trung chuyển', x: 230, y: 220, emoji: '📦' },
+        { id: 'local',  label: 'Kho địa phương', x: 260, y: 160, emoji: '🏢' },
+        { id: 'home',   label: 'Nhà bạn', x: 290, y: 100, emoji: '🏠' },
+    ];
+    const mapStep = Math.min(
+        shippingTimeline.length > 0 ? Math.floor((shippingTimeline.length / 7) * 4) : 0,
+        4
+    );
+
+    const timelineIndex = Math.max(0, MAIN_TIMELINE_STEPS.findIndex(s => s.key === order.status));
+    const steps = MAIN_TIMELINE_STEPS;
 
     return (
         <motion.div 
@@ -264,43 +326,105 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                 </div>
 
                 {/* Right Column */}
-                <div className="space-y-6">
-                    {/* Timeline */}
-                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                            <h4 className="font-bold text-slate-900 text-lg">Theo dõi đơn hàng</h4>
+                <div className="space-y-5">
+
+                    {/* ─── CARRIER BADGE + TRACKING NUMBER ──────────────────── */}
+                    {hasCarrier && (
+                        <div className="bg-gradient-to-r from-indigo-50 to-sky-50 rounded-xl border border-indigo-100 p-4 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-indigo-100 flex items-center justify-center text-xl">🚚</div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{orderExt.shippingProvider || orderExt.carrierCode || 'Đơn vị vận chuyển'}</p>
+                                <p className="text-sm font-bold text-slate-900 font-mono tracking-wider mt-0.5">{orderExt.trackingNumber || 'Chờ cấp mã...'}</p>
+                            </div>
+                            {orderExt.estimatedDelivery && (
+                                <div className="text-right shrink-0">
+                                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Dự kiến giao</p>
+                                    <p className="text-xs font-bold text-indigo-600">{new Date(orderExt.estimatedDelivery).toLocaleDateString('vi-VN')}</p>
+                                </div>
+                            )}
                         </div>
-                        <div className="p-6">
-                            {order.status === 'cancelled' ? (
-                                <div className="flex flex-col items-center justify-center py-6 text-center">
-                                    <XCircle size={48} className="text-rose-400 mb-3" />
-                                    <p className="text-lg font-bold text-rose-600">Đơn hàng đã bị hủy</p>
-                                    <p className="text-sm text-slate-500 mt-1">Đơn hàng này không còn hiệu lực.</p>
+                    )}
+
+                    {/* ─── SVG MAP SIMULATION ────────────────────────────────── */}
+                    {hasCarrier && !isCancelled && (
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
+                                <Navigation size={15} className="text-indigo-500" />
+                                <h4 className="font-bold text-slate-800 text-sm">Lộ trình giao hàng</h4>
+                            </div>
+                            <div className="p-4">
+                                <svg viewBox="0 0 400 420" className="w-full h-48" style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', borderRadius: '12px' }}>
+                                    {/* Route line */}
+                                    <polyline points="180,320 200,280 230,220 260,160 290,100" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,4" />
+                                    {/* Active route */}
+                                    {mapStep > 0 && (
+                                        <polyline
+                                            points={MAP_NODES.slice(0, mapStep + 1).map(n => `${n.x},${n.y}`).join(' ')}
+                                            fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round"
+                                        />
+                                    )}
+                                    {/* Nodes */}
+                                    {MAP_NODES.map((node, i) => (
+                                        <g key={node.id}>
+                                            <circle cx={node.x} cy={node.y} r={i <= mapStep ? 16 : 12}
+                                                fill={i <= mapStep ? '#6366f1' : '#e2e8f0'}
+                                                stroke="white" strokeWidth="2"
+                                            />
+                                            <text x={node.x} y={node.y + 5} textAnchor="middle" fontSize="11" fill={i <= mapStep ? 'white' : '#94a3b8'}>{node.emoji}</text>
+                                            <text x={node.x + 20} y={node.y + 5} fontSize="9" fill={i <= mapStep ? '#4f46e5' : '#94a3b8'} fontWeight={i <= mapStep ? 'bold' : 'normal'}>{node.label}</text>
+                                            {/* Pulse on current node */}
+                                            {i === mapStep && (
+                                                <circle cx={node.x} cy={node.y} r="20" fill="none" stroke="#6366f1" strokeWidth="1.5" opacity="0.4">
+                                                    <animate attributeName="r" values="16;24;16" dur="2s" repeatCount="indefinite" />
+                                                    <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
+                                                </circle>
+                                            )}
+                                        </g>
+                                    ))}
+                                    {/* Labels */}
+                                    <text x="20" y="415" fontSize="8" fill="#94a3b8">📍 Mô phỏng hành trình giao hàng</text>
+                                </svg>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ─── TIMELINE 8 BƯỚC CHÍNH ─────────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
+                            <Package size={15} className="text-slate-500" />
+                            <h4 className="font-bold text-slate-800 text-sm">Theo dõi đơn hàng</h4>
+                        </div>
+                        <div className="p-5">
+                            {isCancelled ? (
+                                <div className="flex flex-col items-center justify-center py-5 text-center">
+                                    <PackageX size={42} className="text-rose-400 mb-2" />
+                                    <p className="text-base font-bold text-rose-600">{getStatusText(order.status)}</p>
+                                    <p className="text-xs text-slate-400 mt-1">Đơn hàng này không còn hiệu lực.</p>
+                                </div>
+                            ) : isReturn ? (
+                                <div className="flex flex-col items-center justify-center py-5 text-center">
+                                    <RotateCcw size={42} className="text-amber-400 mb-2" />
+                                    <p className="text-base font-bold text-amber-700">{getStatusText(order.status)}</p>
+                                    <p className="text-xs text-slate-400 mt-1">Đang trong quá trình xử lý hoàn hàng.</p>
                                 </div>
                             ) : (
-                                <div className="relative pl-6 space-y-10 py-2">
-                                    {/* Vertical Line */}
-                                    <div className="absolute left-[11px] top-4 bottom-4 w-0.5 bg-slate-100"></div>
-                                    
+                                <div className="relative pl-6 space-y-5 py-1">
+                                    <div className="absolute left-[10px] top-3 bottom-3 w-0.5 bg-slate-100" />
                                     {steps.map((step, idx) => {
-                                        const isCompleted = timelineIndex >= idx;
+                                        const StepIcon = step.icon;
+                                        const isCompleted = currentIdx >= idx;
+                                        const isCurrent = currentIdx === idx;
                                         return (
-                                            <div key={step.key} className="relative group">
-                                                {/* Node */}
-                                                <div className={`absolute -left-[30px] w-6 h-6 rounded-full border-4 border-white flex items-center justify-center shadow-sm transition-colors duration-300
-                                                    ${isCompleted ? 'bg-emerald-500 scale-110' : 'bg-slate-200'}`}
-                                                ></div>
-                                                
-                                                <div className="pl-4">
-                                                    <p className={`text-sm font-bold transition-colors ${isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>{step.title}</p>
-                                                    {isCompleted && (
-                                                        <motion.p 
-                                                            initial={{ opacity: 0, height: 0 }}
-                                                            animate={{ opacity: 1, height: 'auto' }}
-                                                            className="text-[11px] font-medium text-slate-500 mt-1"
-                                                        >
-                                                            {idx === 0 ? new Date(order.createdAt).toLocaleString('vi-VN') : 'Cập nhật hệ thống'}
-                                                        </motion.p>
+                                            <div key={step.key} className="relative">
+                                                <div className={`absolute -left-[28px] w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-sm transition-all duration-500
+                                                    ${isCompleted ? 'bg-indigo-500' : 'bg-slate-200'}
+                                                    ${isCurrent ? 'scale-125 ring-2 ring-indigo-200' : ''}`}>
+                                                    <StepIcon size={10} className={isCompleted ? 'text-white' : 'text-slate-400'} />
+                                                </div>
+                                                <div className="pl-3">
+                                                    <p className={`text-xs font-bold ${isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>{step.label}</p>
+                                                    {isCurrent && (
+                                                        <p className="text-[10px] text-indigo-500 font-semibold animate-pulse mt-0.5">● Đang ở bước này</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -311,22 +435,46 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                         </div>
                     </div>
 
+                    {/* ─── SHIPPING EVENT FEED (Kiểu GHN/GHTK tracking) ─────── */}
+                    {shippingTimeline.length > 0 && (
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
+                                <Truck size={15} className="text-sky-500" />
+                                <h4 className="font-bold text-slate-800 text-sm">Lịch sử vận chuyển</h4>
+                                <span className="ml-auto text-[10px] bg-sky-100 text-sky-600 px-2 py-0.5 rounded-full font-semibold">{shippingTimeline.length} sự kiện</span>
+                            </div>
+                            <div className="p-4 space-y-0">
+                                {[...shippingTimeline].reverse().map((event: any, idx: number) => (
+                                    <div key={idx} className={`flex gap-3 pb-4 ${idx < shippingTimeline.length - 1 ? 'border-l-2 border-indigo-100 ml-2.5 pl-3' : 'ml-2.5 pl-3'}`}>
+                                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 -ml-4 ${idx === 0 ? 'bg-indigo-500 ring-2 ring-indigo-100' : 'bg-slate-300'}`} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-xs font-bold ${idx === 0 ? 'text-slate-900' : 'text-slate-600'}`}>{event.title}</p>
+                                            {event.location && <p className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><MapPin size={9} />{event.location}</p>}
+                                            {event.note && <p className="text-[10px] text-slate-400 mt-0.5">{event.note}</p>}
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 shrink-0 mt-0.5">
+                                            {event.timestamp ? new Date(event.timestamp).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : ''}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Support Block */}
                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                            <h4 className="font-bold text-slate-900 text-lg">Hỗ trợ</h4>
+                        <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
+                            <h4 className="font-bold text-slate-800 text-sm">Hỗ trợ</h4>
                         </div>
-                        <div className="p-6">
-                            <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                                Nếu bạn có thắc mắc về đơn hàng, vui lòng liên hệ với chúng tôi:
-                            </p>
-                            <div className="space-y-3">
-                                <p className="text-sm text-slate-900 flex items-center gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                    <span className="text-slate-500 text-xs uppercase font-bold tracking-wider w-16">Hotline:</span> 
+                        <div className="p-5">
+                            <p className="text-xs text-slate-500 leading-relaxed mb-3">Nếu bạn có thắc mắc về đơn hàng, vui lòng liên hệ:</p>
+                            <div className="space-y-2">
+                                <p className="text-sm text-slate-900 flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                    <span className="text-slate-400 text-[10px] uppercase font-bold w-14">Hotline:</span>
                                     <span className="font-bold text-indigo-600">1900 1234</span>
                                 </p>
-                                <p className="text-sm text-slate-900 flex items-center gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                    <span className="text-slate-500 text-xs uppercase font-bold tracking-wider w-16">Email:</span> 
+                                <p className="text-sm text-slate-900 flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                    <span className="text-slate-400 text-[10px] uppercase font-bold w-14">Email:</span>
                                     <span className="font-bold text-indigo-600">support@phstore.vn</span>
                                 </p>
                             </div>

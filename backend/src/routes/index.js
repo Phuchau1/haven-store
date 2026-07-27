@@ -40,6 +40,7 @@ const wmsRoutes            = require('./wmsRoutes');
 
 const crmRoutes          = require('./crmRoutes');
 const aiEnterpriseRoutes = require('./aiEnterpriseRoutes');
+const carrierRoutes      = require('./carrierRoutes');      // Carrier Simulation Engine
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
@@ -70,6 +71,7 @@ router.use('/ai-stylist', aiStylistRoutes); // World-class AI Recommendation Eng
 router.use('/wms',      wmsRoutes);        // Enterprise WMS & Logistics Management
 router.use('/crm',      crmRoutes);        // Enterprise CRM 360 & Referral
 router.use('/ai-enterprise', aiEnterpriseRoutes); // AI Enterprise Copywriter, Fraud Check & Demand Forecast
+router.use('/carrier',  carrierRoutes);    // Carrier Simulation Engine (GHN/GHTK/J&T/VTP/BEST/NJV)
 
 // WMS API
 router.use('/menus', menuRoutes);

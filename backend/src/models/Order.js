@@ -1,82 +1,111 @@
 /**
  * ============================================================
- * MODEL: ĐƠN HÀNG (Order)
- * Mô tả: Lưu trữ thông tin đơn hàng của khách hàng.
- * Bao gồm: thông tin người mua, danh sách sản phẩm, thanh toán,
- *           mã giảm giá, trạng thái đơn hàng và ghi chú.
+ * MODEL: ĐƠN HÀNG (Order) — Enterprise Edition v2.0
+ * Chuẩn: TikTok Shop / Shopee với 20 trạng thái đầy đủ
  * ============================================================
  */
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /* ---------- Sub-schema: Thông tin sản phẩm trong đơn hàng ---------- */
-// Lưu snapshot thông tin sản phẩm tại thời điểm đặt hàng (tránh mất dữ liệu khi sản phẩm bị sửa/xóa)
 const OrderItemProductSchema = new Schema({
-    id:            { type: String, required: true },      // ID sản phẩm
-    name:          { type: String, required: true },      // Tên sản phẩm
-    price:         { type: Number, required: true },      // Giá bán tại thời điểm đặt hàng
-    originalPrice: { type: Number },                      // Giá gốc (để hiển thị giảm giá)
-    category:      { type: String },                      // Danh mục sản phẩm
-    categoryLabel: { type: String },                      // Tên hiển thị danh mục
-    images:        [{ type: String }],                    // Ảnh sản phẩm (lấy ảnh đầu tiên hiển thị)
-    sizes:         [{ type: String }],                    // Các size của sản phẩm
-    colors: [{
-        name: { type: String },                           // Tên màu
-        hex:  { type: String }                            // Mã màu HEX
-    }],
-    description:   { type: String },                      // Mô tả ngắn
-    badge:         { type: String },                      // Nhãn (NEW, HOT, SALE...)
-    rating:        { type: Number },                      // Điểm đánh giá
-    reviews:       { type: Number },                      // Số lượt đánh giá
-    inStock:       { type: Boolean }                      // Còn hàng hay không
-}, { _id: false }); // Không tạo _id riêng cho sub-document
+    id:            { type: String, required: true },
+    name:          { type: String, required: true },
+    price:         { type: Number, required: true },
+    originalPrice: { type: Number },
+    category:      { type: String },
+    categoryLabel: { type: String },
+    images:        [{ type: String }],
+    sizes:         [{ type: String }],
+    colors: [{ name: { type: String }, hex: { type: String } }],
+    description:   { type: String },
+    badge:         { type: String },
+    rating:        { type: Number },
+    reviews:       { type: Number },
+    inStock:       { type: Boolean }
+}, { _id: false });
 
-/* ---------- Sub-schema: Từng mục hàng trong đơn ---------- */
+/* ---------- Sub-schema: Từng mục hàng ---------- */
 const OrderItemSchema = new Schema({
-    product:       { type: OrderItemProductSchema, required: true }, // Thông tin sản phẩm
-    quantity:      { type: Number, required: true, default: 1 },     // Số lượng mua
-    selectedSize:  { type: String, required: true },                 // Kích thước đã chọn
-    selectedColor: {
-        name: { type: String, required: true },                      // Tên màu đã chọn
-        hex:  { type: String, required: true }                       // Mã màu HEX đã chọn
-    }
+    product:       { type: OrderItemProductSchema, required: true },
+    quantity:      { type: Number, required: true, default: 1 },
+    selectedSize:  { type: String, required: true },
+    selectedColor: { name: { type: String, required: true }, hex: { type: String, required: true } }
+}, { _id: false });
+
+/* ---------- Sub-schema: Shipping Timeline Event ---------- */
+const ShippingTimelineEventSchema = new Schema({
+    status:    { type: String, required: true },
+    title:     { type: String, required: true },
+    location:  { type: String, default: '' },
+    note:      { type: String, default: '' },
+    timestamp: { type: Date, default: Date.now },
+    isCustomerVisible: { type: Boolean, default: true }
 }, { _id: false });
 
 /* ---------- Schema chính: Đơn hàng ---------- */
 const OrderSchema = new Schema({
-    id:              { type: String, required: true, unique: true },  // Mã đơn hàng duy nhất
-    customerName:    { type: String, required: true },                // Tên người nhận hàng
-    phone:           { type: String, required: true },                // Số điện thoại liên hệ
-    email:           { type: String, required: true },                // Email người đặt hàng
-    address:         { type: String, required: true },                // Địa chỉ giao hàng
-    paymentMethod:   { type: String, required: true },                // Phương thức thanh toán (COD, MoMo, VNPay...)
-    items:           [OrderItemSchema],                               // Danh sách sản phẩm trong đơn
-    totalAmount:     { type: Number, required: true },                // Tổng tiền hàng (trước giảm giá)
-    couponCode:      { type: String, default: '' },                   // Mã giảm giá đã áp dụng
-    discountAmount:  { type: Number, default: 0 },                   // Số tiền được giảm
-    finalAmount:     { type: Number, default: 0 },                   // Tổng tiền cuối cùng phải thanh toán
-    note:            { type: String },                                // Ghi chú của khách hàng
-    userId:          { type: String, default: null },                 // ID người dùng đặt hàng (dùng để tích điểm)
-    transferReceipt: { type: String, default: '' },                  // Ảnh biên lai chuyển khoản (nếu có)
-    shippingProvider:{ type: String },                               // Đơn vị vận chuyển (J&T Express, Viettel Post, v.v.)
-    carrierCode:     { type: String, default: '' },                  // Mã nhà vận chuyển (GHN, GHTK, VIETTELPOST, VNPOST)
-    trackingNumber:  { type: String, default: '' },                  // Mã vận đơn giao hàng
-    // Trạng thái đơn hàng theo luồng xử lý
+    id:              { type: String, required: true, unique: true },
+    customerName:    { type: String, required: true },
+    phone:           { type: String, required: true },
+    email:           { type: String, required: true },
+    address:         { type: String, required: true },
+    paymentMethod:   { type: String, required: true },
+    items:           [OrderItemSchema],
+    totalAmount:     { type: Number, required: true },
+    couponCode:      { type: String, default: '' },
+    discountAmount:  { type: Number, default: 0 },
+    finalAmount:     { type: Number, default: 0 },
+    note:            { type: String },
+    userId:          { type: String, default: null },
+    transferReceipt: { type: String, default: '' },
+    shippingProvider:{ type: String },
+    carrierCode:     { type: String, default: '' },
+    trackingNumber:  { type: String, default: '' },
+
+    // ─── 20 TRẠNG THÁI CHUẨN TIKTOK SHOP / SHOPEE ────────────────────────────
     status: {
         type: String,
         required: true,
         enum: [
-            'pending',           // Chờ xác nhận
-            'processing',        // Đang xử lý / đóng gói
-            'shipped',           // Đã giao cho đơn vị vận chuyển
-            'delivered',         // Đã giao hàng thành công
-            'cancelled',         // Đã hủy
-            'return_requested',   // Khách hàng gửi yêu cầu hoàn hàng (chờ Admin duyệt)
-            'refund_requested',  // Khách hàng yêu cầu hoàn tiền
-            'refunded'           // Đã hoàn tiền / hoàn hàng
+            'pending',              // Chờ xác nhận
+            'confirmed',            // Đã xác nhận (shop duyệt)
+            'processing',           // Đang chuẩn bị / đóng gói
+            'waiting_pickup',       // Chờ đơn vị vận chuyển lấy hàng
+            'picked_up',            // Đơn vị vận chuyển đã lấy hàng
+            'in_transit',           // Đang vận chuyển / trung chuyển
+            'out_for_delivery',     // Đang giao (shipper đang trên đường)
+            'delivered',            // Giao hàng thành công
+            'completed',            // Hoàn tất (sau khi hết thời gian khiếu nại)
+            'awaiting_review',      // Chờ đánh giá
+            'reviewed',             // Đã đánh giá
+            'return_requested',     // Khách yêu cầu trả hàng (chờ shop duyệt)
+            'returning',            // Đang gửi hàng trả về shop
+            'return_received',      // Shop đã nhận hàng trả
+            'refunded',             // Đã hoàn tiền
+            'cancelled',            // Đã hủy
+            'delivery_failed',      // Giao hàng thất bại
+            'returned_to_seller',   // Hàng hoàn về shop (do giao thất bại)
+            'dispute',              // Đang khiếu nại
+            'refund_requested'      // Yêu cầu hoàn tiền (chờ xử lý)
         ],
         default: 'pending'
     },
+
+    // ─── SHIPPING TIMELINE — Lịch sử tracking từng mốc ───────────────────────
+    shippingTimeline: [ShippingTimelineEventSchema],
+    estimatedDelivery: { type: Date, default: null },
+
+    // ─── TIMESTAMPS MỐC QUAN TRỌNG ───────────────────────────────────────────
+    confirmedAt:        { type: Date, default: null },
+    processingAt:       { type: Date, default: null },
+    pickedUpAt:         { type: Date, default: null },
+    inTransitAt:        { type: Date, default: null },
+    outForDeliveryAt:   { type: Date, default: null },
+    deliveredAt:        { type: Date, default: null },
+    cancelledAt:        { type: Date, default: null },
+
+    // ─── RETURN REQUEST ───────────────────────────────────────────────────────
     returnRequest: {
         status:       { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
         reason:       { type: String, default: '' },
@@ -86,10 +115,15 @@ const OrderSchema = new Schema({
         reviewedBy:   { type: String, default: '' },
         rejectReason: { type: String, default: '' }
     },
-    createdAt: { type: String, required: true }                      // Thời gian tạo đơn (dạng String ISO)
-}, { timestamps: true }); // Mongoose tự thêm createdAt, updatedAt dạng Date
 
-/* ---------- Khởi tạo Model ---------- */
+    createdAt: { type: String, required: true }
+}, { timestamps: true });
+
+// Index cho tốc độ query
+OrderSchema.index({ userId: 1, status: 1 });
+OrderSchema.index({ email: 1 });
+OrderSchema.index({ createdAt: -1 });
+
 const OrderModel = mongoose.models.Order || mongoose.model('Order', OrderSchema);
 
 module.exports = { OrderModel };

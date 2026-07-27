@@ -74,7 +74,8 @@ export default function AdminOrders() {
     // Shipping Modal State
     const [shippingModalOpen, setShippingModalOpen] = useState(false);
     const [orderToApprove, setOrderToApprove] = useState<string | null>(null);
-    const [selectedShippingProvider, setSelectedShippingProvider] = useState<string>('J&T Express');
+    const [selectedShippingProvider, setSelectedShippingProvider] = useState<string>('GHN');
+    const [isSimulating, setIsSimulating] = useState(false);
 
     const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -163,6 +164,61 @@ export default function AdminOrders() {
             handleUpdateStatus(orderToApprove, 'processing', selectedShippingProvider);
             setShippingModalOpen(false);
             setOrderToApprove(null);
+        }
+    };
+
+    // ─── CARRIER SIMULATION HANDLERS ──────────────────────────────────────────
+    const handleInitCarrier = async (orderId: string, carrierCode: string) => {
+        setIsSimulating(true);
+        try {
+            const res = await fetch('/api/carrier/init', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, carrierCode })
+            });
+            const data = await res.json();
+            if (data.success) {
+                await fetchOrders(true);
+                if (selectedOrder?.id === orderId) {
+                    const timelineRes = await fetch(`/api/carrier/timeline/${orderId}`);
+                    const timelineData = await timelineRes.json();
+                    if (timelineData.success) {
+                        setSelectedOrder((prev: any) => ({ ...prev, ...timelineData.order, shippingTimeline: timelineData.timeline }));
+                    }
+                }
+            } else {
+                alert(data.message || 'Lỗi khi khởi tạo giao hàng');
+            }
+        } catch {
+            alert('Lỗi kết nối server');
+        } finally {
+            setIsSimulating(false);
+        }
+    };
+
+    const handleAdvanceCarrier = async (orderId: string) => {
+        setIsSimulating(true);
+        try {
+            const res = await fetch('/api/carrier/advance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                await fetchOrders(true);
+                const timelineRes = await fetch(`/api/carrier/timeline/${orderId}`);
+                const timelineData = await timelineRes.json();
+                if (timelineData.success) {
+                    setSelectedOrder((prev: any) => ({ ...prev, ...timelineData.order, shippingTimeline: timelineData.timeline }));
+                }
+            } else {
+                alert(data.message || 'Không thể tiến bước giao hàng');
+            }
+        } catch {
+            alert('Lỗi kết nối server');
+        } finally {
+            setIsSimulating(false);
         }
     };
 
@@ -635,8 +691,6 @@ export default function AdminOrders() {
 
                                         {/* Left: Status + Products */}
                                         <div className="lg:col-span-2 space-y-5">
-
-                                            {/* Status Stepper — horizontally scrollable on mobile */}
                                             <div
                                                 className="p-4 sm:p-5 rounded-2xl border"
                                                 style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
@@ -686,6 +740,76 @@ export default function AdminOrders() {
                                                         })}
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            {/* ─── CARRIER SIMULATION CONTROL PANEL ──────────────────────── */}
+                                            <div className="p-4 sm:p-5 rounded-2xl border bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xl">
+                                                <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <Truck className="text-indigo-400" size={18} />
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-300">
+                                                            Mô phỏng Đơn vị Vận chuyển (Carrier Simulator)
+                                                        </h4>
+                                                    </div>
+                                                    {(selectedOrder as any).trackingNumber && (
+                                                        <span className="text-[10px] font-mono bg-indigo-500/30 text-indigo-200 px-2.5 py-1 rounded-full border border-indigo-400/30">
+                                                            {(selectedOrder as any).trackingNumber}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {!(selectedOrder as any).trackingNumber ? (
+                                                    <div className="space-y-3">
+                                                        <p className="text-xs text-slate-300">Chọn nhà vận chuyển để bàn giao và bắt đầu mô phỏng quy trình giao hàng:</p>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {[
+                                                                { code: 'GHN', label: '🔴 Giao Hàng Nhanh' },
+                                                                { code: 'GHTK', label: '🟢 Giao Hàng Tiết Kiệm' },
+                                                                { code: 'JNT', label: '🔴 J&T Express' },
+                                                                { code: 'VTP', label: '🔴 Viettel Post' },
+                                                                { code: 'BEST', label: '🟡 BEST Express' },
+                                                                { code: 'NJV', label: '🔴 Ninja Van' }
+                                                            ].map(c => (
+                                                                <button
+                                                                    key={c.code}
+                                                                    disabled={isSimulating}
+                                                                    onClick={() => handleInitCarrier(selectedOrder.id!, c.code)}
+                                                                    className="px-3 py-1.5 bg-white/10 hover:bg-indigo-600 border border-white/20 hover:border-indigo-400 rounded-xl text-xs font-semibold text-white transition-all active:scale-95 disabled:opacity-50"
+                                                                >
+                                                                    {c.label}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center justify-between text-xs text-slate-300">
+                                                            <span>Đơn vị: <strong className="text-white">{(selectedOrder as any).shippingProvider || (selectedOrder as any).carrierCode}</strong></span>
+                                                            <span>Trạng thái: <strong className="text-emerald-400 font-bold uppercase">{selectedOrder.status}</strong></span>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                disabled={isSimulating || selectedOrder.status === 'delivered'}
+                                                                onClick={() => handleAdvanceCarrier(selectedOrder.id!)}
+                                                                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                            >
+                                                                <Truck size={14} />
+                                                                {selectedOrder.status === 'delivered' ? '✓ Đã giao thành công' : '⏩ Tiến 1 bước giao hàng'}
+                                                            </button>
+                                                        </div>
+                                                        {(selectedOrder as any).shippingTimeline?.length > 0 && (
+                                                            <div className="mt-3 pt-3 border-t border-white/10 space-y-1 max-h-32 overflow-y-auto pr-1">
+                                                                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Mốc đã qua ({(selectedOrder as any).shippingTimeline.length}):</p>
+                                                                {[(selectedOrder as any).shippingTimeline].flat().reverse().slice(0, 3).map((evt: any, i: number) => (
+                                                                    <div key={i} className="text-[11px] text-slate-300 flex justify-between bg-white/5 px-2.5 py-1 rounded-lg">
+                                                                        <span className="font-semibold text-white">{evt.title}</span>
+                                                                        <span className="text-[10px] text-slate-400">{evt.location || ''}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Products List */}
