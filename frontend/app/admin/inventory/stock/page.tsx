@@ -39,10 +39,10 @@ interface Pagination {
 }
 
 const STATUS_CONFIG = {
-    IN_STOCK:       { label: 'Còn hàng',    color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5' },
-    LOW_STOCK:      { label: 'Sắp hết',     color: 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-amber-500/5' },
-    OUT_OF_STOCK:   { label: 'Hết hàng',    color: 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-rose-500/5' },
-    DISCONTINUED:   { label: 'Ngừng KD',    color: 'bg-slate-500/10 text-slate-400 border-slate-500/20' }
+    IN_STOCK:       { label: 'Còn hàng',    icon: '🟢', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
+    LOW_STOCK:      { label: 'Sắp hết',     icon: '⚠️', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
+    OUT_OF_STOCK:   { label: 'Hết hàng',    icon: '🚨', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30' },
+    DISCONTINUED:   { label: 'Ngừng KD',    icon: '⚪', color: 'bg-slate-500/10 text-slate-400 border-slate-500/30' }
 };
 
 export default function InventoryStockPage() {
@@ -58,6 +58,7 @@ export default function InventoryStockPage() {
     const [adjustType, setAdjustType]           = useState<'ADD' | 'SUBTRACT' | 'DAMAGE'>('ADD');
     const [adjustReason, setAdjustReason]       = useState('');
     const [adjusting, setAdjusting]             = useState(false);
+    const [syncing, setSyncing]                 = useState(false);
 
     // Summary KPIs
     const [summary, setSummary] = useState({
@@ -127,6 +128,24 @@ export default function InventoryStockPage() {
         toast.success('📥 Đã tải xuống báo cáo tồn kho CSV!');
     };
 
+    const handleSyncProducts = async () => {
+        setSyncing(true);
+        try {
+            const res = await fetch('/api/wms/sync-products', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(data.message || '✅ Đồng bộ kho từ sản phẩm thành công!');
+                fetchInventory(1);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'Lỗi đồng bộ kho');
+        } finally {
+            setSyncing(false);
+        }
+    };
+
     const handleAdjustSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedSkuItem) return;
@@ -190,6 +209,15 @@ export default function InventoryStockPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                        onClick={handleSyncProducts}
+                        disabled={syncing}
+                        className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition-all shadow-sm disabled:opacity-50"
+                        title="Đồng bộ toàn bộ sản phẩm từ cửa hàng vào hệ thống kho WMS"
+                    >
+                        <RefreshCw size={15} className={`text-blue-400 ${syncing ? 'animate-spin' : ''}`} />
+                        {syncing ? 'Đang đồng bộ...' : 'Đồng Bộ Kho'}
+                    </button>
                     <button
                         onClick={handleExportCsv}
                         className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition-all shadow-sm"
@@ -419,9 +447,10 @@ export default function InventoryStockPage() {
                                         </td>
 
                                         {/* Status */}
-                                        <td className="px-4 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-sm ${STATUS_CONFIG[item.status]?.color || 'bg-slate-800 text-slate-400 border-slate-700'}`}>
-                                                {STATUS_CONFIG[item.status]?.label || item.status}
+                                        <td className="px-4 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap inline-flex items-center gap-1.5 shadow-sm ${STATUS_CONFIG[item.status]?.color || 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                                                <span className="text-[10px]">{STATUS_CONFIG[item.status]?.icon || '•'}</span>
+                                                <span>{STATUS_CONFIG[item.status]?.label || item.status}</span>
                                             </span>
                                         </td>
 

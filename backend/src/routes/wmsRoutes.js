@@ -16,5 +16,7 @@ router.post('/customer-return-request',   wmsController.submitCustomerReturnRequ
 router.post('/review-return-request',     wmsController.reviewReturnRequest);
 router.get('/tracking/:trackingNumber',   wmsController.getWaybillTracking);
 router.get('/audit-logs',                 wmsController.getAuditLogs);
+router.post('/sync-products',             wmsController.syncProductsToInventory);
 
 module.exports = router;
+

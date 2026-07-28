@@ -8,6 +8,7 @@ const Inventory            = require('../models/Inventory');
 const InventoryTransaction = require('../models/InventoryTransaction');
 const { OrderModel }       = require('../models/Order');
 const { AuditLogModel: AuditLog } = require('../models/AuditLog');
+const { ProductModel }            = require('../models/Product');
 const wmsInventoryService  = require('../services/wmsInventoryService');
 const logisticsService     = require('../services/logisticsService');
 const logger               = require('../utils/logger');
@@ -635,126 +636,131 @@ exports.getTransactions = async (req, res) => {
 };
 
 /**
- * Hàm Tự Động Tạo Dữ Liệu Tồn Kho Mẫu (Auto-Seed WMS Data)
+ * Tự động đồng bộ TẤT CẢ sản phẩm thật từ Product collection vào Inventory WMS
+ * Mỗi biến thể (color + size) của mỗi sản phẩm sẽ tạo 1 SKU kho riêng
  */
 async function autoSeedWmsData() {
     try {
-        const seedItems = [
-            {
-                sku: 'HAVEN-POLO-BLK-L',
-                productName: 'Áo Polo Nam Can Phối Thân Cotton',
-                color: 'Đen',
-                size: 'L',
-                warehouseName: 'Tổng Kho Hà Nội',
-                locationRack: 'KHO-A1-03',
-                available: 45,
-                reserved: 5,
-                sold: 120,
-                damaged: 2,
-                minStock: 10,
-                costPrice: 180000,
-                sellingPrice: 350000,
-                status: 'IN_STOCK'
-            },
-            {
-                sku: 'HAVEN-POLO-BLK-M',
-                productName: 'Áo Polo Nam Can Phối Thân Cotton',
-                color: 'Đen',
-                size: 'M',
-                warehouseName: 'Tổng Kho Hà Nội',
-                locationRack: 'KHO-A1-02',
-                available: 30,
-                reserved: 2,
-                sold: 95,
-                damaged: 0,
-                minStock: 10,
-                costPrice: 180000,
-                sellingPrice: 350000,
-                status: 'IN_STOCK'
-            },
-            {
-                sku: 'HAVEN-SHIRT-WHT-L',
-                productName: 'Áo Sơ Mi Nam Kẻ Sọc Oxford Premium',
-                color: 'Trắng',
-                size: 'L',
-                warehouseName: 'Tổng Kho Hồ Chí Minh',
-                locationRack: 'KHO-B2-01',
-                available: 8,
-                reserved: 3,
-                sold: 210,
-                damaged: 1,
-                minStock: 15,
-                costPrice: 220000,
-                sellingPrice: 450000,
-                status: 'LOW_STOCK'
-            },
-            {
-                sku: 'HAVEN-JEAN-BLU-32',
-                productName: 'Quần Jean Nam Co Giãn Dáng Slimfit',
-                color: 'Xanh Chàm',
-                size: '32',
-                warehouseName: 'Tổng Kho Hồ Chí Minh',
-                locationRack: 'KHO-C1-05',
-                available: 0,
-                reserved: 0,
-                sold: 340,
-                damaged: 5,
-                minStock: 20,
-                costPrice: 280000,
-                sellingPrice: 590000,
-                status: 'OUT_OF_STOCK'
-            },
-            {
-                sku: 'HAVEN-VEST-NVY-XL',
-                productName: 'Bộ Vest Nam 2 Cúc Phong Cách Ý',
-                color: 'Xanh Navy',
-                size: 'XL',
-                warehouseName: 'Tổng Kho Hà Nội',
-                locationRack: 'KHO-VIP-01',
-                available: 18,
-                reserved: 1,
-                sold: 40,
-                damaged: 0,
-                minStock: 5,
-                costPrice: 850000,
-                sellingPrice: 1850000,
-                status: 'IN_STOCK'
-            }
-        ];
+        // Lấy toàn bộ sản phẩm thật từ MongoDB
+        const products = await ProductModel.find({ status: 'published' }).lean();
 
-        for (const item of seedItems) {
-            await Inventory.updateOne(
-                { sku: item.sku },
-                { $set: item },
-                { upsert: true }
-            );
-
-            // Tạo luôn giao dịch mẫu
-            await InventoryTransaction.updateOne(
-                { sku: item.sku, type: 'IMPORT' },
-                {
-                    $set: {
-                        transactionCode: `SEED-${item.sku}`,
-                        type: 'IMPORT',
-                        sku: item.sku,
-                        productId: `PROD-${item.sku}`,
-                        productName: item.productName,
-                        color: item.color,
-                        size: item.size,
-                        quantityBefore: 0,
-                        quantityChange: item.available + item.reserved + item.sold,
-                        quantityAfter: item.available,
-                        stockType: 'available',
-                        performedBy: 'System Auto-Seed',
-                        notes: 'Khởi tạo tồn kho ban đầu',
-                        warehouseName: item.warehouseName
-                    }
-                },
-                { upsert: true }
-            );
+        if (!products || products.length === 0) {
+            logger.warn('[WMS] Không có sản phẩm nào trong DB để đồng bộ vào kho WMS.');
+            return;
         }
-        logger.info('[WMS] Auto-seeded 5 inventory items and transactions successfully!');
+
+        let syncedCount = 0;
+
+        for (const product of products) {
+            const variants = product.variants || [];
+            const basePrice = product.price || 0;
+
+            // Nếu sản phẩm có biến thể (color + size) → tạo 1 SKU per variant
+            if (variants.length > 0) {
+                for (const variant of variants) {
+                    const colorSlug = (variant.color || 'default').replace(/\s+/g, '-').toUpperCase().replace(/[^A-Z0-9\-]/g, '');
+                    const sizeSlug  = (variant.size  || 'OS').replace(/\s+/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    const prodSlug  = (product.id || product._id.toString()).toUpperCase().substring(0, 12);
+                    const sku = `WMS-${prodSlug}-${colorSlug}-${sizeSlug}`.substring(0, 40);
+
+                    const available = Number(variant.stock || 0);
+                    const costPrice  = Math.round((variant.price || basePrice) * 0.55); // Giá vốn ~55% giá bán
+                    const sellingPrice = variant.price || basePrice;
+
+                    let status = 'IN_STOCK';
+                    if (available === 0) status = 'OUT_OF_STOCK';
+                    else if (available <= 10) status = 'LOW_STOCK';
+
+                    await Inventory.updateOne(
+                        { sku },
+                        {
+                            $setOnInsert: {
+                                // Chỉ set khi TẠO MỚI, không ghi đè nếu đã tồn tại
+                                available,
+                                reserved: 0,
+                                sold: product.soldQuantity || 0,
+                                damaged: 0,
+                                transfer: 0,
+                                warehouseName: 'Tổng Kho Chính',
+                                locationRack: 'KHO-AUTO-SYNC',
+                                minStock: 5,
+                                costPrice,
+                                status
+                            },
+                            $set: {
+                                // Luôn cập nhật thông tin sản phẩm
+                                sku,
+                                productName: product.name,
+                                color: variant.color || 'Mặc định',
+                                size: variant.size || 'One Size',
+                                sellingPrice,
+                            }
+                        },
+                        { upsert: true }
+                    );
+                    syncedCount++;
+                }
+            } else {
+                // Sản phẩm không có biến thể → tạo 1 SKU duy nhất
+                const prodSlug = (product.id || product._id.toString()).toUpperCase().substring(0, 20);
+                const sku = `WMS-${prodSlug}`.substring(0, 40);
+                const available = product.variants?.reduce((s: number, v: any) => s + (v.stock || 0), 0) || 50;
+                const costPrice = Math.round(basePrice * 0.55);
+
+                let status = 'IN_STOCK';
+                if (available === 0) status = 'OUT_OF_STOCK';
+                else if (available <= 5) status = 'LOW_STOCK';
+
+                await Inventory.updateOne(
+                    { sku },
+                    {
+                        $setOnInsert: {
+                            available,
+                            reserved: 0,
+                            sold: product.soldQuantity || 0,
+                            damaged: 0,
+                            transfer: 0,
+                            warehouseName: 'Tổng Kho Chính',
+                            locationRack: 'KHO-AUTO-SYNC',
+                            minStock: 5,
+                            costPrice,
+                            status
+                        },
+                        $set: {
+                            sku,
+                            productName: product.name,
+                            color: 'Mặc định',
+                            size: 'One Size',
+                            sellingPrice: basePrice,
+                        }
+                    },
+                    { upsert: true }
+                );
+                syncedCount++;
+            }
+        }
+
+        logger.info(`[WMS] Auto-sync hoàn tất: Đã đồng bộ ${syncedCount} SKU từ ${products.length} sản phẩm thật vào Inventory WMS!`);
     } catch (e) {
-        logger.error(`[WMS] Auto-seed error: ${e.message}`);
+        logger.error(`[WMS] Auto-seed/sync error: ${e.message}`);
     }
 }
+
+/**
+ * @route   POST /api/wms/sync-products
+ * @desc    Đồng bộ lại toàn bộ sản phẩm từ Product collection vào Inventory WMS
+ */
+exports.syncProductsToInventory = async (req, res) => {
+    try {
+        await autoSeedWmsData();
+        const total = await Inventory.countDocuments({});
+        return res.json({
+            success: true,
+            message: `✅ Đồng bộ kho thành công! Tổng ${total} SKU trong hệ thống WMS.`,
+            totalSkus: total
+        });
+    } catch (err) {
+        logger.error(`[WMS] syncProductsToInventory error: ${err.message}`);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
