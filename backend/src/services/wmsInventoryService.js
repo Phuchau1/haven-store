@@ -46,6 +46,7 @@ async function reserveStock(orderId, items = [], externalSession = null) {
             // Cập nhật trạng thái
             if (inv.available === 0) inv.status = 'OUT_OF_STOCK';
             else if (inv.available <= inv.minStock) inv.status = 'LOW_STOCK';
+            if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
 
             await inv.save({ session });
         }
@@ -81,6 +82,7 @@ async function releaseStock(orderId, items = [], externalSession = null) {
                 inv.reserved -= releaseQty;
                 inv.available += releaseQty;
                 if (inv.available > inv.minStock) inv.status = 'IN_STOCK';
+                if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
                 await inv.save({ session });
             }
         }
@@ -115,6 +117,7 @@ async function deductStockOnShipment(orderId, items = [], externalSession = null
                 const deductQty = Math.min(inv.reserved, quantity);
                 inv.reserved -= deductQty;
                 inv.sold += deductQty;
+                if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
                 await inv.save({ session });
             }
         }
@@ -153,6 +156,7 @@ async function auditStocktake(stocktakeItems = [], user = 'Admin', notes = '') {
             if (inv.available === 0) inv.status = 'OUT_OF_STOCK';
             else if (inv.available <= inv.minStock) inv.status = 'LOW_STOCK';
             else inv.status = 'IN_STOCK';
+            if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
 
             await inv.save({ session });
 
@@ -211,6 +215,7 @@ async function processReturnOrder(orderId, returnItems = [], returnType = 'RETUR
                 inv.sold = Math.max(0, inv.sold - quantity);
             }
 
+            if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
             await inv.save({ session });
 
             // Ghi nhật ký giao dịch kho Immutable Audit Trail
@@ -290,6 +295,9 @@ async function adjustStock({ sku, adjustQty, reason = '', performedBy = 'Admin',
         if (inv.available === 0) inv.status = 'OUT_OF_STOCK';
         else if (inv.available <= inv.minStock) inv.status = 'LOW_STOCK';
         else inv.status = 'IN_STOCK';
+
+        // Đảm bảo productId luôn có giá trị (required field)
+        if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
 
         await inv.save({ session });
 

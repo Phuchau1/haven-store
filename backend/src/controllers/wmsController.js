@@ -676,6 +676,7 @@ async function autoSeedWmsData() {
                         {
                             $setOnInsert: {
                                 // Chỉ set khi TẠO MỚI, không ghi đè nếu đã tồn tại
+                                productId: product._id ? product._id.toString() : `PROD-${sku}`,
                                 available,
                                 reserved: 0,
                                 sold: product.soldQuantity || 0,
@@ -715,6 +716,7 @@ async function autoSeedWmsData() {
                     { sku },
                     {
                         $setOnInsert: {
+                            productId: product._id ? product._id.toString() : `PROD-${sku}`,
                             available,
                             reserved: 0,
                             sold: product.soldQuantity || 0,
