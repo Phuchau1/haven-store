@@ -6,12 +6,12 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/app/component/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'PH Store - Thời trang cao cấp | Quần áo & Giày dép',
-  description: 'PH Store cung cấp các sản phẩm thời trang cao cấp, tối giản và tinh tế. Khám phá bộ sưu tập mới nhất ngay hôm nay.',
-  keywords: 'ph store, thời trang, quần áo, giày dép, túi xách, cao cấp',
+  title: 'HAVEN STORE - Thời Trang Cao Cấp | Quần Áo & Giày Dép Nam Nữ',
+  description: 'HAVEN STORE cung cấp các sản phẩm thời trang nam nữ cao cấp, tối giản và tinh tế. Mua sắm quần áo, giày dép chính hãng online ngay hôm nay.',
+  keywords: 'haven store, haven store thời trang, thời trang haven store, quần áo haven store, shop quần áo haven',
   openGraph: {
-    title: 'PH Store - Thời trang cao cấp',
-    description: 'Khám phá bộ sưu tập thời trang cao cấp mới nhất',
+    title: 'HAVEN STORE - Thời Trang Cao Cấp',
+    description: 'Khám phá bộ sưu tập thời trang cao cấp mới nhất tại HAVEN STORE',
     type: 'website',
   },
   verification: {
