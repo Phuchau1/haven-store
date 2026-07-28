@@ -705,7 +705,7 @@ async function autoSeedWmsData() {
                 // Sản phẩm không có biến thể → tạo 1 SKU duy nhất
                 const prodSlug = (product.id || product._id.toString()).toUpperCase().substring(0, 20);
                 const sku = `WMS-${prodSlug}`.substring(0, 40);
-                const available = product.variants?.reduce((s: number, v: any) => s + (v.stock || 0), 0) || 50;
+                const available = product.variants?.reduce((s, v) => s + (v.stock || 0), 0) || 50;
                 const costPrice = Math.round(basePrice * 0.55);
 
                 let status = 'IN_STOCK';
