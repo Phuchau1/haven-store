@@ -15,7 +15,7 @@ const { Schema } = mongoose;
 
 const InventorySchema = new Schema({
     sku:            { type: String, required: true, unique: true, index: true },
-    productId:      { type: String, required: true, index: true },
+    productId:      { type: String, required: false, default: '', index: true },
     productName:    { type: String, required: true },
     color:          { type: String, default: '' },
     size:           { type: String, default: '' },
