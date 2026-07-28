@@ -256,10 +256,88 @@ async function processReturnOrder(orderId, returnItems = [], returnType = 'RETUR
     }
 }
 
+/**
+ * Manual Adjust Stock: Điều chỉnh tăng/giảm kho khả dụng hoặc hàng lỗi thủ công
+ */
+async function adjustStock({ sku, adjustQty, reason = '', performedBy = 'Admin', deviceIp = '127.0.0.1' }) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const inv = await Inventory.findOne({ sku }).session(session);
+        if (!inv) {
+            throw new Error(`Mã SKU ${sku} không tồn tại trong hệ thống kho`);
+        }
+
+        const quantityBefore = inv.available;
+        let quantityAfter = quantityBefore;
+
+        const isDamageReason = reason && reason.includes('[HÀNG HỎNG/LỖI]');
+
+        if (isDamageReason) {
+            // Chuyển sang kho hàng hỏng (damaged)
+            const qty = Math.abs(adjustQty);
+            inv.available = Math.max(0, inv.available - qty);
+            inv.damaged += qty;
+            quantityAfter = inv.available;
+        } else {
+            // Điều chỉnh tồn khả dụng
+            inv.available = Math.max(0, inv.available + adjustQty);
+            quantityAfter = inv.available;
+        }
+
+        // Cập nhật trạng thái
+        if (inv.available === 0) inv.status = 'OUT_OF_STOCK';
+        else if (inv.available <= inv.minStock) inv.status = 'LOW_STOCK';
+        else inv.status = 'IN_STOCK';
+
+        await inv.save({ session });
+
+        // Ghi InventoryTransaction log
+        const txCode = genTxCode(adjustQty > 0 ? 'ADJ_IN' : 'ADJ_OUT');
+        const tx = new InventoryTransaction({
+            transactionCode: txCode,
+            type: adjustQty > 0 ? 'ADJUST_IN' : 'ADJUST_OUT',
+            sku: inv.sku,
+            productId: `PROD-${inv.sku}`,
+            productName: inv.productName,
+            color: inv.color,
+            size: inv.size,
+            quantityBefore,
+            quantityChange: adjustQty,
+            quantityAfter,
+            stockType: isDamageReason ? 'damaged' : 'available',
+            performedBy,
+            notes: reason,
+            warehouseName: inv.warehouseName
+        });
+        await tx.save({ session });
+
+        await session.commitTransaction();
+        logger.info(`[WMS] Manual adjust stock for SKU ${sku}: ${adjustQty > 0 ? '+' : ''}${adjustQty}. New available: ${quantityAfter}`);
+
+        return {
+            sku: inv.sku,
+            productName: inv.productName,
+            available: inv.available,
+            damaged: inv.damaged,
+            status: inv.status
+        };
+    } catch (err) {
+        await session.abortTransaction();
+        logger.error(`[WMS] Manual adjust stock failed for SKU ${sku}: ${err.message}`);
+        throw err;
+    } finally {
+        session.endSession();
+    }
+}
+
 module.exports = {
     reserveStock,
     releaseStock,
     deductStockOnShipment,
     auditStocktake,
-    processReturnOrder
+    processReturnOrder,
+    adjustStock
 };
+
