@@ -394,12 +394,12 @@ export default function AdminProducts() {
 
     // ── Shared label style ──
     const labelCls =
-        'block text-xs font-bold uppercase tracking-wider mb-2' +
+        'block text-xs font-bold uppercase tracking-wider mb-2.5' +
         ' text-[var(--adm-text-muted)] select-none';
     const inputCls =
-        'adm-input w-full min-h-[46px] text-sm px-4 rounded-xl block';
+        'adm-input w-full min-h-[50px] text-sm px-4 rounded-xl block';
     const selectCls =
-        'adm-select w-full min-h-[46px] text-sm px-4 rounded-xl';
+        'adm-select w-full min-h-[50px] text-sm px-4 rounded-xl';
 
     // ─────────────────────────────────────────────────────────────────────────
     return (
@@ -831,7 +831,7 @@ export default function AdminProducts() {
             {/* ── Add / Edit Modal ───────────────────────────────────────── */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-3">
                         {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -843,26 +843,32 @@ export default function AdminProducts() {
 
                         {/* Modal panel */}
                         <motion.div
-                            initial={{ opacity: 0, y: 40 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 40 }}
+                            initial={{ opacity: 0, scale: 0.97 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.97 }}
                             transition={{ type: 'spring', damping: 28, stiffness: 380 }}
-                            className="relative w-full max-w-4xl flex flex-col
-                                       h-full sm:h-auto sm:max-h-[92vh]
-                                       rounded-t-3xl sm:rounded-3xl shadow-2xl"
-                            style={{ background: 'var(--adm-surface)', overflow: 'hidden' }}
+                            className="relative w-full flex flex-col"
+                            style={{
+                                background: 'var(--adm-surface)',
+                                overflow: 'hidden',
+                                width: '100%',
+                                height: 'calc(100vh - 24px)',
+                                maxHeight: 'calc(100vh - 24px)',
+                                borderRadius: '16px',
+                                boxShadow: '0 25px 80px rgba(0,0,0,0.35)',
+                            }}
                         >
                             {/* Modal header */}
                             <div
-                                className="flex items-center justify-between px-5 sm:px-6 py-4 border-b flex-shrink-0"
+                                className="flex items-center justify-between px-8 sm:px-12 py-5 border-b flex-shrink-0"
                                 style={{ borderColor: 'var(--adm-border)', background: 'var(--adm-surface-2)' }}
                             >
                                 <div>
-                                    <h3 className="text-base font-bold" style={{ color: 'var(--adm-text)' }}>
+                                    <h3 className="text-xl font-bold" style={{ color: 'var(--adm-text)' }}>
                                         {editingProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
                                     </h3>
                                     {editingProduct && (
-                                        <p className="text-[10px] font-medium mt-0.5 uppercase tracking-wider" style={{ color: 'var(--adm-text-subtle)' }}>
+                                        <p className="text-xs font-medium mt-1 uppercase tracking-wider" style={{ color: 'var(--adm-text-subtle)' }}>
                                             ID: {editingProduct.id}
                                         </p>
                                     )}
@@ -870,17 +876,17 @@ export default function AdminProducts() {
                                 <button
                                     onClick={() => setIsModalOpen(false)}
                                     aria-label="Đóng modal"
-                                    className="p-2 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                                    className="p-2.5 rounded-xl transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
                                     style={{ color: 'var(--adm-text-muted)' }}
                                     onMouseEnter={e => (e.currentTarget.style.background = 'var(--adm-surface-2)')}
                                     onMouseLeave={e => (e.currentTarget.style.background = '')}
                                 >
-                                    <X size={20} />
+                                    <X size={22} />
                                 </button>
                             </div>
 
                             {/* Modal Tabs Header — flex-shrink-0 so it never scrolls */}
-                            <div className="flex overflow-x-auto border-b hide-scrollbar flex-shrink-0" style={{ borderColor: 'var(--adm-border)', background: 'var(--adm-surface)' }}>
+                            <div className="flex overflow-x-auto border-b hide-scrollbar flex-shrink-0 px-4 sm:px-8" style={{ borderColor: 'var(--adm-border)', background: 'var(--adm-surface)' }}>
                                 {[
                                     { id: 'overview', label: 'Tổng quan' },
                                     { id: 'content', label: 'Nội dung' },
@@ -893,7 +899,7 @@ export default function AdminProducts() {
                                         key={tab.id}
                                         type="button"
                                         onClick={() => setActiveTab(tab.id as any)}
-                                        className={`px-5 py-3.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${
+                                        className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${
                                             activeTab === tab.id
                                                 ? 'border-[var(--adm-primary)] text-[var(--adm-primary)]'
                                                 : 'border-transparent text-[var(--adm-text-muted)] hover:text-[var(--adm-text)]'
@@ -908,12 +914,12 @@ export default function AdminProducts() {
                             <form
                                 id="product-form"
                                 onSubmit={handleSubmit}
-                                className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-7"
+                                className="flex-1 overflow-y-auto px-8 sm:px-12 py-8 space-y-8"
                             >
                                 {/* ── TAB: OVERVIEW ── */}
-                                <div className={activeTab === 'overview' ? 'block space-y-7' : 'hidden'}>
+                                <div className={activeTab === 'overview' ? 'block space-y-8' : 'hidden'}>
                                 {/* ── Basic Info ── */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
                                     {/* Name – full width */}
                                     <div className="sm:col-span-2">
                                         <label htmlFor="product-name" className={labelCls}>Tên sản phẩm</label>
