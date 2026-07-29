@@ -36,7 +36,7 @@ export default function AnalyticsCharts({ stats }: AnalyticsChartsProps) {
     datasets: [
       {
         label: 'Doanh thu (VND)',
-        data: stats.sparklines?.revenue || [1200000, 1900000, 3000000, 5000000, 2000000, 3000000, 7000000],
+        data: stats?.sparklines?.revenue || [1200000, 1900000, 3000000, 5000000, 2000000, 3000000, 7000000],
         borderColor: '#10b981', // emerald-500
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         tension: 0.4,
@@ -73,7 +73,7 @@ export default function AnalyticsCharts({ stats }: AnalyticsChartsProps) {
   // Biểu đồ tròn (Doughnut Chart): Tỷ lệ các trạng thái đơn hàng (Dựa trên stats.recentOrders)
   // Nếu stats.recentOrders ít quá thì giả lập 1 chút cho đẹp
   let pending = 0, processing = 0, shipped = 0, delivered = 0, cancelled = 0;
-  if (stats.recentOrders && stats.recentOrders.length > 0) {
+  if (stats?.recentOrders && stats.recentOrders.length > 0) {
       stats.recentOrders.forEach((o: any) => {
           if (o.status === 'pending') pending++;
           else if (o.status === 'processing') processing++;
