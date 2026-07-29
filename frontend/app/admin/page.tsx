@@ -380,15 +380,31 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Recent Orders */}
+                {/* Pending Orders (Đơn hàng chờ xử lý) */}
                 <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">📦 Đơn Hàng Mới Nhất</h3>
-                        <Link href="/admin/orders" className="text-xs font-semibold text-blue-600 hover:underline">Xem tất cả</Link>
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">📦 Đơn Hàng Chờ Xử Lý</h3>
+                            {stats?.orderStatusCounts?.pending ? (
+                                <span className="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2 py-0.5 rounded-full">
+                                    {stats.orderStatusCounts.pending}
+                                </span>
+                            ) : null}
+                        </div>
+                        <Link href="/admin/orders?status=pending" className="text-xs font-semibold text-blue-600 hover:underline">Xem tất cả</Link>
                     </div>
                     <div className="space-y-3">
-                        {stats?.recentOrders && stats.recentOrders.length > 0 ? (
-                            stats.recentOrders.map((o) => {
+                        {(() => {
+                            const pendingList = stats?.recentOrders?.filter(o => 
+                                ['pending', 'confirmed', 'processing', 'packing', 'waiting_pickup'].includes(o.status)
+                            ) || [];
+                            const displayList = pendingList.length > 0 ? pendingList : (stats?.recentOrders?.slice(0, 5) || []);
+
+                            if (displayList.length === 0) {
+                                return <p className="text-xs text-gray-500 py-4 text-center">Hiện tại không có đơn hàng nào chờ xử lý 🎉</p>;
+                            }
+
+                            return displayList.map((o) => {
                                 const st = STATUS_MAP[o.status] || { label: o.status, color: '#6B7280', bg: '#F3F4F6' };
                                 return (
                                     <div key={o.id} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
@@ -404,10 +420,8 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
                                 );
-                            })
-                        ) : (
-                            <p className="text-xs text-gray-500 py-4 text-center">Chưa có đơn hàng mới</p>
-                        )}
+                            });
+                        })()}
                     </div>
                 </div>
             </div>
