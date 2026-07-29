@@ -9,6 +9,7 @@ import {
     CheckCircle2,
     XCircle,
     Clock,
+    RotateCcw,
     ChevronDown,
     MapPin,
     Phone,
@@ -223,8 +224,31 @@ export default function AdminOrders() {
         }
     };
 
-    const getStatusInfo = (status: string) =>
-        STATUS_OPTIONS.find(s => s.id === status) || STATUS_OPTIONS[0];
+    const getStatusInfo = (status: string) => {
+        const ALL_STATUSES: Record<string, { id: string; label: string; icon: any; color: string; bg: string; border: string }> = {
+            pending:    { id: 'pending',    label: 'Chờ bộ phận xử lý',  icon: Clock,         color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-100'  },
+            processing: { id: 'processing', label: 'Xác nhận & Đóng gói', icon: Package,       color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100'   },
+            confirmed:  { id: 'confirmed',  label: 'Đã xác nhận',        icon: Package,       color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100'   },
+            packing:    { id: 'packing',    label: 'Đang đóng gói',      icon: Package,       color: 'text-purple-600',  bg: 'bg-purple-50',  border: 'border-purple-100' },
+            shipped:    { id: 'shipped',    label: 'Đang vận chuyển',    icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
+            shipping:   { id: 'shipping',   label: 'Đang vận chuyển',    icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
+            in_transit: { id: 'in_transit', label: 'Đang luân chuyển',   icon: Truck,         color: 'text-sky-600',     bg: 'bg-sky-50',     border: 'border-sky-100'    },
+            delivering: { id: 'delivering', label: 'Đang giao hàng',     icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
+            delivered:  { id: 'delivered',  label: 'Giao hàng thành công',icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'},
+            completed:  { id: 'completed',  label: 'Giao hàng thành công',icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'},
+            cancelled:  { id: 'cancelled',  label: 'Đã hủy đơn hàng',    icon: XCircle,       color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100'   },
+            returned:   { id: 'returned',   label: 'Hoàn hàng',          icon: RotateCcw,     color: 'text-pink-600',    bg: 'bg-pink-50',    border: 'border-pink-100'   },
+            refunded:   { id: 'refunded',   label: 'Đã hoàn tiền',       icon: RotateCcw,     color: 'text-pink-600',    bg: 'bg-pink-50',    border: 'border-pink-100'   },
+        };
+        return ALL_STATUSES[status] || STATUS_OPTIONS.find(s => s.id === status) || {
+            id: status,
+            label: status,
+            icon: Clock,
+            color: 'text-slate-600',
+            bg: 'bg-slate-50',
+            border: 'border-slate-200'
+        };
+    };
 
     const getStatusTrackerWidth = (status: string) => {
         const widths = ['w-1/4', 'w-1/2', 'w-3/4', 'w-full'];

@@ -126,13 +126,19 @@ const CARD_CONFIGS = [
 ];
 
 const STATUS_MAP: Record<string, { label: string; icon: any; color: string; bg: string }> = {
-    pending:   { label: 'Chờ xác nhận', icon: Clock,         color: '#F59E0B', bg: '#FEF3C7' },
-    confirmed: { label: 'Đã xác nhận', icon: CheckCircle2,  color: '#3B82F6', bg: '#DBEAFE' },
-    packing:   { label: 'Đang đóng gói', icon: Box,           color: '#8B5CF6', bg: '#EDE9FE' },
-    shipping:  { label: 'Đang giao',    icon: Truck,         color: '#06B6D4', bg: '#CFFAFE' },
-    delivered: { label: 'Giao thành công', icon: CheckCircle2, color: '#10B981', bg: '#D1FAE5' },
-    returned:  { label: 'Hoàn hàng',   icon: RotateCcw,     color: '#EC4899', bg: '#FCE7F3' },
-    cancelled: { label: 'Đã hủy',       icon: XCircle,       color: '#EF4444', bg: '#FEE2E2' },
+    pending:     { label: 'Chờ xác nhận',     icon: Clock,         color: '#F59E0B', bg: '#FEF3C7' },
+    confirmed:   { label: 'Đã xác nhận',      icon: CheckCircle2,  color: '#3B82F6', bg: '#DBEAFE' },
+    processing:  { label: 'Đang xử lý',       icon: Package,       color: '#8B5CF6', bg: '#EDE9FE' },
+    packing:     { label: 'Đang đóng gói',    icon: Box,           color: '#8B5CF6', bg: '#EDE9FE' },
+    shipping:    { label: 'Đang giao',        icon: Truck,         color: '#06B6D4', bg: '#CFFAFE' },
+    shipped:     { label: 'Đang vận chuyển',  icon: Truck,         color: '#4F46E5', bg: '#EEF2FF' },
+    in_transit:  { label: 'Đang vận chuyển',  icon: Truck,         color: '#0284C7', bg: '#E0F2FE' },
+    delivering:  { label: 'Đang giao',        icon: Truck,         color: '#06B6D4', bg: '#CFFAFE' },
+    delivered:   { label: 'Giao thành công',  icon: CheckCircle2,  color: '#10B981', bg: '#D1FAE5' },
+    completed:   { label: 'Giao thành công',  icon: CheckCircle2,  color: '#10B981', bg: '#D1FAE5' },
+    returned:    { label: 'Hoàn hàng',        icon: RotateCcw,     color: '#EC4899', bg: '#FCE7F3' },
+    refunded:    { label: 'Đã hoàn tiền',     icon: RotateCcw,     color: '#EC4899', bg: '#FCE7F3' },
+    cancelled:   { label: 'Đã hủy',           icon: XCircle,       color: '#EF4444', bg: '#FEE2E2' },
 };
 
 export default function AdminDashboard() {
