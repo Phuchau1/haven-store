@@ -195,7 +195,7 @@ export default function AdminDashboard() {
                 <div>
                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                         <Activity className="w-5 h-5 text-blue-600" />
-                        Haven Store Admin Dashboard
+                        HAVEN Dashboard
                     </h2>
                     <p className="text-xs text-gray-500 mt-1">
                         Hệ thống thống kê & báo cáo dữ liệu thời gian thực

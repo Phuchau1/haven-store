@@ -186,10 +186,10 @@ function SidebarContent({
                             className="overflow-hidden"
                         >
                             <p className="text-gray-900 font-extrabold text-sm tracking-wide uppercase leading-none">
-                                Yuu Shop Admin
+                                HAVEN
                             </p>
                             <p className="text-[11px] text-gray-500 mt-1">
-                                Quản lý hệ thống shop
+                                Admin Dashboard
                             </p>
                         </motion.div>
                     )}
