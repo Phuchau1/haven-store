@@ -395,9 +395,9 @@ export default function AdminProducts() {
     // ── Shared label style ──
     const labelCls =
         'block text-xs font-bold uppercase tracking-wider mb-2' +
-        ' text-[var(--adm-text-muted)]';
+        ' text-[var(--adm-text-muted)] select-none';
     const inputCls =
-        'adm-input w-full min-h-[46px] text-sm px-4 rounded-xl';
+        'adm-input w-full min-h-[46px] text-sm px-4 rounded-xl block';
     const selectCls =
         'adm-select w-full min-h-[46px] text-sm px-4 rounded-xl';
 
@@ -849,8 +849,8 @@ export default function AdminProducts() {
                             transition={{ type: 'spring', damping: 28, stiffness: 380 }}
                             className="relative w-full max-w-4xl flex flex-col
                                        h-full sm:h-auto sm:max-h-[92vh]
-                                       rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl"
-                            style={{ background: 'var(--adm-surface)' }}
+                                       rounded-t-3xl sm:rounded-3xl shadow-2xl"
+                            style={{ background: 'var(--adm-surface)', overflow: 'hidden' }}
                         >
                             {/* Modal header */}
                             <div
@@ -879,8 +879,8 @@ export default function AdminProducts() {
                                 </button>
                             </div>
 
-                            {/* Modal Tabs Header */}
-                            <div className="flex overflow-x-auto border-b hide-scrollbar" style={{ borderColor: 'var(--adm-border)' }}>
+                            {/* Modal Tabs Header — flex-shrink-0 so it never scrolls */}
+                            <div className="flex overflow-x-auto border-b hide-scrollbar flex-shrink-0" style={{ borderColor: 'var(--adm-border)', background: 'var(--adm-surface)' }}>
                                 {[
                                     { id: 'overview', label: 'Tổng quan' },
                                     { id: 'content', label: 'Nội dung' },
@@ -893,7 +893,7 @@ export default function AdminProducts() {
                                         key={tab.id}
                                         type="button"
                                         onClick={() => setActiveTab(tab.id as any)}
-                                        className={`px-5 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                                        className={`px-5 py-3.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${
                                             activeTab === tab.id
                                                 ? 'border-[var(--adm-primary)] text-[var(--adm-primary)]'
                                                 : 'border-transparent text-[var(--adm-text-muted)] hover:text-[var(--adm-text)]'
