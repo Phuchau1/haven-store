@@ -92,8 +92,8 @@ function NavItem({
                 }
             `}
             style={{
-                color: isActive ? '#fff' : 'var(--adm-sidebar-text)',
-                backgroundColor: isActive ? 'var(--adm-primary)' : 'transparent',
+                color: isActive ? 'var(--adm-primary)' : 'var(--adm-sidebar-text)',
+                backgroundColor: isActive ? 'var(--adm-sidebar-active-bg)' : 'transparent',
             }}
             onMouseEnter={e => {
                 if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--adm-sidebar-hover)';
@@ -169,10 +169,9 @@ function SidebarContent({
         <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--adm-sidebar-bg)' }}>
             {/* Logo */}
             <div
-                className="flex items-center gap-3 px-4 h-16 flex-shrink-0 border-b"
-                style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+                className="flex items-center gap-3 px-4 h-16 flex-shrink-0 border-b border-gray-100"
             >
-                <div className="w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/30">
+                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/20">
                     <Store size={16} className="text-white" />
                 </div>
                 <AnimatePresence>
@@ -184,11 +183,11 @@ function SidebarContent({
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                         >
-                            <p className="text-white font-bold text-sm tracking-widest uppercase leading-none">
-                                PH Store
+                            <p className="text-gray-900 font-extrabold text-sm tracking-wide uppercase leading-none">
+                                Yuu Shop Admin
                             </p>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--adm-sidebar-text)' }}>
-                                Admin Panel
+                            <p className="text-[11px] text-gray-500 mt-1">
+                                Quản lý hệ thống shop
                             </p>
                         </motion.div>
                     )}
@@ -196,15 +195,14 @@ function SidebarContent({
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto adm-sidebar-scroll py-4 px-2">
+            <nav className="flex-1 overflow-y-auto adm-sidebar-scroll py-4 px-3">
                 {GROUPS.map(group => {
                     const items = MENU_ITEMS.filter(m => m.group === group.key);
                     return (
-                        <div key={group.key} className="mb-5">
+                        <div key={group.key} className="mb-4">
                             {!collapsed && (
                                 <p
-                                    className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest"
-                                    style={{ color: 'rgba(255,255,255,0.25)' }}
+                                    className="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-400"
                                 >
                                     {group.label}
                                 </p>

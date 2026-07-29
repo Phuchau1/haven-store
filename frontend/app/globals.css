@@ -82,37 +82,37 @@
   --font-display: 'Be Vietnam Pro', 'Inter', sans-serif;
   --font-body: 'Be Vietnam Pro', 'Inter', sans-serif;
 
-  /* === Admin Light Mode === */
-  --adm-bg: #f1f5f9;
+  /* === Admin Light Mode (Inspired by Yuu Shop Admin) === */
+  --adm-bg: #F4F5F7;
   --adm-surface: #ffffff;
-  --adm-surface-2: #f8fafc;
-  --adm-border: #e2e8f0;
-  --adm-border-strong: #cbd5e1;
-  --adm-text: #0f172a;
-  --adm-text-muted: #64748b;
-  --adm-text-subtle: #94a3b8;
-  --adm-sidebar-bg: #0f172a;
-  --adm-sidebar-text: #94a3b8;
-  --adm-sidebar-text-active: #f8fafc;
-  --adm-sidebar-active-bg: rgba(99, 102, 241, 0.15);
-  --adm-sidebar-active-border: #6366f1;
-  --adm-sidebar-hover: rgba(255,255,255,0.06);
-  --adm-header-bg: rgba(255,255,255,0.92);
-  --adm-header-border: #e2e8f0;
-  --adm-primary: #6366f1;
-  --adm-primary-hover: #4f46e5;
-  --adm-primary-light: #eef2ff;
-  --adm-success: #10b981;
-  --adm-success-light: #ecfdf5;
-  --adm-danger: #ef4444;
-  --adm-danger-light: #fef2f2;
-  --adm-warning: #f59e0b;
-  --adm-warning-light: #fffbeb;
-  --adm-info: #3b82f6;
-  --adm-info-light: #eff6ff;
-  --adm-overlay: rgba(15, 23, 42, 0.6);
-  --adm-skeleton-base: #e2e8f0;
-  --adm-skeleton-shine: #f8fafc;
+  --adm-surface-2: #F9FAFB;
+  --adm-border: #E5E7EB;
+  --adm-border-strong: #D1D5DB;
+  --adm-text: #111827;
+  --adm-text-muted: #6B7280;
+  --adm-text-subtle: #9CA3AF;
+  --adm-sidebar-bg: #FFFFFF;
+  --adm-sidebar-text: #4B5563;
+  --adm-sidebar-text-active: #2563EB;
+  --adm-sidebar-active-bg: #EFF6FF;
+  --adm-sidebar-active-border: #2563EB;
+  --adm-sidebar-hover: #F3F4F6;
+  --adm-header-bg: rgba(255, 255, 255, 0.95);
+  --adm-header-border: #E5E7EB;
+  --adm-primary: #2563EB;
+  --adm-primary-hover: #1D4ED8;
+  --adm-primary-light: #EFF6FF;
+  --adm-success: #10B981;
+  --adm-success-light: #ECFDF5;
+  --adm-danger: #EF4444;
+  --adm-danger-light: #FEF2F2;
+  --adm-warning: #F59E0B;
+  --adm-warning-light: #FFFBEB;
+  --adm-info: #3B82F6;
+  --adm-info-light: #EFF6FF;
+  --adm-overlay: rgba(17, 24, 39, 0.4);
+  --adm-skeleton-base: #E5E7EB;
+  --adm-skeleton-shine: #F9FAFB;
 
   /* Sidebar widths */
   --sidebar-w: 260px;
