@@ -376,12 +376,12 @@ export default function AdminProducts() {
 
     // ── Shared label style ──
     const labelCls =
-        'block text-[10px] font-bold uppercase tracking-widest mb-1.5' +
+        'block text-xs font-bold uppercase tracking-wider mb-2' +
         ' text-[var(--adm-text-muted)]';
     const inputCls =
-        'adm-input w-full min-h-[44px]';
+        'adm-input w-full min-h-[46px] text-sm px-4 rounded-xl';
     const selectCls =
-        'adm-select w-full min-h-[44px]';
+        'adm-select w-full min-h-[46px] text-sm px-4 rounded-xl';
 
     // ─────────────────────────────────────────────────────────────────────────
     return (
@@ -828,8 +828,8 @@ export default function AdminProducts() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 40 }}
                             transition={{ type: 'spring', damping: 28, stiffness: 380 }}
-                            className="relative w-full max-w-2xl flex flex-col
-                                       h-full sm:h-auto sm:max-h-[90vh]
+                            className="relative w-full max-w-4xl flex flex-col
+                                       h-full sm:h-auto sm:max-h-[92vh]
                                        rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl"
                             style={{ background: 'var(--adm-surface)' }}
                         >
@@ -889,12 +889,12 @@ export default function AdminProducts() {
                             <form
                                 id="product-form"
                                 onSubmit={handleSubmit}
-                                className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-6"
+                                className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-7"
                             >
                                 {/* ── TAB: OVERVIEW ── */}
-                                <div className={activeTab === 'overview' ? 'block space-y-6' : 'hidden'}>
+                                <div className={activeTab === 'overview' ? 'block space-y-7' : 'hidden'}>
                                 {/* ── Basic Info ── */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                                     {/* Name – full width */}
                                     <div className="sm:col-span-2">
                                         <label htmlFor="product-name" className={labelCls}>Tên sản phẩm</label>
