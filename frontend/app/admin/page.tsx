@@ -5,24 +5,40 @@ import {
     TrendingUp, ShoppingBag, Users, DollarSign,
     ArrowUpRight, ArrowDownRight, Calendar, Package,
     AlertCircle, RefreshCw, Plus, FileText, ChevronRight,
-    BarChart2, Activity, Zap
+    BarChart2, Activity, Zap, CheckCircle2, Clock, Truck, RotateCcw, XCircle, Box
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/format';
 import { SkeletonCard } from './components/SkeletonLoaders';
-import { EmptyState } from './components/EmptyState';
 import { useToast } from './components/AdminToast';
 import AnalyticsCharts from './components/AnalyticsCharts';
 
 interface DashboardStats {
     totalRevenue: number;
+    revenueToday: number;
+    revenueWeek: number;
+    revenueMonth: number;
+    revenueYear: number;
+    estimatedCost: number;
+    grossProfit: number;
     orderCount: number;
+    orderStatusCounts: {
+        pending: number;
+        confirmed: number;
+        packing: number;
+        shipping: number;
+        delivered: number;
+        returned: number;
+        cancelled: number;
+    };
     productCount: number;
     customerCount: number;
     recentOrders: Array<{ id: string; customerName: string; createdAt: string; totalAmount: number; status: string }>;
     topProducts: Array<{ id: string; name: string; images: string[]; price: number; sales: number }>;
+    lowProducts: Array<{ id: string; name: string; images: string[]; price: number; sales: number }>;
     stockStatus: {
         inStock: number;
+        lowStock: number;
         outOfStock: number;
     };
     sparklines: {
@@ -41,7 +57,7 @@ interface DashboardStats {
 
 // Sparkline mini chart (SVG)
 function Sparkline({ data, color }: { data: number[]; color: string }) {
-    if (!data.length) return null;
+    if (!data || !data.length) return null;
     const max = Math.max(...data);
     const min = Math.min(...data);
     const range = max - min || 1;
@@ -77,64 +93,60 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
 const CARD_CONFIGS = [
     {
         key: 'totalRevenue',
-        label: 'Doanh thu',
+        label: 'Tổng Doanh Thu',
         icon: DollarSign,
-        color: '#10b981',
+        color: '#2563EB',
         format: (v: number) => formatPrice(v),
         link: '/admin/orders',
     },
     {
         key: 'orderCount',
-        label: 'Đơn hàng',
+        label: 'Tổng Đơn Hàng',
         icon: ShoppingBag,
-        color: '#6366f1',
-        format: (v: number) => v.toLocaleString('vi-VN'),
+        color: '#10B981',
+        format: (v: number) => (v || 0).toLocaleString('vi-VN'),
         link: '/admin/orders',
     },
     {
         key: 'productCount',
-        label: 'Sản phẩm',
+        label: 'Sản Phẩm Trong Hệ Thống',
         icon: Package,
-        color: '#f43f5e',
-        format: (v: number) => v.toLocaleString('vi-VN'),
+        color: '#8B5CF6',
+        format: (v: number) => (v || 0).toLocaleString('vi-VN'),
         link: '/admin/products',
     },
     {
         key: 'customerCount',
-        label: 'Khách hàng',
+        label: 'Khách Hàng',
         icon: Users,
-        color: '#f59e0b',
-        format: (v: number) => v.toLocaleString('vi-VN'),
+        color: '#F59E0B',
+        format: (v: number) => (v || 0).toLocaleString('vi-VN'),
         link: '/admin/users',
     },
 ];
 
-const STATUS_STYLE: Record<string, { label: string; class: string }> = {
-    pending:    { label: 'Chờ xử lý',    class: 'adm-badge adm-badge-warning' },
-    processing: { label: 'Đang xử lý',   class: 'adm-badge adm-badge-info' },
-    shipped:    { label: 'Đang giao',    class: 'adm-badge adm-badge-info' },
-    delivered:  { label: 'Đã giao',      class: 'adm-badge adm-badge-success' },
-    cancelled:  { label: 'Đã hủy',       class: 'adm-badge adm-badge-danger' },
+const STATUS_MAP: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+    pending:   { label: 'Chờ xác nhận', icon: Clock,         color: '#F59E0B', bg: '#FEF3C7' },
+    confirmed: { label: 'Đã xác nhận', icon: CheckCircle2,  color: '#3B82F6', bg: '#DBEAFE' },
+    packing:   { label: 'Đang đóng gói', icon: Box,           color: '#8B5CF6', bg: '#EDE9FE' },
+    shipping:  { label: 'Đang giao',    icon: Truck,         color: '#06B6D4', bg: '#CFFAFE' },
+    delivered: { label: 'Giao thành công', icon: CheckCircle2, color: '#10B981', bg: '#D1FAE5' },
+    returned:  { label: 'Hoàn hàng',   icon: RotateCcw,     color: '#EC4899', bg: '#FCE7F3' },
+    cancelled: { label: 'Đã hủy',       icon: XCircle,       color: '#EF4444', bg: '#FEE2E2' },
 };
-
-const QUICK_ACTIONS = [
-    { icon: Plus,      label: 'Thêm sản phẩm',  href: '/admin/products',  color: 'var(--adm-primary)',  bg: 'var(--adm-primary-light)' },
-    { icon: ShoppingBag, label: 'Xem đơn hàng', href: '/admin/orders',    color: 'var(--adm-success)',  bg: 'var(--adm-success-light)' },
-    { icon: FileText,  label: 'Báo cáo kho',    href: '/admin/inventory', color: 'var(--adm-warning)',  bg: 'var(--adm-warning-light)' },
-    { icon: Users,     label: 'Khách hàng',     href: '/admin/users',     color: '#8b5cf6',              bg: 'rgba(139,92,246,0.12)' },
-];
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month' | 'year'>('month');
     const { showToast } = useToast();
 
     const fetchStats = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
-            const res = await fetch('/api/admin/stats');
+            const res = await fetch(`/api/admin/stats?timeframe=${timeframe}`);
             if (!res.ok) {
                 const text = await res.text();
                 throw new Error(text || `Lỗi server (${res.status})`);
@@ -152,506 +164,247 @@ export default function AdminDashboard() {
         } finally {
             setLoading(false);
         }
-    }, [showToast]);
+    }, [timeframe, showToast]);
 
     useEffect(() => {
         fetchStats();
     }, [fetchStats]);
 
+    const displayRevenue = () => {
+        if (!stats) return 0;
+        switch (timeframe) {
+            case 'today': return stats.revenueToday || 0;
+            case 'week': return stats.revenueWeek || 0;
+            case 'month': return stats.revenueMonth || stats.totalRevenue || 0;
+            case 'year': return stats.revenueYear || stats.totalRevenue || 0;
+            default: return stats.totalRevenue || 0;
+        }
+    };
+
     return (
-        <div className="space-y-5 md:space-y-6">
-            {/* ─ Page header ─ */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-6">
+            {/* ─ Page Header & Time Filter ─ */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm">
                 <div>
-                    <h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--adm-text)' }}>
-                        Tổng quan hệ thống
+                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-blue-600" />
+                        Haven Store Admin Dashboard
                     </h2>
-                    <p className="text-xs md:text-sm mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
-                        Dữ liệu thực tế cập nhật từ database
+                    <p className="text-xs text-gray-500 mt-1">
+                        Hệ thống thống kê & báo cáo dữ liệu thời gian thực
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Filter Timeframe */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <div className="bg-gray-100 p-1 rounded-xl flex items-center text-xs font-semibold">
+                        <button
+                            onClick={() => setTimeframe('today')}
+                            className={`px-3 py-1.5 rounded-lg transition-all ${timeframe === 'today' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        >
+                            Hôm nay
+                        </button>
+                        <button
+                            onClick={() => setTimeframe('week')}
+                            className={`px-3 py-1.5 rounded-lg transition-all ${timeframe === 'week' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        >
+                            Tuần này
+                        </button>
+                        <button
+                            onClick={() => setTimeframe('month')}
+                            className={`px-3 py-1.5 rounded-lg transition-all ${timeframe === 'month' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        >
+                            Tháng này
+                        </button>
+                        <button
+                            onClick={() => setTimeframe('year')}
+                            className={`px-3 py-1.5 rounded-lg transition-all ${timeframe === 'year' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        >
+                            Năm nay
+                        </button>
+                    </div>
+
                     <button
                         onClick={fetchStats}
                         disabled={loading}
-                        className="adm-btn-secondary text-xs px-3 py-2 gap-1.5 min-h-0 h-9"
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors"
                     >
-                        <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-                        <span className="hidden sm:inline">Làm mới</span>
-                    </button>
-                    <button className="adm-btn-secondary text-xs px-3 py-2 gap-1.5 min-h-0 h-9">
-                        <Calendar size={13} />
-                        <span className="hidden sm:inline">Tháng này</span>
+                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                     </button>
                 </div>
             </div>
 
-            {/* ─ Quick Actions ─ */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
-                {QUICK_ACTIONS.map((action) => (
-                    <Link
-                        key={action.href}
-                        href={action.href}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                        style={{ backgroundColor: action.bg }}
-                    >
-                        <div
-                            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: action.color, color: '#fff' }}
-                        >
-                            <action.icon size={14} />
-                        </div>
-                        <span className="text-xs font-bold leading-tight" style={{ color: action.color }}>
-                            {action.label}
-                        </span>
-                    </Link>
-                ))}
-            </div>
-
-            {/* ─ Stats Cards ─ */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+            {/* ─ Main KPI Cards ─ */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 {loading ? (
                     <SkeletonCard count={4} />
                 ) : error ? (
-                    <div className="sm:col-span-2 xl:col-span-4">
-                        <div
-                            className="adm-card p-5 flex items-center gap-3"
-                            style={{ borderColor: 'var(--adm-danger-light)' }}
-                        >
-                            <AlertCircle size={20} style={{ color: 'var(--adm-danger)' }} />
-                            <div>
-                                <p className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
-                                    Lỗi tải dữ liệu
-                                </p>
-                                <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
-                                    {error}
-                                </p>
-                            </div>
-                            <button onClick={fetchStats} className="adm-btn-primary ml-auto text-xs px-3 py-2 min-h-0">
-                                Thử lại
-                            </button>
-                        </div>
+                    <div className="col-span-full bg-red-50 text-red-600 p-4 rounded-2xl border border-red-200 text-sm flex items-center justify-between">
+                        <span>{error}</span>
+                        <button onClick={fetchStats} className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-semibold">Thử lại</button>
                     </div>
                 ) : stats ? (
-                    CARD_CONFIGS.map((cfg, i) => {
-                        const value = stats[cfg.key as keyof DashboardStats] as number;
+                    CARD_CONFIGS.map((cfg) => {
+                        const rawValue = cfg.key === 'totalRevenue' ? displayRevenue() : (stats[cfg.key as keyof DashboardStats] as number);
                         const trendMap: Record<string, string> = {
-                            totalRevenue: stats.trends.revenue,
-                            orderCount: stats.trends.orders,
-                            productCount: stats.trends.products,
-                            customerCount: stats.trends.customers
-                        };
-                        const sparkMap: Record<string, number[]> = {
-                            totalRevenue: stats.sparklines.revenue,
-                            orderCount: stats.sparklines.orders,
-                            productCount: stats.sparklines.products,
-                            customerCount: stats.sparklines.customers
+                            totalRevenue: stats.trends?.revenue || '+0%',
+                            orderCount: stats.trends?.orders || '+0%',
+                            productCount: stats.trends?.products || '+0%',
+                            customerCount: stats.trends?.customers || '+0%'
                         };
                         const trend = trendMap[cfg.key];
-                        const isUp = trend.startsWith('+');
-                        const sparkData = sparkMap[cfg.key];
-                        
-                        return (
-                            <motion.div
-                                key={cfg.key}
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.08, duration: 0.4 }}
-                            >
-                                <Link href={cfg.link} className="adm-card block p-4 md:p-5 group">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div
-                                            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                                            style={{ backgroundColor: `${cfg.color}18`, color: cfg.color }}
-                                        >
-                                            <cfg.icon size={18} />
-                                        </div>
-                                        <div
-                                            className="flex items-center gap-0.5 text-xs font-bold"
-                                            style={{ color: isUp ? 'var(--adm-success)' : 'var(--adm-danger)' }}
-                                        >
-                                            {trend}
-                                            {isUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                                        </div>
-                                    </div>
+                        const isPos = trend.startsWith('+');
 
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <p
-                                                className="text-[10px] font-bold uppercase tracking-widest mb-1"
-                                                style={{ color: 'var(--adm-text-muted)' }}
-                                            >
-                                                {cfg.label}
-                                            </p>
-                                            <p
-                                                className="text-xl md:text-2xl font-extrabold leading-none"
-                                                style={{ color: 'var(--adm-text)' }}
-                                            >
-                                                {cfg.format(value)}
-                                            </p>
-                                        </div>
-                                        <div className="opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <Sparkline data={sparkData} color={cfg.color} />
-                                        </div>
+                        return (
+                            <div key={cfg.key} className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: cfg.color }}>
+                                        <cfg.icon size={20} />
                                     </div>
-                                </Link>
-                            </motion.div>
+                                    <span className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-md ${isPos ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                        {isPos ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                                        {trend}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{cfg.label}</p>
+                                    <p className="text-2xl font-extrabold text-gray-900">{cfg.format(rawValue)}</p>
+                                </div>
+                            </div>
                         );
                     })
                 ) : null}
             </div>
 
-            {/* ─ Analytics Charts ─ */}
-            {stats && <AnalyticsCharts stats={stats} />}
-
-            {/* ─ Main Grid ─ */}
+            {/* ─ Financial Overview: Lợi nhuận vs Chi phí ─ */}
             {stats && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-                    {/* Left col: Recent Orders + Top Products */}
-                    <div className="lg:col-span-2 space-y-4 md:space-y-5">
-
-                        {/* Recent Orders */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="adm-card overflow-hidden"
-                        >
-                            <div
-                                className="flex items-center justify-between px-5 py-4 border-b"
-                                style={{ borderColor: 'var(--adm-border)' }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Activity size={16} style={{ color: 'var(--adm-primary)' }} />
-                                    <h3 className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
-                                        Đơn hàng mới nhất
-                                    </h3>
-                                </div>
-                                <Link
-                                    href="/admin/orders"
-                                    className="flex items-center gap-1 text-xs font-bold transition-colors hover:opacity-80"
-                                    style={{ color: 'var(--adm-primary)' }}
-                                >
-                                    Xem tất cả <ChevronRight size={12} />
-                                </Link>
-                            </div>
-
-                            {stats.recentOrders.length === 0 ? (
-                                <EmptyState
-                                    icon={ShoppingBag}
-                                    title="Chưa có đơn hàng"
-                                    description="Các đơn hàng mới sẽ xuất hiện ở đây"
-                                />
-                            ) : (
-                                <>
-                                    {/* Desktop table */}
-                                    <div className="hidden md:block adm-table-scroll">
-                                        <table className="adm-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Mã đơn / Khách hàng</th>
-                                                    <th>Ngày tạo</th>
-                                                    <th>Tổng tiền</th>
-                                                    <th>Trạng thái</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {stats.recentOrders.slice(0, 8).map(order => {
-                                                    const statusInfo = STATUS_STYLE[order.status] || STATUS_STYLE.pending;
-                                                    return (
-                                                        <tr key={order.id}>
-                                                            <td>
-                                                                <p className="text-xs font-bold" style={{ color: 'var(--adm-text)' }}>
-                                                                    #{order.id}
-                                                                </p>
-                                                                <p className="text-[11px] mt-0.5 truncate max-w-[160px]" style={{ color: 'var(--adm-text-muted)' }}>
-                                                                    {order.customerName}
-                                                                </p>
-                                                            </td>
-                                                            <td className="text-xs" style={{ color: 'var(--adm-text-muted)' }}>
-                                                                {new Date(order.createdAt).toLocaleDateString('vi-VN')}
-                                                            </td>
-                                                            <td>
-                                                                <span className="text-sm font-bold" style={{ color: 'var(--adm-primary)' }}>
-                                                                    {formatPrice(order.totalAmount)}
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <span className={statusInfo.class}>
-                                                                    {statusInfo.label}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {/* Mobile card list */}
-                                    <div className="md:hidden divide-y" style={{ borderColor: 'var(--adm-border)' }}>
-                                        {stats.recentOrders.slice(0, 6).map(order => {
-                                            const statusInfo = STATUS_STYLE[order.status] || STATUS_STYLE.pending;
-                                            return (
-                                                <div
-                                                    key={order.id}
-                                                    className="flex items-center justify-between px-4 py-3 gap-3 hover:transition-colors"
-                                                    style={{ backgroundColor: 'var(--adm-surface)' }}
-                                                >
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-xs font-bold" style={{ color: 'var(--adm-text)' }}>
-                                                            #{order.id}
-                                                        </p>
-                                                        <p className="text-[11px] truncate mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
-                                                            {order.customerName} · {new Date(order.createdAt).toLocaleDateString('vi-VN')}
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex flex-col items-end gap-1.5">
-                                                        <span className="text-xs font-bold" style={{ color: 'var(--adm-primary)' }}>
-                                                            {formatPrice(order.totalAmount)}
-                                                        </span>
-                                                        <span className={statusInfo.class} style={{ fontSize: '10px' }}>
-                                                            {statusInfo.label}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </>
-                            )}
-                        </motion.div>
-
-                        {/* Top Products */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="adm-card overflow-hidden"
-                        >
-                            <div
-                                className="flex items-center justify-between px-5 py-4 border-b"
-                                style={{ borderColor: 'var(--adm-border)' }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Zap size={16} style={{ color: 'var(--adm-warning)' }} />
-                                    <h3 className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
-                                        Sản phẩm bán chạy
-                                    </h3>
-                                </div>
-                                <Link
-                                    href="/admin/products"
-                                    className="flex items-center gap-1 text-xs font-bold hover:opacity-80 transition-opacity"
-                                    style={{ color: 'var(--adm-primary)' }}
-                                >
-                                    Xem tất cả <ChevronRight size={12} />
-                                </Link>
-                            </div>
-                            <div className="p-4 space-y-2">
-                                {stats.topProducts.length === 0 ? (
-                                    <EmptyState
-                                        icon={Package}
-                                        title="Chưa có sản phẩm"
-                                        description="Thêm sản phẩm để xem dữ liệu"
-                                    />
-                                ) : (
-                                    stats.topProducts.slice(0, 5).map((product, index) => (
-                                        <div
-                                            key={product.id}
-                                            className="flex items-center gap-3 p-2.5 rounded-xl transition-colors hover:opacity-80"
-                                            style={{ backgroundColor: 'var(--adm-surface-2)' }}
-                                        >
-                                            <div
-                                                className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
-                                                style={{
-                                                    backgroundColor: index === 0 ? '#fef3c7' : index === 1 ? '#f3f4f6' : index === 2 ? '#fef9ee' : 'var(--adm-surface)',
-                                                    color: index === 0 ? '#d97706' : index === 1 ? '#6b7280' : index === 2 ? '#92400e' : 'var(--adm-text-muted)',
-                                                }}
-                                            >
-                                                #{index + 1}
-                                            </div>
-                                            <div
-                                                className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100"
-                                                style={{ border: '1px solid var(--adm-border)' }}
-                                            >
-                                                {product.images?.[0] && (
-                                                    <>
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                                                    </>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-bold truncate" style={{ color: 'var(--adm-text)' }}>
-                                                    {product.name}
-                                                </p>
-                                                <p className="text-[10px] mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
-                                                    {formatPrice(product.price)}
-                                                </p>
-                                            </div>
-                                            <div className="text-right flex-shrink-0">
-                                                <p className="text-sm font-black" style={{ color: 'var(--adm-primary)' }}>
-                                                    {product.sales}
-                                                </p>
-                                                <p className="text-[9px] font-bold uppercase" style={{ color: 'var(--adm-text-subtle)' }}>
-                                                    Đã bán
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-5 rounded-2xl shadow-sm">
+                        <p className="text-xs font-medium uppercase tracking-wider text-emerald-100">Ước tính Lợi Nhuận Gộp</p>
+                        <p className="text-2xl font-extrabold mt-2">{formatPrice(stats.grossProfit || 0)}</p>
+                        <p className="text-[11px] text-emerald-200 mt-2">Dựa trên biên lợi nhuận ước tính 40% giá bán</p>
                     </div>
 
-                    {/* Right col: Stock status */}
-                    <div className="space-y-4">
-                        {/* Stock Status */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.35 }}
-                            className="adm-card p-5"
-                        >
-                            <div className="flex items-center gap-2 mb-5">
-                                <BarChart2 size={16} style={{ color: 'var(--adm-primary)' }} />
-                                <h3 className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
-                                    Tình trạng kho
-                                </h3>
-                            </div>
+                    <div className="bg-gradient-to-br from-slate-700 to-slate-800 text-white p-5 rounded-2xl shadow-sm">
+                        <p className="text-xs font-medium uppercase tracking-wider text-slate-300">Ước tính Chi Phí Nhập Hàng</p>
+                        <p className="text-2xl font-extrabold mt-2">{formatPrice(stats.estimatedCost || 0)}</p>
+                        <p className="text-[11px] text-slate-400 mt-2">Tổng chi phí giá vốn ước tính 60%</p>
+                    </div>
 
-                            <div className="space-y-4">
-                                {/* In Stock */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span
-                                                className="w-2 h-2 rounded-full"
-                                                style={{ backgroundColor: 'var(--adm-success)' }}
-                                            />
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--adm-text-muted)' }}>
-                                                Còn hàng
-                                            </span>
-                                        </div>
-                                        <span className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
-                                            {stats.stockStatus.inStock}
-                                        </span>
-                                    </div>
-                                    <div
-                                        className="w-full h-2 rounded-full overflow-hidden"
-                                        style={{ backgroundColor: 'var(--adm-surface-2)' }}
-                                    >
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(stats.stockStatus.inStock / stats.productCount) * 100}%` }}
-                                            transition={{ duration: 0.8, delay: 0.5 }}
-                                            className="h-full rounded-full"
-                                            style={{ backgroundColor: 'var(--adm-success)' }}
-                                        />
-                                    </div>
-                                    <p className="text-[10px] mt-1 text-right" style={{ color: 'var(--adm-text-muted)' }}>
-                                        {stats.productCount > 0 ? Math.round((stats.stockStatus.inStock / stats.productCount) * 100) : 0}%
-                                    </p>
+                    <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Trạng Thái Tồn Kho WMS</p>
+                            <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+                                <div className="bg-emerald-50 p-2 rounded-xl">
+                                    <p className="text-lg font-bold text-emerald-600">{stats.stockStatus?.inStock || 0}</p>
+                                    <p className="text-[10px] font-medium text-emerald-700">Đủ hàng</p>
                                 </div>
-
-                                {/* Out of Stock */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span
-                                                className="w-2 h-2 rounded-full"
-                                                style={{ backgroundColor: 'var(--adm-danger)' }}
-                                            />
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--adm-text-muted)' }}>
-                                                Hết hàng
-                                            </span>
-                                        </div>
-                                        <span className="text-sm font-bold" style={{ color: 'var(--adm-danger)' }}>
-                                            {stats.stockStatus.outOfStock}
-                                        </span>
-                                    </div>
-                                    <div
-                                        className="w-full h-2 rounded-full overflow-hidden"
-                                        style={{ backgroundColor: 'var(--adm-surface-2)' }}
-                                    >
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(stats.stockStatus.outOfStock / stats.productCount) * 100}%` }}
-                                            transition={{ duration: 0.8, delay: 0.6 }}
-                                            className="h-full rounded-full"
-                                            style={{ backgroundColor: 'var(--adm-danger)' }}
-                                        />
-                                    </div>
-                                    <p className="text-[10px] mt-1 text-right" style={{ color: 'var(--adm-text-muted)' }}>
-                                        {stats.productCount > 0 ? Math.round((stats.stockStatus.outOfStock / stats.productCount) * 100) : 0}%
-                                    </p>
+                                <div className="bg-amber-50 p-2 rounded-xl">
+                                    <p className="text-lg font-bold text-amber-600">{stats.stockStatus?.lowStock || 0}</p>
+                                    <p className="text-[10px] font-medium text-amber-700">Sắp hết</p>
                                 </div>
-
-                                {/* Alert */}
-                                {stats.stockStatus.outOfStock > 0 && (
-                                    <div
-                                        className="flex items-center gap-2 p-3 rounded-xl text-xs font-semibold"
-                                        style={{
-                                            backgroundColor: 'var(--adm-danger-light)',
-                                            color: 'var(--adm-danger)',
-                                        }}
-                                    >
-                                        <AlertCircle size={14} className="flex-shrink-0" />
-                                        <span>
-                                            {stats.stockStatus.outOfStock} sản phẩm cần bổ sung hàng!
-                                        </span>
-                                    </div>
-                                )}
-
-                                <Link
-                                    href="/admin/inventory"
-                                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all hover:opacity-80"
-                                    style={{ backgroundColor: 'var(--adm-primary-light)', color: 'var(--adm-primary)' }}
-                                >
-                                    <TrendingUp size={14} />
-                                    Quản lý kho hàng
-                                </Link>
+                                <div className="bg-rose-50 p-2 rounded-xl">
+                                    <p className="text-lg font-bold text-rose-600">{stats.stockStatus?.outOfStock || 0}</p>
+                                    <p className="text-[10px] font-medium text-rose-700">Hết hàng</p>
+                                </div>
                             </div>
-                        </motion.div>
-
-                        {/* System stats mini */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.45 }}
-                            className="adm-card p-5"
-                        >
-                            <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--adm-text)' }}>
-                                Thống kê nhanh
-                            </h3>
-                            <div className="space-y-3">
-                                {[
-                                    { label: 'Tổng sản phẩm', value: stats.productCount, icon: Package, color: 'var(--adm-danger)' },
-                                    { label: 'Khách hàng', value: stats.customerCount, icon: Users, color: '#8b5cf6' },
-                                    { label: 'Tổng đơn hàng', value: stats.orderCount, icon: ShoppingBag, color: 'var(--adm-primary)' },
-                                ].map((item) => (
-                                    <div key={item.label} className="flex items-center gap-3">
-                                        <div
-                                            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                                            style={{ backgroundColor: `${item.color}15`, color: item.color }}
-                                        >
-                                            <item.icon size={14} />
-                                        </div>
-                                        <div className="flex-1 flex items-center justify-between">
-                                            <span className="text-xs" style={{ color: 'var(--adm-text-muted)' }}>
-                                                {item.label}
-                                            </span>
-                                            <span className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
-                                                {item.value.toLocaleString('vi-VN')}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             )}
+
+            {/* ─ Order Status Breakdown (Thống Kê 7 Nấc Đơn Hàng) ─ */}
+            {stats?.orderStatusCounts && (
+                <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <ShoppingBag size={16} className="text-blue-600" />
+                        Thống Kê Quy Trình Đơn Hàng
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                        {Object.entries(stats.orderStatusCounts).map(([key, count]) => {
+                            const config = STATUS_MAP[key] || { label: key, icon: Clock, color: '#6B7280', bg: '#F3F4F6' };
+                            const IconComponent = config.icon;
+                            return (
+                                <Link
+                                    key={key}
+                                    href={`/admin/orders?status=${key}`}
+                                    className="p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center text-center transition-all hover:scale-105 hover:shadow-md"
+                                    style={{ backgroundColor: config.bg }}
+                                >
+                                    <IconComponent size={18} style={{ color: config.color }} />
+                                    <p className="text-lg font-extrabold mt-1 text-gray-900">{count}</p>
+                                    <p className="text-[11px] font-semibold text-gray-700 mt-0.5">{config.label}</p>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* ─ Analytics Charts ─ */}
+            <AnalyticsCharts />
+
+            {/* ─ Top Products vs Recent Orders ─ */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Top Products */}
+                <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">🔥 Top Sản Phẩm Bán Chạy</h3>
+                        <Link href="/admin/products" className="text-xs font-semibold text-blue-600 hover:underline">Xem tất cả</Link>
+                    </div>
+                    <div className="space-y-3">
+                        {stats?.topProducts && stats.topProducts.length > 0 ? (
+                            stats.topProducts.map((p, idx) => (
+                                <div key={p.id || idx} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center">{idx + 1}</span>
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-900 line-clamp-1">{p.name}</p>
+                                            <p className="text-[11px] text-gray-500">{formatPrice(p.price)}</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                                        {p.sales} đã bán
+                                    </span>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-xs text-gray-500 py-4 text-center">Chưa có dữ liệu sản phẩm bán chạy</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Recent Orders */}
+                <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">📦 Đơn Hàng Mới Nhất</h3>
+                        <Link href="/admin/orders" className="text-xs font-semibold text-blue-600 hover:underline">Xem tất cả</Link>
+                    </div>
+                    <div className="space-y-3">
+                        {stats?.recentOrders && stats.recentOrders.length > 0 ? (
+                            stats.recentOrders.map((o) => {
+                                const st = STATUS_MAP[o.status] || { label: o.status, color: '#6B7280', bg: '#F3F4F6' };
+                                return (
+                                    <div key={o.id} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-900">Mã đơn #{o.id?.substring(0, 8)}</p>
+                                            <p className="text-[11px] text-gray-500">{o.customerName || 'Khách vãng lai'}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs font-bold text-gray-900">{formatPrice(o.totalAmount)}</p>
+                                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mt-0.5" style={{ backgroundColor: st.bg, color: st.color }}>
+                                                {st.label}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <p className="text-xs text-gray-500 py-4 text-center">Chưa có đơn hàng mới</p>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
