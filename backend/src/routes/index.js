@@ -83,4 +83,8 @@ router.use('/inventory-reports', inventoryReportRoutes);
 router.use('/barcode', barcodeRoutes);
 router.use('/export', exportRoutes);
 
+const brandCollectionRoutes = require('./brandCollectionRoutes');
+
+router.use('/', brandCollectionRoutes);
+
 module.exports = router;

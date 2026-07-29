@@ -15,21 +15,30 @@ const ColorSchema = new Schema({
     image: { type: String }                  // Ảnh đại diện cho màu này (tùy chọn)
 }, { _id: false }); // Không tạo _id riêng cho sub-document
 
-/* ---------- Sub-schema: Biến thể sản phẩm (Màu + Size + Tồn kho) ---------- */
+/* ---------- Sub-schema: Biến thể sản phẩm (Màu + Size + Tồn kho + SKU + Barcode) ---------- */
 const VariantSchema = new Schema({
     color:         { type: String, required: true },       // Tên màu của biến thể
     size:          { type: String, required: true },       // Kích thước của biến thể (S, M, L, XL...)
     stock:         { type: Number, required: true, default: 0 }, // Số lượng tồn kho
+    sku:           { type: String },                       // SKU riêng của biến thể
+    barcode:       { type: String },                       // Mã vạch riêng của biến thể
     price:         { type: Number },                       // Giá riêng của biến thể (ghi đè giá gốc)
-    originalPrice: { type: Number }                        // Giá gốc riêng của biến thể (để hiển thị giảm giá)
+    originalPrice: { type: Number },                       // Giá gốc riêng của biến thể
+    costPrice:     { type: Number }                        // Giá nhập riêng của biến thể
 }, { _id: false });
 
 /* ---------- Schema chính: Sản phẩm ---------- */
 const ProductSchema = new Schema({
     id:               { type: String, required: true, unique: true }, // ID tùy chỉnh (dạng slug hoặc mã)
+    sku:              { type: String },                               // Mã SKU sản phẩm chính
+    barcode:          { type: String },                               // Mã vạch EAN/UPC sản phẩm chính
+    productCode:      { type: String },                               // Mã sản phẩm nội bộ
+    brand:            { type: String, default: 'HAVEN' },             // Thương hiệu (Nike, Adidas, HAVEN...)
     name:             { type: String, required: true },               // Tên sản phẩm
-    price:            { type: Number, required: true },               // Giá bán hiện tại
-    originalPrice:    { type: Number },                               // Giá gốc (để hiển thị giảm giá)
+    price:            { type: Number, required: true },               // Giá bán lẻ hiện tại
+    originalPrice:    { type: Number },                               // Giá niêm yết/gốc (để hiển thị giảm giá)
+    costPrice:        { type: Number, default: 0 },                   // Giá nhập hàng (Giá vốn)
+    wholesalePrice:   { type: Number, default: 0 },                   // Giá bán buôn/Đại lý
     category:         { type: String, required: true },               // Mã danh mục (vd: 'cat-clothing')
     categoryLabel:    { type: String, required: true },               // Tên hiển thị danh mục (vd: 'Quần áo')
     category_id:      { type: String },                               // Liên kết với bảng Category (ObjectId dạng String)
