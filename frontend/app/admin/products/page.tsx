@@ -4,7 +4,8 @@ import {
     Search,
     Plus,
     Edit2,
-    Trash2,
+    Eye,
+    EyeOff,
     X,
     Loader2,
     Save,
@@ -277,20 +278,36 @@ export default function AdminProducts() {
         }
     }, [formData.colors, formData.sizes, formData.price, formData.originalPrice, formData.variants]);
 
-    // ── CRUD handlers ──
-    const handleDelete = async (id: string) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
+    // ── SOFT HIDE / UNHIDE TOGGLE (Không cho phép xóa mất sản phẩm) ──
+    const handleToggleHide = async (product: Product) => {
+        const isHiding = product.inStock;
+        const confirmMsg = isHiding
+            ? `Bạn có chắc chắn muốn ẨN sản phẩm "${product.name}" khỏi cửa hàng?`
+            : `Bạn có muốn HIỆN LẠI sản phẩm "${product.name}" trên cửa hàng?`;
+        
+        if (!confirm(confirmMsg)) return;
+
         try {
-            const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
+            const updatedProduct = {
+                ...product,
+                inStock: !isHiding,
+                status: isHiding ? 'draft' : 'published'
+            };
+
+            const res = await fetch('/api/products', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedProduct),
+            });
             const data = await res.json();
             if (data.success) {
-                setProducts(products.filter(p => p.id !== id));
-                showToast('success', 'Đã xóa sản phẩm');
+                setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
+                showToast('success', isHiding ? 'Đã ẨN sản phẩm khỏi cửa hàng' : 'Đã HIỆN sản phẩm lên cửa hàng');
             } else {
-                showToast('error', 'Không thể xóa sản phẩm');
+                showToast('error', 'Không thể cập nhật trạng thái sản phẩm');
             }
         } catch {
-            showToast('error', 'Lỗi khi xóa sản phẩm');
+            showToast('error', 'Lỗi khi cập nhật sản phẩm');
         }
     };
 
@@ -644,20 +661,21 @@ export default function AdminProducts() {
                                                     <Edit2 size={15} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(product.id)}
-                                                    aria-label="Xóa sản phẩm"
+                                                    onClick={() => handleToggleHide(product)}
+                                                    aria-label={product.inStock ? 'Ẩn sản phẩm' : 'Hiện sản phẩm'}
+                                                    title={product.inStock ? 'Ẩn sản phẩm khỏi cửa hàng' : 'Hiện sản phẩm lên cửa hàng'}
                                                     className="p-2 rounded-lg transition-all min-h-[36px] min-w-[36px] flex items-center justify-center"
-                                                    style={{ color: 'var(--adm-text-muted)' }}
+                                                    style={{ color: product.inStock ? 'var(--adm-text-muted)' : 'var(--adm-warning, #f59e0b)' }}
                                                     onMouseEnter={e => {
-                                                        (e.currentTarget as HTMLElement).style.color = 'var(--adm-danger)';
-                                                        (e.currentTarget as HTMLElement).style.background = 'var(--adm-danger-light)';
+                                                        (e.currentTarget as HTMLElement).style.color = product.inStock ? 'var(--adm-warning, #f59e0b)' : 'var(--adm-success)';
+                                                        (e.currentTarget as HTMLElement).style.background = 'rgba(245,158,11,0.1)';
                                                     }}
                                                     onMouseLeave={e => {
-                                                        (e.currentTarget as HTMLElement).style.color = 'var(--adm-text-muted)';
+                                                        (e.currentTarget as HTMLElement).style.color = product.inStock ? 'var(--adm-text-muted)' : 'var(--adm-warning, #f59e0b)';
                                                         (e.currentTarget as HTMLElement).style.background = '';
                                                     }}
                                                 >
-                                                    <Trash2 size={15} />
+                                                    {product.inStock ? <EyeOff size={15} /> : <Eye size={15} />}
                                                 </button>
                                             </div>
                                         </td>
@@ -785,12 +803,12 @@ export default function AdminProducts() {
                                 </button>
                                 <div className="w-px" style={{ background: 'var(--adm-border)' }} />
                                 <button
-                                    onClick={() => handleDelete(product.id)}
+                                    onClick={() => handleToggleHide(product)}
                                     className="flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold transition-colors min-h-[44px]"
-                                    style={{ color: 'var(--adm-danger)' }}
+                                    style={{ color: product.inStock ? 'var(--adm-warning, #f59e0b)' : 'var(--adm-success)' }}
                                 >
-                                    <Trash2 size={14} />
-                                    Xóa
+                                    {product.inStock ? <EyeOff size={14} /> : <Eye size={14} />}
+                                    {product.inStock ? 'Ẩn' : 'Hiện'}
                                 </button>
                             </div>
                         </motion.div>
