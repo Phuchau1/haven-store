@@ -4,6 +4,7 @@ import {
     Search,
     Plus,
     Edit2,
+    Trash2,
     Eye,
     EyeOff,
     X,
@@ -301,7 +302,7 @@ export default function AdminProducts() {
             });
             const data = await res.json();
             if (data.success) {
-                setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
+                setProducts(products.map(p => p.id === product.id ? updatedProduct as Product : p));
                 showToast('success', isHiding ? 'Đã ẨN sản phẩm khỏi cửa hàng' : 'Đã HIỆN sản phẩm lên cửa hàng');
             } else {
                 showToast('error', 'Không thể cập nhật trạng thái sản phẩm');

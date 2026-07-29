@@ -342,7 +342,7 @@ export default function AdminDashboard() {
             )}
 
             {/* ─ Analytics Charts ─ */}
-            <AnalyticsCharts />
+            <AnalyticsCharts stats={stats} />
 
             {/* ─ Top Products vs Recent Orders ─ */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
