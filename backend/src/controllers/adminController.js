@@ -30,109 +30,138 @@ function log(msg) {
  */
 const getStats = async (req, res, next) => {
     try {
-        // Lấy toàn bộ sản phẩm và đơn hàng (sắp xếp mới nhất)
+        const { timeframe = 'month' } = req.query;
+
+        // Lấy toàn bộ sản phẩm và đơn hàng
         const products = await ProductModel.find();
         const orders = await OrderModel.find().sort({ createdAt: -1 });
+        const users = await UserModel ? await UserModel.find() : [];
 
-        // Tính tổng doanh thu: Chỉ cộng tiền các đơn hàng đã giao thành công ('delivered')
-        const revenue = orders
-            .filter(o => o.status === 'delivered')
+        // Thống kê trạng thái đơn hàng chi tiết
+        const orderStatusCounts = {
+            pending: orders.filter(o => o.status === 'pending').length,
+            confirmed: orders.filter(o => o.status === 'confirmed').length,
+            packing: orders.filter(o => o.status === 'packing' || o.status === 'processing').length,
+            shipping: orders.filter(o => o.status === 'shipped' || o.status === 'shipping').length,
+            delivered: orders.filter(o => o.status === 'delivered' || o.status === 'completed').length,
+            returned: orders.filter(o => o.status === 'returned' || o.status === 'return_requested').length,
+            cancelled: orders.filter(o => o.status === 'cancelled').length,
+        };
+
+        // Tính doanh thu theo thời gian
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+        const revenueToday = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfToday).reduce((s, o) => s + (o.totalAmount || 0), 0);
+        const revenueWeek = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfWeek).reduce((s, o) => s + (o.totalAmount || 0), 0);
+        const revenueMonth = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfMonth).reduce((s, o) => s + (o.totalAmount || 0), 0);
+        const revenueYear = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfYear).reduce((s, o) => s + (o.totalAmount || 0), 0);
+
+        const totalRevenue = orders
+            .filter(o => o.status === 'delivered' || o.status === 'completed')
             .reduce((s, o) => s + (o.totalAmount || 0), 0);
 
-        // Đếm số lượng sản phẩm đã bán (dựa trên đơn hàng KHÔNG bị hủy)
+        // Ước tính chi phí nhập hàng & lợi nhuận gộp (Giả định giá vốn chiếm ~60% giá bán)
+        const estimatedCost = totalRevenue * 0.6;
+        const grossProfit = totalRevenue - estimatedCost;
+
+        // Đếm sản phẩm bán chạy & ít bán
         const productSalesCount = {};
         orders.forEach(order => {
             if (order.status !== 'cancelled') {
-                order.items.forEach(item => {
-                    const pid = item.product.id;
-                    productSalesCount[pid] = (productSalesCount[pid] || 0) + item.quantity;
+                (order.items || []).forEach(item => {
+                    const pid = item.product?.id || item.productId;
+                    if (pid) {
+                        productSalesCount[pid] = (productSalesCount[pid] || 0) + item.quantity;
+                    }
                 });
             }
         });
 
-        // Tìm 5 sản phẩm bán chạy nhất
         const topProducts = products
-            .map(p => {
-                const pObj = p.toObject();
-                return {
-                    ...pObj,
-                    sales: productSalesCount[p.id] || 0
-                };
-            })
-            .sort((a, b) => b.sales - a.sales) // Xếp giảm dần theo doanh số
-            .slice(0, 5);                      // Lấy 5 sản phẩm đầu
+            .map(p => ({ ...p.toObject(), sales: productSalesCount[p.id] || 0 }))
+            .sort((a, b) => b.sales - a.sales)
+            .slice(0, 5);
 
-        // Thống kê tình trạng kho hàng
+        const lowProducts = products
+            .map(p => ({ ...p.toObject(), sales: productSalesCount[p.id] || 0 }))
+            .sort((a, b) => a.sales - b.sales)
+            .slice(0, 5);
+
+        // Kho hàng
         const stockStatus = {
-            inStock: products.filter(p => p.inStock).length,
-            outOfStock: products.filter(p => !p.inStock).length,
+            inStock: products.filter(p => p.inStock && (p.stock === undefined || p.stock > 5)).length,
+            lowStock: products.filter(p => p.inStock && p.stock !== undefined && p.stock > 0 && p.stock <= 5).length,
+            outOfStock: products.filter(p => !p.inStock || p.stock === 0).length,
         };
 
-        /* --- Xây dựng dữ liệu biểu đồ Sparkline (10 ngày gần nhất) --- */
+        // Sparklines & Trends (10 ngày)
         const sparklines = { revenue: [], orders: [], products: [], customers: [] };
-        const trends = { revenue: '+0%', orders: '+0%', products: '+0%', customers: '+0%' };
-        
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        
+        const todayReset = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
         for (let i = 9; i >= 0; i--) {
-            // Xác định thời gian bắt đầu và kết thúc của mỗi ngày
-            const dateStart = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+            const dateStart = new Date(todayReset.getTime() - i * 24 * 60 * 60 * 1000);
             const dateEnd = new Date(dateStart.getTime() + 24 * 60 * 60 * 1000);
-            
-            // Lọc đơn hàng trong ngày
+
             const dailyOrders = orders.filter(o => {
                 const d = new Date(o.createdAt);
                 return d >= dateStart && d < dateEnd;
             });
-            
-            // Doanh thu trong ngày (chỉ tính đơn giao thành công)
+
             const dailyRevenue = dailyOrders
-                .filter(o => o.status === 'delivered')
+                .filter(o => o.status === 'delivered' || o.status === 'completed')
                 .reduce((s, o) => s + (o.totalAmount || 0), 0);
-                
-            // Sản phẩm mới thêm trong ngày
+
             const dailyProducts = products.filter(p => {
                 const d = new Date(p.createdAt || p.updatedAt);
                 return d >= dateStart && d < dateEnd;
             }).length;
-            
-            // Số khách hàng mua hàng trong ngày (dựa trên số lượng email khác nhau)
+
             const dailyCustomers = new Set(dailyOrders.map(o => o.email)).size;
-            
+
             sparklines.revenue.push(dailyRevenue);
             sparklines.orders.push(dailyOrders.length);
             sparklines.products.push(dailyProducts);
             sparklines.customers.push(dailyCustomers);
         }
-        
-        /* --- Tính chỉ số xu hướng (Trend: So sánh 5 ngày gần nhất với 5 ngày trước đó) --- */
+
         const calcTrend = (arr) => {
             if (arr.length !== 10) return '+0%';
-            const recent = arr.slice(5, 10).reduce((a, b) => a + b, 0);   // Tổng 5 ngày cuối
-            const previous = arr.slice(0, 5).reduce((a, b) => a + b, 0); // Tổng 5 ngày đầu
-            
+            const recent = arr.slice(5, 10).reduce((a, b) => a + b, 0);
+            const previous = arr.slice(0, 5).reduce((a, b) => a + b, 0);
             if (previous === 0) return recent > 0 ? '+100%' : '0%';
-            
             const diff = ((recent - previous) / previous) * 100;
             return diff > 0 ? `+${diff.toFixed(1)}%` : `${diff.toFixed(1)}%`;
         };
-        
-        trends.revenue = calcTrend(sparklines.revenue);
-        trends.orders = calcTrend(sparklines.orders);
-        trends.products = calcTrend(sparklines.products);
-        trends.customers = calcTrend(sparklines.customers);
+
+        const trends = {
+            revenue: calcTrend(sparklines.revenue),
+            orders: calcTrend(sparklines.orders),
+            products: calcTrend(sparklines.products),
+            customers: calcTrend(sparklines.customers)
+        };
 
         res.json({
             success: true,
             stats: {
-                totalRevenue: revenue,
+                totalRevenue,
+                revenueToday,
+                revenueWeek,
+                revenueMonth,
+                revenueYear,
+                estimatedCost,
+                grossProfit,
                 orderCount: orders.length,
+                orderStatusCounts,
                 productCount: products.length,
                 customerCount: new Set(orders.map(o => o.email)).size,
-                recentOrders: orders.slice(0, 5),
-                topProducts: topProducts,
-                stockStatus: stockStatus,
+                recentOrders: orders.slice(0, 6),
+                topProducts,
+                lowProducts,
+                stockStatus,
                 sparklines,
                 trends
             }
