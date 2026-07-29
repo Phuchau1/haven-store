@@ -34,6 +34,7 @@ interface DashboardStats {
     productCount: number;
     customerCount: number;
     recentOrders: Array<{ id: string; customerName: string; createdAt: string; totalAmount: number; status: string }>;
+    pendingOrders?: Array<{ id: string; customerName: string; createdAt: string; totalAmount: number; status: string }>;
     topProducts: Array<{ id: string; name: string; images: string[]; price: number; sales: number }>;
     lowProducts: Array<{ id: string; name: string; images: string[]; price: number; sales: number }>;
     stockStatus: {
@@ -395,13 +396,14 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-3">
                         {(() => {
-                            const pendingList = stats?.recentOrders?.filter(o => 
-                                ['pending', 'confirmed', 'processing', 'packing', 'waiting_pickup'].includes(o.status)
-                            ) || [];
-                            const displayList = pendingList.length > 0 ? pendingList : (stats?.recentOrders?.slice(0, 5) || []);
+                            const rawList = stats?.pendingOrders || stats?.recentOrders || [];
+                            // Chỉ lấy các đơn chưa xử lý & đang xử lý, TUYỆT ĐỐI KHÔNG LẤY 'delivered', 'completed', 'cancelled', 'returned', 'refunded'
+                            const displayList = rawList.filter(o => 
+                                !['delivered', 'completed', 'cancelled', 'returned', 'refunded'].includes(o.status)
+                            );
 
                             if (displayList.length === 0) {
-                                return <p className="text-xs text-gray-500 py-4 text-center">Hiện tại không có đơn hàng nào chờ xử lý 🎉</p>;
+                                return <p className="text-xs text-gray-500 py-6 text-center">Hiện tại không có đơn hàng nào chờ xử lý 🎉</p>;
                             }
 
                             return displayList.map((o) => {

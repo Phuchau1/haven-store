@@ -159,6 +159,7 @@ const getStats = async (req, res, next) => {
                 productCount: products.length,
                 customerCount: new Set(orders.map(o => o.email)).size,
                 recentOrders: orders.slice(0, 6),
+                pendingOrders: orders.filter(o => !['delivered', 'completed', 'cancelled', 'returned', 'refunded'].includes(o.status)).slice(0, 10),
                 topProducts,
                 lowProducts,
                 stockStatus,
