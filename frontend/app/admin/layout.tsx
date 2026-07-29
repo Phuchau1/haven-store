@@ -2,6 +2,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
@@ -171,10 +172,19 @@ function SidebarContent({
         <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--adm-sidebar-bg)' }}>
             {/* Logo */}
             <div
-                className="flex items-center gap-3 px-4 h-16 flex-shrink-0 border-b border-gray-100"
+                className="flex items-center gap-3 px-4 h-16 flex-shrink-0 border-b"
+                style={{ borderColor: 'var(--adm-border)' }}
             >
-                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/20">
-                    <Store size={16} className="text-white" />
+                {/* Icon/mini logo when collapsed */}
+                <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 bg-black flex items-center justify-center">
+                    <Image
+                        src="/haven-logo.png"
+                        alt="HAVEN"
+                        width={32}
+                        height={32}
+                        className="object-cover w-full h-full"
+                        priority
+                    />
                 </div>
                 <AnimatePresence>
                     {!collapsed && (
