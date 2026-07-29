@@ -6,6 +6,7 @@ import { MessageSquare, X, Send, User, Bot, Loader2, Sparkles, ChevronRight } fr
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
+import { getProductSlug } from '@/lib/format';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -555,7 +556,7 @@ QUY TẮC:
                       {msg.suggestedProducts.map((p) => (
                         <Link
                           key={p.id}
-                          href={`/product/${p.id}`}
+                          href={`/product/${getProductSlug(p)}`}
                           className="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 hover:border-indigo-400 hover:shadow-md transition-all group"
                           onClick={() => setIsOpen(false)}
                         >

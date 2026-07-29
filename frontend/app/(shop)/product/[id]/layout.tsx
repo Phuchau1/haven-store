@@ -1,22 +1,31 @@
 import { Metadata } from 'next';
+import { slugify } from '@/lib/format';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
     try {
         const resolvedParams = await params;
+        const target = decodeURIComponent(resolvedParams.id || '').toLowerCase();
+        
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/products`);
-        if (!res.ok) return { title: 'Sản phẩm | PH Store' };
+        if (!res.ok) return { title: 'Sản phẩm | HAVEN STORE' };
         const data = await res.json();
-        const product = data.products?.find((p: any) => p.id === resolvedParams.id);
+        
+        const product = data.products?.find((p: any) => {
+            const pId = (p.id || '').toLowerCase();
+            const pSlug = (p.slug || slugify(p.name || '')).toLowerCase();
+            const pNameSlug = slugify(p.name || '').toLowerCase();
+            return pId === target || pSlug === target || pNameSlug === target || target.endsWith(pId) || pId.endsWith(target);
+        });
 
         if (!product) {
             return {
-                title: 'Không tìm thấy sản phẩm | PH Store',
+                title: 'Không tìm thấy sản phẩm | HAVEN STORE',
             };
         }
 
         return {
-            title: `${product.name} | PH Store`,
-            description: product.description || `Mua sắm ${product.name} chính hãng tại PH Store. Giá tốt, giao hàng tận nơi.`,
+            title: `${product.name} | HAVEN STORE`,
+            description: product.description || `Mua sắm ${product.name} chính hãng tại HAVEN STORE. Giá tốt, giao hàng tận nơi.`,
             openGraph: {
                 title: product.name,
                 description: product.description,
@@ -26,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         };
     } catch (e) {
         return {
-            title: 'Sản phẩm | PH Store'
+            title: 'Sản phẩm | HAVEN STORE'
         };
     }
 }

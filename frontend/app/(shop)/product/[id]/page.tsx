@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2 } from 'lucide-react';
 import ImageZoom from '@/app/component/ImageZoom';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, slugify, getProductSlug } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
 import { Product, Color } from '@/types';
 import ProductCard from '@/app/component/ProductCard';
@@ -82,9 +82,20 @@ export default function ProductDetailPage() {
                 }
 
                 if (data.success) {
-                    let foundProduct = data.products.find((p: Product) => p.id === params.id);
+                    const target = decodeURIComponent(String(params.id || '')).toLowerCase();
+                    let foundProduct = data.products.find((p: any) => {
+                        const pId = (p.id || '').toLowerCase();
+                        const pSlug = (p.slug || slugify(p.name || '')).toLowerCase();
+                        const pNameSlug = slugify(p.name || '').toLowerCase();
+                        return pId === target || pSlug === target || pNameSlug === target || target.endsWith(pId) || pId.endsWith(target);
+                    });
+
                     if (foundProduct) {
-                        
+                        const canonicalSlug = getProductSlug(foundProduct);
+                        if (canonicalSlug && params.id !== canonicalSlug && typeof window !== 'undefined') {
+                            window.history.replaceState(null, '', `/product/${canonicalSlug}`);
+                        }
+
                         // Merge Flash Sale data if applicable
                         if (currentFlashSale) {
                             const fsProduct = currentFlashSale.products?.find((p: any) => p.productId === foundProduct.id || p.id === foundProduct.id);

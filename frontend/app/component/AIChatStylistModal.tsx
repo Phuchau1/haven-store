@@ -1,4 +1,5 @@
 'use client';
+import { getProductSlug } from '@/lib/format';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -149,7 +150,7 @@ export default function AIChatStylistModal() {
                                     {msg.products && msg.products.length > 0 && (
                                         <div className="mt-2 grid grid-cols-2 gap-2 w-full max-w-[90%]">
                                             {msg.products.slice(0, 2).map(p => (
-                                                <Link key={p.id} href={`/product/${p.id}`} className="bg-slate-900 border border-slate-800 rounded-xl p-2 flex flex-col items-center hover:border-amber-400 transition-colors group">
+                                                <Link key={p.id} href={`/product/${getProductSlug(p)}`} className="bg-slate-900 border border-slate-800 rounded-xl p-2 flex flex-col items-center hover:border-amber-400 transition-colors group">
                                                     <div className="w-full aspect-square relative rounded-lg overflow-hidden bg-slate-800 mb-1">
                                                         {p.images?.[0] && <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" />}
                                                     </div>

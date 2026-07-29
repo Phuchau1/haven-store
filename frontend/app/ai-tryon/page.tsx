@@ -10,6 +10,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { renderSmartTryOn } from '@/lib/smartTryOnEngine';
+import { getProductSlug } from '@/lib/format';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -576,7 +577,7 @@ export default function AITryOnPage() {
                                         {new Intl.NumberFormat('vi-VN').format(selectedProduct.price)}đ
                                     </p>
                                 </div>
-                                <Link href={`/product/${selectedProduct.id}`}
+                                <Link href={`/product/${getProductSlug(selectedProduct)}`}
                                     className="text-slate-400 hover:text-white text-xs transition-colors shrink-0 flex items-center gap-1">
                                     Xem <ChevronRight size={12} />
                                 </Link>

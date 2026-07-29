@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '@/types';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, getProductSlug } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
 import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 import { useAuth } from '@/app/component/AuthContext';
@@ -47,7 +47,7 @@ export default function ProductCard({ product, index = 0, showSold = false, show
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: index * 0.08 }}
         >
-            <Link href={`/product/${product.id}`} className="group block h-full flex flex-col transition-all duration-400 hover:-translate-y-[6px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] bg-white border border-[#EAEAEA] rounded-[16px] overflow-hidden">
+            <Link href={`/product/${getProductSlug(product)}`} className="group block h-full flex flex-col transition-all duration-400 hover:-translate-y-[6px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] bg-white border border-[#EAEAEA] rounded-[16px] overflow-hidden">
                 <div
                     className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-white transition-all duration-400"
                     onMouseEnter={() => setIsHovered(true)}
