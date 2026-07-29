@@ -219,8 +219,8 @@ export default function Hero() {
                         </motion.button>
                     </Link>
 
-                    {/* Secondary CTA: XEM BỘ SƯU TẬP */}
-                    <Link href={settings.bannerLink || "/products"}>
+                    {/* Secondary CTA: ƯU ĐÃI ĐẶC BIỆT */}
+                    <Link href="/products?discounted=true">
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -232,7 +232,7 @@ export default function Hero() {
                                 letterSpacing: '0.05em',
                             }}
                         >
-                            <span className="uppercase">Xem Bộ Sưu Tập</span>
+                            <span className="uppercase">Ưu Đãi Đặc Biệt</span>
                         </motion.button>
                     </Link>
                 </motion.div>
