@@ -111,7 +111,7 @@ const menus = [
     },
     {
         id: 'menu-about',
-        title: 'Thông tin',
+        title: 'Tin tức',
         link: '/about',
         order: 5,
         isActive: true,
@@ -119,7 +119,7 @@ const menus = [
     },
     {
         id: 'menu-locations',
-        title: 'Vị trí cửa hàng',
+        title: 'Hệ thống cửa hàng',
         link: '/locations',
         order: 6,
         isActive: true,

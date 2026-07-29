@@ -29,13 +29,13 @@ async function run() {
         }
     );
 
-    // 3. Add "Thông tin" page menu
+    // 3. Add "Tin tức" page menu
     await MenuModel.updateOne(
         { id: 'menu-about' },
         {
             $set: {
                 id: 'menu-about',
-                title: 'Thông tin',
+                title: 'Tin tức',
                 link: '/about',
                 order: 5,
                 isActive: true,
@@ -45,13 +45,13 @@ async function run() {
         { upsert: true }
     );
 
-    // 4. Add "Vị trí cửa hàng" page menu
+    // 4. Add "Hệ thống cửa hàng" page menu
     await MenuModel.updateOne(
         { id: 'menu-locations' },
         {
             $set: {
                 id: 'menu-locations',
-                title: 'Vị trí cửa hàng',
+                title: 'Hệ thống cửa hàng',
                 link: '/locations',
                 order: 6,
                 isActive: true,
