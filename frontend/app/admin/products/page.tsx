@@ -860,55 +860,104 @@ export default function AdminProducts() {
                         >
                             {/* Modal header */}
                             <div
-                                className="flex items-center justify-between px-8 sm:px-12 py-5 border-b flex-shrink-0"
+                                className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
                                 style={{ borderColor: 'var(--adm-border)', background: 'var(--adm-surface-2)' }}
                             >
-                                <div>
-                                    <h3 className="text-xl font-bold" style={{ color: 'var(--adm-text)' }}>
-                                        {editingProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
-                                    </h3>
-                                    {editingProduct && (
-                                        <p className="text-xs font-medium mt-1 uppercase tracking-wider" style={{ color: 'var(--adm-text-subtle)' }}>
-                                            ID: {editingProduct.id}
-                                        </p>
-                                    )}
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ background: 'var(--adm-primary-light)' }}>
+                                        <Package size={18} style={{ color: 'var(--adm-primary)' }} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold leading-tight" style={{ color: 'var(--adm-text)' }}>
+                                            {editingProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
+                                        </h3>
+                                        {editingProduct && (
+                                            <p className="text-[11px] font-medium mt-0.5" style={{ color: 'var(--adm-text-subtle)' }}>
+                                                ID: {editingProduct.id}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
                                     aria-label="Đóng modal"
-                                    className="p-2.5 rounded-xl transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+                                    className="p-2 rounded-xl transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
                                     style={{ color: 'var(--adm-text-muted)' }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--adm-surface-2)')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = '')}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.06)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; }}
                                 >
-                                    <X size={22} />
+                                    <X size={20} />
                                 </button>
                             </div>
 
-                            {/* Modal Tabs Header — flex-shrink-0 so it never scrolls */}
-                            <div className="flex overflow-x-auto border-b hide-scrollbar flex-shrink-0 px-4 sm:px-8" style={{ borderColor: 'var(--adm-border)', background: 'var(--adm-surface)' }}>
-                                {[
-                                    { id: 'overview', label: 'Tổng quan' },
-                                    { id: 'content', label: 'Nội dung' },
-                                    { id: 'media', label: 'Media' },
-                                    { id: 'specs', label: 'Thông số' },
-                                    { id: 'seo', label: 'SEO & Tag' },
-                                    { id: 'variants', label: 'Biến thể' },
-                                ].map(tab => (
-                                    <button
-                                        key={tab.id}
-                                        type="button"
-                                        onClick={() => setActiveTab(tab.id as any)}
-                                        className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${
-                                            activeTab === tab.id
-                                                ? 'border-[var(--adm-primary)] text-[var(--adm-primary)]'
-                                                : 'border-transparent text-[var(--adm-text-muted)] hover:text-[var(--adm-text)]'
-                                        }`}
-                                    >
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </div>
+                            {/* Modal body — LEFT sidebar + RIGHT content */}
+                            <div className="flex flex-1 overflow-hidden">
+
+                                {/* ── LEFT SIDEBAR: Vertical tab nav ── */}
+                                <div className="flex flex-col flex-shrink-0 border-r"
+                                    style={{ width: '220px', borderColor: 'var(--adm-border)', background: 'var(--adm-surface-2)' }}>
+
+                                    {/* Tab nav items */}
+                                    <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+                                        {([
+                                            { id: 'overview', label: 'Tổng quan', icon: '📋' },
+                                            { id: 'content', label: 'Nội dung', icon: '📝' },
+                                            { id: 'media', label: 'Media', icon: '🖼️' },
+                                            { id: 'specs', label: 'Thông số', icon: '📐' },
+                                            { id: 'seo', label: 'SEO & Tag', icon: '🔍' },
+                                            { id: 'variants', label: 'Biến thể & Kho', icon: '🎨' },
+                                        ] as {id: string; label: string; icon: string}[]).map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                type="button"
+                                                onClick={() => setActiveTab(tab.id as any)}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left"
+                                                style={{
+                                                    background: activeTab === tab.id ? 'var(--adm-primary-light)' : 'transparent',
+                                                    color: activeTab === tab.id ? 'var(--adm-primary)' : 'var(--adm-text-muted)',
+                                                    fontWeight: activeTab === tab.id ? 700 : 500,
+                                                }}
+                                            >
+                                                <span className="text-base leading-none">{tab.icon}</span>
+                                                <span>{tab.label}</span>
+                                                {activeTab === tab.id && (
+                                                    <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                                        style={{ background: 'var(--adm-primary)' }} />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </nav>
+
+                                    {/* Sidebar footer: action buttons */}
+                                    <div className="p-3 border-t space-y-2" style={{ borderColor: 'var(--adm-border)' }}>
+                                        <button
+                                            type="submit"
+                                            form="product-form"
+                                            disabled={isSubmitting}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+                                            style={{ background: 'var(--adm-primary)', color: '#fff' }}
+                                        >
+                                            {isSubmitting ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                'Lưu sản phẩm'
+                                            )}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                                            style={{ color: 'var(--adm-text-muted)', background: 'transparent' }}
+                                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.05)'; }}
+                                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; }}
+                                        >
+                                            Hủy bỏ
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* ── RIGHT CONTENT AREA ── */}
 
                             {/* Modal scrollable body */}
                             <form
@@ -1557,34 +1606,9 @@ export default function AdminProducts() {
                                         />
                                     </div>
                                 </div>
-                            </form>
+                                </form>
 
-                            {/* ── Sticky modal footer ── */}
-                            <div
-                                className="flex items-center gap-3 px-5 sm:px-6 py-4 border-t flex-shrink-0"
-                                style={{ borderColor: 'var(--adm-border)', background: 'var(--adm-surface-2)' }}
-                            >
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="adm-btn-secondary flex-1 min-h-[44px]"
-                                >
-                                    Hủy bỏ
-                                </button>
-                                <button
-                                    type="submit"
-                                    form="product-form"
-                                    disabled={isSubmitting}
-                                    className="adm-btn-primary flex-[2] min-h-[44px] flex items-center justify-center gap-2 disabled:opacity-50"
-                                >
-                                    {isSubmitting ? (
-                                        <Loader2 size={17} className="animate-spin" />
-                                    ) : (
-                                        <Save size={17} />
-                                    )}
-                                    {editingProduct ? 'Cập nhật sản phẩm' : 'Lưu sản phẩm'}
-                                </button>
-                            </div>
+                            </div>{/* end modal body 2-col */}
                         </motion.div>
                     </div>
                 )}
