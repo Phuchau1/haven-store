@@ -40,7 +40,7 @@ const getColorSwatchClass = (colorName: string) => COLOR_CLASS_MAP[colorName] ??
 export default function ProductDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { addItem } = useCart();
+    const { addItem, closeCart } = useCart();
 
     const [product, setProduct] = useState<Product | any>(null);
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -243,7 +243,8 @@ export default function ProductDetailPage() {
         }
 
         const productToCart = { ...product, price: currentPrice, originalPrice: currentOriginalPrice };
-        addItem(productToCart, selectedSize, selectedColor, quantity);
+        addItem(productToCart, selectedSize, selectedColor, quantity, false);
+        closeCart();
         router.push('/checkout'); // Chuyển đến trang thanh toán
     };
 

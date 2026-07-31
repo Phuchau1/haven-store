@@ -16,7 +16,7 @@ import { Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
     const router = useRouter();
-    const { items, totalAmount, clearCart } = useCart();
+    const { items, totalAmount, clearCart, closeCart } = useCart();
     const { user } = useAuthStore();
     const { appliedVoucher, removeVoucher } = useVoucherStore();
     const finalTotal = appliedVoucher ? appliedVoucher.finalAmount : totalAmount;
@@ -26,7 +26,8 @@ export default function CheckoutPage() {
 
     React.useEffect(() => {
         setIsMounted(true);
-    }, []);
+        closeCart();
+    }, [closeCart]);
 
     const handleOrderSuccess = (orderId: string, email: string) => {
         setOrderInfo({ orderId, email });

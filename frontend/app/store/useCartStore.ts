@@ -8,7 +8,7 @@ interface CartStore {
     openCart: () => void;
     closeCart: () => void;
     toggleCart: () => void;
-    addItem: (product: Product, size: string, color: Color, quantity?: number) => void;
+    addItem: (product: Product, size: string, color: Color, quantity?: number, openDrawer?: boolean) => void;
     removeItem: (productId: string, size: string, colorName: string) => void;
     updateQuantity: (productId: string, size: string, colorName: string, quantity: number) => void;
     clearCart: () => void;         // Xóa local + xóa DB (dùng sau thanh toán)
@@ -27,7 +27,7 @@ export const useCartStore = create<CartStore>()(
         closeCart: () => set({ isOpen: false }),
         toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
 
-        addItem: (product, size, color, quantity = 1) => {
+        addItem: (product, size, color, quantity = 1, openDrawer = true) => {
             // Tính toán newItems TRƯỚC rồi set — tránh race condition
             const state = get();
             const existingIndex = state.items.findIndex(
@@ -48,7 +48,7 @@ export const useCartStore = create<CartStore>()(
                 newItems = [...state.items, { product, quantity, selectedSize: size, selectedColor: color }];
             }
 
-            set({ items: newItems, isOpen: true });
+            set({ items: newItems, isOpen: openDrawer });
 
             // Lưu DB với newItems đã tính sẵn (không dùng get().items — tránh race condition)
             const user = useAuthStore.getState().user;
