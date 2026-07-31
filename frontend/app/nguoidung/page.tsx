@@ -53,6 +53,7 @@ const ORDER_STATUS_TABS = [
     { id: 'processing', label: 'Đang xử lý' },
     { id: 'shipping',   label: 'Đang vận chuyển' },
     { id: 'delivered',  label: 'Hoàn thành' },
+    { id: 'return',     label: 'Hoàn hàng' },
     { id: 'cancelled',  label: 'Đã hủy' },
 ];
 
@@ -63,7 +64,8 @@ const STATUS_GROUP_MAP: Record<string, string[]> = {
     processing: ['confirmed', 'processing', 'waiting_pickup', 'picked_up'],
     shipping:   ['in_transit', 'out_for_delivery', 'shipped'],
     delivered:  ['delivered', 'completed', 'awaiting_review', 'reviewed'],
-    cancelled:  ['cancelled', 'return_requested', 'returning', 'return_received', 'refunded', 'delivery_failed', 'returned_to_seller'],
+    return:     ['return_requested', 'returning', 'return_received', 'refunded'],
+    cancelled:  ['cancelled', 'delivery_failed', 'returned_to_seller'],
 };
 
 // Component Chi tiết đơn hàng mới
@@ -551,7 +553,7 @@ const CustomerReturnModal = ({
 
         setSubmitting(true);
         try {
-            const res = await fetch('/api/wms/customer-return-request', {
+            const res = await fetch('/api/orders/return-request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1048,10 +1050,6 @@ export default function NguoiDungPage() {
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center gap-3">
                                                     <h3 className="text-xl font-bold text-slate-900">Lịch sử đơn hàng</h3>
-                                                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all duration-500 ${liveSync ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-100 border-slate-200 text-slate-400'}`}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${liveSync ? 'bg-emerald-500 animate-ping' : 'bg-slate-300'}`} />
-                                                        {liveSync ? 'Đang cập nhật...' : '● Tự động đồng bộ'}
-                                                    </div>
                                                 </div>
                                                 <div className="flex gap-1.5 flex-wrap">
                                                     {ORDER_STATUS_TABS.map(tab => (

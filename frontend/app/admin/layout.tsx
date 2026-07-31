@@ -10,7 +10,7 @@ import {
     ChevronRight, Search, MoreHorizontal, Zap, Home, Heart,
     Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
     Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText,
-    ClipboardList, BarChart3, Navigation, ShieldCheck, ArrowLeftRight
+    ClipboardList, BarChart3, Navigation, ShieldCheck, ArrowLeftRight, RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
@@ -21,6 +21,7 @@ const MENU_ITEMS = [
     { icon: LayoutDashboard, label: 'Dashboard',     href: '/admin',                   group: 'main' },
     { icon: Package,         label: 'Sản phẩm',      href: '/admin/products',          group: 'main' },
     { icon: ShoppingCart,    label: 'Đơn hàng',      href: '/admin/orders',            group: 'main' },
+    { icon: RotateCcw,       label: 'Hoàn hàng',     href: '/admin/returns',           group: 'main' },
     { icon: Users,           label: 'Người dùng',    href: '/admin/users',             group: 'main' },
     
     // Kho hàng (WMS)

@@ -618,10 +618,155 @@ const requestRefund = async (req, res, next) => {
     }
 };
 
+
+/**
+ * @desc Khách hàng gửi yêu cầu hoàn hàng
+ * @route POST /api/orders/return-request
+ * @body { orderId, reason, images? }
+ */
+const submitReturnRequest = async (req, res, next) => {
+    try {
+        const { orderId, reason, images } = req.body;
+        if (!orderId || !reason || reason.trim().length < 10) {
+            return res.status(400).json({ success: false, message: 'Cần cung cấp mã đơn và lý do ít nhất 10 ký tự' });
+        }
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+
+        const allowedStatuses = ['delivered', 'completed', 'awaiting_review', 'reviewed'];
+        if (!allowedStatuses.includes(order.status)) {
+            return res.status(400).json({ success: false, message: 'Chỉ có thể yêu cầu hoàn hàng với đơn đã giao' });
+        }
+        if (order.returnRequest && order.returnRequest.status !== 'none') {
+            return res.status(400).json({ success: false, message: 'Đơn hàng này đã có yêu cầu hoàn' });
+        }
+
+        order.returnRequest = {
+            status: 'pending',
+            reason: reason.trim(),
+            images: images || [],
+            requestedAt: new Date(),
+            reviewedAt: null,
+            reviewedBy: '',
+            rejectReason: ''
+        };
+        order.status = 'return_requested';
+        order.shippingTimeline = order.shippingTimeline || [];
+        order.shippingTimeline.push({
+            status: 'return_requested',
+            title: 'Yêu cầu hoàn hàng đã gửi',
+            note: reason.trim(),
+            timestamp: new Date(),
+            isCustomerVisible: true
+        });
+        await order.save();
+
+        const io = req.app.get('io');
+        if (io) io.emit('order_status_changed', { orderId, status: 'return_requested' });
+
+        res.json({ success: true, message: 'Gửi yêu cầu hoàn hàng thành công', order });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc Admin xem danh sách các đơn hoàn hàng
+ * @route GET /api/orders/returns
+ */
+const getReturnRequests = async (req, res, next) => {
+    try {
+        const { status } = req.query; // 'pending' | 'approved' | 'rejected' | all
+        const query = { 'returnRequest.status': { $ne: 'none' } };
+        if (status && status !== 'all') query['returnRequest.status'] = status;
+
+        const orders = await OrderModel.find(query)
+            .sort({ 'returnRequest.requestedAt': -1 })
+            .lean();
+
+        const stats = {
+            total: await OrderModel.countDocuments({ 'returnRequest.status': { $ne: 'none' } }),
+            pending:  await OrderModel.countDocuments({ 'returnRequest.status': 'pending' }),
+            approved: await OrderModel.countDocuments({ 'returnRequest.status': 'approved' }),
+            rejected: await OrderModel.countDocuments({ 'returnRequest.status': 'rejected' }),
+        };
+
+        res.json({ success: true, orders, stats });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc Admin duyệt hoặc từ chối yêu cầu hoàn hàng
+ * @route PUT /api/orders/return-request/:orderId
+ * @body { action: 'approve' | 'reject', rejectReason?, adminName? }
+ */
+const reviewReturnRequest = async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const { action, rejectReason, adminName } = req.body;
+
+        if (!['approve', 'reject'].includes(action)) {
+            return res.status(400).json({ success: false, message: 'action phải là approve hoặc reject' });
+        }
+        if (action === 'reject' && (!rejectReason || rejectReason.trim().length < 5)) {
+            return res.status(400).json({ success: false, message: 'Cần nhập lý do từ chối' });
+        }
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+        if (!order.returnRequest || order.returnRequest.status !== 'pending') {
+            return res.status(400).json({ success: false, message: 'Đơn hàng này không ở trạng thái chờ duyệt' });
+        }
+
+        const now = new Date();
+        if (action === 'approve') {
+            order.returnRequest.status = 'approved';
+            order.returnRequest.reviewedAt = now;
+            order.returnRequest.reviewedBy = adminName || 'Admin';
+            order.status = 'returning';
+            order.shippingTimeline.push({
+                status: 'returning',
+                title: 'Yêu cầu hoàn hàng được chấp thuận',
+                note: 'Shop đã duyệt — vui lòng gửi hàng về',
+                timestamp: now,
+                isCustomerVisible: true
+            });
+        } else {
+            order.returnRequest.status = 'rejected';
+            order.returnRequest.reviewedAt = now;
+            order.returnRequest.reviewedBy = adminName || 'Admin';
+            order.returnRequest.rejectReason = rejectReason.trim();
+            order.status = 'delivered'; // khôi phục trạng thái delivered
+            order.shippingTimeline.push({
+                status: 'delivered',
+                title: 'Yêu cầu hoàn hàng bị từ chối',
+                note: rejectReason.trim(),
+                timestamp: now,
+                isCustomerVisible: true
+            });
+        }
+
+        await order.save();
+
+        const io = req.app.get('io');
+        if (io) io.emit('order_status_changed', { orderId, status: order.status });
+
+        res.json({ success: true, message: action === 'approve' ? 'Chấp thuận hoàn hàng' : 'Từ chối hoàn hàng', order });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getOrders,
     createOrder,
     updateOrderStatus,
     requestRefund,
-    exportStockOnApproval
+    exportStockOnApproval,
+    submitReturnRequest,
+    getReturnRequests,
+    reviewReturnRequest
 };
