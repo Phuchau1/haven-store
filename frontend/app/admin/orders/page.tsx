@@ -485,8 +485,10 @@ export default function AdminOrders() {
                                                                             const currentIdx = STATUS_OPTIONS.findIndex(s => s.id === order.status);
                                                                             
                                                                             // Logic: Chỉ được tiến, không được lùi
+                                                                            const isBackward = optIdx < currentIdx;
+                                                                            const isTerminal = order.status === 'cancelled' || order.status === 'refunded';
                                                                             const isSame = order.status === opt.id;
-                                                                            const isDisabled = isSubmitting;
+                                                                            const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame);
 
                                                                             return (
                                                                             <button
