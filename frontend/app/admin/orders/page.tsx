@@ -862,7 +862,7 @@ export default function AdminOrders() {
                                                                 className="w-14 h-14 rounded-xl overflow-hidden relative flex-shrink-0 border"
                                                                 style={{ borderColor: 'var(--adm-border)', backgroundColor: 'var(--adm-surface-2)' }}
                                                             >
-                                                                {isValidImageSrc(item.product.images[0]) && (
+                                                                {isValidImageSrc(item.product.images?.[0]) && (
                                                                     <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover" />
                                                                 )}
                                                             </div>
@@ -875,15 +875,15 @@ export default function AdminOrders() {
                                                                         className="px-2 py-0.5 rounded-md text-[10px] font-bold border"
                                                                         style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}
                                                                     >
-                                                                        {item.selectedSize}
+                                                                        {item.selectedSize || '—'}
                                                                     </span>
                                                                     <div
                                                                         className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border"
                                                                         style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
                                                                     >
-                                                                        <div className={`w-2 h-2 rounded-full border border-slate-200 ${getColorSwatchClass(item.selectedColor.name)}`} />
+                                                                        <div className={`w-2 h-2 rounded-full border border-slate-200 ${getColorSwatchClass(item.selectedColor?.name || '')}`} />
                                                                         <span className="text-[10px] font-bold" style={{ color: 'var(--adm-text-muted)' }}>
-                                                                            {item.selectedColor.name}
+                                                                            {item.selectedColor?.name || '—'}
                                                                         </span>
                                                                     </div>
                                                                     <span className="text-xs font-bold ml-auto" style={{ color: 'var(--adm-primary)' }}>
@@ -893,7 +893,7 @@ export default function AdminOrders() {
                                                             </div>
                                                             <div className="text-right pl-2 flex-shrink-0">
                                                                 <p className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
-                                                                    {formatPrice(item.product.price * item.quantity)}
+                                                                    {formatPrice((item.product?.price || 0) * item.quantity)}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -918,7 +918,7 @@ export default function AdminOrders() {
                                                             className="w-10 h-10 rounded-full flex items-center justify-center font-bold border flex-shrink-0"
                                                             style={{ backgroundColor: 'var(--adm-surface-2)', color: 'var(--adm-text-muted)', borderColor: 'var(--adm-border)' }}
                                                         >
-                                                            {selectedOrder.customerName.charAt(0).toUpperCase()}
+                                                            {(selectedOrder.customerName || '?').charAt(0).toUpperCase()}
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>
