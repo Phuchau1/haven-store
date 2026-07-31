@@ -198,127 +198,73 @@ function ProductsContent() {
 
             {/* Main Content */}
             <div className="container-torano py-8 lg:py-12">
-                <div className="flex gap-8 lg:gap-14">
-
-                    {/* Sidebar Filter — Desktop */}
-                    <aside className="hidden lg:block w-64 lg:w-72 flex-shrink-0">
-                        <ProductFilter
-                            filters={filters}
-                            setFilters={setFilters}
-                            isOpen={false}
-                            onClose={() => {}}
-                        />
-                    </aside>
-
-                    {/* Products Grid */}
-                    <div className="flex-1 min-w-0">
-                        {/* Mobile Filter Button */}
-                        <div className="lg:hidden mb-6">
-                            <button
-                                onClick={() => setIsFilterOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
-                            >
-                                <SlidersHorizontal size={16} />
-                                Bộ lọc
-                                {(filters.sizes.length + filters.colors.length + (filters.category ? 1 : 0)) > 0 && (
-                                    <span className="px-2 py-0.5 bg-black text-white text-xs rounded-full">
-                                        {filters.sizes.length + filters.colors.length + (filters.category ? 1 : 0)}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
-
-                        {/* Loading Skeleton */}
-                        {loading ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-                                {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} className="bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse">
-                                        <div className="aspect-[3/4] bg-gray-100" />
-                                        <div className="p-4 space-y-2">
-                                            <div className="h-3 bg-gray-100 rounded w-3/4" />
-                                            <div className="h-3 bg-gray-100 rounded w-1/2" />
-                                        </div>
+                {/* Products Grid */}
+                <div className="w-full">
+                    {/* Loading Skeleton */}
+                    {loading ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                            {Array.from({ length: 10 }).map((_, i) => (
+                                <div key={i} className="bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse">
+                                    <div className="aspect-[3/4] bg-gray-100" />
+                                    <div className="p-4 space-y-2">
+                                        <div className="h-3 bg-gray-100 rounded w-3/4" />
+                                        <div className="h-3 bg-gray-100 rounded w-1/2" />
                                     </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : filteredProducts.length === 0 ? (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center py-20"
+                        >
+                            <h3 className="text-lg font-medium text-gray-800">Không tìm thấy sản phẩm nào</h3>
+                        </motion.div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                                {currentProducts.map((product, index) => (
+                                    <ProductCard key={product.id} product={product} index={index} />
                                 ))}
                             </div>
-                        ) : filteredProducts.length === 0 ? (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-center py-20"
-                            >
-                                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <SlidersHorizontal size={28} className="text-gray-300" />
-                                </div>
-                                <h3 className="text-lg font-medium text-gray-800">Không tìm thấy sản phẩm</h3>
-                                <p className="text-sm text-gray-400 mt-2">
-                                    Thử điều chỉnh bộ lọc hoặc tìm kiếm từ khóa khác
-                                </p>
-                                <button
-                                    onClick={() => setFilters(prev => ({
-                                        ...prev,
-                                        sizes: [],
-                                        colors: [],
-                                        priceRange: [0, 3000000],
-                                    }))}
-                                    className="mt-6 px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-900 transition-colors"
-                                >
-                                    Xóa bộ lọc
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-                                    {currentProducts.map((product, index) => (
-                                        <ProductCard key={product.id} product={product} index={index} />
-                                    ))}
-                                </div>
 
-                                {/* Pagination */}
-                                {totalPages > 1 && (
-                                    <div className="mt-12 flex justify-center items-center gap-2">
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <div className="mt-12 flex justify-center items-center gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                    </button>
+                                    {Array.from({ length: totalPages }).map((_, i) => (
                                         <button
-                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                            disabled={currentPage === 1}
-                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                                            key={i}
+                                            onClick={() => setCurrentPage(i + 1)}
+                                            className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                                                currentPage === i + 1
+                                                    ? 'bg-black text-white'
+                                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                            }`}
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                            {i + 1}
                                         </button>
-                                        {Array.from({ length: totalPages }).map((_, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => setCurrentPage(i + 1)}
-                                                className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                                                    currentPage === i + 1
-                                                        ? 'bg-black text-white'
-                                                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                {i + 1}
-                                            </button>
-                                        ))}
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 disabled:opacity-40 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
+                                    ))}
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
-
-            {/* Mobile Filter Drawer */}
-            <ProductFilter
-                filters={filters}
-                setFilters={setFilters}
-                isOpen={isFilterOpen}
-                onClose={() => setIsFilterOpen(false)}
-            />
         </div>
     );
 }

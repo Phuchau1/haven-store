@@ -114,77 +114,22 @@ export default function ProductsClient() {
             </div>
 
             <div className="container-torano pt-2 pb-8 lg:pt-4 lg:pb-12">
-                <div className="flex gap-8">
-                    <aside className="hidden lg:block w-64 flex-shrink-0">
-                        <ProductFilter
-                            filters={filters}
-                            setFilters={setFilters}
-                            isOpen={isFilterOpen}
-                            onClose={() => setIsFilterOpen(false)}
-                        />
-                    </aside>
-
-                    <div className="flex-1">
-                        <div className="lg:hidden mb-6">
-                            <button
-                                onClick={() => setIsFilterOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
-                            >
-                                <SlidersHorizontal size={16} />
-                                Bộ lọc
-                                {(filters.sizes.length + filters.colors.length + (filters.category ? 1 : 0)) > 0 && (
-                                    <span className="px-2 py-0.5 bg-black text-white text-xs rounded-full">
-                                        {filters.sizes.length + filters.colors.length + (filters.category ? 1 : 0)}
-                                    </span>
-                                )}
-                            </button>
+                <div className="w-full">
+                    {filteredProducts.length === 0 ? (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center py-20"
+                        >
+                            <h3 className="text-lg font-medium text-gray-800">Không tìm thấy sản phẩm nào</h3>
+                        </motion.div>
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                            {filteredProducts.map((product, index) => (
+                                <ProductCard key={product.id} product={product} index={index} />
+                            ))}
                         </div>
-
-                        {filteredProducts.length === 0 ? (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-center py-20"
-                            >
-                                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <SlidersHorizontal size={28} className="text-gray-300" />
-                                </div>
-                                <h3 className="text-lg font-medium text-gray-800">Không tìm thấy sản phẩm</h3>
-                                <p className="text-sm text-gray-400 mt-2">
-                                    Thử điều chỉnh bộ lọc hoặc tìm kiếm từ khóa khác
-                                </p>
-                                <button
-                                    onClick={() =>
-                                        setFilters({
-                                            category: '',
-                                            sizes: [],
-                                            colors: [],
-                                            priceRange: [0, 3000000],
-                                            sortBy: 'newest',
-                                        })
-                                    }
-                                    className="mt-6 px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-900 transition-colors"
-                                >
-                                    Xóa bộ lọc
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-[10px] lg:gap-[15px]">
-                                {filteredProducts.map((product, index) => (
-                                    <ProductCard key={product.id} product={product} index={index} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="lg:hidden">
-                    <ProductFilter
-                        filters={filters}
-                        setFilters={setFilters}
-                        isOpen={isFilterOpen}
-                        onClose={() => setIsFilterOpen(false)}
-                    />
+                    )}
                 </div>
             </div>
         </div>
