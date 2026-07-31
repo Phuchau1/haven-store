@@ -499,6 +499,16 @@ export default function AdminReturnsPage() {
                                 </button>
                             </div>
                         )}
+                        {selectedOrder.status === 'returning' && (
+                            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                                <button
+                                    onClick={() => handleOpenReview(selectedOrder, 'confirm_received')}
+                                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                                >
+                                    📦 Xác nhận đã nhận hàng & Hoàn tiền
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
