@@ -90,12 +90,12 @@ export default function CategorySection() {
                             <div className="absolute bottom-0 left-0 right-0 p-8">
                                 <div className="flex items-end justify-between translate-y-4 group-hover:translate-y-0 transition-transform duration-400">
                                     <div>
-                                        <p className="text-white/80 text-xs tracking-[0.1em] uppercase font-bold mb-2">
-                                            {cat.count} sản phẩm
-                                        </p>
-                                        <h3 className="text-white text-3xl font-bold tracking-tight">
+                                        <h3 className="text-white text-3xl font-bold tracking-tight mb-2">
                                             {cat.name}
                                         </h3>
+                                        <p className="text-white/80 text-xs tracking-[0.1em] uppercase font-bold">
+                                            {cat.count} sản phẩm
+                                        </p>
                                     </div>
                                     <motion.div
                                         className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 transition-all duration-400 group-hover:bg-white group-hover:text-[#C9A227] shadow-lg"
