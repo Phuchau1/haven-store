@@ -240,9 +240,9 @@ export default function Header() {
                         </button>
 
                         {/* Logo */}
-                        <Link href="/" className="flex items-center h-full py-1">
+                        <Link href="/" className="flex items-center justify-center h-full py-1.5 overflow-visible">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/logo-new.png" alt="HAVEN" className="h-[64px] md:h-[82px] lg:h-[90px] w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" />
+                            <img src="/logo-new.png" alt="HAVEN" className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" />
                         </Link>
 
                         {/* Desktop Navigation */}
