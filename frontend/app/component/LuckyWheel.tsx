@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Gift, RotateCcw, Copy, Check, Sparkles, Clock, Loader2 } from 'lucide-react';
 import { useLuckyWheelStore, WheelPrize, WheelConfig } from '@/app/store/useLuckyWheelStore';
 import { useAuth } from '@/app/component/AuthContext';
+import { useToast } from '@/app/component/ToastProvider';
 
 const DEFAULT_COLORS = ['#FFB300', '#FF8F00', '#E65100', '#BF360C', '#FFB300', '#FF8F00', '#E65100', '#BF360C'];
 
@@ -240,6 +241,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
     
     const { config, setConfig, canSpin, checkCanSpin, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
     const { user } = useAuth();
+    const { showToast } = useToast();
     const timeLeft = !canSpin ? getTimeUntilNextSpin() : '';
 
     // Check spin availability from DB on mount
@@ -289,7 +291,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
     const spin = useCallback(async () => {
         if (spinning || !canSpin || loadingConfig || prizes.length === 0) return;
         if (!token) {
-            alert('Vui lòng đăng nhập để quay Vòng Quay May Mắn!');
+            showToast('Vui lòng đăng nhập để quay Vòng Quay May Mắn!', 'warning', 'Chưa đăng nhập');
             return;
         }
 
@@ -307,7 +309,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             const data = await res.json();
 
             if (!data.success) {
-                alert(data.message);
+                showToast(data.message || 'Không thể quay', 'error', 'Lỗi');
                 setSpinning(false);
                 return;
             }
@@ -338,7 +340,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             }, 5000);
 
         } catch (err) {
-            alert('Lỗi kết nối! Vui lòng thử lại.');
+            showToast('Lỗi kết nối! Vui lòng thử lại.', 'error', 'Lỗi kết nối');
             setSpinning(false);
         }
 

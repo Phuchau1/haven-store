@@ -17,6 +17,7 @@ import RecentlyViewed from '@/app/component/RecentlyViewed';
 import { useAuth } from '@/app/component/AuthContext';
 import { Sparkles } from 'lucide-react';
 import TryOnModal from '@/app/component/TryOnModal';
+import { useToast } from '@/app/component/ToastProvider';
 
 const COLOR_CLASS_MAP: Record<string, string> = {
     'Đen': 'bg-black',
@@ -41,6 +42,7 @@ export default function ProductDetailPage() {
     const params = useParams();
     const router = useRouter();
     const { addItem, closeCart } = useCart();
+    const { showToast } = useToast();
 
     const [product, setProduct] = useState<Product | any>(null);
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -198,21 +200,21 @@ export default function ProductDetailPage() {
 
     const handleAddToCart = () => {
         if (!selectedSize) {
-            alert('Vui lòng chọn kích cỡ');
+            showToast('Vui lòng chọn kích cỡ', 'warning', 'Chưa chọn size');
             return;
         }
         if (!selectedColor) {
-            alert('Vui lòng chọn màu sắc');
+            showToast('Vui lòng chọn màu sắc', 'warning', 'Chưa chọn màu');
             return;
         }
 
         const stock = getVariantStock();
         if (stock === 0) {
-            alert('Sản phẩm đã hết hàng!');
+            showToast('Sản phẩm đã hết hàng!', 'error', 'Hết hàng');
             return;
         }
         if (stock !== null && quantity > stock) {
-            alert(`Chỉ còn ${stock} sản phẩm trong kho!`);
+            showToast(`Chỉ còn ${stock} sản phẩm trong kho!`, 'warning', 'Vượt tồn kho');
             return;
         }
 
@@ -224,21 +226,21 @@ export default function ProductDetailPage() {
 
     const handleBuyNow = () => {
         if (!selectedSize) {
-            alert('Vui lòng chọn kích cỡ');
+            showToast('Vui lòng chọn kích cỡ', 'warning', 'Chưa chọn size');
             return;
         }
         if (!selectedColor) {
-            alert('Vui lòng chọn màu sắc');
+            showToast('Vui lòng chọn màu sắc', 'warning', 'Chưa chọn màu');
             return;
         }
 
         const stock = getVariantStock();
         if (stock === 0) {
-            alert('Sản phẩm đã hết hàng!');
+            showToast('Sản phẩm đã hết hàng!', 'error', 'Hết hàng');
             return;
         }
         if (stock !== null && quantity > stock) {
-            alert(`Chỉ còn ${stock} sản phẩm trong kho!`);
+            showToast(`Chỉ còn ${stock} sản phẩm trong kho!`, 'warning', 'Vượt tồn kho');
             return;
         }
 
@@ -440,12 +442,12 @@ export default function ProductDetailPage() {
                                                 const maxStock = getVariantStock();
                                                 if (maxStock !== null && val > maxStock) {
                                                     setQuantity(maxStock);
-                                                    alert(`Chỉ còn ${maxStock} sản phẩm trong kho!`);
+                                                    showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning', 'Vượt tồn kho');
                                                 } else {
                                                     setQuantity(val);
                                                 }
                                             } else if (e.target.value === '') {
-                                                setQuantity(0 as any); // Tạm thời rỗng khi đang gõ
+                                                setQuantity(0 as any);
                                             }
                                         }}
                                         onBlur={() => {
@@ -455,7 +457,7 @@ export default function ProductDetailPage() {
                                     />
                                     <button aria-label="Tăng số lượng" onClick={() => {
                                         const maxStock = getVariantStock();
-                                        if (maxStock !== null && quantity >= maxStock) { alert(`Chỉ còn ${maxStock} sản phẩm trong kho!`); return; }
+                                        if (maxStock !== null && quantity >= maxStock) { showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning'); return; }
                                         setQuantity(quantity + 1);
                                     }} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">+</button>
                                 </div>

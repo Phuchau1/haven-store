@@ -34,6 +34,7 @@ import AddressManager from './AddressManager';
 import ChangePasswordModal from './ChangePasswordModal';
 import { useCartStore } from '@/app/store/useCartStore';
 import ReviewModal from '@/app/component/ReviewModal';
+import { useToast } from '@/app/component/ToastProvider';
 
 interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
     discountAmount?: number;
@@ -505,6 +506,7 @@ const CustomerReturnModal = ({
     onClose: () => void;
     onSuccess: (orderId: string) => void;
 }) => {
+    const { showToast } = useToast();
     const [reason, setReason] = useState('');
     const [customReason, setCustomReason] = useState('');
     const [images, setImages] = useState<string[]>([]);
@@ -538,19 +540,20 @@ const CustomerReturnModal = ({
     };
 
     const handleSubmit = async () => {
-        if (order.status !== 'delivered') {
-            alert('❌ Chỉ các đơn hàng đã giao thành công (Mua hàng thành công) mới được gửi yêu cầu hoàn hàng!');
+        const allowedStatuses = ['delivered', 'completed', 'awaiting_review', 'reviewed'];
+        if (!allowedStatuses.includes(order.status)) {
+            showToast('Chỉ có thể yêu cầu hoàn hàng với đơn đã giao thành công!', 'error', 'Đơn chưa đủ điều kiện');
             return;
         }
 
         const finalReason = reason === 'Khác' ? customReason : reason;
         if (!finalReason.trim()) {
-            alert('Vui lòng chọn hoặc nhập lý do hoàn hàng');
+            showToast('Vui lòng chọn hoặc nhập lý do hoàn hàng', 'warning', 'Thiếu thông tin');
             return;
         }
 
         if (images.length === 0) {
-            alert('📸 BẮT BUỘC: Vui lòng chụp ảnh hoặc tải lên hình ảnh sản phẩm làm bằng chứng để gửi Admin xem xét và duyệt!');
+            showToast('Vui lòng chụp ảnh hoặc tải lên hình ảnh sản phẩm làm bằng chứng để gửi Admin xem xét!', 'warning', 'Đầy ảnh bằng chứng bắt buộc');
             return;
         }
 
@@ -568,14 +571,14 @@ const CustomerReturnModal = ({
 
             const data = await res.json();
             if (data.success) {
-                alert('✅ Yêu cầu hoàn hàng của bạn đã được gửi thành công!\n\nAdmin sẽ xem xét hình ảnh thực tế và tiến hành duyệt hoặc từ chối đơn trong thời gian sớm nhất.');
+                showToast('Admin sẽ xem xét và tiến hành duyệt trong thời gian sớm nhất.', 'success', 'Gửi yêu cầu hoàn hàng thành công!');
                 onSuccess(order.id ?? '');
                 onClose();
             } else {
-                alert('Lỗi: ' + (data.message || 'Không thể gửi yêu cầu'));
+                showToast(data.message || 'Không thể gửi yêu cầu', 'error', 'Gửi thất bại');
             }
         } catch {
-            alert('Đã xảy ra lỗi khi gửi yêu cầu hoàn hàng');
+            showToast('Đã xảy ra lỗi khi gửi yêu cầu hoàn hàng', 'error', 'Lỗi kết nối');
         } finally {
             setSubmitting(false);
         }
@@ -692,6 +695,7 @@ const CustomerReturnModal = ({
 };
 
 export default function NguoiDungPage() {
+    const { showToast, showConfirm } = useToast();
     const { user, logout, updateProfile } = useAuth();
     const { addItem } = useCart();
     const clearCart = useCartStore(s => s.clearCart);
@@ -728,7 +732,14 @@ export default function NguoiDungPage() {
     });
 
     const handleCancelOrder = async (orderId: string) => {
-        if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return;
+        const ok = await showConfirm({
+            title: 'Hủy đơn hàng?',
+            message: 'Bạn có chắc chắn muốn hủy đơn hàng này? Hành động này không thể hoàn tác.',
+            confirmText: 'Hủy đơn',
+            cancelText: 'Giữ lại',
+            type: 'danger'
+        });
+        if (!ok) return;
         try {
             const res = await fetch('/api/orders', {
                 method: 'PUT',
@@ -738,12 +749,12 @@ export default function NguoiDungPage() {
             const data = await res.json();
             if (data.success) {
                 setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
-                alert('Đã hủy đơn hàng thành công');
+                showToast('Đơn hàng đã được hủy thành công', 'success', 'Hủy đơn thành công');
             } else {
-                alert('Lỗi: ' + data.message);
+                showToast(data.message || 'Không thể hủy đơn', 'error', 'Lỗi hủy đơn');
             }
         } catch {
-            alert('Đã có lỗi xảy ra');
+            showToast('Đã có lỗi xảy ra', 'error');
         }
     };
 
@@ -753,7 +764,7 @@ export default function NguoiDungPage() {
                 addItem(item.product, item.selectedSize, item.selectedColor);
             }
         });
-        alert('Đã thêm sản phẩm vào giỏ hàng!');
+        showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success', 'Thêm vào giỏ hàng');
     };
 
     const handleRateOrder = (order: OrderData) => {
@@ -838,7 +849,7 @@ export default function NguoiDungPage() {
         setTimeout(() => {
             updateProfile(formData);
             setIsSaving(false);
-            alert('Cập nhật hồ sơ thành công!');
+            showToast('Thông tin hồ sơ đã được cập nhật thành công!', 'success', 'Cập nhật thành công');
         }, 800);
     };
 
