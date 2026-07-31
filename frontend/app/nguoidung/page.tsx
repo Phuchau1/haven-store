@@ -48,18 +48,23 @@ const TABS = [
 ];
 
 const ORDER_STATUS_TABS = [
-    { id: 'all',               label: 'Tất cả' },
-    { id: 'pending',           label: 'Chờ xác nhận' },
-    { id: 'confirmed',         label: 'Đã xác nhận' },
-    { id: 'processing',        label: 'Đang chuẩn bị' },
-    { id: 'waiting_pickup',    label: 'Chờ lấy hàng' },
-    { id: 'picked_up',         label: 'Đã lấy hàng' },
-    { id: 'in_transit',        label: 'Đang vận chuyển' },
-    { id: 'out_for_delivery',  label: 'Đang giao' },
-    { id: 'delivered',         label: 'Hoàn thành' },
-    { id: 'return_requested',  label: 'Yêu cầu hoàn' },
-    { id: 'cancelled',         label: 'Đã hủy' },
+    { id: 'all',        label: 'Tất cả' },
+    { id: 'pending',    label: 'Chờ xác nhận' },
+    { id: 'processing', label: 'Đang xử lý' },
+    { id: 'shipping',   label: 'Đang vận chuyển' },
+    { id: 'delivered',  label: 'Hoàn thành' },
+    { id: 'cancelled',  label: 'Đã hủy' },
 ];
+
+// Map combined statuses for filtering
+const STATUS_GROUP_MAP: Record<string, string[]> = {
+    all:        [],
+    pending:    ['pending'],
+    processing: ['confirmed', 'processing', 'waiting_pickup', 'picked_up'],
+    shipping:   ['in_transit', 'out_for_delivery', 'shipped'],
+    delivered:  ['delivered', 'completed', 'awaiting_review', 'reviewed'],
+    cancelled:  ['cancelled', 'return_requested', 'returning', 'return_received', 'refunded', 'delivery_failed', 'returned_to_seller'],
+};
 
 // Component Chi tiết đơn hàng mới
 const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (order: OrderData) => void, onReturn: (order: OrderData) => void }) => {
@@ -817,7 +822,10 @@ export default function NguoiDungPage() {
 
     const filteredOrders = activeOrderTab === 'all'
         ? orders
-        : orders.filter(order => order.status === activeOrderTab);
+        : orders.filter(order => {
+            const group = STATUS_GROUP_MAP[activeOrderTab];
+            return group ? group.includes(order.status ?? '') : order.status === activeOrderTab;
+        });
 
     const handleUpdateProfile = (e: React.FormEvent) => {
         e.preventDefault();
@@ -1045,15 +1053,16 @@ export default function NguoiDungPage() {
                                                         {liveSync ? 'Đang cập nhật...' : '● Tự động đồng bộ'}
                                                     </div>
                                                 </div>
-                                                <div className="flex bg-white p-1 rounded-xl border border-slate-100 shadow-sm overflow-x-auto no-scrollbar">
+                                                <div className="flex gap-1.5 flex-wrap">
                                                     {ORDER_STATUS_TABS.map(tab => (
                                                         <button
                                                             key={tab.id}
                                                             onClick={() => setActiveOrderTab(tab.id)}
-                                                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${activeOrderTab === tab.id
-                                                                ? 'bg-indigo-600 text-white shadow-md'
-                                                                : 'text-slate-500 hover:bg-slate-50'
-                                                                }`}
+                                                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border ${
+                                                                activeOrderTab === tab.id
+                                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                                : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                                            }`}
                                                         >
                                                             {tab.label}
                                                         </button>
