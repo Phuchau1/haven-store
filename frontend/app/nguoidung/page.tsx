@@ -1132,6 +1132,8 @@ export default function NguoiDungPage() {
                                                                         delivered: 'Hoàn thành ✓',
                                                                         cancelled: 'Đã hủy',
                                                                         return_requested: '⏳ Chờ duyệt hoàn',
+                                                                        returning: '🚚 Đang hoàn hàng',
+                                                                        return_received: '📦 Shop đã nhận hàng',
                                                                         refund_requested: 'Yêu cầu hoàn tiền',
                                                                         refunded: 'Đã hoàn hàng',
                                                                     } as Record<string,string>)[order.status] || order.status}
