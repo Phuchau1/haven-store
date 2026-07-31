@@ -124,20 +124,23 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
         return map[status] || 'bg-slate-100 text-slate-700 border-slate-200';
     };
 
-    // Timeline 8 bước chính (sắp xếp từ thấp đến cao)
+    // Timeline 5 mốc chính gọn gàng
     const MAIN_TIMELINE_STEPS = [
-        { key: 'pending',           label: 'Chờ xác nhận',     icon: Clock },
-        { key: 'confirmed',         label: 'Đã xác nhận',        icon: CheckCircle2 },
-        { key: 'processing',        label: 'Đang chuẩn bị',     icon: Package },
-        { key: 'waiting_pickup',    label: 'Chờ lấy hàng',     icon: MapPin },
-        { key: 'picked_up',         label: 'Đã lấy hàng',       icon: PackageCheck },
-        { key: 'in_transit',        label: 'Đang vận chuyển', icon: Truck },
-        { key: 'out_for_delivery',  label: 'Đang giao',           icon: Navigation },
-        { key: 'delivered',         label: 'Giao thành công',    icon: CheckCircle2 },
+        { key: 'pending',    label: 'Đặt hàng thành công', icon: Clock },
+        { key: 'processing', label: 'Đang chuẩn bị hàng',  icon: Package },
+        { key: 'picked_up',  label: 'Đơn vị đã lấy hàng',  icon: PackageCheck },
+        { key: 'in_transit', label: 'Đang vận chuyển',   icon: Truck },
+        { key: 'delivered',  label: 'Giao thành công',     icon: CheckCircle2 },
     ];
 
-    const statusOrder = ['pending','confirmed','processing','waiting_pickup','picked_up','in_transit','out_for_delivery','delivered','completed'];
-    const currentIdx = statusOrder.indexOf(order.status);
+    const getStepStatusIndex = (status: string) => {
+        if (['delivered', 'completed', 'awaiting_review', 'reviewed'].includes(status)) return 4;
+        if (['in_transit', 'out_for_delivery', 'shipped'].includes(status)) return 3;
+        if (['waiting_pickup', 'picked_up'].includes(status)) return 2;
+        if (['confirmed', 'processing'].includes(status)) return 1;
+        return 0;
+    };
+    const currentIdx = getStepStatusIndex(order.status);
 
     const orderExt = order as any;
     const shippingTimeline: any[] = orderExt.shippingTimeline || [];
@@ -415,7 +418,7 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                     <p className="text-xs text-slate-400 mt-1">Đang trong quá trình xử lý hoàn hàng.</p>
                                 </div>
                             ) : (
-                                <div className="relative pl-6 space-y-5 py-1">
+                                <div className="relative pl-6 space-y-3.5 py-1">
                                     <div className="absolute left-[10px] top-3 bottom-3 w-0.5 bg-slate-100" />
                                     {steps.map((step, idx) => {
                                         const StepIcon = step.icon;
