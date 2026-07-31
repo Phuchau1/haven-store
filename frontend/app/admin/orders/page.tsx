@@ -359,11 +359,11 @@ export default function AdminOrders() {
             </div>
 
             {/* ── Table Card Wrapper ────────────────────────────────────────── */}
-            <div className="adm-card overflow-hidden">
+            <div className="adm-card overflow-visible">
 
                 {/* ── DESKTOP TABLE (md+) ── */}
                 <div className="hidden md:block">
-                    <div className="adm-table-scroll overflow-x-auto">
+                    <div className="adm-table-scroll">
                         <table className="adm-table w-full text-left border-collapse">
                             <thead>
                                 <tr style={{ backgroundColor: 'var(--adm-surface-2)', borderBottom: '1px solid var(--adm-border)' }}>
@@ -474,7 +474,7 @@ export default function AdminOrders() {
                                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                                     exit={{ opacity: 0, y: -8, scale: 0.97 }}
                                                                     transition={{ duration: 0.15, ease: 'easeOut' }}
-                                                                    className="absolute left-0 top-full mt-2 z-[200] w-64 rounded-2xl shadow-2xl border p-2.5"
+                                                                    className="absolute right-0 top-full mt-2 z-[200] w-64 rounded-2xl shadow-2xl border p-2.5"
                                                                     style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
                                                                 >
                                                                     <p className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--adm-text-subtle)' }}>
