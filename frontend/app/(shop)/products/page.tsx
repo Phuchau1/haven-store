@@ -313,12 +313,14 @@ function ProductsContent() {
             </div>
 
             {/* Mobile Filter Drawer */}
-            <ProductFilter
-                filters={filters}
-                setFilters={setFilters}
-                isOpen={isFilterOpen}
-                onClose={() => setIsFilterOpen(false)}
-            />
+            <div className="lg:hidden">
+                <ProductFilter
+                    filters={filters}
+                    setFilters={setFilters}
+                    isOpen={isFilterOpen}
+                    onClose={() => setIsFilterOpen(false)}
+                />
+            </div>
         </div>
     );
 }
