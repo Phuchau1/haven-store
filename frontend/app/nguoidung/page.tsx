@@ -1107,8 +1107,12 @@ export default function NguoiDungPage() {
                                                                 </div>
                                                                 <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase border ${getStatusStyle(order.status)}`}>
                                                                     {({
-                                                                        pending: 'Chờ xử lý',
+                                                                        pending: 'Chờ xác nhận',
                                                                         processing: 'Đang chuẩn bị',
+                                                                        waiting_pickup: 'Chờ lấy hàng',
+                                                                        picked_up: 'Đã lấy hàng',
+                                                                        in_transit: 'Đang vận chuyển',
+                                                                        out_for_delivery: 'Đang giao hàng',
                                                                         shipped: 'Đang giao',
                                                                         delivered: 'Hoàn thành ✓',
                                                                         cancelled: 'Đã hủy',
