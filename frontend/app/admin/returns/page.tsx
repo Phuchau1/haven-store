@@ -65,12 +65,10 @@ export default function AdminReturnsPage() {
         rejected: 0
     });
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
     const fetchReturns = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/orders/returns?status=${filterStatus}`);
+            const res = await fetch(`/api/orders/returns?status=${filterStatus}`);
             const data = await res.json();
             if (data.success) {
                 setOrders(data.orders || []);
@@ -82,7 +80,7 @@ export default function AdminReturnsPage() {
         } finally {
             setLoading(false);
         }
-    }, [API_URL, filterStatus]);
+    }, [filterStatus]);
 
     useEffect(() => {
         fetchReturns();
@@ -109,7 +107,7 @@ export default function AdminReturnsPage() {
 
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_URL}/orders/return-request/${selectedOrder.id}`, {
+            const res = await fetch(`/api/orders/return-request/${selectedOrder.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
