@@ -45,11 +45,14 @@ const ITEMS_PER_PAGE = 10;
 // Status config
 // ---------------------------------------------------------------------------
 const STATUS_OPTIONS = [
-    { id: 'pending',    label: 'Chờ bộ phận xử lý',    icon: Clock,         color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-100'  },
-    { id: 'processing', label: 'Xác nhận & Đóng gói',   icon: Package,       color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100'   },
-    { id: 'shipped',    label: 'Đang vận chuyển',        icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
-    { id: 'delivered',  label: 'Giao hàng thành công',   icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'},
-    { id: 'cancelled',  label: 'Hủy đơn hàng này',       icon: XCircle,       color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100'   },
+    { id: 'pending',          label: 'Chờ bộ phận xử lý',      icon: Clock,         color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-100'  },
+    { id: 'processing',       label: 'Xác nhận & Đóng gói',     icon: Package,       color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100'   },
+    { id: 'shipped',          label: 'Đang vận chuyển',          icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
+    { id: 'delivered',        label: 'Giao hàng thành công',     icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'},
+    { id: 'return_requested', label: 'Yêu cầu hoàn hàng',       icon: RotateCcw,     color: 'text-amber-700',   bg: 'bg-amber-100',  border: 'border-amber-200'  },
+    { id: 'returning',        label: 'Đang hoàn hàng về shop',   icon: RotateCcw,     color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-100' },
+    { id: 'refunded',         label: 'Đã hoàn tiền',             icon: RotateCcw,     color: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-100'   },
+    { id: 'cancelled',        label: 'Hủy đơn hàng này',         icon: XCircle,       color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100'   },
 ];
 
 // Status tabs config (includes "all")
@@ -482,12 +485,8 @@ export default function AdminOrders() {
                                                                             const currentIdx = STATUS_OPTIONS.findIndex(s => s.id === order.status);
                                                                             
                                                                             // Logic: Chỉ được tiến, không được lùi
-                                                                            const isBackward = optIdx < currentIdx; 
-                                                                            const isTerminal = order.status === 'cancelled' || order.status === 'delivered';
                                                                             const isSame = order.status === opt.id;
-                                                                            const isShippedCancel = order.status === 'shipped' && opt.id === 'cancelled';
-                                                                            
-                                                                            const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame) || isShippedCancel;
+                                                                            const isDisabled = isSubmitting;
 
                                                                             return (
                                                                             <button
