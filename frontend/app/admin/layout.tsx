@@ -176,13 +176,13 @@ function SidebarContent({
                 style={{ borderColor: 'var(--adm-border)' }}
             >
                 {/* Icon/mini logo when collapsed */}
-                <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 bg-black flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-white border border-gray-200 flex items-center justify-center p-0.5">
                     <Image
                         src="/haven-logo.png"
                         alt="HAVEN"
-                        width={32}
-                        height={32}
-                        className="object-cover w-full h-full"
+                        width={40}
+                        height={40}
+                        className="object-contain w-full h-full"
                         priority
                     />
                 </div>

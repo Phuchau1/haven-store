@@ -228,7 +228,7 @@ export default function Header() {
                     }`}
             >
                 <div className="container-torano">
-                    <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16 md:h-20'}`}>
+                    <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-16' : 'h-20 md:h-24'}`}>
 
                         {/* Mobile menu button */}
                         <button
@@ -240,9 +240,9 @@ export default function Header() {
                         </button>
 
                         {/* Logo */}
-                        <Link href="/" className="flex items-center h-full">
+                        <Link href="/" className="flex items-center h-full py-1">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/logo-new.png" alt="HAVEN STORE" className="h-[40px] md:h-[50px] w-auto object-contain hover:opacity-70 transition-opacity duration-300" />
+                            <img src="/logo-new.png" alt="HAVEN" className="h-[64px] md:h-[82px] lg:h-[90px] w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" />
                         </Link>
 
                         {/* Desktop Navigation */}
