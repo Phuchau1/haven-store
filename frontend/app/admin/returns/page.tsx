@@ -47,13 +47,13 @@ interface OrderData {
 export default function AdminReturnsPage() {
     const [orders, setOrders] = useState<OrderData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+    const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'returning' | 'refunded'>('pending');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
     
     // Modal states
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
-    const [reviewAction, setReviewAction] = useState<'approve' | 'reject'>('approve');
+    const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | 'confirm_received'>('approve');
     const [rejectReason, setRejectReason] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -62,7 +62,9 @@ export default function AdminReturnsPage() {
         total: 0,
         pending: 0,
         approved: 0,
-        rejected: 0
+        rejected: 0,
+        returning: 0,
+        refunded: 0
     });
 
     const fetchReturns = useCallback(async () => {
@@ -91,7 +93,7 @@ export default function AdminReturnsPage() {
         setTimeout(() => setToastMessage(null), 4000);
     };
 
-    const handleOpenReview = (order: OrderData, action: 'approve' | 'reject') => {
+    const handleOpenReview = (order: OrderData, action: 'approve' | 'reject' | 'confirm_received') => {
         setSelectedOrder(order);
         setReviewAction(action);
         setRejectReason('');
@@ -107,19 +109,22 @@ export default function AdminReturnsPage() {
 
         setSubmitting(true);
         try {
-            const res = await fetch(`/api/orders/return-request/${selectedOrder.id}`, {
+            let url = `/api/orders/return-request/${selectedOrder.id}`;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let body: Record<string, any> = { action: reviewAction, rejectReason: rejectReason.trim(), adminName: 'Admin' };
+            if (reviewAction === 'confirm_received') {
+                url = `/api/orders/return-received/${selectedOrder.id}`;
+                body = { adminName: 'Admin' };
+            }
+            const res = await fetch(url, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: reviewAction,
-                    rejectReason: rejectReason.trim(),
-                    adminName: 'Admin'
-                })
+                body: JSON.stringify(body)
             });
 
             const data = await res.json();
             if (data.success) {
-                showToast(reviewAction === 'approve' ? 'Đã duyệt hoàn hàng thành công' : 'Đã từ chối hoàn hàng', 'success');
+                const msg = reviewAction === 'approve' ? '✅ Đã duyệt hoàn hàng — khách cần gửi hàng về' : reviewAction === 'confirm_received' ? '💰 Đã xác nhận nhận hàng & hoàn tiền thành công!' : '❌ Đã từ chối hoàn hàng'; showToast(msg, 'success');
                 setReviewModalOpen(false);
                 setSelectedOrder(null);
                 fetchReturns();
@@ -229,6 +234,7 @@ export default function AdminReturnsPage() {
                 <div className="flex gap-2 w-full md:w-auto overflow-x-auto no-scrollbar">
                     {[
                         { id: 'pending', label: `Chờ duyệt (${stats.pending})` },
+                        { id: 'returning', label: `Đang hoàn hàng (${(stats as any).returning || 0})` },
                         { id: 'approved', label: `Đã duyệt (${stats.approved})` },
                         { id: 'rejected', label: `Từ chối (${stats.rejected})` },
                         { id: 'all', label: `Tất cả (${stats.total})` }
@@ -295,6 +301,8 @@ export default function AdminReturnsPage() {
                                     const isPending = req?.status === 'pending';
                                     const isApproved = req?.status === 'approved';
                                     const isRejected = req?.status === 'rejected';
+                                    const isReturning = order.status === 'returning';
+                                    const isRefunded = order.status === 'refunded';
 
                                     return (
                                         <tr key={order._id || order.id} className="hover:bg-slate-50/70 transition-colors">
@@ -330,7 +338,17 @@ export default function AdminReturnsPage() {
                                                         <Clock className="w-3 h-3" /> Chờ duyệt
                                                     </span>
                                                 )}
-                                                {isApproved && (
+                                                {isReturning && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                                                        🚚 Đang hoàn hàng
+                                                    </span>
+                                                )}
+                                                {isRefunded && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        <CheckCircle2 className="w-3 h-3" /> Đã hoàn tiền
+                                                    </span>
+                                                )}
+                                                {isApproved && !isReturning && !isRefunded && (
                                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                         <CheckCircle2 className="w-3 h-3" /> Đã duyệt
                                                     </span>
@@ -365,6 +383,14 @@ export default function AdminReturnsPage() {
                                                                 <X className="w-3.5 h-3.5" /> Từ chối
                                                             </button>
                                                         </>
+                                                    )}
+                                                    {isReturning && (
+                                                        <button
+                                                            onClick={() => handleOpenReview(order, 'confirm_received')}
+                                                            className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-sm"
+                                                        >
+                                                            Nhận hàng & Hoàn tiền
+                                                        </button>
                                                     )}
                                                 </div>
                                             </td>
@@ -487,7 +513,7 @@ export default function AdminReturnsPage() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900">
-                                    {reviewAction === 'approve' ? 'Chấp thuận hoàn hàng' : 'Từ chối hoàn hàng'}
+                                    {reviewAction === 'approve' ? 'Chấp thuận hoàn hàng' : reviewAction === 'confirm_received' ? 'Xác nhận nhận hàng & Hoàn tiền' : 'Từ chối hoàn hàng'}
                                 </h3>
                                 <p className="text-xs text-slate-500">Đơn hàng #{selectedOrder.id}</p>
                             </div>
@@ -527,7 +553,7 @@ export default function AdminReturnsPage() {
                                 } disabled:opacity-50`}
                             >
                                 {submitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                                {reviewAction === 'approve' ? 'Xác nhận Chấp thuận' : 'Xác nhận Từ chối'}
+                                {reviewAction === 'approve' ? 'Xác nhận Chấp thuận' : reviewAction === 'confirm_received' ? 'Xác nhận Hoàn tiền' : 'Xác nhận Từ chối'}
                             </button>
                         </div>
                     </div>

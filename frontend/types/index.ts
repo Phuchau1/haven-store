@@ -100,7 +100,7 @@ export interface OrderData {
     discountAmount?: number;
     finalAmount: number;
     note?: string;
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'return_requested' | 'refunded';
+    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'return_requested' | 'returning' | 'return_received' | 'refunded';
     shippingProvider?: string;
     createdAt: string;
     returnRequest?: {

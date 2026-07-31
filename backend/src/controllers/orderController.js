@@ -760,6 +760,44 @@ const reviewReturnRequest = async (req, res, next) => {
     }
 };
 
+
+/**
+ * @desc Admin xác nhận đã nhận hàng trả & thực hiện hoàn tiền
+ * @route PUT /api/orders/return-received/:orderId
+ * @access Admin
+ */
+const confirmReturnReceived = async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const { adminName } = req.body;
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+        if (order.status !== 'returning') {
+            return res.status(400).json({ success: false, message: 'Đơn hàng chưa ở trạng thái đang hoàn hàng' });
+        }
+
+        const now = new Date();
+        order.status = 'refunded';
+        order.shippingTimeline.push({
+            status: 'refunded',
+            title: 'Đã hoàn tiền thành công',
+            note: `Shop đã nhận hàng trả và thực hiện hoàn tiền. Xác nhận bởi: ${adminName || 'Admin'}`,
+            timestamp: now,
+            isCustomerVisible: true
+        });
+
+        await order.save();
+
+        const io = req.app.get('io');
+        if (io) io.emit('order_status_changed', { orderId, status: order.status });
+
+        res.json({ success: true, message: 'Đã xác nhận nhận hàng & hoàn tiền thành công', order });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getOrders,
     createOrder,
@@ -768,5 +806,6 @@ module.exports = {
     exportStockOnApproval,
     submitReturnRequest,
     getReturnRequests,
-    reviewReturnRequest
+    reviewReturnRequest,
+    confirmReturnReceived
 };

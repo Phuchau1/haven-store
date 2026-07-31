@@ -12,5 +12,6 @@ router.put('/', validateOrder, orderController.updateOrderStatus);
 router.post('/return-request', orderController.submitReturnRequest);
 router.get('/returns', orderController.getReturnRequests);
 router.put('/return-request/:orderId', orderController.reviewReturnRequest);
+router.put('/return-received/:orderId', orderController.confirmReturnReceived); // Step 2: Admin xác nhận nhận hàng & hoàn tiền
 
 module.exports = router;

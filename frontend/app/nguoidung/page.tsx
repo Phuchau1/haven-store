@@ -245,13 +245,28 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                         <XCircle size={14} className="text-rose-500" /> Hủy đơn hàng
                                     </button>
                                 )}
-                                {order.status === 'delivered' && (
+                                {order.status === 'delivered' && (!order.returnRequest || order.returnRequest.status === 'none') && (
                                     <button 
                                         onClick={() => onReturn(order)}
                                         className="px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 hover:border-rose-300 transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
                                     >
                                         <RotateCcw size={14} className="text-rose-500" /> Hoàn hàng / Trả hàng
                                     </button>
+                                )}
+                                {order.status === 'returning' && (
+                                    <span className="px-4 py-2.5 bg-orange-50 border border-orange-200 text-orange-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                                        🚚 Đang hoàn hàng — Vui lòng gửi hàng về shop
+                                    </span>
+                                )}
+                                {order.status === 'return_received' && (
+                                    <span className="px-4 py-2.5 bg-teal-50 border border-teal-200 text-teal-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                                        📦 Shop đã nhận hàng trả — Đang xử lý hoàn tiền
+                                    </span>
+                                )}
+                                {order.status === 'refunded' && (
+                                    <span className="px-4 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                                        💰 Đã hoàn tiền thành công!
+                                    </span>
                                 )}
                                 {order.status === 'return_requested' && (
                                     <span className="px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm animate-pulse">
@@ -1149,7 +1164,7 @@ export default function NguoiDungPage() {
                                                                             <XCircle size={13} className="text-rose-500" /> Hủy đơn
                                                                         </button>
                                                                     )}
-                                                                    {order.status === 'delivered' && (
+                                                                    {order.status === 'delivered' && (!order.returnRequest || order.returnRequest.status === 'none') && (
                                                                         <button onClick={() => handleReturnOrder(order)} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
                                                                             <RotateCcw size={13} className="text-rose-500" /> Hoàn hàng
                                                                         </button>
@@ -1157,6 +1172,21 @@ export default function NguoiDungPage() {
                                                                     {order.status === 'return_requested' && (
                                                                         <span className="px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-pulse">
                                                                             ⏳ Chờ Admin duyệt hoàn
+                                                                        </span>
+                                                                    )}
+                                                                    {order.status === 'returning' && (
+                                                                        <span className="px-3.5 py-2 bg-orange-50 border border-orange-200 text-orange-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                                                            🚚 Đang hoàn hàng (Gửi về shop)
+                                                                        </span>
+                                                                    )}
+                                                                    {order.status === 'return_received' && (
+                                                                        <span className="px-3.5 py-2 bg-teal-50 border border-teal-200 text-teal-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                                                            📦 Shop đã nhận hàng trả
+                                                                        </span>
+                                                                    )}
+                                                                    {order.status === 'refunded' && (
+                                                                        <span className="px-3.5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                                                            💰 Đã hoàn tiền thành công
                                                                         </span>
                                                                     )}
                                                                     {order.status === 'delivered' && (
