@@ -8,6 +8,8 @@
 const { CouponModel } = require('../models/Coupon');
 const { OrderModel } = require('../models/Order');
 
+const UserCoupon = require('../models/UserCoupon');
+
 /**
  * @desc Lấy danh sách các mã giảm giá (coupon) CÒN HIỆU LỰC
  * @route GET /api/coupons/available
@@ -27,42 +29,110 @@ const getAvailableCoupons = async (req, res) => {
 };
 
 /**
- * @desc Kiểm tra và áp dụng mã giảm giá, tính toán số tiền được giảm
+ * @desc Lấy danh sách kho Voucher cá nhân của người dùng (từ Vòng quay may mắn & quà tặng)
+ * @route GET /api/coupons/my-coupons
+ */
+const getUserCoupons = async (req, res) => {
+    try {
+        const userId = req.user._id || req.user.id;
+        const coupons = await UserCoupon.find({ user_id: String(userId) }).sort({ createdAt: -1 });
+
+        const now = new Date();
+        const formatted = coupons.map(c => {
+            let status = 'unused';
+            if (c.is_used) status = 'used';
+            else if (c.expires_at && new Date(c.expires_at) < now) status = 'expired';
+
+            return {
+                id: c._id,
+                code: c.coupon_code,
+                type: c.type,
+                discount_value: c.discount_value,
+                expires_at: c.expires_at,
+                is_used: c.is_used,
+                status
+            };
+        });
+
+        res.json({ success: true, coupons: formatted });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @desc Kiểm tra và áp dụng mã giảm giá, tính toán số tiền được giảm (Hỗ trợ cả Coupon hệ thống và UserCoupon cá nhân)
  * @route POST /api/coupons/apply
  */
 const applyCoupon = async (req, res) => {
     try {
         const { code, totalAmount, email } = req.body;
+        const codeClean = code ? code.toUpperCase().trim() : '';
 
-        if (!code || !totalAmount) {
+        if (!codeClean || !totalAmount) {
             return res.status(400).json({ success: false, message: 'Thiếu mã coupon hoặc tổng tiền.' });
         }
 
-        const coupon = await CouponModel.findOne({ code: code.toUpperCase().trim() });
+        // 1. Kiểm tra trong UserCoupon (Voucher cá nhân trúng từ Vòng quay)
+        const userCoupon = await UserCoupon.findOne({ coupon_code: codeClean });
+        if (userCoupon) {
+            const now = new Date();
+            if (userCoupon.is_used) {
+                return res.status(400).json({ success: false, message: 'Mã voucher này đã được sử dụng.' });
+            }
+            if (userCoupon.expires_at && new Date(userCoupon.expires_at) < now) {
+                return res.status(400).json({ success: false, message: 'Mã voucher này đã hết hạn.' });
+            }
+
+            let discountAmount = 0;
+            if (userCoupon.type === 'percent') {
+                discountAmount = Math.round((totalAmount * userCoupon.discount_value) / 100);
+            } else {
+                discountAmount = userCoupon.discount_value;
+            }
+            discountAmount = Math.min(discountAmount, totalAmount);
+            const finalAmount = totalAmount - discountAmount;
+
+            return res.json({
+                success: true,
+                coupon: {
+                    id: userCoupon._id,
+                    code: userCoupon.coupon_code,
+                    discount_type: userCoupon.type,
+                    discount_value: userCoupon.discount_value,
+                    isUserCoupon: true
+                },
+                discountAmount,
+                finalAmount
+            });
+        }
+
+        // 2. Nếu không tìm thấy UserCoupon, kiểm tra trong CouponModel (Coupon hệ thống)
+        const coupon = await CouponModel.findOne({ code: codeClean });
 
         if (!coupon) {
             return res.status(404).json({ success: false, message: 'Mã voucher không tồn tại.' });
         }
 
-        const now = new Date().toISOString().slice(0, 10);
+        const nowStr = new Date().toISOString().slice(0, 10);
         
         // Kiểm tra tính hợp lệ của thời gian và số lượng
-        if (coupon.start_date > now) {
+        if (coupon.start_date > nowStr) {
             return res.status(400).json({ success: false, message: 'Mã voucher chưa đến ngày sử dụng.' });
         }
-        if (coupon.end_date < now) {
+        if (coupon.end_date < nowStr) {
             return res.status(400).json({ success: false, message: 'Mã voucher đã hết hạn.' });
         }
         if (coupon.usage_limit <= 0) {
             return res.status(400).json({ success: false, message: 'Mã voucher đã hết lượt sử dụng.' });
         }
 
-        // Kiểm tra giới hạn số lần sử dụng của một người dùng (nếu có đăng nhập / có email)
+        // Kiểm tra giới hạn số lần sử dụng của một người dùng
         if (coupon.usage_limit_per_user > 0 && email) {
             const userUsedCount = await OrderModel.countDocuments({ 
                 couponCode: coupon.code, 
                 email: email, 
-                status: { $ne: 'cancelled' } // Không tính các đơn đã hủy
+                status: { $ne: 'cancelled' }
             });
             if (userUsedCount >= coupon.usage_limit_per_user) {
                 return res.status(400).json({ success: false, message: 'Bạn đã hết lượt sử dụng mã giảm giá này.' });
@@ -74,10 +144,9 @@ const applyCoupon = async (req, res) => {
         if (coupon.discount_type === 'percent') {
             discountAmount = Math.round((totalAmount * coupon.discount_value) / 100);
         } else {
-            discountAmount = coupon.discount_value; // Trừ thẳng tiền mặt
+            discountAmount = coupon.discount_value;
         }
 
-        // Số tiền giảm không được vượt quá tổng giá trị đơn hàng
         discountAmount = Math.min(discountAmount, totalAmount);
         const finalAmount = totalAmount - discountAmount;
 
@@ -88,6 +157,7 @@ const applyCoupon = async (req, res) => {
                 code: coupon.code,
                 discount_type: coupon.discount_type,
                 discount_value: coupon.discount_value,
+                isUserCoupon: false
             },
             discountAmount,
             finalAmount
@@ -112,7 +182,7 @@ const updateCoupon = async (req, res) => {
         const updatedCoupon = await CouponModel.findOneAndUpdate(
             { id },
             req.body,
-            { new: true } // Trả về bản ghi mới nhất sau khi cập nhật
+            { new: true }
         );
 
         if (!updatedCoupon) {
@@ -149,4 +219,5 @@ const deleteCoupon = async (req, res) => {
     }
 };
 
-module.exports = { getAvailableCoupons, applyCoupon, updateCoupon, deleteCoupon };
+module.exports = { getAvailableCoupons, getUserCoupons, applyCoupon, updateCoupon, deleteCoupon };
+

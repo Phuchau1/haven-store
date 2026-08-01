@@ -353,41 +353,64 @@ const createOrder = async (req, res, next) => {
 
         let calculatedDiscount = 0;
 
-        // Xử lý mã giảm giá (Gắn Session)
+        // Xử lý mã giảm giá (Gắn Session) - Hỗ trợ cả Coupon hệ thống và UserCoupon (Vòng quay)
         if (body.couponCode) {
-            const coupon = await CouponModel.findOne({ code: body.couponCode }).session(session);
-            
-            if (coupon) {
-                // Kiểm tra giới hạn sử dụng trên mỗi user (usage_limit_per_user)
-                if (coupon.usage_limit_per_user > 0) {
-                    const userUsedCount = await OrderModel.countDocuments({ 
-                        couponCode: coupon.code, 
-                        email: body.email, 
-                        status: { $ne: 'cancelled' } // Không tính các đơn đã hủy
-                    }).session(session);
-                    
-                    // countDocuments lúc này không bao gồm order đang được tạo vì ta chưa save
-                    if (userUsedCount >= coupon.usage_limit_per_user) {
-                        throw new Error('Bạn đã hết lượt sử dụng mã giảm giá này.');
-                    }
+            const UserCoupon = require('../models/UserCoupon');
+            const codeClean = body.couponCode.toUpperCase().trim();
+
+            const userCoupon = await UserCoupon.findOne({ coupon_code: codeClean }).session(session);
+            if (userCoupon) {
+                if (userCoupon.is_used) {
+                    throw new Error('Mã giảm giá này đã được sử dụng.');
                 }
-                
-                // Tính toán số tiền được giảm
-                if (coupon.discount_type === 'percent') {
-                    calculatedDiscount = Math.round((calculatedTotalAmount * coupon.discount_value) / 100);
+                const now = new Date();
+                if (userCoupon.expires_at && new Date(userCoupon.expires_at) < now) {
+                    throw new Error('Mã giảm giá này đã hết hạn.');
+                }
+
+                if (userCoupon.type === 'percent') {
+                    calculatedDiscount = Math.round((calculatedTotalAmount * userCoupon.discount_value) / 100);
                 } else {
-                    calculatedDiscount = coupon.discount_value;
+                    calculatedDiscount = userCoupon.discount_value;
                 }
-                
-                // Tiền giảm không thể vượt quá tổng tiền
                 calculatedDiscount = Math.min(calculatedDiscount, calculatedTotalAmount);
 
-                // Trừ 1 lượt của tổng số lượng coupon có sẵn
-                await CouponModel.findOneAndUpdate(
-                    { code: body.couponCode },
-                    { $inc: { usage_limit: -1 } },
+                // Đánh dấu UserCoupon là đã sử dụng
+                await UserCoupon.findOneAndUpdate(
+                    { coupon_code: codeClean },
+                    { $set: { is_used: true } },
                     { session }
                 );
+            } else {
+                const coupon = await CouponModel.findOne({ code: codeClean }).session(session);
+                
+                if (coupon) {
+                    if (coupon.usage_limit_per_user > 0) {
+                        const userUsedCount = await OrderModel.countDocuments({ 
+                            couponCode: coupon.code, 
+                            email: body.email, 
+                            status: { $ne: 'cancelled' }
+                        }).session(session);
+                        
+                        if (userUsedCount >= coupon.usage_limit_per_user) {
+                            throw new Error('Bạn đã hết lượt sử dụng mã giảm giá này.');
+                        }
+                    }
+                    
+                    if (coupon.discount_type === 'percent') {
+                        calculatedDiscount = Math.round((calculatedTotalAmount * coupon.discount_value) / 100);
+                    } else {
+                        calculatedDiscount = coupon.discount_value;
+                    }
+                    
+                    calculatedDiscount = Math.min(calculatedDiscount, calculatedTotalAmount);
+
+                    await CouponModel.findOneAndUpdate(
+                        { code: codeClean },
+                        { $inc: { usage_limit: -1 } },
+                        { session }
+                    );
+                }
             }
         }
 

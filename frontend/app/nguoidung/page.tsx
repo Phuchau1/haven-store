@@ -22,7 +22,10 @@ import {
     Navigation,
     Clock,
     PackageCheck,
-    PackageX
+    PackageX,
+    Ticket,
+    Copy,
+    Check
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { useCart } from '@/app/component/CartContext';
@@ -44,6 +47,7 @@ interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
 
 const TABS = [
     { id: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
+    { id: 'vouchers', label: 'Ví Voucher của tôi', icon: Ticket },
     { id: 'settings', label: 'Cài đặt', icon: Settings },
     { id: 'notifications', label: 'Thông báo', icon: Bell },
 ];
@@ -727,7 +731,36 @@ export default function NguoiDungPage() {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-    
+    // State cho Ví Voucher
+    const [myCoupons, setMyCoupons] = useState<any[]>([]);
+    const [loadingCoupons, setLoadingCoupons] = useState(false);
+    const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+    const fetchMyCoupons = useCallback(async () => {
+        if (!user) return;
+        setLoadingCoupons(true);
+        try {
+            const token = localStorage.getItem('token') || '';
+            const res = await fetch('/api/coupons/my-coupons', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setMyCoupons(data.coupons || []);
+            }
+        } catch {
+            console.error('Error fetching user coupons');
+        } finally {
+            setLoadingCoupons(false);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (activeMainTab === 'vouchers') {
+            fetchMyCoupons();
+        }
+    }, [activeMainTab, fetchMyCoupons]);
+
     // State cho Chi tiết đơn hàng
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
