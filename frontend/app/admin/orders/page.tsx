@@ -487,12 +487,19 @@ export default function AdminOrders() {
                                                                     </p>
                                                                     <div className="space-y-0.5">
                                                                         {STATUS_OPTIONS.map((opt, optIdx) => {
-                                                                            const currentIdx = STATUS_OPTIONS.findIndex(s => s.id === order.status);
+                                                                            let normalizedStatus = order.status;
+                                                                            if (['waiting_pickup', 'picked_up', 'in_transit', 'out_for_delivery', 'delivering', 'shipping'].includes(order.status as string)) {
+                                                                                normalizedStatus = 'shipped';
+                                                                            } else if ((order.status as string) === 'completed') {
+                                                                                normalizedStatus = 'delivered';
+                                                                            }
+
+                                                                            const currentIdx = STATUS_OPTIONS.findIndex(s => s.id === normalizedStatus);
                                                                             
                                                                             // Logic: Chỉ được tiến, không được lùi
-                                                                            const isBackward = optIdx < currentIdx;
+                                                                            const isBackward = currentIdx !== -1 && optIdx < currentIdx;
                                                                             const isTerminal = order.status === 'cancelled' || order.status === 'refunded';
-                                                                            const isSame = order.status === opt.id;
+                                                                            const isSame = order.status === opt.id || (normalizedStatus === 'delivered' && opt.id === 'delivered') || (normalizedStatus === 'shipped' && opt.id === 'shipped');
                                                                             const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame);
 
                                                                             return (
