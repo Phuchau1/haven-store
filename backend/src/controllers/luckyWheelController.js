@@ -156,7 +156,7 @@ exports.spin = async (req, res) => {
 };
 
 /**
- * @desc Cập nhật toàn bộ cấu hình phần thưởng từ Admin
+ * @desc Cập nhật toàn bộ cấu hình phần thưởng từ Admin (hỗ trợ xóa các ô không có trong body)
  * Body: { prizes: [ { id, reward, type, coupon_code, discount_value, probability, valid_hours } ] }
  */
 exports.updateConfig = async (req, res) => {
@@ -170,11 +170,20 @@ exports.updateConfig = async (req, res) => {
             return res.json({ success: true, message: 'Đã reset về cấu hình mặc định.' });
         }
 
-        // Cập nhật từng prize theo _id
+        // Lấy danh sách ID hiện tại gửi lên
+        const submittedIds = prizes
+            .map(p => p._id || p.id)
+            .filter(id => id && id.length === 24);
+
+        // Xóa các phần thưởng trong MongoDB mà không còn trong submittedIds
+        if (submittedIds.length > 0) {
+            await SpinReward.deleteMany({ _id: { $nin: submittedIds } });
+        }
+
+        // Cập nhật hoặc tạo mới từng prize
         const updateOps = prizes.map(async (p) => {
             const idStr = p._id || p.id;
             if (idStr && idStr.length === 24) {
-                // Update existing
                 return SpinReward.findByIdAndUpdate(idStr, {
                     reward: p.reward || p.label,
                     type: p.type,
@@ -185,7 +194,6 @@ exports.updateConfig = async (req, res) => {
                     active: p.active !== false
                 }, { new: true });
             } else {
-                // Insert new
                 return SpinReward.create({
                     reward: p.reward || p.label,
                     type: p.type,
@@ -207,6 +215,23 @@ exports.updateConfig = async (req, res) => {
 };
 
 /**
+ * @desc Xóa trực tiếp 1 ô phần thưởng theo ID (Admin)
+ * @route DELETE /api/lucky-wheel/prize/:id
+ */
+exports.deletePrize = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ success: false, message: 'Thiếu ID phần thưởng' });
+
+        await SpinReward.findByIdAndDelete(id);
+        res.json({ success: true, message: 'Đã xóa ô phần thưởng thành công!' });
+    } catch (error) {
+        logger.error('Error deleting prize: ' + error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
  * @desc Kiểm tra người dùng có thể quay hôm nay không (không cần auth)
  * @route GET /api/lucky-wheel/can-spin?user_id=xxx
  */
@@ -223,7 +248,6 @@ exports.canSpin = async (req, res) => {
             spin_date: { $gte: today }
         });
 
-        // Tính thời gian đến lần quay tiếp theo (00:00 ngày mai)
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(0, 0, 0, 0);
@@ -237,4 +261,38 @@ exports.canSpin = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+/**
+ * @desc Lấy lịch sử tất cả các lượt quay của khách hàng (Admin)
+ * @route GET /api/lucky-wheel/history
+ */
+exports.getHistory = async (req, res) => {
+    try {
+        const { limit = 50, page = 1 } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+
+        const history = await SpinHistory.find({})
+            .sort({ spin_date: -1 })
+            .skip(skip)
+            .limit(Number(limit))
+            .lean();
+
+        const total = await SpinHistory.countDocuments({});
+
+        res.json({
+            success: true,
+            history,
+            pagination: {
+                page: Number(page),
+                limit: Number(limit),
+                total,
+                totalPages: Math.ceil(total / Number(limit))
+            }
+        });
+    } catch (error) {
+        logger.error('Error fetching spin history: ' + error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 

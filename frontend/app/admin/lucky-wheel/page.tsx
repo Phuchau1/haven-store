@@ -1,7 +1,13 @@
 'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { Save, Gift, Loader2, Plus, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Save, Gift, Loader2, Plus, Trash2, AlertCircle, CheckCircle2,
+    History, RefreshCw, X, ShieldAlert, Sparkles, Layers, Check, Calculator, AlertTriangle
+} from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
+import { toast } from 'react-hot-toast';
 
 interface Prize {
     _id?: string;
@@ -13,7 +19,6 @@ interface Prize {
     probability: number;
     valid_hours: number;
     active: boolean;
-    // Admin display helpers
     color?: string;
 }
 
@@ -23,35 +28,52 @@ interface Config {
     prizes: Prize[];
 }
 
+interface SpinHistoryItem {
+    _id: string;
+    user_id: string;
+    reward_text: string;
+    spin_date: string;
+}
+
 const TYPE_LABELS: Record<string, string> = {
     none: 'Không trúng',
-    fixed: 'Giảm tiền mặt (VND)',
+    fixed: 'Giảm tiền mặt (VNĐ)',
     percent: 'Giảm phần trăm (%)',
-    shipping: 'Miễn phí ship',
+    shipping: 'Miễn phí vận chuyển',
 };
 
-const DEFAULT_COLORS = ['#FFB300', '#FF8F00', '#E65100', '#BF360C', '#FFB300', '#FF8F00', '#E65100', '#BF360C'];
+const DEFAULT_COLORS = [
+    '#FFB300', '#FF8F00', '#E65100', '#BF360C',
+    '#059669', '#2563EB', '#7C3AED', '#DB2777'
+];
 
 export default function LuckyWheelAdminPage() {
     const { token } = useAuth();
+    const [activeTab, setActiveTab] = useState<'config' | 'history'>('config');
+
+    // Config state
     const [config, setConfig] = useState<Config | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
-    const showToast = (type: 'success' | 'error', msg: string) => {
-        setToast({ type, msg });
-        setTimeout(() => setToast(null), 3500);
-    };
+    // Delete Modal state
+    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
+    // History state
+    const [history, setHistory] = useState<SpinHistoryItem[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [historyPage, setHistoryPage] = useState(1);
+    const [historyTotalPages, setHistoryTotalPages] = useState(1);
+
+    // Fetch config
     const fetchConfig = useCallback(async () => {
+        setLoading(true);
         try {
-            const res = await fetch(`/api/lucky-wheel/config`);
+            const res = await fetch('/api/lucky-wheel/config');
             const data = await res.json();
             if (data.success && data.config) {
                 setConfig(data.config);
             } else if (data.success && data.prizes) {
-                // Fallback: map raw prizes
                 setConfig({
                     isActive: true,
                     spinsPerDay: 1,
@@ -65,15 +87,33 @@ export default function LuckyWheelAdminPage() {
                         probability: r.probability || 0,
                         valid_hours: r.valid_hours || 24,
                         active: r.active !== false,
-                        color: DEFAULT_COLORS[i % 8],
+                        color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
                     }))
                 });
             }
-        } catch (err) {
-            console.error('Fetch config failed', err);
-            showToast('error', 'Không thể tải cấu hình vòng quay!');
+        } catch {
+            toast.error('Không thể tải cấu hình vòng quay!');
         } finally {
             setLoading(false);
+        }
+    }, []);
+
+    // Fetch history
+    const fetchHistory = useCallback(async (page = 1) => {
+        setLoadingHistory(true);
+        try {
+            const res = await fetch(`/api/lucky-wheel/history?page=${page}&limit=20`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setHistory(data.history || []);
+                setHistoryTotalPages(data.pagination?.totalPages || 1);
+            }
+        } catch {
+            toast.error('Không thể tải lịch sử lượt quay!');
+        } finally {
+            setLoadingHistory(false);
         }
     }, [token]);
 
@@ -81,11 +121,18 @@ export default function LuckyWheelAdminPage() {
         fetchConfig();
     }, [fetchConfig]);
 
+    useEffect(() => {
+        if (activeTab === 'history') {
+            fetchHistory(historyPage);
+        }
+    }, [activeTab, historyPage, fetchHistory]);
+
+    // Save Config to Backend
     const handleSave = async () => {
         if (!config) return;
         setSaving(true);
         try {
-            const res = await fetch(`/api/lucky-wheel/config`, {
+            const res = await fetch('/api/lucky-wheel/config', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -95,19 +142,19 @@ export default function LuckyWheelAdminPage() {
             });
             const data = await res.json();
             if (data.success) {
-                showToast('success', 'Đã lưu cấu hình vòng quay thành công!');
-                fetchConfig(); // Reload lại để có _id mới nhất
+                toast.success('✨ Đã lưu cấu hình vòng quay & đồng bộ MongoDB!');
+                fetchConfig();
             } else {
-                showToast('error', 'Lỗi: ' + data.message);
+                throw new Error(data.message);
             }
-        } catch (err) {
-            console.error(err);
-            showToast('error', 'Lỗi kết nối!');
+        } catch (err: any) {
+            toast.error(err.message || 'Lỗi kết nối khi lưu cấu hình');
         } finally {
             setSaving(false);
         }
     };
 
+    // Update individual prize field
     const updatePrize = (index: number, field: keyof Prize, value: any) => {
         if (!config) return;
         const newPrizes = [...config.prizes];
@@ -115,215 +162,436 @@ export default function LuckyWheelAdminPage() {
         setConfig({ ...config, prizes: newPrizes });
     };
 
+    // Add prize
     const addPrize = () => {
         if (!config) return;
         setConfig({
             ...config,
             prizes: [...config.prizes, {
                 reward: 'Phần thưởng mới',
-                type: 'none',
-                coupon_code: '',
-                discount_value: 0,
-                probability: 1,
+                type: 'fixed',
+                coupon_code: 'SPIN' + Math.floor(10 + Math.random() * 90),
+                discount_value: 20000,
+                probability: 5,
                 valid_hours: 24,
                 active: true,
-                color: DEFAULT_COLORS[config.prizes.length % 8],
+                color: DEFAULT_COLORS[config.prizes.length % DEFAULT_COLORS.length],
             }]
         });
+        toast.success('Đã thêm ô phần thưởng mới. Hãy điều chỉnh % xác suất!');
     };
 
-    const removePrize = (index: number) => {
-        if (!config) return;
-        const newPrizes = config.prizes.filter((_, i) => i !== index);
+    // Confirm & delete prize
+    const confirmDeletePrize = () => {
+        if (deleteIndex === null || !config) return;
+        const deletedPrize = config.prizes[deleteIndex];
+        const newPrizes = config.prizes.filter((_, i) => i !== deleteIndex);
         setConfig({ ...config, prizes: newPrizes });
+
+        // If prize has DB ID, call delete API immediately
+        const prizeId = deletedPrize._id || deletedPrize.id;
+        if (prizeId && prizeId.length === 24) {
+            fetch(`/api/lucky-wheel/prize/${prizeId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    toast.success(`Đã xóa ô "${deletedPrize.reward}" khỏi Database!`);
+                }
+            }).catch(() => {});
+        } else {
+            toast.success(`Đã xóa ô "${deletedPrize.reward}"! Nhấn Lưu để cập nhật.`);
+        }
+
+        setDeleteIndex(null);
     };
 
-    if (loading) return (
-        <div className="p-8 flex items-center justify-center min-h-[400px]">
-            <Loader2 className="animate-spin text-indigo-500 w-10 h-10" />
-        </div>
-    );
+    // Auto balance probabilities to equal 100%
+    const autoBalanceProbabilities = () => {
+        if (!config || config.prizes.length === 0) return;
+        const count = config.prizes.length;
+        const equalShare = Number((100 / count).toFixed(1));
+        let remainder = Number((100 - (equalShare * count)).toFixed(1));
 
-    if (!config) return (
-        <div className="p-8 text-center text-red-500">
-            <AlertCircle className="mx-auto mb-2" size={32} />
-            Không thể tải dữ liệu vòng quay. Vui lòng thử lại.
-        </div>
-    );
+        const balanced = config.prizes.map((p, i) => ({
+            ...p,
+            probability: i === 0 ? Number((equalShare + remainder).toFixed(1)) : equalShare
+        }));
 
-    const totalProbability = config.prizes.reduce((sum, p) => sum + Number(p.probability || 0), 0);
-    const probOk = Math.abs(totalProbability - 100) < 0.01;
+        setConfig({ ...config, prizes: balanced });
+        toast.success(`✨ Đã tự động cân bằng xác suất (${count} ô x ~${equalShare}%)!`);
+    };
+
+    const totalProbability = config?.prizes.reduce((sum, p) => sum + Number(p.probability || 0), 0) || 0;
+    const probOk = Math.abs(totalProbability - 100) < 0.1;
+
+    const inputStyle = { backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' };
 
     return (
-        <div className="p-6 pb-24 max-w-6xl mx-auto">
-            {/* Toast */}
-            {toast && (
-                <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-xl text-white text-sm font-medium ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-500'}`}>
-                    {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                    {toast.msg}
-                </div>
-            )}
-
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl border shadow-sm"
+                style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <Gift className="text-amber-500" size={24} />
-                        Vòng Quay May Mắn
-                    </h1>
-                    <p className="text-slate-500 text-sm mt-1">Cài đặt ô phần thưởng, xác suất và mã coupon tương ứng.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className={`text-sm font-bold px-3 py-2 rounded-lg ${probOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        Tổng XS: {totalProbability.toFixed(1)}% {!probOk && '≠ 100%'}
+                    <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider flex items-center gap-1">
+                            <Gift size={12} /> Gamification Marketing
+                        </span>
+                        <span className="text-xs" style={{ color: 'var(--adm-text-subtle)' }}>• Tự động cấp Voucher vào Ví</span>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving || !probOk}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                    >
-                        {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Lưu cấu hình
-                    </button>
+                    <h1 className="text-xl font-black tracking-tight mt-1 flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                        Quản Lý Vòng Quay May Mắn
+                    </h1>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Cấu hình phần thưởng, xác suất %, mã giảm giá và theo dõi nhật ký quay</p>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                    {activeTab === 'config' && (
+                        <>
+                            <button
+                                onClick={autoBalanceProbabilities}
+                                className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all"
+                                style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
+                                title="Tự động chia đều 100% xác suất cho các ô"
+                            >
+                                <Calculator size={14} className="text-amber-600" /> Cân bằng %
+                            </button>
+
+                            <button
+                                onClick={handleSave}
+                                disabled={saving || !probOk}
+                                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm disabled:opacity-40 transition-all"
+                            >
+                                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                Lưu Cấu Hình
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
-            {!probOk && (
-                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex items-center gap-2">
-                    <AlertCircle size={16} className="shrink-0" />
-                    Tổng xác suất các ô phải bằng <strong>100%</strong> trước khi có thể lưu (hiện tại: {totalProbability.toFixed(1)}%).
+            {/* Tab Navigation */}
+            <div className="flex items-center gap-2 border-b pb-2" style={{ borderColor: 'var(--adm-border)' }}>
+                <button
+                    onClick={() => setActiveTab('config')}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                        activeTab === 'config'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'border'
+                    }`}
+                    style={activeTab !== 'config' ? { backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' } : {}}
+                >
+                    <Layers size={14} /> Cấu Hình Ô Phần Thưởng ({config?.prizes.length || 0})
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('history')}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                        activeTab === 'history'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'border'
+                    }`}
+                    style={activeTab !== 'history' ? { backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' } : {}}
+                >
+                    <History size={14} /> Nhật Ký Lượt Quay Khách Hàng
+                </button>
+            </div>
+
+            {/* TAB 1: CONFIG */}
+            {activeTab === 'config' && (
+                <div className="space-y-4">
+                    {/* Probability Meter Card */}
+                    <div className="p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
+                        style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2.5 rounded-xl border ${probOk ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>
+                                {probOk ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                    Tổng Xác Suất Hiện Tại:
+                                    <span className={`font-mono text-sm ${probOk ? 'text-emerald-600 font-black' : 'text-rose-600 font-black'}`}>
+                                        {totalProbability.toFixed(1)}%
+                                    </span>
+                                </p>
+                                <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>
+                                    {probOk ? '✅ Xác suất hoàn hảo = 100%, sẵn sàng lưu cấu hình' : '⚠️ Tổng % phải đạt đúng 100% trước khi lưu (nhấn "Cân bằng %" để tự động chia)'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={addPrize}
+                            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto"
+                        >
+                            <Plus size={14} /> Thêm Ô Phần Thưởng
+                        </button>
+                    </div>
+
+                    {/* Prizes Table */}
+                    <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs min-w-[950px]">
+                                <thead className="text-[10px] font-bold uppercase tracking-wider border-b"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
+                                    <tr>
+                                        <th className="px-4 py-3.5 w-10 text-center">Màu</th>
+                                        <th className="px-4 py-3.5">Tên Hiển Thị Ô</th>
+                                        <th className="px-4 py-3.5">Loại Giải Thưởng</th>
+                                        <th className="px-4 py-3.5 text-center">Giá Trị</th>
+                                        <th className="px-4 py-3.5">Mã Coupon Thưởng</th>
+                                        <th className="px-4 py-3.5 text-center">Hạn Dùng (Giờ)</th>
+                                        <th className="px-4 py-3.5 text-center">Xác Suất (%)</th>
+                                        <th className="px-4 py-3.5 text-center">Kích Hoạt</th>
+                                        <th className="px-4 py-3.5 text-right">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        Array.from({ length: 5 }).map((_, i) => (
+                                            <tr key={i} className="border-b" style={{ borderColor: 'var(--adm-border)' }}>
+                                                {Array.from({ length: 9 }).map((__, j) => (
+                                                    <td key={j} className="px-4 py-3">
+                                                        <div className="h-4 rounded animate-pulse" style={{ backgroundColor: 'var(--adm-surface-2)' }} />
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))
+                                    ) : config?.prizes.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={9} className="px-4 py-12 text-center" style={{ color: 'var(--adm-text-muted)' }}>
+                                                <Gift size={36} className="mx-auto mb-2 opacity-30" />
+                                                <p>Chưa có phần thưởng nào. Nhấn "+ Thêm Ô Phần Thưởng" để bắt đầu.</p>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        config?.prizes.map((prize, index) => (
+                                            <tr key={index} className="border-b last:border-0 transition-colors hover:bg-black/[0.02]"
+                                                style={{ borderColor: 'var(--adm-border)' }}>
+                                                <td className="px-4 py-3 text-center">
+                                                    <input
+                                                        type="color"
+                                                        value={prize.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
+                                                        onChange={e => updatePrize(index, 'color', e.target.value)}
+                                                        className="w-7 h-7 rounded-lg cursor-pointer border p-0.5 bg-transparent"
+                                                        title="Chọn màu sắc cho ô phần thưởng này"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <input
+                                                        type="text"
+                                                        value={prize.reward}
+                                                        onChange={e => updatePrize(index, 'reward', e.target.value)}
+                                                        className="w-full border rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                                                        style={inputStyle}
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <select
+                                                        value={prize.type}
+                                                        onChange={e => updatePrize(index, 'type', e.target.value)}
+                                                        className="w-full border rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer"
+                                                        style={inputStyle}
+                                                    >
+                                                        {Object.entries(TYPE_LABELS).map(([v, l]) => (
+                                                            <option key={v} value={v}>{l}</option>
+                                                        ))}
+                                                    </select>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={prize.discount_value}
+                                                        onChange={e => updatePrize(index, 'discount_value', Number(e.target.value))}
+                                                        disabled={prize.type === 'none' || prize.type === 'shipping'}
+                                                        className="w-24 text-center border rounded-xl px-2 py-1.5 text-xs font-bold focus:outline-none disabled:opacity-30"
+                                                        style={inputStyle}
+                                                        placeholder="0"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <input
+                                                        type="text"
+                                                        value={prize.coupon_code}
+                                                        onChange={e => updatePrize(index, 'coupon_code', e.target.value.toUpperCase())}
+                                                        disabled={prize.type === 'none'}
+                                                        className="w-32 border rounded-xl px-3 py-1.5 text-xs font-mono font-bold uppercase focus:outline-none disabled:opacity-30"
+                                                        style={inputStyle}
+                                                        placeholder="SPIN20"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={prize.valid_hours}
+                                                        onChange={e => updatePrize(index, 'valid_hours', Number(e.target.value))}
+                                                        disabled={prize.type === 'none'}
+                                                        className="w-20 text-center border rounded-xl px-2 py-1.5 text-xs font-semibold focus:outline-none disabled:opacity-30"
+                                                        style={inputStyle}
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        max={100}
+                                                        step={0.5}
+                                                        value={prize.probability}
+                                                        onChange={e => updatePrize(index, 'probability', Number(e.target.value))}
+                                                        className="w-20 text-center border rounded-xl px-2 py-1.5 font-bold font-mono text-amber-600 text-xs focus:outline-none"
+                                                        style={inputStyle}
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={prize.active !== false}
+                                                        onChange={e => updatePrize(index, 'active', e.target.checked)}
+                                                        className="w-4 h-4 rounded text-blue-600 accent-blue-600 cursor-pointer"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        onClick={() => setDeleteIndex(index)}
+                                                        className="p-1.5 rounded-lg border text-rose-500 hover:bg-rose-50 transition-colors"
+                                                        style={{ borderColor: 'var(--adm-border)' }}
+                                                        title="Xóa ô này"
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* Prizes Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                    <h3 className="font-bold text-slate-800">Danh sách ô phần thưởng ({config.prizes.length} ô)</h3>
-                    <button
-                        onClick={addPrize}
-                        className="flex items-center gap-1.5 text-sm text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
-                    >
-                        <Plus size={15} /> Thêm ô
-                    </button>
-                </div>
+            {/* TAB 2: HISTORY */}
+            {activeTab === 'history' && (
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-2xl border shadow-sm"
+                        style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                        <div>
+                            <h3 className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>Lịch Sử Lượt Quay Thưởng Khách Hàng</h3>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Ghi lại toàn bộ lượt quay real-time từ người dùng</p>
+                        </div>
+                        <button
+                            onClick={() => fetchHistory(historyPage)}
+                            className="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5"
+                            style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
+                        >
+                            <RefreshCw size={13} className={loadingHistory ? 'animate-spin' : ''} /> Làm Mới
+                        </button>
+                    </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-600 min-w-[900px]">
-                        <thead className="text-xs uppercase bg-slate-50 text-slate-500 border-b border-slate-100">
-                            <tr>
-                                <th className="px-4 py-3 w-8">#</th>
-                                <th className="px-4 py-3">Tên hiển thị</th>
-                                <th className="px-4 py-3">Loại thưởng</th>
-                                <th className="px-4 py-3">Giá trị</th>
-                                <th className="px-4 py-3">Mã Coupon</th>
-                                <th className="px-4 py-3">Hạn dùng (giờ)</th>
-                                <th className="px-4 py-3">Xác suất (%)</th>
-                                <th className="px-4 py-3">Kích hoạt</th>
-                                <th className="px-4 py-3 w-12"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {config.prizes.map((prize, index) => (
-                                <tr key={index} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-4 py-3">
-                                        <div
-                                            className="w-6 h-6 rounded-full border-2 border-white shadow"
-                                            style={{ backgroundColor: DEFAULT_COLORS[index % 8] }}
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <input
-                                            type="text"
-                                            value={prize.reward}
-                                            onChange={(e) => updatePrize(index, 'reward', e.target.value)}
-                                            className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none"
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <select
-                                            value={prize.type}
-                                            onChange={(e) => updatePrize(index, 'type', e.target.value)}
-                                            className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                                        >
-                                            {Object.entries(TYPE_LABELS).map(([v, l]) => (
-                                                <option key={v} value={v}>{l}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <input
-                                            type="number"
-                                            value={prize.discount_value}
-                                            onChange={(e) => updatePrize(index, 'discount_value', Number(e.target.value))}
-                                            disabled={prize.type === 'none' || prize.type === 'shipping'}
-                                            className="w-24 px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm text-center focus:ring-2 focus:ring-indigo-200 outline-none disabled:opacity-40"
-                                            min="0"
-                                            placeholder={prize.type === 'none' || prize.type === 'shipping' ? '-' : '0'}
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <input
-                                            type="text"
-                                            value={prize.coupon_code}
-                                            onChange={(e) => updatePrize(index, 'coupon_code', e.target.value)}
-                                            disabled={prize.type === 'none'}
-                                            className="w-32 px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm font-mono uppercase focus:ring-2 focus:ring-indigo-200 outline-none disabled:opacity-40"
-                                            placeholder="SPIN20"
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <input
-                                            type="number"
-                                            value={prize.valid_hours}
-                                            onChange={(e) => updatePrize(index, 'valid_hours', Number(e.target.value))}
-                                            disabled={prize.type === 'none'}
-                                            className="w-20 px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm text-center focus:ring-2 focus:ring-indigo-200 outline-none disabled:opacity-40"
-                                            min="0"
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <input
-                                            type="number"
-                                            value={prize.probability}
-                                            onChange={(e) => updatePrize(index, 'probability', Number(e.target.value))}
-                                            className="w-20 px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm text-center font-bold focus:ring-2 focus:ring-indigo-200 outline-none"
-                                            min="0"
-                                            max="100"
-                                            step="0.5"
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={prize.active !== false}
-                                            onChange={(e) => updatePrize(index, 'active', e.target.checked)}
-                                            className="w-4 h-4 rounded text-indigo-600 accent-indigo-600"
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <button
-                                            onClick={() => removePrize(index)}
-                                            className="text-slate-300 hover:text-red-500 transition-colors"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs">
+                                <thead className="text-[10px] font-bold uppercase tracking-wider border-b"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
+                                    <tr>
+                                        <th className="px-4 py-3">ID Người Dùng</th>
+                                        <th className="px-4 py-3">Phần Thưởng Trúng</th>
+                                        <th className="px-4 py-3">Thời Gian Quay</th>
+                                    </tr>
+                                </thead>
+                                <tbody style={{ borderColor: 'var(--adm-border)' }}>
+                                    {loadingHistory ? (
+                                        Array.from({ length: 8 }).map((_, i) => (
+                                            <tr key={i} className="border-b" style={{ borderColor: 'var(--adm-border)' }}>
+                                                {Array.from({ length: 3 }).map((__, j) => (
+                                                    <td key={j} className="px-4 py-3">
+                                                        <div className="h-3 rounded animate-pulse" style={{ backgroundColor: 'var(--adm-surface-2)' }} />
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))
+                                    ) : history.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={3} className="px-4 py-12 text-center" style={{ color: 'var(--adm-text-muted)' }}>
+                                                <History size={32} className="mx-auto mb-2 opacity-30" />
+                                                <p>Chưa có lượt quay nào được ghi nhận</p>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        history.map(item => (
+                                            <tr key={item._id} className="border-b last:border-0 transition-colors hover:bg-black/[0.02]"
+                                                style={{ borderColor: 'var(--adm-border)' }}>
+                                                <td className="px-4 py-3 font-mono font-bold text-amber-600">{item.user_id}</td>
+                                                <td className="px-4 py-3 font-semibold" style={{ color: 'var(--adm-text)' }}>
+                                                    {item.reward_text.includes('Chúc') ? (
+                                                        <span className="text-gray-500">{item.reward_text}</span>
+                                                    ) : (
+                                                        <span className="text-emerald-600 font-bold">🎁 {item.reward_text}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3" style={{ color: 'var(--adm-text-muted)' }}>
+                                                    {new Date(item.spin_date).toLocaleString('vi-VN')}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
 
-            <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100 text-sm text-blue-700">
-                <p className="font-semibold mb-1">💡 Hướng dẫn:</p>
-                <ul className="list-disc list-inside space-y-1 text-blue-600">
-                    <li>Tổng xác suất tất cả các ô phải đúng bằng <strong>100%</strong>.</li>
-                    <li>Ô loại <strong>Không trúng</strong> nên có xác suất cao (vd: 50-60%).</li>
-                    <li>Mã Coupon sẽ được tự động sinh unique cho mỗi user khi trúng.</li>
-                    <li>Hạn dùng = 0 nghĩa là không hết hạn.</li>
-                </ul>
-            </div>
+            {/* DELETE CONFIRMATION MODAL */}
+            <AnimatePresence>
+                {deleteIndex !== null && config && (
+                    <>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            onClick={() => setDeleteIndex(null)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm border rounded-2xl p-6 space-y-4 shadow-2xl"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
+                                    <AlertTriangle size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm" style={{ color: 'var(--adm-text)' }}>Xác Nhận Xóa Ô Phần Thưởng</h3>
+                                    <p className="text-xs" style={{ color: 'var(--adm-text-muted)' }}>Bạn có chắc muốn xóa ô này khỏi Vòng Quay?</p>
+                                </div>
+                            </div>
+
+                            <div className="p-3 rounded-xl border text-xs" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <p className="font-bold text-amber-600">{config.prizes[deleteIndex]?.reward}</p>
+                                <p style={{ color: 'var(--adm-text-muted)' }}>Loại: {TYPE_LABELS[config.prizes[deleteIndex]?.type]} | Xác suất: {config.prizes[deleteIndex]?.probability}%</p>
+                            </div>
+
+                            <div className="flex gap-2.5 pt-2">
+                                <button
+                                    onClick={() => setDeleteIndex(null)}
+                                    className="flex-1 py-2.5 rounded-xl border text-xs font-bold"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
+                                >
+                                    Hủy bỏ
+                                </button>
+                                <button
+                                    onClick={confirmDeletePrize}
+                                    className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm"
+                                >
+                                    Xác Nhận Xóa
+                                </button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

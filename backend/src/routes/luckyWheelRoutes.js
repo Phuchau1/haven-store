@@ -10,5 +10,7 @@ router.post('/spin', protect, luckyWheelController.spin);
 
 // Admin routes
 router.put('/config', protect, admin, luckyWheelController.updateConfig);
+router.delete('/prize/:id', protect, admin, luckyWheelController.deletePrize);
+router.get('/history', protect, admin, luckyWheelController.getHistory);
 
 module.exports = router;
