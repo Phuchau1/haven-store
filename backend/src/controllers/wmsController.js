@@ -19,13 +19,21 @@ const logger               = require('../utils/logger');
  */
 exports.getWmsDashboard = async (req, res) => {
     try {
+        // Luôn đảm bảo đồng bộ từ các sản phẩm mới nhất trong MongoDB
+        await autoSeedWmsData();
         let allItems = await Inventory.find({}).lean();
 
-        // Tự động Seed dữ liệu tồn kho mẫu nếu chưa có dữ liệu trong WMS
-        if (allItems.length === 0) {
-            await autoSeedWmsData();
-            allItems = await Inventory.find({}).lean();
-        }
+        // Tính tổng số lượng đã bán từ các Đơn hàng thực tế trong MongoDB
+        const deliveredOrders = await OrderModel.find({ status: { $in: ['delivered', 'completed', 'refunded'] } }).lean();
+        const salesBySku = {};
+        deliveredOrders.forEach(order => {
+            (order.items || []).forEach(item => {
+                const pId = item.product?.id || item.product?._id || item.product;
+                if (pId) {
+                    salesBySku[pId] = (salesBySku[pId] || 0) + (item.quantity || 1);
+                }
+            });
+        });
 
         let totalSkus = allItems.length;
         let totalValuation = 0;
@@ -39,6 +47,11 @@ exports.getWmsDashboard = async (req, res) => {
         let outOfStockCount = 0;
 
         allItems.forEach(item => {
+            // Đồng bộ sold nếu có dữ liệu từ đơn hàng thật
+            if (salesBySku[item.productId]) {
+                item.sold = salesBySku[item.productId];
+            }
+
             totalValuation += (item.available * (item.costPrice || item.sellingPrice || 0));
             totalAvailable += item.available;
             totalReserved  += item.reserved;
