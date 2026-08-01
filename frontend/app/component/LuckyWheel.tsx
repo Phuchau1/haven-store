@@ -59,10 +59,10 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
 
     ctx.clearRect(0, 0, size, size);
 
-    // Warm, friendly human fashion color palette (alternating cream/red/gold/emerald/navy)
+    // Warm, organic human fashion color palette (soft cream, amber, rose, emerald, navy)
     const PALETTE = [
-        '#EE4D2D', '#FFB800', '#00B57E', '#2B6CB0', 
-        '#FF6B6B', '#9F7AEA', '#DD6B20', '#319795'
+        '#E53E3E', '#ED8936', '#38A169', '#3182CE', 
+        '#D69E2E', '#805AD5', '#DD6B20', '#319795'
     ];
 
     prizes.forEach((prize, i) => {
@@ -79,12 +79,12 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
         ctx.fillStyle = color;
         ctx.fill();
 
-        // Thick White border dividers
+        // Thick Crisp White dividers between segments
         ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3.5;
         ctx.stroke();
 
-        // Render Text & Icon
+        // Render Text & Icon (TO RÕ NÉT)
         ctx.save();
         ctx.translate(cx, cy);
         const midAngle = startAngle + (endAngle - startAngle) / 2;
@@ -92,42 +92,42 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
         ctx.textAlign = 'right';
         ctx.fillStyle = '#FFFFFF';
 
-        // Font: Clean, crisp 14px bold font
-        ctx.font = `bold 14px Arial, sans-serif`;
-        ctx.shadowColor = 'rgba(0,0,0,0.35)';
-        ctx.shadowBlur = 3;
+        // High contrast bold font (16px)
+        ctx.font = `bold 16px Arial, Helvetica, sans-serif`;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowBlur = 4;
         ctx.shadowOffsetY = 1;
 
-        // Label text
-        ctx.fillText(prize.shortLabel, radius - 20, 5);
+        // Text label
+        ctx.fillText(prize.shortLabel, radius - 24, 6);
         
-        // Emoji / Icon
-        ctx.font = `15px Arial, sans-serif`;
+        // Emoji icon
+        ctx.font = `18px Arial, sans-serif`;
         const textMetrics = ctx.measureText(prize.shortLabel);
-        ctx.fillText(prize.emoji, radius - 28 - textMetrics.width, 5);
+        ctx.fillText(prize.emoji, radius - 32 - textMetrics.width, 6);
 
         ctx.restore();
     });
 
-    // Outer golden rim
+    // Outer ring border
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = '#E2E8F0';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 5;
     ctx.stroke();
 
-    // Center Pin Circle
+    // Center Knob Pin
     ctx.beginPath();
-    ctx.arc(cx, cy, 30, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 34, 0, Math.PI * 2);
     ctx.fillStyle = '#FFFFFF';
     ctx.fill();
-    ctx.strokeStyle = '#EE4D2D';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#E53E3E';
+    ctx.lineWidth = 5;
     ctx.stroke();
 
-    // Center Icon / Gift
-    ctx.fillStyle = '#EE4D2D';
-    ctx.font = 'bold 18px sans-serif';
+    // Center Gift Icon
+    ctx.fillStyle = '#E53E3E';
+    ctx.font = 'bold 22px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('🎁', cx, cy + 1);
@@ -155,7 +155,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize, prizes: Whe
     const [copied, setCopied] = useState(false);
     const particles = Array.from({ length: 30 }, (_, i) => ({
         id: i,
-        x: Math.random() * 340,
+        x: Math.random() * 360,
         y: Math.random() * 100,
         color: prizes[i % prizes.length].color,
     }));
@@ -177,7 +177,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize, prizes: Whe
         >
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
             <motion.div
-                className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100"
+                className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100"
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.5, opacity: 0 }}
@@ -201,7 +201,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize, prizes: Whe
                         {prize.type === 'retry' ? 'Chúc may mắn lần sau!' : 'Chúc mừng bạn!'}
                     </h2>
                     <p className="text-slate-500 mt-1 text-xs font-medium">
-                        {prize.type === 'retry' ? 'Hãy thử lại vào ngày mai nhé!' : 'Bạn đã nhận được phần thưởng'}
+                        {prize.type === 'retry' ? 'Hãy quay lại vào ngày mai nhé!' : 'Bạn đã nhận được phần thưởng'}
                     </p>
                 </div>
 
@@ -209,7 +209,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize, prizes: Whe
                     <div className="px-6 py-6">
                         <div className="text-center mb-5">
                             <div
-                                className="inline-block px-6 py-3 rounded-2xl text-white font-black text-xl shadow-md"
+                                className="inline-block px-6 py-3 rounded-2xl text-white font-black text-2xl shadow-md"
                                 style={{ backgroundColor: prize.color }}
                             >
                                 {prize.label}
@@ -223,7 +223,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize, prizes: Whe
                                     onClick={handleCopy}
                                     className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-orange-50 border-2 border-dashed border-orange-200 hover:bg-orange-100/60 transition-colors group"
                                 >
-                                    <span className="font-mono text-xl font-bold text-orange-600 tracking-wider">
+                                    <span className="font-mono text-2xl font-bold text-orange-600 tracking-wider">
                                         {prize.code}
                                     </span>
                                     {copied
@@ -369,7 +369,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
     if (loadingConfig) {
         return (
             <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                <Loader2 className="animate-spin text-orange-500 w-12 h-12" />
+                <Loader2 className="animate-spin text-red-500 w-12 h-12" />
             </div>
         );
     }
@@ -384,58 +384,58 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={!spinning ? onClose : undefined} />
 
             <motion.div
-                className="relative w-full max-w-[480px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100"
+                className="relative w-full max-w-[560px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100"
                 initial={{ scale: 0.85, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.85, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', bounce: 0.2 }}
             >
-                {/* Header Clean White / Red Theme */}
-                <div className="relative bg-gradient-to-r from-red-600 to-rose-500 px-6 pt-6 pb-6 text-center text-white">
+                {/* Header Clean Red Theme */}
+                <div className="relative bg-red-600 px-8 pt-7 pb-7 text-center text-white">
                     <button
                         onClick={!spinning ? onClose : undefined}
-                        className="absolute right-4 top-4 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+                        className="absolute right-5 top-5 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
                     >
-                        <X size={20} />
+                        <X size={22} />
                     </button>
                     
-                    <h2 className="text-2xl font-black tracking-tight flex items-center justify-center gap-2">
+                    <h2 className="text-3xl font-black tracking-tight flex items-center justify-center gap-2">
                         <span>🎁</span> VÒNG QUAY MAY MẮN
                     </h2>
-                    <p className="text-red-100 text-xs font-medium mt-1">Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn</p>
+                    <p className="text-red-100 text-sm font-medium mt-1">Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn</p>
                 </div>
 
-                {/* Wheel Area (TO HƠN) */}
-                <div className="relative px-6 py-8 flex flex-col items-center bg-slate-50/50">
+                {/* Wheel Area (SIÊU TO & RÕ NÉT) */}
+                <div className="relative px-8 py-8 flex flex-col items-center bg-slate-50/60">
                     
-                    {/* Outer Frame (Size 340px) */}
-                    <div className="relative w-[340px] h-[340px] rounded-full p-3 bg-white shadow-xl border-4 border-orange-400 flex items-center justify-center">
+                    {/* Outer Frame (Size 420px) */}
+                    <div className="relative w-[420px] h-[420px] rounded-full p-3.5 bg-white shadow-xl border-[5px] border-amber-400 flex items-center justify-center">
                         
                         {/* Bulbs / Dots */}
                         {Array.from({ length: 16 }).map((_, i) => (
                             <div
                                 key={i}
-                                className={`absolute w-3 h-3 rounded-full ${i % 2 === 0 ? 'bg-orange-500' : 'bg-yellow-400'} shadow-sm`}
+                                className={`absolute w-3.5 h-3.5 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
                                 style={{
                                     top: '50%', left: '50%',
-                                    transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-164px)`,
+                                    transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-204px)`,
                                 }}
                             />
                         ))}
 
-                        {/* Rotating Wheel Canvas (314px x 314px) */}
+                        {/* Rotating Wheel Canvas (390px x 390px) */}
                         <motion.div
                             className="relative w-full h-full rounded-full overflow-hidden shadow-inner bg-white"
                             animate={{ rotate: rotation }}
                             transition={{ duration: spinning ? 5.2 : 0, ease: [0.15, 0.85, 0.15, 1] }}
                         >
-                            <canvas ref={canvasRef} width={314} height={314} className="w-full h-full block" />
+                            <canvas ref={canvasRef} width={390} height={390} className="w-full h-full block" />
                         </motion.div>
 
                         {/* Red Pin Pointer Arrow */}
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-11 drop-shadow-md z-20 flex flex-col items-center pointer-events-none">
-                            <div className="w-5 h-5 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
-                            <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[24px] border-t-red-600 -mt-2.5 filter drop-shadow" />
+                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-12 drop-shadow-md z-20 flex flex-col items-center pointer-events-none">
+                            <div className="w-6 h-6 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
+                            <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[28px] border-t-red-600 -mt-3 filter drop-shadow" />
                         </div>
                     </div>
 
@@ -445,26 +445,26 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                             <button
                                 onClick={spin}
                                 disabled={spinning}
-                                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-lg shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full py-4.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-xl shadow-xl shadow-red-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {spinning ? (
                                     <>
-                                        <Loader2 className="animate-spin text-white" size={22} />
+                                        <Loader2 className="animate-spin text-white" size={24} />
                                         <span>ĐANG QUAY...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Sparkles size={20} className="text-yellow-300" />
+                                        <span>✨</span>
                                         <span>QUAY NGAY HÔM NAY!</span>
                                     </>
                                 )}
                             </button>
                         ) : (
-                            <div className="w-full py-4 px-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
-                                <span className="font-semibold text-xs text-slate-700 flex items-center gap-2">
-                                    <Clock size={16} className="text-orange-500" /> Đã hết lượt quay hôm nay
+                            <div className="w-full py-4 px-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+                                <span className="font-bold text-sm text-slate-700 flex items-center gap-2">
+                                    <Clock size={18} className="text-orange-500" /> Đã hết lượt quay hôm nay
                                 </span>
-                                <span className="text-xs font-mono font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-200">
+                                <span className="text-sm font-mono font-bold text-orange-600 bg-orange-50 px-3.5 py-1.5 rounded-xl border border-orange-200">
                                     {timeLeft}
                                 </span>
                             </div>
