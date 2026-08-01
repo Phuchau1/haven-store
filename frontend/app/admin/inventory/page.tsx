@@ -64,80 +64,87 @@ export default function WMSDashboard() {
         ]
     };
 
-    if (loading) return <div className="p-8 text-center text-slate-500">Đang tải dữ liệu...</div>;
+    if (loading) return <div className="p-8 text-center" style={{ color: 'var(--adm-text-muted)' }}>Đang tải dữ liệu...</div>;
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center p-6 rounded-2xl border shadow-sm"
+                style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Dashboard Kho Hàng</h2>
-                    <p className="text-sm text-slate-500">Tổng quan tình hình xuất nhập tồn.</p>
+                    <h2 className="text-xl font-bold" style={{ color: 'var(--adm-text)' }}>Dashboard Kho Hàng</h2>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Tổng quan tình hình xuất nhập tồn theo thời gian thực</p>
                 </div>
                 <a 
                     href="/api/export/excel/transactions" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm"
                 >
-                    <Download size={16} />
+                    <Download size={15} />
                     Xuất Excel (Lịch sử)
                 </a>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-                <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-5 rounded-2xl border shadow-sm flex items-center gap-4"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 shrink-0">
                         <Boxes size={22} />
                     </div>
                     <div>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Tổng Tồn Kho</p>
-                        <p className="text-xl font-bold text-slate-800 mt-1">{stats.totalStock.toLocaleString('vi-VN')} chiếc</p>
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--adm-text-muted)' }}>Tổng Tồn Kho</p>
+                        <p className="text-xl font-black mt-1" style={{ color: 'var(--adm-text)' }}>{stats.totalStock.toLocaleString('vi-VN')} chiếc</p>
                     </div>
                 </div>
                 
-                <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
+                <div className="p-5 rounded-2xl border shadow-sm flex items-center gap-4"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 border border-rose-100 shrink-0">
                         <AlertTriangle size={22} />
                     </div>
                     <div>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Hết / Sắp Hết</p>
-                        <p className="text-xl font-bold text-rose-600 mt-1">{stats.outOfStockSKUs} / {stats.lowStockSKUs} SKU</p>
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--adm-text-muted)' }}>Hết / Sắp Hết</p>
+                        <p className="text-xl font-black text-rose-600 mt-1">{stats.outOfStockSKUs} / {stats.lowStockSKUs} SKU</p>
                     </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                <div className="p-5 rounded-2xl border shadow-sm flex items-center gap-4"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 border border-emerald-100 shrink-0">
                         <ArrowDownLeft size={22} />
                     </div>
                     <div>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Nhập hôm nay</p>
-                        <p className="text-xl font-bold text-emerald-600 mt-1">+{stats.importsToday}</p>
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--adm-text-muted)' }}>Nhập hôm nay</p>
+                        <p className="text-xl font-black text-emerald-600 mt-1">+{stats.importsToday}</p>
                     </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                <div className="p-5 rounded-2xl border shadow-sm flex items-center gap-4"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 border border-amber-100 shrink-0">
                         <ArrowUpRight size={22} />
                     </div>
                     <div>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Xuất hôm nay</p>
-                        <p className="text-xl font-bold text-amber-600 mt-1">-{stats.exportsToday}</p>
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--adm-text-muted)' }}>Xuất hôm nay</p>
+                        <p className="text-xl font-black text-amber-600 mt-1">-{stats.exportsToday}</p>
                     </div>
                 </div>
             </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <h3 className="font-bold text-slate-800 mb-4">Lưu lượng Nhập/Xuất (Tháng)</h3>
+                <div className="p-6 rounded-2xl border shadow-sm"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <h3 className="font-bold text-sm mb-4" style={{ color: 'var(--adm-text)' }}>Lưu lượng Nhập/Xuất (Tháng)</h3>
                     <Line data={lineChartData} options={{ responsive: true }} />
                 </div>
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <h3 className="font-bold text-slate-800 mb-4">Giá trị Tồn Kho ước tính</h3>
-                    <div className="flex flex-col items-center justify-center h-full">
-                        <p className="text-4xl font-black text-indigo-600">{stats.totalStockValue.toLocaleString('vi-VN')} đ</p>
-                        <p className="text-slate-500 mt-2">Dựa trên giá bán hiện tại của {stats.totalSKUs} SKU</p>
+                <div className="p-6 rounded-2xl border shadow-sm flex flex-col justify-between"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <h3 className="font-bold text-sm mb-4" style={{ color: 'var(--adm-text)' }}>Giá trị Tồn Kho ước tính</h3>
+                    <div className="flex flex-col items-center justify-center py-8">
+                        <p className="text-4xl font-black text-amber-600">{stats.totalStockValue.toLocaleString('vi-VN')} đ</p>
+                        <p className="text-xs mt-2" style={{ color: 'var(--adm-text-muted)' }}>Dựa trên giá bán hiện tại của {stats.totalSKUs} SKU</p>
                     </div>
                 </div>
             </div>

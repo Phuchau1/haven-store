@@ -35,12 +35,12 @@ interface ReturnOrder {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-    return_requested: 'bg-amber-500/20 text-amber-400 border-amber-500/30 font-bold animate-pulse',
-    shipped:          'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    delivered:        'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    refunded:         'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    processing:       'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    cancelled:        'bg-slate-500/10 text-slate-400 border-slate-500/20',
+    return_requested: 'bg-amber-50 text-amber-700 border-amber-300 font-bold',
+    shipped:          'bg-blue-50 text-blue-700 border-blue-200',
+    delivered:        'bg-emerald-50 text-emerald-700 border-emerald-200',
+    refunded:         'bg-rose-50 text-rose-700 border-rose-200',
+    processing:       'bg-amber-50 text-amber-700 border-amber-200',
+    cancelled:        'bg-gray-100 text-gray-600 border-gray-200',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -89,13 +89,11 @@ export default function ReturnManagementPage() {
         return () => clearTimeout(t);
     }, [fetchOrders]);
 
-    // Auto-poll mỗi 15 giây — phát hiện yêu cầu hoàn hàng mới từ khách
     useEffect(() => {
         const interval = setInterval(() => fetchOrders(), 15000);
         return () => clearInterval(interval);
     }, [fetchOrders]);
 
-    // Admin Review action (Approve vs Reject)
     const handleReviewReturn = async (action: 'approve' | 'reject') => {
         if (!selectedOrder) return;
         if (action === 'reject' && !rejectReason.trim()) {
@@ -154,19 +152,21 @@ export default function ReturnManagementPage() {
     return (
         <div className="space-y-5">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border shadow-sm"
+                style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                 <div>
-                    <h1 className="text-xl font-black text-white flex items-center gap-2">
-                        <ArrowLeftRight size={20} className="text-rose-400" />
+                    <h1 className="text-xl font-black flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                        <ArrowLeftRight size={20} className="text-rose-500" />
                         Duyệt Yêu Cầu Hoàn Hàng (Return Approval)
                     </h1>
-                    <p className="text-slate-400 text-xs mt-0.5">
-                        Kiểm tra hình ảnh bằng chứng khách gửi $\rightarrow$ Duyệt nhập kho hoặc Từ chối kèm lý do
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
+                        Kiểm tra hình ảnh bằng chứng khách gửi → Duyệt nhập kho hoặc Từ chối kèm lý do
                     </p>
                 </div>
                 <button
                     onClick={fetchOrders}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-700"
+                    className="px-4 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5"
+                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
                 >
                     <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Tải lại
                 </button>
@@ -174,20 +174,23 @@ export default function ReturnManagementPage() {
 
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 flex items-center gap-2 bg-slate-900/70 rounded-xl px-4 py-2.5 border border-slate-800">
-                    <Search size={14} className="text-slate-500 shrink-0" />
+                <div className="flex-1 flex items-center gap-2 rounded-xl px-4 py-2.5 border"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <Search size={14} className="shrink-0" style={{ color: 'var(--adm-text-muted)' }} />
                     <input
                         type="text"
                         placeholder="Tìm theo Mã Đơn, Tên Khách, SĐT..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="flex-1 bg-transparent text-white placeholder-slate-500 text-xs focus:outline-none"
+                        className="flex-1 bg-transparent text-xs focus:outline-none"
+                        style={{ color: 'var(--adm-text)' }}
                     />
                 </div>
                 <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
-                    className="bg-slate-900/70 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-300 text-xs focus:outline-none cursor-pointer"
+                    className="border rounded-xl px-3 py-2.5 text-xs focus:outline-none cursor-pointer"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
                 >
                     <option value="return_requested">⏳ Đơn chờ Admin duyệt ({orders.filter(o => o.status === 'return_requested').length})</option>
                     <option value="refunded">↩️ Đã hoàn hàng / Nhập kho</option>
@@ -196,11 +199,12 @@ export default function ReturnManagementPage() {
                 </select>
             </div>
 
-            {/* Orders Table */}
-            <div className="bg-slate-900/70 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+            {/* Table */}
+            <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-950/90 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-800">
+                        <thead className="text-[10px] font-bold uppercase tracking-wider border-b"
+                            style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                             <tr>
                                 <th className="px-4 py-3">Mã Đơn</th>
                                 <th className="px-4 py-3">Khách Hàng</th>
@@ -210,20 +214,20 @@ export default function ReturnManagementPage() {
                                 <th className="px-4 py-3 text-center">Hành Động Admin</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60">
+                        <tbody>
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
-                                    <tr key={i}>
+                                    <tr key={i} className="border-b" style={{ borderColor: 'var(--adm-border)' }}>
                                         {Array.from({ length: 6 }).map((__, j) => (
                                             <td key={j} className="px-4 py-3">
-                                                <div className="h-3 bg-slate-800 rounded animate-pulse" />
+                                                <div className="h-3 rounded animate-pulse" style={{ backgroundColor: 'var(--adm-surface-2)' }} />
                                             </td>
                                         ))}
                                     </tr>
                                 ))
                             ) : filteredOrders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
+                                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--adm-text-muted)' }}>
                                         <ArrowLeftRight size={32} className="mx-auto mb-2 opacity-30" />
                                         <p>Không có đơn hoàn hàng nào trong mục này</p>
                                     </td>
@@ -235,12 +239,13 @@ export default function ReturnManagementPage() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         transition={{ delay: idx * 0.02 }}
-                                        className="hover:bg-slate-800/40 transition-colors"
+                                        className="border-b last:border-0 transition-colors hover:bg-black/[0.02]"
+                                        style={{ borderColor: 'var(--adm-border)' }}
                                     >
-                                        <td className="px-4 py-3 font-bold font-mono text-amber-400">{order.id}</td>
+                                        <td className="px-4 py-3 font-bold font-mono text-amber-600">{order.id}</td>
                                         <td className="px-4 py-3">
-                                            <p className="text-white font-semibold">{order.customerName || order.name || 'Khách hàng'}</p>
-                                            <p className="text-slate-500 text-[10px]">{order.phone}</p>
+                                            <p className="font-semibold" style={{ color: 'var(--adm-text)' }}>{order.customerName || order.name || 'Khách hàng'}</p>
+                                            <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>{order.phone}</p>
                                         </td>
                                         <td className="px-4 py-3">
                                             {order.returnRequest?.images && order.returnRequest.images.length > 0 ? (
@@ -248,7 +253,8 @@ export default function ReturnManagementPage() {
                                                     {order.returnRequest.images.slice(0, 3).map((img, i) => (
                                                         <div key={i}
                                                             onClick={() => setPreviewImage(img)}
-                                                            className="w-10 h-10 rounded-lg border border-slate-700 overflow-hidden cursor-pointer hover:border-amber-400 transition-all relative group"
+                                                            className="w-10 h-10 rounded-lg border overflow-hidden cursor-pointer transition-all relative group"
+                                                            style={{ borderColor: 'var(--adm-border)' }}
                                                         >
                                                             <img src={img} alt="Proof" className="w-full h-full object-cover" />
                                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center">
@@ -257,18 +263,19 @@ export default function ReturnManagementPage() {
                                                         </div>
                                                     ))}
                                                     {order.returnRequest.images.length > 3 && (
-                                                        <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] text-slate-400 font-bold">
+                                                        <div className="w-10 h-10 rounded-lg border flex items-center justify-center text-[10px] font-bold"
+                                                            style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                                             +{order.returnRequest.images.length - 3}
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : (
-                                                <span className="text-slate-600 text-[10px] italic">Chưa có ảnh</span>
+                                                <span className="text-[10px] italic" style={{ color: 'var(--adm-text-subtle)' }}>Chưa có ảnh</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 font-bold text-white">{formatVND(order.finalAmount || order.totalAmount || 0)}</td>
+                                        <td className="px-4 py-3 font-bold" style={{ color: 'var(--adm-text)' }}>{formatVND(order.finalAmount || order.totalAmount || 0)}</td>
                                         <td className="px-4 py-3">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${STATUS_BADGE[order.status] || 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${STATUS_BADGE[order.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                                                 {STATUS_LABEL[order.status] || order.status}
                                             </span>
                                         </td>
@@ -276,16 +283,17 @@ export default function ReturnManagementPage() {
                                             {order.status === 'return_requested' ? (
                                                 <button
                                                     onClick={() => { setSelectedOrder(order); setReturnType('RETURN_GOOD'); setShowRejectForm(false); }}
-                                                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition-all flex items-center gap-1 mx-auto shadow-lg shadow-amber-500/20"
+                                                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] transition-all flex items-center gap-1 mx-auto shadow-sm"
                                                 >
                                                     🔍 Xem Bằng Chứng & Duyệt
                                                 </button>
                                             ) : order.status === 'refunded' ? (
-                                                <span className="text-rose-400 text-[10px] font-bold">↩️ Đã Duyệt Hoàn</span>
+                                                <span className="text-rose-600 text-[10px] font-bold">↩️ Đã Duyệt Hoàn</span>
                                             ) : (
                                                 <button
                                                     onClick={() => { setSelectedOrder(order); setReturnType('RETURN_GOOD'); setShowRejectForm(false); }}
-                                                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold border border-slate-700 transition-all flex items-center gap-1 mx-auto"
+                                                    className="px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all flex items-center gap-1 mx-auto"
+                                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
                                                 >
                                                     <Eye size={12} /> Chi tiết
                                                 </button>
@@ -299,64 +307,66 @@ export default function ReturnManagementPage() {
                 </div>
             </div>
 
-            {/* Modal Review Request */}
+            {/* Review Modal */}
             <AnimatePresence>
                 {selectedOrder && (
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             onClick={() => setSelectedOrder(null)}
-                            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-3xl p-6 space-y-5 shadow-2xl"
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-xl max-h-[90vh] overflow-y-auto border rounded-2xl p-6 space-y-5 shadow-2xl"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
                         >
-                            {/* Header */}
-                            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                            <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: 'var(--adm-border)' }}>
                                 <div>
-                                    <h3 className="text-white font-bold text-base flex items-center gap-2">
-                                        <ShieldCheck size={18} className="text-amber-400" />
+                                    <h3 className="font-bold text-base flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                        <ShieldCheck size={18} className="text-amber-500" />
                                         Xem Xét Yêu Cầu Hoàn Hàng — Đơn #{selectedOrder.id}
                                     </h3>
-                                    <p className="text-slate-400 text-xs mt-0.5">{selectedOrder.customerName || selectedOrder.name} • {selectedOrder.phone}</p>
+                                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>{selectedOrder.customerName || selectedOrder.name} • {selectedOrder.phone}</p>
                                 </div>
-                                <button onClick={() => setSelectedOrder(null)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+                                <button onClick={() => setSelectedOrder(null)} className="w-8 h-8 rounded-full border flex items-center justify-center"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                     <X size={16} />
                                 </button>
                             </div>
 
-                            {/* Customer Proof Section */}
-                            <div className="bg-slate-950/70 rounded-2xl p-4 border border-slate-800 space-y-3">
-                                <p className="text-amber-400 text-xs font-bold uppercase tracking-wider">📸 Hình Ảnh Bằng Chứng Khách Hàng Chụp:</p>
+                            {/* Proof Images */}
+                            <div className="rounded-xl p-4 border space-y-3" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <p className="text-amber-600 text-xs font-bold uppercase tracking-wider">📸 Hình Ảnh Bằng Chứng Khách Hàng Chụp:</p>
                                 {selectedOrder.returnRequest?.images && selectedOrder.returnRequest.images.length > 0 ? (
                                     <div className="grid grid-cols-3 gap-2">
                                         {selectedOrder.returnRequest.images.map((img, i) => (
-                                            <div key={i} onClick={() => setPreviewImage(img)} className="h-24 rounded-xl border border-slate-700 overflow-hidden cursor-pointer hover:border-amber-400 transition-all">
+                                            <div key={i} onClick={() => setPreviewImage(img)} className="h-24 rounded-xl border overflow-hidden cursor-pointer hover:border-amber-400 transition-all"
+                                                style={{ borderColor: 'var(--adm-border)' }}>
                                                 <img src={img} alt="Proof" className="w-full h-full object-cover" />
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-slate-500 text-xs italic">Khách hàng chưa tải lên hình ảnh bằng chứng.</p>
+                                    <p className="text-xs italic" style={{ color: 'var(--adm-text-muted)' }}>Khách hàng chưa tải lên hình ảnh bằng chứng.</p>
                                 )}
 
                                 <div>
-                                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Lý do hoàn hàng:</p>
-                                    <p className="text-white text-xs bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--adm-text-muted)' }}>Lý do hoàn hàng:</p>
+                                    <p className="text-xs p-2.5 rounded-xl border" style={{ color: 'var(--adm-text)', backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                                         {selectedOrder.returnRequest?.reason || 'Chưa cung cấp lý do'}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Items */}
-                            <div className="bg-slate-950/50 rounded-2xl p-3 border border-slate-800 space-y-2">
-                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Sản phẩm trong đơn</p>
+                            <div className="rounded-xl p-3 border space-y-2" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--adm-text-muted)' }}>Sản phẩm trong đơn</p>
                                 {selectedOrder.items?.map((it, i) => (
                                     <div key={i} className="flex justify-between items-center text-xs">
                                         <div>
-                                            <p className="text-white font-semibold">{it.product?.name}</p>
-                                            <p className="text-slate-500 text-[10px]">{it.selectedColor?.name} / {it.selectedSize} × {it.quantity}</p>
+                                            <p className="font-semibold" style={{ color: 'var(--adm-text)' }}>{it.product?.name}</p>
+                                            <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>{it.selectedColor?.name} / {it.selectedSize} × {it.quantity}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -365,37 +375,39 @@ export default function ReturnManagementPage() {
                             {/* Approval Options */}
                             {selectedOrder.status === 'return_requested' && !showRejectForm && (
                                 <div className="space-y-3 pt-2">
-                                    <p className="text-slate-400 text-xs font-bold uppercase">1. Chọn loại nhập kho nếu Duyệt:</p>
+                                    <p className="text-xs font-bold uppercase" style={{ color: 'var(--adm-text-muted)' }}>1. Chọn loại nhập kho nếu Duyệt:</p>
                                     <div className="grid grid-cols-2 gap-3">
                                         <button
                                             onClick={() => setReturnType('RETURN_GOOD')}
-                                            className={`p-3 rounded-2xl border-2 text-left transition-all ${returnType === 'RETURN_GOOD' ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
+                                            className={`p-3 rounded-xl border-2 text-left transition-all ${returnType === 'RETURN_GOOD' ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'border'}`}
+                                            style={returnType !== 'RETURN_GOOD' ? { backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' } : {}}
                                         >
-                                            <CheckCircle2 size={16} className={returnType === 'RETURN_GOOD' ? 'text-emerald-400' : 'text-slate-600'} />
+                                            <CheckCircle2 size={16} className={returnType === 'RETURN_GOOD' ? 'text-emerald-500' : ''} style={returnType !== 'RETURN_GOOD' ? { color: 'var(--adm-text-muted)' } : {}} />
                                             <p className="font-bold text-xs mt-1">✨ Hàng Nguyên Vẹn</p>
-                                            <p className="text-[10px] text-slate-500">Cộng kho Available</p>
+                                            <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>Cộng kho Available</p>
                                         </button>
                                         <button
                                             onClick={() => setReturnType('RETURN_DAMAGE')}
-                                            className={`p-3 rounded-2xl border-2 text-left transition-all ${returnType === 'RETURN_DAMAGE' ? 'bg-rose-500/15 border-rose-500 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
+                                            className={`p-3 rounded-xl border-2 text-left transition-all ${returnType === 'RETURN_DAMAGE' ? 'bg-rose-50 border-rose-400 text-rose-700' : 'border'}`}
+                                            style={returnType !== 'RETURN_DAMAGE' ? { backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' } : {}}
                                         >
-                                            <XCircle size={16} className={returnType === 'RETURN_DAMAGE' ? 'text-rose-400' : 'text-slate-600'} />
+                                            <XCircle size={16} className={returnType === 'RETURN_DAMAGE' ? 'text-rose-500' : ''} style={returnType !== 'RETURN_DAMAGE' ? { color: 'var(--adm-text-muted)' } : {}} />
                                             <p className="font-bold text-xs mt-1">🚨 Hàng Lỗi / Hỏng</p>
-                                            <p className="text-[10px] text-slate-500">Cộng kho Damaged</p>
+                                            <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>Cộng kho Damaged</p>
                                         </button>
                                     </div>
 
                                     <div className="flex gap-3 pt-2">
                                         <button
                                             onClick={() => setShowRejectForm(true)}
-                                            className="flex-1 h-12 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 font-bold text-xs"
+                                            className="flex-1 h-12 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-xs"
                                         >
                                             ❌ Từ Chối Yêu Cầu
                                         </button>
                                         <button
                                             onClick={() => handleReviewReturn('approve')}
                                             disabled={submitting}
-                                            className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                                            className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 disabled:opacity-40"
                                         >
                                             {submitting ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
                                             ✅ Duyệt Hoàn Hàng & Cập Nhật Kho
@@ -407,22 +419,24 @@ export default function ReturnManagementPage() {
                             {/* Reject Form */}
                             {showRejectForm && (
                                 <div className="space-y-3 pt-2">
-                                    <label className="text-rose-400 text-xs font-bold uppercase block">Nhập lý do từ chối yêu cầu hoàn hàng *</label>
+                                    <label className="text-rose-600 text-xs font-bold uppercase block">Nhập lý do từ chối yêu cầu hoàn hàng *</label>
                                     <textarea
                                         rows={3}
                                         placeholder="Ví dụ: Hình ảnh chụp không rõ ràng, sản phẩm đã qua sử dụng quá 7 ngày..."
                                         value={rejectReason}
                                         onChange={e => setRejectReason(e.target.value)}
-                                        className="w-full bg-slate-950 border border-rose-500/40 rounded-xl p-3 text-white text-xs placeholder-slate-600 focus:outline-none"
+                                        className="w-full border border-rose-300 rounded-xl p-3 text-xs focus:outline-none resize-none"
+                                        style={{ backgroundColor: 'var(--adm-surface-2)', color: 'var(--adm-text)' }}
                                     />
                                     <div className="flex gap-3">
-                                        <button onClick={() => setShowRejectForm(false)} className="flex-1 h-10 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">
+                                        <button onClick={() => setShowRejectForm(false)} className="flex-1 h-10 rounded-xl border text-xs font-bold"
+                                            style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}>
                                             Quay lại
                                         </button>
                                         <button
                                             onClick={() => handleReviewReturn('reject')}
                                             disabled={submitting || !rejectReason.trim()}
-                                            className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold disabled:opacity-40"
+                                            className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold disabled:opacity-40"
                                         >
                                             {submitting ? '...' : 'Xác Nhận Từ Chối'}
                                         </button>

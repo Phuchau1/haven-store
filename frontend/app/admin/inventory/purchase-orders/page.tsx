@@ -32,11 +32,11 @@ interface Supplier {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-    draft:     'bg-slate-500/20 text-slate-300 border-slate-500/30',
-    pending:   'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    confirmed: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-    received:  'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-    cancelled: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    draft:     'bg-gray-100 text-gray-700 border-gray-200',
+    pending:   'bg-amber-50 text-amber-700 border-amber-200',
+    confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+    received:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+    cancelled: 'bg-rose-50 text-rose-700 border-rose-200',
 };
 const STATUS_LABEL: Record<string, string> = {
     draft:     '📝 Nháp',
@@ -63,7 +63,6 @@ export default function PurchaseOrdersPage() {
     const [page, setPage]           = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    // Create modal
     const [showCreate, setShowCreate] = useState(false);
     const [creating, setCreating]     = useState(false);
     const [form, setForm]             = useState({
@@ -73,7 +72,6 @@ export default function PurchaseOrdersPage() {
         items: [{ sku: '', productName: '', quantity: 1, unitPrice: 0 }]
     });
 
-    // Detail modal
     const [detailOrder, setDetailOrder] = useState<PurchaseOrder | null>(null);
     const [updatingId, setUpdatingId]   = useState<string | null>(null);
 
@@ -107,10 +105,7 @@ export default function PurchaseOrdersPage() {
         }
     }, []);
 
-    useEffect(() => {
-        fetchSuppliers();
-    }, [fetchSuppliers]);
-
+    useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
     useEffect(() => {
         const t = setTimeout(() => fetchOrders(), 300);
         return () => clearTimeout(t);
@@ -212,64 +207,71 @@ export default function PurchaseOrdersPage() {
         );
     });
 
+    const inputStyle = { backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' };
+
     return (
         <div className="space-y-5">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border shadow-sm"
+                style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                 <div>
-                    <h1 className="text-xl font-black text-white flex items-center gap-2">
-                        <ShoppingCart size={20} className="text-sky-400" />
+                    <h1 className="text-xl font-black flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                        <ShoppingCart size={20} className="text-sky-500" />
                         Đơn Mua Hàng (Purchase Orders)
                     </h1>
-                    <p className="text-slate-400 text-xs mt-0.5">
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
                         Tạo PO từ nhà cung cấp → Phiếu Nhập kho tự động khi nhận hàng
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={fetchOrders} className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-700">
+                    <button onClick={fetchOrders} className="px-4 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5"
+                        style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}>
                         <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Tải lại
                     </button>
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-sky-500/20"
+                        className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
                     >
                         <Plus size={14} /> Tạo Đơn Mới
                     </button>
                 </div>
             </div>
 
-            {/* Stats Row */}
+            {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                    { label: 'Tổng đơn', value: orders.length, color: 'text-white' },
-                    { label: 'Chờ duyệt', value: orders.filter(o => o.status === 'pending').length, color: 'text-amber-400' },
-                    { label: 'Đã xác nhận', value: orders.filter(o => o.status === 'confirmed').length, color: 'text-blue-400' },
-                    { label: 'Đã nhận hàng', value: orders.filter(o => o.status === 'received').length, color: 'text-emerald-400' },
+                    { label: 'Tổng đơn', value: orders.length, color: 'var(--adm-text)' },
+                    { label: 'Chờ duyệt', value: orders.filter(o => o.status === 'pending').length, color: '#d97706' },
+                    { label: 'Đã xác nhận', value: orders.filter(o => o.status === 'confirmed').length, color: '#2563eb' },
+                    { label: 'Đã nhận hàng', value: orders.filter(o => o.status === 'received').length, color: '#059669' },
                 ].map((s, i) => (
-                    <div key={i} className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 text-center">
-                        <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
-                        <p className="text-slate-500 text-[11px] mt-0.5">{s.label}</p>
+                    <div key={i} className="border rounded-2xl p-4 text-center" style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                        <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>{s.label}</p>
                     </div>
                 ))}
             </div>
 
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 flex items-center gap-2 bg-slate-900/70 rounded-xl px-4 py-2.5 border border-slate-800">
-                    <Search size={14} className="text-slate-500 shrink-0" />
+                <div className="flex-1 flex items-center gap-2 rounded-xl px-4 py-2.5 border"
+                    style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                    <Search size={14} className="shrink-0" style={{ color: 'var(--adm-text-muted)' }} />
                     <input
                         type="text"
                         placeholder="Tìm theo Mã PO, Nhà Cung Cấp..."
                         value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1); }}
-                        className="flex-1 bg-transparent text-white placeholder-slate-500 text-xs focus:outline-none"
+                        className="flex-1 bg-transparent text-xs focus:outline-none"
+                        style={{ color: 'var(--adm-text)' }}
                     />
-                    {search && <button onClick={() => setSearch('')} className="text-slate-500 hover:text-white"><X size={12} /></button>}
+                    {search && <button onClick={() => setSearch('')} style={{ color: 'var(--adm-text-muted)' }}><X size={12} /></button>}
                 </div>
                 <select
                     value={statusFilter}
                     onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                    className="bg-slate-900/70 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-300 text-xs focus:outline-none cursor-pointer"
+                    className="border rounded-xl px-3 py-2.5 text-xs focus:outline-none cursor-pointer"
+                    style={inputStyle}
                 >
                     <option value="">Tất cả trạng thái</option>
                     {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -277,10 +279,11 @@ export default function PurchaseOrdersPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-slate-900/70 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+            <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-950/90 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-800">
+                        <thead className="text-[10px] font-bold uppercase tracking-wider border-b"
+                            style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                             <tr>
                                 <th className="px-4 py-3">Mã PO</th>
                                 <th className="px-4 py-3">Nhà Cung Cấp</th>
@@ -290,23 +293,23 @@ export default function PurchaseOrdersPage() {
                                 <th className="px-4 py-3 text-center">Hành Động</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60">
+                        <tbody>
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
-                                    <tr key={i}>
+                                    <tr key={i} className="border-b" style={{ borderColor: 'var(--adm-border)' }}>
                                         {Array.from({ length: 6 }).map((__, j) => (
                                             <td key={j} className="px-4 py-3">
-                                                <div className="h-3 bg-slate-800 rounded animate-pulse" />
+                                                <div className="h-3 rounded animate-pulse" style={{ backgroundColor: 'var(--adm-surface-2)' }} />
                                             </td>
                                         ))}
                                     </tr>
                                 ))
                             ) : filteredOrders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
+                                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--adm-text-muted)' }}>
                                         <ShoppingCart size={32} className="mx-auto mb-2 opacity-30" />
                                         <p>Không có đơn mua hàng nào</p>
-                                        <button onClick={() => setShowCreate(true)} className="mt-3 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs rounded-xl font-bold">
+                                        <button onClick={() => setShowCreate(true)} className="mt-3 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs rounded-xl font-bold">
                                             + Tạo đơn đầu tiên
                                         </button>
                                     </td>
@@ -321,23 +324,24 @@ export default function PurchaseOrdersPage() {
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             transition={{ delay: idx * 0.02 }}
-                                            className="hover:bg-slate-800/40 transition-colors"
+                                            className="border-b last:border-0 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                                            style={{ borderColor: 'var(--adm-border)' }}
                                         >
-                                            <td className="px-4 py-3 font-bold font-mono text-sky-400">
+                                            <td className="px-4 py-3 font-bold font-mono text-sky-600">
                                                 {order.id || oid.slice(-8).toUpperCase()}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <p className="text-white font-semibold">{order.supplier?.name || '—'}</p>
-                                                <p className="text-slate-500 text-[10px]">{order.supplier?.phone || ''}</p>
+                                                <p className="font-semibold" style={{ color: 'var(--adm-text)' }}>{order.supplier?.name || '—'}</p>
+                                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>{order.supplier?.phone || ''}</p>
                                             </td>
-                                            <td className="px-4 py-3 text-slate-300">
+                                            <td className="px-4 py-3" style={{ color: 'var(--adm-text)' }}>
                                                 {order.expectedDate || order.expected_date
                                                     ? new Date(order.expectedDate || order.expected_date!).toLocaleDateString('vi-VN')
                                                     : '—'}
                                             </td>
-                                            <td className="px-4 py-3 font-bold text-white">{formatVND(order.totalAmount || order.total_amount || 0)}</td>
+                                            <td className="px-4 py-3 font-bold" style={{ color: 'var(--adm-text)' }}>{formatVND(order.totalAmount || order.total_amount || 0)}</td>
                                             <td className="px-4 py-3">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_COLORS[order.status] || 'bg-slate-700 text-slate-400 border-slate-600'}`}>
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                                                     {STATUS_LABEL[order.status] || order.status}
                                                 </span>
                                             </td>
@@ -345,7 +349,8 @@ export default function PurchaseOrdersPage() {
                                                 <div className="flex items-center justify-center gap-1.5">
                                                     <button
                                                         onClick={() => setDetailOrder(order)}
-                                                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                                                        className="p-1.5 rounded-lg border transition-colors"
+                                                        style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}
                                                     >
                                                         <Eye size={13} />
                                                     </button>
@@ -354,11 +359,11 @@ export default function PurchaseOrdersPage() {
                                                             key={s}
                                                             onClick={() => updateStatus(oid, s)}
                                                             disabled={updatingId === oid}
-                                                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                                                                s === 'cancelled' ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30' :
-                                                                s === 'received'  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30' :
-                                                                'bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30'
-                                                            } disabled:opacity-40`}
+                                                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all border disabled:opacity-40 ${
+                                                                s === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' :
+                                                                s === 'received'  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                                                                'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100'
+                                                            }`}
                                                         >
                                                             {updatingId === oid ? '...' : STATUS_LABEL[s]}
                                                         </button>
@@ -378,12 +383,14 @@ export default function PurchaseOrdersPage() {
             {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-3">
                     <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                        className="px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300 text-xs disabled:opacity-40 flex items-center gap-1">
+                        className="px-3 py-1.5 rounded-lg border text-xs disabled:opacity-40 flex items-center gap-1"
+                        style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}>
                         <ChevronLeft size={13} /> Trước
                     </button>
-                    <span className="text-slate-400 text-xs">Trang {page}/{totalPages}</span>
+                    <span className="text-xs" style={{ color: 'var(--adm-text-muted)' }}>Trang {page}/{totalPages}</span>
                     <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                        className="px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300 text-xs disabled:opacity-40 flex items-center gap-1">
+                        className="px-3 py-1.5 rounded-lg border text-xs disabled:opacity-40 flex items-center gap-1"
+                        style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}>
                         Tiếp <ChevronRight size={13} />
                     </button>
                 </div>
@@ -395,30 +402,32 @@ export default function PurchaseOrdersPage() {
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             onClick={() => setShowCreate(false)}
-                            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-3xl p-6 space-y-5 shadow-2xl"
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto border rounded-2xl p-6 space-y-5 shadow-2xl"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
                         >
-                            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                                <h3 className="text-white font-bold text-base flex items-center gap-2">
-                                    <ShoppingCart size={18} className="text-sky-400" /> Tạo Đơn Mua Hàng Mới
+                            <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: 'var(--adm-border)' }}>
+                                <h3 className="font-bold text-base flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                    <ShoppingCart size={18} className="text-sky-500" /> Tạo Đơn Mua Hàng Mới
                                 </h3>
-                                <button onClick={() => setShowCreate(false)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+                                <button onClick={() => setShowCreate(false)} className="w-8 h-8 rounded-full border flex items-center justify-center"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                     <X size={16} />
                                 </button>
                             </div>
 
-                            {/* Supplier Select */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-slate-400 text-xs font-bold flex items-center gap-1"><Building2 size={12} /> Nhà Cung Cấp *</label>
+                                    <label className="text-xs font-bold flex items-center gap-1" style={{ color: 'var(--adm-text-muted)' }}><Building2 size={12} /> Nhà Cung Cấp *</label>
                                     <select
                                         value={form.supplier_id}
                                         onChange={e => setForm(f => ({ ...f, supplier_id: e.target.value }))}
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-sky-500"
+                                        className="w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-sky-500"
+                                        style={inputStyle}
                                     >
                                         <option value="">-- Chọn nhà cung cấp --</option>
                                         {suppliers.map(s => (
@@ -427,42 +436,42 @@ export default function PurchaseOrdersPage() {
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-slate-400 text-xs font-bold flex items-center gap-1"><Calendar size={12} /> Ngày Dự Nhận Hàng</label>
+                                    <label className="text-xs font-bold flex items-center gap-1" style={{ color: 'var(--adm-text-muted)' }}><Calendar size={12} /> Ngày Dự Nhận Hàng</label>
                                     <input
                                         type="date"
                                         value={form.expectedDate}
                                         onChange={e => setForm(f => ({ ...f, expectedDate: e.target.value }))}
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-sky-500"
+                                        className="w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-sky-500"
+                                        style={inputStyle}
                                     />
                                 </div>
                             </div>
 
-                            {/* Notes */}
                             <div className="space-y-1.5">
-                                <label className="text-slate-400 text-xs font-bold">Ghi Chú</label>
+                                <label className="text-xs font-bold" style={{ color: 'var(--adm-text-muted)' }}>Ghi Chú</label>
                                 <textarea
                                     rows={2}
                                     value={form.notes}
                                     onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                     placeholder="Ghi chú cho đơn mua hàng này..."
-                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs placeholder-slate-600 focus:outline-none"
+                                    className="w-full border rounded-xl px-3 py-2 text-xs focus:outline-none resize-none"
+                                    style={inputStyle}
                                 />
                             </div>
 
-                            {/* Items */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-slate-400 text-xs font-bold flex items-center gap-1"><Package size={12} /> Sản Phẩm Đặt Mua *</label>
+                                    <label className="text-xs font-bold flex items-center gap-1" style={{ color: 'var(--adm-text-muted)' }}><Package size={12} /> Sản Phẩm Đặt Mua *</label>
                                     <button
                                         onClick={handleAddItem}
-                                        className="px-2 py-1 rounded-lg bg-sky-500/20 text-sky-400 text-[10px] font-bold border border-sky-500/30 hover:bg-sky-500/30 flex items-center gap-1"
+                                        className="px-2 py-1 rounded-lg bg-sky-50 text-sky-700 text-[10px] font-bold border border-sky-200 hover:bg-sky-100 flex items-center gap-1"
                                     >
                                         <Plus size={11} /> Thêm dòng
                                     </button>
                                 </div>
-                                <div className="bg-slate-950/50 rounded-2xl border border-slate-800 overflow-hidden">
+                                <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'var(--adm-border)' }}>
                                     <table className="w-full text-xs">
-                                        <thead className="bg-slate-950 text-slate-500 uppercase text-[9px] tracking-wider">
+                                        <thead className="text-[9px] uppercase tracking-wider border-b" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                             <tr>
                                                 <th className="px-3 py-2 text-left">SKU</th>
                                                 <th className="px-3 py-2 text-left">Tên SP</th>
@@ -472,33 +481,38 @@ export default function PurchaseOrdersPage() {
                                                 <th className="px-3 py-2" />
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-800/50">
+                                        <tbody>
                                             {form.items.map((it, i) => (
-                                                <tr key={i}>
+                                                <tr key={i} className="border-b last:border-0" style={{ borderColor: 'var(--adm-border)' }}>
                                                     <td className="px-2 py-1.5">
                                                         <input value={it.sku} onChange={e => handleItemChange(i, 'sku', e.target.value)}
                                                             placeholder="SKU-001"
-                                                            className="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-[11px] focus:outline-none focus:border-sky-500" />
+                                                            className="w-24 border rounded px-2 py-1 text-[11px] focus:outline-none focus:border-sky-500"
+                                                            style={inputStyle} />
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input value={it.productName} onChange={e => handleItemChange(i, 'productName', e.target.value)}
                                                             placeholder="Áo polo trắng"
-                                                            className="w-32 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-[11px] focus:outline-none focus:border-sky-500" />
+                                                            className="w-32 border rounded px-2 py-1 text-[11px] focus:outline-none focus:border-sky-500"
+                                                            style={inputStyle} />
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="number" min="1" value={it.quantity} onChange={e => handleItemChange(i, 'quantity', Number(e.target.value))}
-                                                            className="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-[11px] text-center focus:outline-none focus:border-sky-500" />
+                                                            className="w-16 border rounded px-2 py-1 text-[11px] text-center focus:outline-none focus:border-sky-500"
+                                                            style={inputStyle} />
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="number" min="0" value={it.unitPrice} onChange={e => handleItemChange(i, 'unitPrice', Number(e.target.value))}
-                                                            className="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-[11px] text-right focus:outline-none focus:border-sky-500" />
+                                                            className="w-24 border rounded px-2 py-1 text-[11px] text-right focus:outline-none focus:border-sky-500"
+                                                            style={inputStyle} />
                                                     </td>
-                                                    <td className="px-2 py-1.5 text-right text-emerald-400 font-bold">
+                                                    <td className="px-2 py-1.5 text-right text-emerald-600 font-bold">
                                                         {formatVND(it.quantity * it.unitPrice)}
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         {form.items.length > 1 && (
-                                                            <button onClick={() => removeItem(i)} className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400">
+                                                            <button onClick={() => removeItem(i)} className="p-1 rounded hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                                                                style={{ color: 'var(--adm-text-muted)' }}>
                                                                 <X size={12} />
                                                             </button>
                                                         )}
@@ -506,10 +520,10 @@ export default function PurchaseOrdersPage() {
                                                 </tr>
                                             ))}
                                         </tbody>
-                                        <tfoot className="bg-slate-950/80">
+                                        <tfoot className="border-t" style={{ borderColor: 'var(--adm-border)', backgroundColor: 'var(--adm-surface-2)' }}>
                                             <tr>
-                                                <td colSpan={4} className="px-3 py-2 text-right text-slate-400 text-[11px] font-bold">Tổng Cộng:</td>
-                                                <td className="px-3 py-2 text-right text-emerald-400 font-black text-sm">{formatVND(calcTotal())}</td>
+                                                <td colSpan={4} className="px-3 py-2 text-right text-[11px] font-bold" style={{ color: 'var(--adm-text-muted)' }}>Tổng Cộng:</td>
+                                                <td className="px-3 py-2 text-right text-emerald-600 font-black text-sm">{formatVND(calcTotal())}</td>
                                                 <td />
                                             </tr>
                                         </tfoot>
@@ -517,15 +531,15 @@ export default function PurchaseOrdersPage() {
                                 </div>
                             </div>
 
-                            {/* Submit */}
                             <div className="flex gap-3 pt-2">
-                                <button onClick={() => setShowCreate(false)} className="flex-1 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold">
+                                <button onClick={() => setShowCreate(false)} className="flex-1 h-11 rounded-xl border text-xs font-bold"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}>
                                     Hủy
                                 </button>
                                 <button
                                     onClick={handleCreate}
                                     disabled={creating}
-                                    className="flex-1 h-11 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-40"
+                                    className="flex-1 h-11 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
                                 >
                                     {creating ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle size={14} />}
                                     Tạo Đơn Mua Hàng
@@ -542,88 +556,83 @@ export default function PurchaseOrdersPage() {
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             onClick={() => setDetailOrder(null)}
-                            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-3xl p-6 space-y-5 shadow-2xl"
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg max-h-[90vh] overflow-y-auto border rounded-2xl p-6 space-y-5 shadow-2xl"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
                         >
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                                <h3 className="text-white font-bold text-sm flex items-center gap-2">
-                                    <ClipboardList size={16} className="text-sky-400" />
+                            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--adm-border)' }}>
+                                <h3 className="font-bold text-sm flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                    <ClipboardList size={16} className="text-sky-500" />
                                     Chi Tiết PO — {detailOrder.id || detailOrder._id?.slice(-8).toUpperCase()}
                                 </h3>
-                                <button onClick={() => setDetailOrder(null)} className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+                                <button onClick={() => setDetailOrder(null)} className="w-8 h-8 rounded-full border flex items-center justify-center"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                     <X size={16} />
                                 </button>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 text-xs">
-                                <div className="bg-slate-950/60 rounded-xl p-3 border border-slate-800">
-                                    <p className="text-slate-500 text-[10px] mb-1">Nhà Cung Cấp</p>
-                                    <p className="text-white font-bold">{detailOrder.supplier?.name || '—'}</p>
-                                    <p className="text-slate-400 text-[10px]">{detailOrder.supplier?.phone || ''}</p>
-                                </div>
-                                <div className="bg-slate-950/60 rounded-xl p-3 border border-slate-800">
-                                    <p className="text-slate-500 text-[10px] mb-1">Trạng Thái</p>
+                                {[
+                                    { label: 'Nhà Cung Cấp', main: detailOrder.supplier?.name || '—', sub: detailOrder.supplier?.phone || '' },
+                                    { label: 'Tổng Tiền', main: formatVND(detailOrder.totalAmount || detailOrder.total_amount || 0), mainClass: 'text-emerald-600 font-black text-base', sub: '' },
+                                    { label: 'Ngày Dự Nhận', main: detailOrder.expectedDate ? new Date(detailOrder.expectedDate).toLocaleDateString('vi-VN') : '—', sub: '' },
+                                ].map((info, i) => (
+                                    <div key={i} className="rounded-xl p-3 border" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                        <p className="text-[10px] mb-1" style={{ color: 'var(--adm-text-muted)' }}>{info.label}</p>
+                                        <p className={info.mainClass || 'font-bold'} style={!info.mainClass ? { color: 'var(--adm-text)' } : {}}>{info.main}</p>
+                                        {info.sub && <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>{info.sub}</p>}
+                                    </div>
+                                ))}
+                                <div className="rounded-xl p-3 border" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                    <p className="text-[10px] mb-1" style={{ color: 'var(--adm-text-muted)' }}>Trạng Thái</p>
                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_COLORS[detailOrder.status] || ''}`}>
                                         {STATUS_LABEL[detailOrder.status] || detailOrder.status}
                                     </span>
                                 </div>
-                                <div className="bg-slate-950/60 rounded-xl p-3 border border-slate-800">
-                                    <p className="text-slate-500 text-[10px] mb-1">Tổng Tiền</p>
-                                    <p className="text-emerald-400 font-black text-base">{formatVND(detailOrder.totalAmount || detailOrder.total_amount || 0)}</p>
-                                </div>
-                                <div className="bg-slate-950/60 rounded-xl p-3 border border-slate-800">
-                                    <p className="text-slate-500 text-[10px] mb-1">Ngày Dự Nhận</p>
-                                    <p className="text-white font-bold">
-                                        {detailOrder.expectedDate ? new Date(detailOrder.expectedDate).toLocaleDateString('vi-VN') : '—'}
-                                    </p>
-                                </div>
                             </div>
 
-                            {/* Items */}
                             {(detailOrder.items || []).length > 0 && (
-                                <div className="bg-slate-950/50 rounded-2xl border border-slate-800 overflow-hidden">
-                                    <p className="text-slate-400 text-[10px] font-bold uppercase px-3 py-2 border-b border-slate-800">Sản Phẩm Đặt Mua</p>
+                                <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'var(--adm-border)' }}>
+                                    <p className="text-[10px] font-bold uppercase px-3 py-2 border-b" style={{ color: 'var(--adm-text-muted)', borderColor: 'var(--adm-border)', backgroundColor: 'var(--adm-surface-2)' }}>Sản Phẩm Đặt Mua</p>
                                     {detailOrder.items?.map((it, i) => (
-                                        <div key={i} className="flex justify-between items-center px-3 py-2 border-b border-slate-800/50 last:border-0">
+                                        <div key={i} className="flex justify-between items-center px-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--adm-border)' }}>
                                             <div>
-                                                <p className="text-white text-xs font-semibold">{it.productName || it.sku}</p>
-                                                <p className="text-slate-500 text-[10px] font-mono">{it.sku}</p>
+                                                <p className="text-xs font-semibold" style={{ color: 'var(--adm-text)' }}>{it.productName || it.sku}</p>
+                                                <p className="text-[10px] font-mono" style={{ color: 'var(--adm-text-muted)' }}>{it.sku}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-white text-xs">×{it.quantity}</p>
-                                                <p className="text-emerald-400 text-[10px]">{formatVND(it.unitPrice)}/sp</p>
+                                                <p className="text-xs" style={{ color: 'var(--adm-text)' }}>×{it.quantity}</p>
+                                                <p className="text-[10px] text-emerald-600">{formatVND(it.unitPrice)}/sp</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             )}
 
-                            {/* Notes */}
                             {detailOrder.notes && (
-                                <div className="bg-slate-950/50 rounded-xl p-3 border border-slate-800">
-                                    <p className="text-slate-500 text-[10px] mb-1">Ghi Chú</p>
-                                    <p className="text-slate-300 text-xs">{detailOrder.notes}</p>
+                                <div className="rounded-xl p-3 border" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                    <p className="text-[10px] mb-1" style={{ color: 'var(--adm-text-muted)' }}>Ghi Chú</p>
+                                    <p className="text-xs" style={{ color: 'var(--adm-text)' }}>{detailOrder.notes}</p>
                                 </div>
                             )}
 
-                            {/* Transition Actions */}
                             {(STATUS_TRANSITIONS[detailOrder.status] || []).length > 0 && (
                                 <div className="space-y-2">
-                                    <p className="text-slate-400 text-[10px] font-bold uppercase">Chuyển Trạng Thái:</p>
+                                    <p className="text-[10px] font-bold uppercase" style={{ color: 'var(--adm-text-muted)' }}>Chuyển Trạng Thái:</p>
                                     <div className="flex gap-2">
                                         {STATUS_TRANSITIONS[detailOrder.status]?.map(s => (
                                             <button
                                                 key={s}
                                                 onClick={() => updateStatus(detailOrder._id || detailOrder.id || '', s)}
                                                 disabled={updatingId === (detailOrder._id || detailOrder.id)}
-                                                className={`flex-1 h-10 rounded-xl text-xs font-bold transition-all disabled:opacity-40 ${
-                                                    s === 'cancelled' ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30' :
-                                                    s === 'received'  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30' :
-                                                    'bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30'
+                                                className={`flex-1 h-10 rounded-xl text-xs font-bold transition-all border disabled:opacity-40 ${
+                                                    s === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' :
+                                                    s === 'received'  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                                                    'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100'
                                                 }`}
                                             >
                                                 {updatingId ? '...' : STATUS_LABEL[s]}

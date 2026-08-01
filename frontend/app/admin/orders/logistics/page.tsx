@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Truck, Package, CheckCircle2, Clock, MapPin, Search,
-    QrCode, ExternalLink, RefreshCw, X, ShieldAlert, ArrowRight
+    QrCode, ExternalLink, RefreshCw, X, ShieldAlert, ArrowRight,
+    RotateCcw, AlertTriangle, ChevronRight, Filter
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
@@ -31,6 +32,79 @@ interface OrderData {
     createdAt?: string;
 }
 
+// ─── Status display map ───────────────────────────────────────────────────────
+const STATUS_LABEL: Record<string, string> = {
+    pending:              'Chờ xác nhận',
+    confirmed:            'Đã xác nhận',
+    processing:           'Đang đóng gói',
+    waiting_pickup:       'Chờ lấy hàng',
+    picked_up:            'Đã lấy hàng',
+    in_transit:           'Đang vận chuyển',
+    out_for_delivery:     'Đang giao đến khách',
+    shipped:              'Đang vận chuyển',
+    delivered:            '✅ Giao thành công',
+    completed:            '✅ Hoàn tất',
+    awaiting_review:      'Chờ đánh giá',
+    reviewed:             'Đã đánh giá',
+    return_requested:     '⏳ Chờ duyệt hoàn',
+    returning:            '↩️ Đang hoàn hàng',
+    return_received:      'Shop nhận hàng trả',
+    refunded:             '💚 Đã hoàn tiền',
+    cancelled:            '❌ Đã hủy',
+    delivery_failed:      'Giao hàng thất bại',
+    returned_to_seller:   'Hoàn về shop',
+};
+
+const STATUS_BADGE: Record<string, string> = {
+    pending:              'bg-amber-50 text-amber-700 border-amber-200',
+    confirmed:            'bg-blue-50 text-blue-700 border-blue-200',
+    processing:           'bg-indigo-50 text-indigo-700 border-indigo-200',
+    waiting_pickup:       'bg-purple-50 text-purple-700 border-purple-200',
+    picked_up:            'bg-violet-50 text-violet-700 border-violet-200',
+    in_transit:           'bg-sky-50 text-sky-700 border-sky-200',
+    out_for_delivery:     'bg-blue-50 text-blue-700 border-blue-200',
+    shipped:              'bg-sky-50 text-sky-700 border-sky-200',
+    delivered:            'bg-emerald-50 text-emerald-700 border-emerald-200',
+    completed:            'bg-emerald-50 text-emerald-700 border-emerald-200',
+    awaiting_review:      'bg-teal-50 text-teal-700 border-teal-200',
+    reviewed:             'bg-teal-50 text-teal-700 border-teal-200',
+    return_requested:     'bg-amber-50 text-amber-800 border-amber-300',
+    returning:            'bg-orange-50 text-orange-700 border-orange-200',
+    return_received:      'bg-lime-50 text-lime-700 border-lime-200',
+    refunded:             'bg-rose-50 text-rose-700 border-rose-200',
+    cancelled:            'bg-gray-100 text-gray-600 border-gray-200',
+    delivery_failed:      'bg-red-50 text-red-700 border-red-200',
+    returned_to_seller:   'bg-orange-50 text-orange-700 border-orange-200',
+};
+
+// Carriers that have been shipped
+const CARRIER_STATUSES = ['waiting_pickup', 'picked_up', 'in_transit', 'out_for_delivery', 'shipped', 'delivered', 'completed', 'awaiting_review', 'reviewed'];
+
+// Status filter tabs
+const FILTER_TABS = [
+    { id: 'all',              label: 'Tất cả' },
+    { id: 'need_waybill',     label: '📦 Cần tạo vận đơn' },
+    { id: 'in_transit',       label: '🚚 Đang vận chuyển' },
+    { id: 'delivered',        label: '✅ Đã giao' },
+    { id: 'return_requested', label: '⏳ Chờ duyệt hoàn' },
+    { id: 'refunded',         label: '↩️ Đã hoàn tiền' },
+];
+
+const CARRIERS = [
+    { code: 'GHN',         name: 'GHN Express',       logo: '🟠' },
+    { code: 'GHTK',        name: 'GHTK Tiết Kiệm',    logo: '🟢' },
+    { code: 'VIETTELPOST', name: 'Viettel Post',       logo: '🔴' },
+    { code: 'VNPOST',      name: 'VNPost Bưu Điện',   logo: '🔵' },
+];
+
+// Normalize carrier sub-statuses
+function normalizeStatus(status: string): string {
+    const inTransit = ['waiting_pickup', 'picked_up', 'in_transit', 'out_for_delivery', 'shipping'];
+    if (inTransit.includes(status)) return 'in_transit';
+    if (['completed', 'awaiting_review', 'reviewed'].includes(status)) return 'delivered';
+    return status;
+}
+
 export default function LogisticsManagementPage() {
     const [orders, setOrders] = useState<OrderData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -38,10 +112,8 @@ export default function LogisticsManagementPage() {
     const [selectedCarrier, setSelectedCarrier] = useState('GHN');
     const [submitting, setSubmitting] = useState(false);
     const [trackingModal, setTrackingModal] = useState<any>(null);
-    const [returnModalOrder, setReturnModalOrder] = useState<OrderData | null>(null);
-    const [returnType, setReturnType] = useState<'RETURN_GOOD' | 'RETURN_DAMAGE'>('RETURN_GOOD');
-    const [returnReason, setReturnReason] = useState('');
     const [search, setSearch] = useState('');
+    const [filterTab, setFilterTab] = useState('all');
 
     const fetchOrders = useCallback(async () => {
         setLoading(true);
@@ -58,9 +130,7 @@ export default function LogisticsManagementPage() {
         }
     }, []);
 
-    useEffect(() => {
-        fetchOrders();
-    }, [fetchOrders]);
+    useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
     const handleCreateWaybill = async (order: OrderData) => {
         setSubmitting(true);
@@ -90,12 +160,11 @@ export default function LogisticsManagementPage() {
                 const waybill = data.waybill;
                 setOrders(prev => prev.map(o => o.id === order.id ? {
                     ...o,
-                    status: 'shipped',
+                    status: 'waiting_pickup',
                     carrierCode: waybill.carrierCode,
                     trackingNumber: waybill.trackingNumber
                 } : o));
-
-                toast.success(`✨ Đã tạo vận đơn ${waybill.carrierName} thành công!`);
+                toast.success(`✅ Đã tạo vận đơn ${waybill.carrierName} thành công! Tracking: ${waybill.trackingNumber}`);
                 setSelectedOrder(null);
             } else {
                 throw new Error(data.message || 'Không thể tạo vận đơn');
@@ -107,213 +176,339 @@ export default function LogisticsManagementPage() {
         }
     };
 
-    const handleProcessReturn = async () => {
-        if (!returnModalOrder) return;
-        setSubmitting(true);
-        try {
-            const returnItems = returnModalOrder.items.map(it => ({
-                sku: `${it.product?.id || 'PROD'}-${it.selectedColor?.name || ''}-${it.selectedSize || ''}`,
-                quantity: it.quantity,
-                isDamaged: returnType === 'RETURN_DAMAGE'
-            }));
-
-            const res = await fetch('/api/wms/return-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    orderId: returnModalOrder.id,
-                    returnItems,
-                    returnType,
-                    reason: returnReason,
-                    user: 'Admin WMS'
-                })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                toast.success(`✨ Đã xử lý hoàn hàng cho đơn #${returnModalOrder.id}!`);
-                setOrders(prev => prev.map(o => o.id === returnModalOrder.id ? { ...o, status: 'refunded' } : o));
-                setReturnModalOrder(null);
-                setReturnReason('');
-            } else {
-                throw new Error(data.message || 'Không thể xử lý hoàn hàng');
-            }
-        } catch (err: any) {
-            toast.error(err.message || 'Lỗi khi xử lý hoàn hàng');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const handleFetchTracking = async (trackingNum: string) => {
         try {
             const res = await fetch(`/api/wms/tracking/${trackingNum}`);
             const data = await res.json();
             if (data.success) {
                 setTrackingModal(data.tracking);
+            } else {
+                toast.error('Không tìm thấy thông tin tracking');
             }
         } catch (err) {
             toast.error('Không thể lấy lịch trình giao hàng');
         }
     };
 
-    const filteredOrders = orders.filter(o => 
-        (o.id || '').toLowerCase().includes(search.toLowerCase()) ||
-        (o.customerName || o.name || '').toLowerCase().includes(search.toLowerCase()) ||
-        (o.phone || '').includes(search)
-    );
+    // Filter orders
+    const filteredOrders = orders.filter(o => {
+        const s = search.toLowerCase();
+        const matchSearch =
+            (o.id || '').toLowerCase().includes(s) ||
+            (o.customerName || o.name || '').toLowerCase().includes(s) ||
+            (o.phone || '').includes(s) ||
+            (o.trackingNumber || '').toLowerCase().includes(s);
+
+        const norm = normalizeStatus(o.status);
+        if (filterTab === 'all') return matchSearch;
+        if (filterTab === 'need_waybill') return matchSearch && (o.status === 'processing' || o.status === 'confirmed') && !o.trackingNumber;
+        if (filterTab === 'in_transit') return matchSearch && (CARRIER_STATUSES.includes(o.status) && !['delivered', 'completed', 'awaiting_review', 'reviewed'].includes(o.status));
+        if (filterTab === 'delivered') return matchSearch && ['delivered', 'completed', 'awaiting_review', 'reviewed'].includes(o.status);
+        if (filterTab === 'return_requested') return matchSearch && o.status === 'return_requested';
+        if (filterTab === 'refunded') return matchSearch && ['refunded', 'returning', 'return_received'].includes(o.status);
+        return matchSearch;
+    });
+
+    // Counts for tabs
+    const tabCounts: Record<string, number> = {
+        all: orders.length,
+        need_waybill: orders.filter(o => (o.status === 'processing' || o.status === 'confirmed') && !o.trackingNumber).length,
+        in_transit: orders.filter(o => CARRIER_STATUSES.includes(o.status) && !['delivered', 'completed', 'awaiting_review', 'reviewed'].includes(o.status)).length,
+        delivered: orders.filter(o => ['delivered', 'completed', 'awaiting_review', 'reviewed'].includes(o.status)).length,
+        return_requested: orders.filter(o => o.status === 'return_requested').length,
+        refunded: orders.filter(o => ['refunded', 'returning', 'return_received'].includes(o.status)).length,
+    };
+
+    const formatVND = (n: number) => new Intl.NumberFormat('vi-VN').format(n || 0) + 'đ';
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-5">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-6 rounded-3xl border border-slate-800 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 p-6 rounded-2xl border shadow-sm"
+                style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                 <div>
-                    <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider">
-                            Logistics & Fulfillment
-                        </span>
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider inline-block mb-2">
+                        Logistics & Fulfillment
+                    </span>
+                    <h1 className="text-xl font-black" style={{ color: 'var(--adm-text)' }}>
+                        Quản Lý Vận Chuyển Đơn Hàng
+                    </h1>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
+                        Tạo vận đơn GHN / GHTK / ViettelPost / VNPost & theo dõi Live Tracking
+                    </p>
+
+                    {/* Workflow note */}
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>
+                        <span className="px-2 py-0.5 rounded-lg border font-semibold" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>Admin duyệt đơn</span>
+                        <ChevronRight size={12} />
+                        <span className="px-2 py-0.5 rounded-lg border font-semibold" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>Tạo vận đơn</span>
+                        <ChevronRight size={12} />
+                        <span className="px-2 py-0.5 rounded-lg border font-semibold" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>Vận chuyển giao hàng</span>
+                        <ChevronRight size={12} />
+                        <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">Khách nhận hàng</span>
+                        <ChevronRight size={12} />
+                        <Link href="/admin/inventory/returns" className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 font-semibold hover:bg-amber-100 transition-colors">
+                            ↩️ Duyệt hoàn hàng (WMS)
+                        </Link>
                     </div>
-                    <h1 className="text-2xl font-black text-white mt-1">Quản Lý Vận Chuyển Đơn Hàng Phân Phối</h1>
-                    <p className="text-slate-400 text-xs">Tạo vận đơn nhà mạng (GHN, GHTK, ViettelPost, VNPost) & Live Tracking Timeline</p>
                 </div>
+
                 <button
                     onClick={fetchOrders}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all self-start sm:self-auto"
+                    className="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0"
+                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
                 >
-                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Cập nhật đơn từ Database
+                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Cập nhật từ Database
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="flex items-center gap-2 bg-slate-900/70 rounded-2xl px-4 py-3 border border-slate-800">
-                <Search size={16} className="text-slate-500 shrink-0" />
-                <input
-                    type="text"
-                    placeholder="Tìm đơn theo Mã Đơn, Tên Khách Hàng, Số Điện Thoại..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="flex-1 bg-transparent text-white placeholder-slate-500 text-xs focus:outline-none"
-                />
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {FILTER_TABS.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setFilterTab(tab.id)}
+                        className={`px-3.5 py-2 rounded-xl border text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                            filterTab === tab.id
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                : 'border'
+                        }`}
+                        style={filterTab !== tab.id ? { backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' } : {}}
+                    >
+                        {tab.label}
+                        {tabCounts[tab.id] > 0 && (
+                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                                filterTab === tab.id ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700'
+                            }`}>
+                                {tabCounts[tab.id]}
+                            </span>
+                        )}
+                    </button>
+                ))}
             </div>
 
-            {/* Orders List */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Search */}
+            <div className="flex items-center gap-2 rounded-xl px-4 py-3 border"
+                style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                <Search size={16} className="shrink-0" style={{ color: 'var(--adm-text-muted)' }} />
+                <input
+                    type="text"
+                    placeholder="Tìm đơn theo Mã Đơn, Tên Khách, SĐT, Tracking..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="flex-1 bg-transparent text-xs focus:outline-none"
+                    style={{ color: 'var(--adm-text)' }}
+                />
+                {search && (
+                    <button onClick={() => setSearch('')} style={{ color: 'var(--adm-text-muted)' }}>
+                        <X size={14} />
+                    </button>
+                )}
+            </div>
+
+            {/* Return Requested Alert */}
+            {tabCounts.return_requested > 0 && filterTab !== 'return_requested' && (
+                <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between p-3.5 rounded-xl bg-amber-50 border border-amber-200"
+                >
+                    <div className="flex items-center gap-2.5">
+                        <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+                        <p className="text-xs font-semibold text-amber-800">
+                            Có <strong>{tabCounts.return_requested}</strong> đơn hàng đang chờ duyệt hoàn — cần xử lý tại WMS Returns
+                        </p>
+                    </div>
+                    <Link
+                        href="/admin/inventory/returns"
+                        className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold whitespace-nowrap flex items-center gap-1 transition-all"
+                    >
+                        Duyệt ngay <ArrowRight size={12} />
+                    </Link>
+                </motion.div>
+            )}
+
+            {/* Orders Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {loading ? (
                     Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="h-48 bg-slate-900/40 rounded-3xl border border-slate-800 animate-pulse" />
+                        <div key={i} className="h-48 rounded-2xl border animate-pulse"
+                            style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }} />
                     ))
                 ) : filteredOrders.length === 0 ? (
-                    <div className="col-span-full py-16 text-center text-slate-500">
+                    <div className="col-span-full py-16 text-center" style={{ color: 'var(--adm-text-muted)' }}>
                         <Truck size={40} className="mx-auto mb-3 opacity-30" />
-                        <p>Không tìm thấy đơn hàng nào cần tạo vận đơn</p>
+                        <p className="font-semibold" style={{ color: 'var(--adm-text)' }}>Không tìm thấy đơn hàng nào</p>
+                        <p className="text-xs mt-1">Thử chuyển sang tab khác hoặc xóa từ khóa tìm kiếm</p>
                     </div>
                 ) : (
-                    filteredOrders.map(order => (
+                    filteredOrders.map((order, idx) => (
                         <motion.div
                             key={order.id}
-                            initial={{ opacity: 0, y: 15 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-slate-900/70 rounded-3xl p-6 border border-slate-800 backdrop-blur-xl space-y-4 shadow-xl"
+                            transition={{ delay: idx * 0.03 }}
+                            className="rounded-2xl p-5 border shadow-sm space-y-4"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
                         >
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                            {/* Order Header */}
+                            <div className="flex items-start justify-between gap-3 pb-3 border-b"
+                                style={{ borderColor: 'var(--adm-border)' }}>
                                 <div>
-                                    <span className="text-amber-400 font-black text-sm">{order.id}</span>
-                                    <p className="text-slate-400 text-xs font-semibold">{order.customerName || order.name || 'Khách hàng'} • {order.phone}</p>
+                                    <span className="font-black text-sm text-amber-600">{order.id}</span>
+                                    <p className="text-xs font-semibold mt-0.5" style={{ color: 'var(--adm-text)' }}>
+                                        {order.customerName || order.name || 'Khách hàng'}
+                                    </p>
+                                    <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>{order.phone}</p>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                    order.status === 'shipped' || order.status === 'Shipping' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                }`}>
-                                    {order.status === 'shipped' ? 'Đang giao hàng' : order.status === 'processing' ? 'Đã duyệt (Chờ giao)' : order.status}
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap ${STATUS_BADGE[order.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                                    {STATUS_LABEL[order.status] || order.status}
                                 </span>
                             </div>
 
-                            <div className="space-y-1 text-xs text-slate-300">
-                                <p className="flex items-start gap-1.5 text-slate-400">
-                                    <MapPin size={14} className="shrink-0 text-amber-400 mt-0.5" />
-                                    {order.address}
+                            {/* Address & Items */}
+                            <div className="space-y-2 text-xs">
+                                <p className="flex items-start gap-1.5" style={{ color: 'var(--adm-text-muted)' }}>
+                                    <MapPin size={13} className="shrink-0 text-amber-500 mt-0.5" />
+                                    <span className="line-clamp-2">{order.address}</span>
                                 </p>
-                                <div className="pt-2 border-t border-slate-800/80 space-y-1">
-                                    {order.items?.map((it, idx) => (
-                                        <p key={idx} className="font-medium text-white flex justify-between">
-                                            <span>• {it.product?.name || 'Sản phẩm'} {it.selectedColor?.name && `(${it.selectedColor.name})`} {it.selectedSize && `/ ${it.selectedSize}`}</span>
-                                            <span>x{it.quantity}</span>
+                                <div className="pt-2 border-t space-y-1" style={{ borderColor: 'var(--adm-border)' }}>
+                                    {order.items?.slice(0, 3).map((it, iIdx) => (
+                                        <p key={iIdx} className="flex justify-between" style={{ color: 'var(--adm-text)' }}>
+                                            <span className="line-clamp-1 flex-1">
+                                                • {it.product?.name || 'Sản phẩm'}
+                                                {it.selectedColor?.name && ` (${it.selectedColor.name})`}
+                                                {it.selectedSize && ` / ${it.selectedSize}`}
+                                            </span>
+                                            <span className="font-bold ml-2 shrink-0">×{it.quantity}</span>
                                         </p>
                                     ))}
+                                    {order.items?.length > 3 && (
+                                        <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>+{order.items.length - 3} sản phẩm khác</p>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                            {/* Footer: Amount + Actions */}
+                            <div className="flex items-center justify-between pt-3 border-t"
+                                style={{ borderColor: 'var(--adm-border)' }}>
                                 <div>
-                                    <span className="text-[11px] text-slate-500 block">Tổng thanh toán:</span>
-                                    <span className="text-white font-black text-sm">
-                                        {new Intl.NumberFormat('vi-VN').format(order.finalAmount || order.totalAmount || 0)}đ
-                                    </span>
+                                    <span className="text-[10px]" style={{ color: 'var(--adm-text-subtle)' }}>Tổng thanh toán:</span>
+                                    <p className="font-black text-sm" style={{ color: 'var(--adm-text)' }}>
+                                        {formatVND(order.finalAmount || order.totalAmount || 0)}
+                                    </p>
                                 </div>
 
-                                {order.trackingNumber ? (
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => handleFetchTracking(order.trackingNumber!)}
-                                            className="px-3 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-xs border border-blue-500/30 flex items-center gap-1.5 transition-all"
-                                        >
-                                            <Truck size={14} /> Tracking: {order.trackingNumber}
-                                        </button>
-                                        {order.status !== 'refunded' && (
+                                <div className="flex items-center gap-2">
+                                    {/* Có tracking → hiện tracking + trạng thái */}
+                                    {order.trackingNumber ? (
+                                        <>
                                             <button
-                                                onClick={() => setReturnModalOrder(order)}
-                                                className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-xs border border-rose-500/30 flex items-center gap-1 transition-all"
+                                                onClick={() => handleFetchTracking(order.trackingNumber!)}
+                                                className="px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] border border-blue-200 flex items-center gap-1.5 transition-all"
                                             >
-                                                <X size={14} /> Hoàn Hàng
+                                                <Truck size={13} />
+                                                Tracking: {order.carrierCode && <span className="font-mono">{order.carrierCode}</span>}
                                             </button>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => setSelectedOrder(order)}
-                                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition-all"
-                                    >
-                                        <Truck size={14} /> Chọn Nhà Vận Chuyển
-                                    </button>
-                                )}
+
+                                            {/* return_requested → link sang WMS Returns */}
+                                            {order.status === 'return_requested' && (
+                                                <Link
+                                                    href="/admin/inventory/returns"
+                                                    className="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-[11px] border border-amber-300 flex items-center gap-1 transition-all animate-pulse"
+                                                >
+                                                    <RotateCcw size={13} /> Duyệt Hoàn
+                                                </Link>
+                                            )}
+
+                                            {/* Đã refunded */}
+                                            {order.status === 'refunded' && (
+                                                <span className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 font-bold text-[11px] border border-rose-200 flex items-center gap-1">
+                                                    ✅ Đã hoàn tiền
+                                                </span>
+                                            )}
+                                        </>
+                                    ) : (
+                                        /* Chưa có tracking → cho phép tạo vận đơn nếu đơn đang processing/confirmed */
+                                        (order.status === 'processing' || order.status === 'confirmed' || order.status === 'pending') ? (
+                                            <button
+                                                onClick={() => setSelectedOrder(order)}
+                                                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                                            >
+                                                <Truck size={13} /> Tạo Vận Đơn
+                                            </button>
+                                        ) : (
+                                            <span className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>—</span>
+                                        )
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     ))
                 )}
             </div>
 
-            {/* Carrier Selection Modal */}
+            {/* ── Carrier Selection Modal ───────────────────────────────── */}
             <AnimatePresence>
                 {selectedOrder && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedOrder(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50" />
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-2xl">
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                                <h3 className="text-white font-bold text-base flex items-center gap-2">
-                                    <Truck size={18} className="text-amber-400" />
-                                    Tạo Vận Đơn Giao Hàng
-                                </h3>
-                                <button onClick={() => setSelectedOrder(null)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            onClick={() => setSelectedOrder(null)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md border rounded-2xl p-6 space-y-5 shadow-2xl"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
+                        >
+                            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--adm-border)' }}>
+                                <div>
+                                    <h3 className="font-bold text-base flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                        <Truck size={18} className="text-amber-500" />
+                                        Tạo Vận Đơn Giao Hàng
+                                    </h3>
+                                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
+                                        Đơn #{selectedOrder.id} • {selectedOrder.customerName || selectedOrder.name}
+                                    </p>
+                                </div>
+                                <button onClick={() => setSelectedOrder(null)}
+                                    className="w-8 h-8 rounded-full border flex items-center justify-center"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                     <X size={16} />
                                 </button>
                             </div>
 
-                            <div className="space-y-3">
-                                <label className="text-slate-400 text-xs font-medium block">Chọn Đơn Vị Vận Chuyển Partners:</label>
-                                <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
-                                    {[
-                                        { code: 'GHN', name: 'GHN Express' },
-                                        { code: 'GHTK', name: 'GHTK Tiết Kiệm' },
-                                        { code: 'VIETTELPOST', name: 'Viettel Post' },
-                                        { code: 'VNPOST', name: 'VNPost Bưu Điện' }
-                                    ].map(c => (
+                            {/* Order Summary */}
+                            <div className="p-3 rounded-xl border text-xs space-y-1"
+                                style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <p className="flex items-start gap-1.5" style={{ color: 'var(--adm-text-muted)' }}>
+                                    <MapPin size={12} className="text-amber-500 mt-0.5 shrink-0" />
+                                    {selectedOrder.address}
+                                </p>
+                                <p className="font-bold" style={{ color: 'var(--adm-text)' }}>
+                                    COD: {formatVND(selectedOrder.finalAmount || selectedOrder.totalAmount || 0)}
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold" style={{ color: 'var(--adm-text-muted)' }}>
+                                    Chọn Đơn Vị Vận Chuyển:
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {CARRIERS.map(c => (
                                         <button
                                             key={c.code}
                                             onClick={() => setSelectedCarrier(c.code)}
-                                            className={`p-3 rounded-2xl border text-left transition-all ${
-                                                selectedCarrier === c.code ? 'bg-amber-500/20 border-amber-400 text-amber-300' : 'bg-slate-950 border-slate-800 text-slate-400'
+                                            className={`p-3 rounded-xl border text-left transition-all text-xs font-semibold ${
+                                                selectedCarrier === c.code
+                                                    ? 'bg-amber-50 border-amber-400 text-amber-800 shadow-sm'
+                                                    : 'border'
                                             }`}
+                                            style={selectedCarrier !== c.code ? { backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' } : {}}
                                         >
-                                            {c.name}
+                                            <span className="text-base">{c.logo}</span>
+                                            <p className="mt-1">{c.name}</p>
                                         </button>
                                     ))}
                                 </div>
@@ -322,7 +517,7 @@ export default function LogisticsManagementPage() {
                             <button
                                 onClick={() => handleCreateWaybill(selectedOrder)}
                                 disabled={submitting}
-                                className="w-full h-11 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                                className="w-full h-11 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm disabled:opacity-40 transition-all"
                             >
                                 {submitting ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                                 Xác Nhận Tạo Vận Đơn & Trừ Tồn Kho
@@ -332,101 +527,54 @@ export default function LogisticsManagementPage() {
                 )}
             </AnimatePresence>
 
-            {/* Tracking Modal */}
+            {/* ── Live Tracking Modal ───────────────────────────────────── */}
             <AnimatePresence>
                 {trackingModal && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setTrackingModal(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50" />
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-2xl">
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            onClick={() => setTrackingModal(null)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg max-h-[85vh] overflow-y-auto border rounded-2xl p-6 space-y-5 shadow-2xl"
+                            style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
+                        >
+                            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--adm-border)' }}>
                                 <div>
-                                    <h3 className="text-white font-bold text-base flex items-center gap-2">
-                                        <Truck size={18} className="text-blue-400" />
+                                    <h3 className="font-bold text-base flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                        <Truck size={18} className="text-blue-500" />
                                         Live Tracking: {trackingModal.trackingNumber}
                                     </h3>
-                                    <p className="text-emerald-400 text-xs font-semibold">{trackingModal.statusLabel}</p>
+                                    <p className="text-xs font-semibold text-emerald-600 mt-0.5">{trackingModal.statusLabel}</p>
                                 </div>
-                                <button onClick={() => setTrackingModal(null)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+                                <button onClick={() => setTrackingModal(null)}
+                                    className="w-8 h-8 rounded-full border flex items-center justify-center"
+                                    style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                     <X size={16} />
                                 </button>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-4 relative pl-5">
+                                <div className="absolute left-2 top-1 bottom-1 w-0.5 bg-gradient-to-b from-blue-300 to-transparent rounded-full" />
                                 {trackingModal.timeline?.map((step: any, idx: number) => (
-                                    <div key={idx} className="flex gap-3 text-xs">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-blue-400 mt-1 shrink-0" />
+                                    <div key={idx} className="flex gap-3 text-xs relative">
+                                        <div className="absolute -left-5 w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white mt-0.5 shadow-sm" />
                                         <div>
-                                            <p className="text-white font-semibold">{step.note}</p>
-                                            <p className="text-slate-500 text-[11px]">{step.location} • {step.time}</p>
+                                            <p className="font-semibold" style={{ color: 'var(--adm-text)' }}>{step.note}</p>
+                                            <p className="text-[11px] mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
+                                                {step.location && `📍 ${step.location} • `}{step.time}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}
+                                {(!trackingModal.timeline || trackingModal.timeline.length === 0) && (
+                                    <p className="text-xs text-center py-4" style={{ color: 'var(--adm-text-muted)' }}>
+                                        Chưa có lịch trình cập nhật
+                                    </p>
+                                )}
                             </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-            {/* Return Order Modal */}
-            <AnimatePresence>
-                {returnModalOrder && (
-                    <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setReturnModalOrder(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50" />
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-2xl">
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                                <h3 className="text-white font-bold text-base flex items-center gap-2">
-                                    <ShieldAlert size={18} className="text-rose-400" />
-                                    Xử Lý Hoàn Hàng Trả Về Kho
-                                </h3>
-                                <button onClick={() => setReturnModalOrder(null)} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
-                                    <X size={16} />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-slate-400 text-xs font-medium block mb-2">Phân loại tình trạng hàng hoàn về:</label>
-                                    <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
-                                        <button
-                                            onClick={() => setReturnType('RETURN_GOOD')}
-                                            className={`p-3 rounded-2xl border text-left transition-all ${
-                                                returnType === 'RETURN_GOOD' ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400'
-                                            }`}
-                                        >
-                                            <p className="font-bold">✨ Nguyên Vẹn</p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">Tăng kho Khả dụng (Available)</p>
-                                        </button>
-                                        <button
-                                            onClick={() => setReturnType('RETURN_DAMAGE')}
-                                            className={`p-3 rounded-2xl border text-left transition-all ${
-                                                returnType === 'RETURN_DAMAGE' ? 'bg-rose-500/20 border-rose-400 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400'
-                                            }`}
-                                        >
-                                            <p className="font-bold">🚨 Lỗi / Hỏng Hóc</p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">Vào kho Hàng hỏng (Damaged)</p>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-xs font-medium block mb-1.5">Lý do hoàn hàng:</label>
-                                    <textarea
-                                        rows={3}
-                                        placeholder="Ví dụ: Khách đổi ý không nhận, áo bị rách chỉ, sai size..."
-                                        value={returnReason}
-                                        onChange={e => setReturnReason(e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-white text-xs placeholder-slate-600 focus:outline-none"
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleProcessReturn}
-                                disabled={submitting}
-                                className="w-full h-11 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20"
-                            >
-                                {submitting ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                                Xác Nhận Hoàn Hàng & Cập Nhật Tồn Kho
-                            </button>
                         </motion.div>
                     </>
                 )}
