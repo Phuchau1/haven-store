@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Save, Gift, Loader2, Plus, Trash2, AlertCircle, CheckCircle2,
-    History, RefreshCw, X, ShieldAlert, Sparkles, Layers, Check, Calculator, AlertTriangle
+    History, RefreshCw, X, ShieldAlert, Sparkles, Layers, Check, Calculator, AlertTriangle,
+    User, Mail, Phone, Ticket, ChevronLeft, ChevronRight, RotateCcw
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -31,8 +32,17 @@ interface Config {
 interface SpinHistoryItem {
     _id: string;
     user_id: string;
-    reward_text: string;
+    userName: string;
+    userEmail: string;
+    userPhone: string;
     spin_date: string;
+    reward_text: string;
+    voucherCode: string | null;
+    voucherType: string | null;
+    voucherValue: number;
+    voucherExpiry: string | null;
+    voucherStatus: 'none' | 'unused' | 'used' | 'expired';
+    remainingSpins: number;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -475,11 +485,17 @@ export default function LuckyWheelAdminPage() {
             {/* TAB 2: HISTORY */}
             {activeTab === 'history' && (
                 <div className="space-y-4">
+                    {/* Header */}
                     <div className="flex items-center justify-between p-4 rounded-2xl border shadow-sm"
                         style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                         <div>
-                            <h3 className="text-sm font-bold" style={{ color: 'var(--adm-text)' }}>Lịch Sử Lượt Quay Thưởng Khách Hàng</h3>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Ghi lại toàn bộ lượt quay real-time từ người dùng</p>
+                            <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                <History size={15} className="text-amber-500" />
+                                Lịch Sử Lượt Quay Thưởng Khách Hàng
+                            </h3>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
+                                Tổng {history.length} lượt quay — Trang {historyPage}/{historyTotalPages}
+                            </p>
                         </div>
                         <button
                             onClick={() => fetchHistory(historyPage)}
@@ -490,23 +506,30 @@ export default function LuckyWheelAdminPage() {
                         </button>
                     </div>
 
+                    {/* Table */}
                     <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
+                            <table className="w-full text-left" style={{ fontSize: '11.5px' }}>
                                 <thead className="text-[10px] font-bold uppercase tracking-wider border-b"
                                     style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' }}>
                                     <tr>
-                                        <th className="px-4 py-3">ID Người Dùng</th>
-                                        <th className="px-4 py-3">Phần Thưởng Trúng</th>
-                                        <th className="px-4 py-3">Thời Gian Quay</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">User ID</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">Họ tên</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">Email</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">Số điện thoại</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">Thời gian quay</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">Kết quả quay</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">Mã voucher</th>
+                                        <th className="px-3 py-3 whitespace-nowrap">Trạng thái voucher</th>
+                                        <th className="px-3 py-3 whitespace-nowrap text-center">Lượt còn lại</th>
                                     </tr>
                                 </thead>
                                 <tbody style={{ borderColor: 'var(--adm-border)' }}>
                                     {loadingHistory ? (
                                         Array.from({ length: 8 }).map((_, i) => (
                                             <tr key={i} className="border-b" style={{ borderColor: 'var(--adm-border)' }}>
-                                                {Array.from({ length: 3 }).map((__, j) => (
-                                                    <td key={j} className="px-4 py-3">
+                                                {Array.from({ length: 9 }).map((__, j) => (
+                                                    <td key={j} className="px-3 py-3">
                                                         <div className="h-3 rounded animate-pulse" style={{ backgroundColor: 'var(--adm-surface-2)' }} />
                                                     </td>
                                                 ))}
@@ -514,32 +537,154 @@ export default function LuckyWheelAdminPage() {
                                         ))
                                     ) : history.length === 0 ? (
                                         <tr>
-                                            <td colSpan={3} className="px-4 py-12 text-center" style={{ color: 'var(--adm-text-muted)' }}>
+                                            <td colSpan={9} className="px-4 py-12 text-center" style={{ color: 'var(--adm-text-muted)' }}>
                                                 <History size={32} className="mx-auto mb-2 opacity-30" />
                                                 <p>Chưa có lượt quay nào được ghi nhận</p>
                                             </td>
                                         </tr>
                                     ) : (
-                                        history.map(item => (
-                                            <tr key={item._id} className="border-b last:border-0 transition-colors hover:bg-black/[0.02]"
-                                                style={{ borderColor: 'var(--adm-border)' }}>
-                                                <td className="px-4 py-3 font-mono font-bold text-amber-600">{item.user_id}</td>
-                                                <td className="px-4 py-3 font-semibold" style={{ color: 'var(--adm-text)' }}>
-                                                    {item.reward_text.includes('Chúc') ? (
-                                                        <span className="text-gray-500">{item.reward_text}</span>
-                                                    ) : (
-                                                        <span className="text-emerald-600 font-bold">🎁 {item.reward_text}</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3" style={{ color: 'var(--adm-text-muted)' }}>
-                                                    {new Date(item.spin_date).toLocaleString('vi-VN')}
-                                                </td>
-                                            </tr>
-                                        ))
+                                        history.map(item => {
+                                            const isWin = !item.reward_text.toLowerCase().includes('chúc') && !item.reward_text.toLowerCase().includes('may mắn');
+                                            const voucherStatusConfig: Record<string, { label: string; cls: string }> = {
+                                                none:    { label: '—',            cls: 'bg-gray-100 text-gray-400' },
+                                                unused:  { label: 'Chưa sử dụng', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
+                                                used:    { label: 'Đã sử dụng',   cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+                                                expired: { label: 'Hết hạn',       cls: 'bg-rose-50 text-rose-600 border border-rose-200' },
+                                            };
+                                            const vs = voucherStatusConfig[item.voucherStatus] || voucherStatusConfig.none;
+
+                                            return (
+                                                <tr key={item._id}
+                                                    className="border-b last:border-0 transition-colors hover:bg-black/[0.02]"
+                                                    style={{ borderColor: 'var(--adm-border)' }}>
+
+                                                    {/* User ID */}
+                                                    <td className="px-3 py-3">
+                                                        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                                            {item.user_id.slice(0, 8)}…
+                                                        </span>
+                                                    </td>
+
+                                                    {/* Họ tên */}
+                                                    <td className="px-3 py-3">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                                                <User size={11} className="text-amber-600" />
+                                                            </div>
+                                                            <span className="font-semibold whitespace-nowrap" style={{ color: 'var(--adm-text)' }}>
+                                                                {item.userName}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Email */}
+                                                    <td className="px-3 py-3">
+                                                        <div className="flex items-center gap-1" style={{ color: 'var(--adm-text-muted)' }}>
+                                                            <Mail size={10} className="flex-shrink-0" />
+                                                            <span className="whitespace-nowrap">{item.userEmail || '—'}</span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* SĐT */}
+                                                    <td className="px-3 py-3">
+                                                        <div className="flex items-center gap-1" style={{ color: 'var(--adm-text-muted)' }}>
+                                                            <Phone size={10} className="flex-shrink-0" />
+                                                            <span>{item.userPhone || '—'}</span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Thời gian quay */}
+                                                    <td className="px-3 py-3 whitespace-nowrap" style={{ color: 'var(--adm-text-muted)' }}>
+                                                        {new Date(item.spin_date).toLocaleString('vi-VN', {
+                                                            day: '2-digit', month: '2-digit', year: 'numeric',
+                                                            hour: '2-digit', minute: '2-digit'
+                                                        })}
+                                                    </td>
+
+                                                    {/* Kết quả quay */}
+                                                    <td className="px-3 py-3">
+                                                        {isWin ? (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                🎁 {item.reward_text}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
+                                                                😔 {item.reward_text}
+                                                            </span>
+                                                        )}
+                                                    </td>
+
+                                                    {/* Mã voucher */}
+                                                    <td className="px-3 py-3">
+                                                        {item.voucherCode ? (
+                                                            <div className="space-y-0.5">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-mono text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                                    <Ticket size={9} />
+                                                                    {item.voucherCode}
+                                                                </span>
+                                                                {item.voucherExpiry && (
+                                                                    <p className="text-[9px]" style={{ color: 'var(--adm-text-muted)' }}>
+                                                                        HSD: {new Date(item.voucherExpiry).toLocaleDateString('vi-VN')}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span style={{ color: 'var(--adm-text-muted)' }}>—</span>
+                                                        )}
+                                                    </td>
+
+                                                    {/* Trạng thái voucher */}
+                                                    <td className="px-3 py-3">
+                                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold ${vs.cls}`}>
+                                                            {vs.label}
+                                                        </span>
+                                                    </td>
+
+                                                    {/* Lượt quay còn lại */}
+                                                    <td className="px-3 py-3 text-center">
+                                                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-bold ${
+                                                            item.remainingSpins > 0
+                                                                ? 'bg-sky-100 text-sky-700'
+                                                                : 'bg-gray-100 text-gray-400'
+                                                        }`}>
+                                                            {item.remainingSpins}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     )}
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination */}
+                        {historyTotalPages > 1 && (
+                            <div className="flex items-center justify-between px-4 py-3 border-t"
+                                style={{ borderColor: 'var(--adm-border)', backgroundColor: 'var(--adm-surface-2)' }}>
+                                <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>
+                                    Trang {historyPage} / {historyTotalPages}
+                                </p>
+                                <div className="flex gap-1.5">
+                                    <button
+                                        disabled={historyPage <= 1}
+                                        onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                                        className="p-1.5 rounded-lg border disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                                        style={{ borderColor: 'var(--adm-border)' }}
+                                    >
+                                        <ChevronLeft size={13} style={{ color: 'var(--adm-text)' }} />
+                                    </button>
+                                    <button
+                                        disabled={historyPage >= historyTotalPages}
+                                        onClick={() => setHistoryPage(p => Math.min(historyTotalPages, p + 1))}
+                                        className="p-1.5 rounded-lg border disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                                        style={{ borderColor: 'var(--adm-border)' }}
+                                    >
+                                        <ChevronRight size={13} style={{ color: 'var(--adm-text)' }} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

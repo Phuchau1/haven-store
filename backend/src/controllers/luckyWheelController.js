@@ -263,21 +263,91 @@ exports.canSpin = async (req, res) => {
 };
 
 /**
- * @desc Lấy lịch sử tất cả các lượt quay của khách hàng (Admin)
- * @route GET /api/lucky-wheel/history
+ * @desc Lấy lịch sử tất cả các lượt quay của khách hàng kèm thông tin User và Voucher (Admin)
+ * @route GET /api/lucky-wheel/history?page=1&limit=20
  */
 exports.getHistory = async (req, res) => {
     try {
-        const { limit = 50, page = 1 } = req.query;
+        const { limit = 20, page = 1 } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
 
-        const history = await SpinHistory.find({})
+        const { UserModel } = require('../models/User');
+
+        const rawHistory = await SpinHistory.find({})
             .sort({ spin_date: -1 })
             .skip(skip)
             .limit(Number(limit))
             .lean();
 
         const total = await SpinHistory.countDocuments({});
+
+        // Tính ngày hôm nay 00:00
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Enrich từng record với User + UserCoupon
+        const history = await Promise.all(rawHistory.map(async (spin) => {
+            // 1. Lấy thông tin user
+            let user = null;
+            try {
+                user = await UserModel.findOne({ id: spin.user_id }).select('name email phone id').lean();
+                if (!user) {
+                    // Thử tìm theo _id nếu user_id là ObjectId
+                    user = await UserModel.findById(spin.user_id).select('name email phone id').lean().catch(() => null);
+                }
+            } catch {}
+
+            // 2. Tìm voucher được cấp sau lượt quay này (cùng user_id, tạo gần nhất với spin_date)
+            let voucher = null;
+            if (spin.reward_id) {
+                try {
+                    // Tìm UserCoupon tạo trong khoảng thời gian ±5 phút quanh spin_date
+                    const spinTime = new Date(spin.spin_date || spin.createdAt);
+                    const from = new Date(spinTime.getTime() - 5 * 60000);
+                    const to   = new Date(spinTime.getTime() + 5 * 60000);
+                    voucher = await UserCoupon.findOne({
+                        user_id: String(spin.user_id),
+                        createdAt: { $gte: from, $lte: to }
+                    }).lean();
+                } catch {}
+            }
+
+            // 3. Tính trạng thái voucher
+            let voucherStatus = 'none';
+            if (voucher) {
+                const now = new Date();
+                if (voucher.is_used) {
+                    voucherStatus = 'used';
+                } else if (voucher.expires_at && new Date(voucher.expires_at) < now) {
+                    voucherStatus = 'expired';
+                } else {
+                    voucherStatus = 'unused';
+                }
+            }
+
+            // 4. Tính số lượt quay còn lại trong ngày (spinsPerDay=1 mỗi ngày)
+            const spinsToday = await SpinHistory.countDocuments({
+                user_id: String(spin.user_id),
+                spin_date: { $gte: today }
+            });
+            const remainingSpins = Math.max(0, 1 - spinsToday);
+
+            return {
+                _id: spin._id,
+                user_id: spin.user_id,
+                userName: user?.name || 'Không xác định',
+                userEmail: user?.email || '',
+                userPhone: user?.phone || '',
+                spin_date: spin.spin_date || spin.createdAt,
+                reward_text: spin.reward_text,
+                voucherCode: voucher?.coupon_code || null,
+                voucherType: voucher?.type || null,
+                voucherValue: voucher?.discount_value || 0,
+                voucherExpiry: voucher?.expires_at || null,
+                voucherStatus,   // 'none' | 'unused' | 'used' | 'expired'
+                remainingSpins,
+            };
+        }));
 
         res.json({
             success: true,
@@ -294,5 +364,6 @@ exports.getHistory = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 
 
