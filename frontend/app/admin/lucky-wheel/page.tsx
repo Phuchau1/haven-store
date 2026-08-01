@@ -43,6 +43,21 @@ interface SpinHistoryItem {
     voucherExpiry: string | null;
     voucherStatus: 'none' | 'unused' | 'used' | 'expired';
     remainingSpins: number;
+    ip?: string;
+    device?: string;
+}
+
+interface WheelStats {
+    totalSpins: number;
+    totalVouchers: number;
+    usedVouchers: number;
+    expiredVouchers: number;
+    unusedVouchers: number;
+}
+
+interface RewardBreakdown {
+    reward: string;
+    count: number;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -59,7 +74,7 @@ const DEFAULT_COLORS = [
 
 export default function LuckyWheelAdminPage() {
     const { token } = useAuth();
-    const [activeTab, setActiveTab] = useState<'config' | 'history'>('config');
+    const [activeTab, setActiveTab] = useState<'config' | 'history' | 'stats'>('config');
 
     // Config state
     const [config, setConfig] = useState<Config | null>(null);
@@ -74,6 +89,12 @@ export default function LuckyWheelAdminPage() {
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [historyPage, setHistoryPage] = useState(1);
     const [historyTotalPages, setHistoryTotalPages] = useState(1);
+    const [historySearch, setHistorySearch] = useState('');
+
+    // Stats state
+    const [stats, setStats] = useState<WheelStats | null>(null);
+    const [rewardBreakdown, setRewardBreakdown] = useState<RewardBreakdown[]>([]);
+    const [loadingStats, setLoadingStats] = useState(false);
 
     // Fetch config
     const fetchConfig = useCallback(async () => {
@@ -109,10 +130,12 @@ export default function LuckyWheelAdminPage() {
     }, []);
 
     // Fetch history
-    const fetchHistory = useCallback(async (page = 1) => {
+    const fetchHistory = useCallback(async (page = 1, search = '') => {
         setLoadingHistory(true);
         try {
-            const res = await fetch(`/api/lucky-wheel/history?page=${page}&limit=20`, {
+            const params = new URLSearchParams({ page: String(page), limit: '20' });
+            if (search) params.set('search', search);
+            const res = await fetch(`/api/lucky-wheel/history?${params}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -127,15 +150,37 @@ export default function LuckyWheelAdminPage() {
         }
     }, [token]);
 
+    // Fetch stats
+    const fetchStats = useCallback(async () => {
+        setLoadingStats(true);
+        try {
+            const res = await fetch('/api/lucky-wheel/stats', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setStats(data.stats);
+                setRewardBreakdown(data.rewardBreakdown || []);
+            }
+        } catch {
+            toast.error('Không thể tải thống kê!');
+        } finally {
+            setLoadingStats(false);
+        }
+    }, [token]);
+
     useEffect(() => {
         fetchConfig();
     }, [fetchConfig]);
 
     useEffect(() => {
         if (activeTab === 'history') {
-            fetchHistory(historyPage);
+            fetchHistory(historyPage, historySearch);
         }
-    }, [activeTab, historyPage, fetchHistory]);
+        if (activeTab === 'stats') {
+            fetchStats();
+        }
+    }, [activeTab, historyPage, fetchHistory, fetchStats]);
 
     // Save Config to Backend
     const handleSave = async () => {
@@ -303,7 +348,19 @@ export default function LuckyWheelAdminPage() {
                     }`}
                     style={activeTab !== 'history' ? { backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' } : {}}
                 >
-                    <History size={14} /> Nhật Ký Lượt Quay Khách Hàng
+                    <History size={14} /> Nhật Ký Lượt Quay
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('stats')}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                        activeTab === 'stats'
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                            : 'border'
+                    }`}
+                    style={activeTab !== 'stats' ? { backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)' } : {}}
+                >
+                    <Sparkles size={14} /> Thống Kê
                 </button>
             </div>
 
@@ -482,11 +539,80 @@ export default function LuckyWheelAdminPage() {
                 </div>
             )}
 
+            {/* TAB 3: STATS */}
+            {activeTab === 'stats' && (
+                <div className="space-y-5">
+                    {/* Stat Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        {[
+                            { label: 'Tổng lượt quay',   value: stats?.totalSpins     ?? '—', color: 'bg-blue-50 text-blue-700   border-blue-200',    icon: '🎯' },
+                            { label: 'Voucher đã phát',  value: stats?.totalVouchers  ?? '—', color: 'bg-amber-50 text-amber-700 border-amber-200',   icon: '🎁' },
+                            { label: 'Chưa sử dụng',     value: stats?.unusedVouchers ?? '—', color: 'bg-sky-50 text-sky-700    border-sky-200',      icon: '⏳' },
+                            { label: 'Đã sử dụng',       value: stats?.usedVouchers   ?? '—', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: '✅' },
+                            { label: 'Hết hạn',          value: stats?.expiredVouchers?? '—', color: 'bg-rose-50 text-rose-700   border-rose-200',     icon: '❌' },
+                        ].map(card => (
+                            <div key={card.label}
+                                className={`p-4 rounded-2xl border ${card.color} flex flex-col items-center text-center gap-1`}
+                            >
+                                <span className="text-2xl">{card.icon}</span>
+                                <span className="text-2xl font-black">
+                                    {loadingStats ? <span className="animate-pulse">…</span> : card.value}
+                                </span>
+                                <span className="text-[11px] font-semibold opacity-80">{card.label}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Top phần thưởng */}
+                    <div className="rounded-2xl border overflow-hidden shadow-sm"
+                        style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                        <div className="px-5 py-3.5 border-b flex items-center justify-between"
+                            style={{ borderColor: 'var(--adm-border)', backgroundColor: 'var(--adm-surface-2)' }}>
+                            <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                🏆 Top Phần Thưởng Được Trúng Nhiều Nhất
+                            </h3>
+                            <button onClick={fetchStats}
+                                className="text-xs flex items-center gap-1 px-3 py-1.5 rounded-lg border"
+                                style={{ borderColor: 'var(--adm-border)', color: 'var(--adm-text-muted)', backgroundColor: 'var(--adm-surface)' }}>
+                                <RefreshCw size={12} className={loadingStats ? 'animate-spin' : ''} /> Làm mới
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-2.5">
+                            {rewardBreakdown.length === 0 ? (
+                                <p className="text-center py-8 text-sm" style={{ color: 'var(--adm-text-muted)' }}>
+                                    Chưa có dữ liệu thống kê
+                                </p>
+                            ) : rewardBreakdown.map((r, i) => {
+                                const maxCount = rewardBreakdown[0]?.count || 1;
+                                const pct = Math.round((r.count / maxCount) * 100);
+                                const medals = ['🥇','🥈','🥉'];
+                                return (
+                                    <div key={r.reward} className="space-y-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-semibold flex items-center gap-1.5" style={{ color: 'var(--adm-text)' }}>
+                                                {medals[i] || `${i + 1}.`} {r.reward}
+                                            </span>
+                                            <span className="text-xs font-bold" style={{ color: 'var(--adm-text-muted)' }}>{r.count} lượt</span>
+                                        </div>
+                                        <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--adm-surface-2)' }}>
+                                            <div
+                                                className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-700"
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* TAB 2: HISTORY */}
             {activeTab === 'history' && (
                 <div className="space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-4 rounded-2xl border shadow-sm"
+                    {/* Header with Search */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border shadow-sm"
                         style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
                         <div>
                             <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
@@ -494,16 +620,27 @@ export default function LuckyWheelAdminPage() {
                                 Lịch Sử Lượt Quay Thưởng Khách Hàng
                             </h3>
                             <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
-                                Tổng {history.length} lượt quay — Trang {historyPage}/{historyTotalPages}
+                                Trang {historyPage}/{historyTotalPages}
                             </p>
                         </div>
-                        <button
-                            onClick={() => fetchHistory(historyPage)}
-                            className="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5"
-                            style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
-                        >
-                            <RefreshCw size={13} className={loadingHistory ? 'animate-spin' : ''} /> Làm Mới
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                placeholder="Tìm User ID hoặc phần thưởng…"
+                                value={historySearch}
+                                onChange={e => setHistorySearch(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && fetchHistory(1, historySearch)}
+                                className="px-3 py-1.5 rounded-xl border text-xs w-52 focus:outline-none"
+                                style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
+                            />
+                            <button
+                                onClick={() => { setHistoryPage(1); fetchHistory(1, historySearch); }}
+                                className="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5"
+                                style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)', color: 'var(--adm-text)' }}
+                            >
+                                <RefreshCw size={13} className={loadingHistory ? 'animate-spin' : ''} /> Làm Mới
+                            </button>
+                        </div>
                     </div>
 
                     {/* Table */}
