@@ -15,4 +15,9 @@ router.post('/run', tryOnController.runTryOn);
 router.post('/generate-job', tryOnController.runTryOn);
 router.post('/', tryOnController.runTryOn);
 
+// Lịch sử thử đồ (History)
+router.post('/history', tryOnController.saveHistory);
+router.get('/history', tryOnController.getHistory);
+router.delete('/history/:id', tryOnController.deleteHistory);
+
 module.exports = router;

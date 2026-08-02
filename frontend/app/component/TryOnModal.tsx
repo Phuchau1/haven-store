@@ -75,7 +75,16 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleFile = (file: File) => {
-        if (!file.type.startsWith('image/')) { toast.error('Chỉ hỗ trợ định dạng ảnh'); return; }
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) { 
+            toast.error('Chỉ hỗ trợ định dạng JPG, JPEG, PNG, WEBP'); 
+            return; 
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('Kích thước ảnh không được vượt quá 10MB');
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = e => {
             setUserPhoto(e.target?.result as string);

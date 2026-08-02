@@ -256,3 +256,61 @@ exports.getJobStatus = async (req, res) => {
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
     res.json({ success: true, job });
 };
+
+// ─────────────────────────────────────────────────────────────
+// ENDPOINTS: History Management
+// ─────────────────────────────────────────────────────────────
+const { TryOnHistoryModel } = require('../models/TryOnHistory');
+
+exports.saveHistory = async (req, res, next) => {
+    try {
+        const { userId, productId, productName, garmentImage, userImage, resultImage, selectedColor, selectedSize } = req.body;
+        if (!userId || !productId || !resultImage) {
+            return res.status(400).json({ success: false, message: 'Thiếu dữ liệu lưu lịch sử.' });
+        }
+
+        const id = `tryon-hist-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+        const historyItem = new TryOnHistoryModel({
+            id,
+            userId,
+            productId,
+            productName: productName || 'Sản phẩm',
+            garmentImage,
+            userImage,
+            resultImage,
+            selectedColor: selectedColor || '',
+            selectedSize: selectedSize || ''
+        });
+
+        await historyItem.save();
+        res.json({ success: true, historyItem });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getHistory = async (req, res, next) => {
+    try {
+        const { userId } = req.query;
+        if (!userId) return res.status(400).json({ success: false, message: 'Thiếu userId.' });
+
+        const history = await TryOnHistoryModel.find({ userId }).sort({ createdAt: -1 }).limit(20);
+        res.json({ success: true, history });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteHistory = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { userId } = req.query;
+        if (!id || !userId) return res.status(400).json({ success: false, message: 'Thiếu id hoặc userId.' });
+
+        await TryOnHistoryModel.deleteOne({ id, userId });
+        res.json({ success: true, message: 'Đã xóa lịch sử thử đồ.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
