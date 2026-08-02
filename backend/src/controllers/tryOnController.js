@@ -203,6 +203,9 @@ exports.runTryOn = async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────
 // Background Process: 3-Tier Fallback Chain
+// Tier 1: Replicate IDM-VTON (có API key → ưu tiên)
+// Tier 2: HuggingFace CatVTON (FREE backup)
+// Tier 3: Smart Canvas Engine (luôn thành công)
 // ─────────────────────────────────────────────────────────────
 async function processJob(jobId, userImageBase64, garmentImageUrl, category) {
     const update = (data) => {
@@ -210,27 +213,29 @@ async function processJob(jobId, userImageBase64, garmentImageUrl, category) {
         if (j) jobsStore.set(jobId, { ...j, ...data });
     };
 
-    // ── Tier 1: HuggingFace CatVTON (FREE)
-    try {
-        update({ progress: 30, message: '🤖 CatVTON AI đang phân tích ảnh...' });
-        const result = await callHuggingFaceCatVTON(userImageBase64, garmentImageUrl, category);
-        update({ status: 'completed', progress: 100, message: '✨ AI thử đồ thành công!', resultImage: result, isAiGenerated: true });
-        logger.info(`[TryOn] ✅ Tier-1 (HuggingFace) succeeded for job ${jobId}`);
-        return;
-    } catch (err) {
-        logger.warn(`[TryOn] Tier-1 HuggingFace failed: ${err.message}. Trying Tier-2...`);
-        update({ progress: 50, message: '🔄 Đang chuyển sang AI Engine dự phòng...' });
+    // ── Tier 1: Replicate IDM-VTON (AI chất lượng cao)
+    if (process.env.REPLICATE_API_TOKEN) {
+        try {
+            update({ progress: 20, message: '🤖 IDM-VTON AI đang phân tích ảnh...' });
+            const result = await callReplicateIDMVTON(userImageBase64, garmentImageUrl, category);
+            update({ status: 'completed', progress: 100, message: '✨ AI thử đồ thành công!', resultImage: result, isAiGenerated: true });
+            logger.info(`[TryOn] ✅ Tier-1 (Replicate IDM-VTON) succeeded for job ${jobId}`);
+            return;
+        } catch (err) {
+            logger.warn(`[TryOn] Tier-1 Replicate failed: ${err.message}. Trying Tier-2...`);
+            update({ progress: 50, message: '🔄 Đang chuyển sang AI Engine dự phòng...' });
+        }
     }
 
-    // ── Tier 2: Replicate IDM-VTON
+    // ── Tier 2: HuggingFace CatVTON (FREE)
     try {
-        update({ progress: 60, message: '🤖 IDM-VTON AI đang render...' });
-        const result = await callReplicateIDMVTON(userImageBase64, garmentImageUrl, category);
+        update({ progress: 60, message: '🤖 CatVTON AI đang render...' });
+        const result = await callHuggingFaceCatVTON(userImageBase64, garmentImageUrl, category);
         update({ status: 'completed', progress: 100, message: '✨ AI thử đồ thành công!', resultImage: result, isAiGenerated: true });
-        logger.info(`[TryOn] ✅ Tier-2 (Replicate) succeeded for job ${jobId}`);
+        logger.info(`[TryOn] ✅ Tier-2 (HuggingFace CatVTON) succeeded for job ${jobId}`);
         return;
     } catch (err) {
-        logger.warn(`[TryOn] Tier-2 Replicate failed: ${err.message}. Using Tier-3 Canvas Engine...`);
+        logger.warn(`[TryOn] Tier-2 HuggingFace failed: ${err.message}. Using Tier-3 Canvas Engine...`);
         update({ progress: 80, message: '🎨 Đang sử dụng Smart Fitting Engine...' });
     }
 
