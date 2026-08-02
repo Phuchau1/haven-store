@@ -821,6 +821,117 @@ const confirmReturnReceived = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Validate đơn hàng TRƯỚC KHI TẠO — Kiểm tra tồn kho, giá, voucher
+ * @route   POST /api/orders/validate
+ * @access  Public
+ * @note    Không tạo đơn, không giữ stock — chỉ kiểm tra và trả về lỗi nếu có
+ */
+const validateOrderItems = async (req, res, next) => {
+    try {
+        const { items, couponCode } = req.body;
+
+        if (!items || items.length === 0) {
+            return res.status(400).json({ success: false, message: 'Giỏ hàng trống' });
+        }
+
+        const errors = [];
+        let calculatedTotal = 0;
+
+        for (const item of items) {
+            const productId = item.product?.id;
+            const size = item.selectedSize;
+            const colorName = item.selectedColor?.name;
+            const qty = Number(item.quantity);
+
+            if (!productId || !size || !colorName || qty < 1) {
+                errors.push(`Sản phẩm "${item.product?.name || productId}" có thông tin không hợp lệ.`);
+                continue;
+            }
+
+            // Kiểm tra sản phẩm tồn tại
+            const dbProduct = await ProductModel.findOne({ id: productId });
+            if (!dbProduct) {
+                errors.push(`Sản phẩm "${item.product?.name}" không còn tồn tại.`);
+                continue;
+            }
+
+            // Kiểm tra tồn kho variant
+            const variant = await ProductVariantModel.findOne({
+                product_id: productId,
+                size_id: size,
+                color_id: colorName
+            });
+
+            if (variant) {
+                const available = (variant.stock || 0) - (variant.reserved_stock || 0);
+                if (available < qty) {
+                    const label = `${dbProduct.name} (${colorName} / ${size})`;
+                    if (available <= 0) {
+                        errors.push(`Sản phẩm "${label}" đã hết hàng.`);
+                    } else {
+                        errors.push(`Sản phẩm "${label}" chỉ còn ${available} chiếc (bạn chọn ${qty}).`);
+                    }
+                    continue;
+                }
+            } else {
+                // Fallback: kiểm tra qua product.variants embedded
+                const embeddedVariant = (dbProduct.variants || []).find(
+                    v => v.color === colorName && v.size === size
+                );
+                if (embeddedVariant && Number(embeddedVariant.stock) < qty) {
+                    const available = Number(embeddedVariant.stock);
+                    const label = `${dbProduct.name} (${colorName} / ${size})`;
+                    if (available <= 0) {
+                        errors.push(`Sản phẩm "${label}" đã hết hàng.`);
+                    } else {
+                        errors.push(`Sản phẩm "${label}" chỉ còn ${available} chiếc (bạn chọn ${qty}).`);
+                    }
+                    continue;
+                }
+            }
+
+            // Lấy giá chuẩn từ DB
+            let itemPrice = dbProduct.price;
+            const variantPricing = (dbProduct.variants || []).find(v => v.color === colorName && v.size === size);
+            if (variantPricing?.price != null) itemPrice = variantPricing.price;
+            calculatedTotal += itemPrice * qty;
+        }
+
+        // Kiểm tra coupon nếu có
+        let couponError = null;
+        if (couponCode) {
+            const UserCoupon = require('../models/UserCoupon');
+            const codeClean = couponCode.toUpperCase().trim();
+            const userCoupon = await UserCoupon.findOne({ coupon_code: codeClean });
+            if (userCoupon) {
+                if (userCoupon.is_used) couponError = 'Mã giảm giá này đã được sử dụng.';
+                else if (userCoupon.expires_at && new Date(userCoupon.expires_at) < new Date()) {
+                    couponError = 'Mã giảm giá này đã hết hạn.';
+                }
+            } else {
+                const coupon = await CouponModel.findOne({ code: codeClean });
+                if (!coupon) {
+                    couponError = 'Mã giảm giá không hợp lệ.';
+                } else if (coupon.usage_limit <= 0) {
+                    couponError = 'Mã giảm giá đã hết lượt sử dụng.';
+                } else if (coupon.expiry_date && new Date(coupon.expiry_date) < new Date()) {
+                    couponError = 'Mã giảm giá đã hết hạn.';
+                }
+            }
+            if (couponError) errors.push(couponError);
+        }
+
+        if (errors.length > 0) {
+            return res.status(409).json({ success: false, errors });
+        }
+
+        return res.json({ success: true, calculatedTotal });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getOrders,
     createOrder,
@@ -830,5 +941,6 @@ module.exports = {
     submitReturnRequest,
     getReturnRequests,
     reviewReturnRequest,
-    confirmReturnReceived
+    confirmReturnReceived,
+    validateOrderItems
 };

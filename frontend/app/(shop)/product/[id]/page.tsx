@@ -364,6 +364,16 @@ export default function ProductDetailPage() {
                                                         setSelectedImage(imgIndex);
                                                     }
                                                 }
+                                                // Clamp quantity if selected variant stock is smaller
+                                                const variants = product.variants || [];
+                                                const match = variants.find((v: any) => v.color === color.name && v.size === selectedSize);
+                                                if (match) {
+                                                    const st = Math.max(0, Number(match.stock) || 0);
+                                                    if (st > 0 && quantity > st) {
+                                                        setQuantity(st);
+                                                        showToast(`Chỉ còn ${st} sản phẩm cho màu ${color.name}`, 'warning');
+                                                    }
+                                                }
                                             }}
                                             className={`relative flex items-center gap-2 px-4 py-2 rounded-none border transition-all ${
                                                 selectedColor?.name === color.name 
@@ -397,7 +407,20 @@ export default function ProductDetailPage() {
                                     return (
                                         <button
                                             key={size}
-                                            onClick={() => !outOfStock && setSelectedSize(size)}
+                                            onClick={() => {
+                                                if (!outOfStock) {
+                                                    setSelectedSize(size);
+                                                    const variants = product.variants || [];
+                                                    const match = variants.find((v: any) => v.color === selectedColor?.name && v.size === size);
+                                                    if (match) {
+                                                        const st = Math.max(0, Number(match.stock) || 0);
+                                                        if (st > 0 && quantity > st) {
+                                                            setQuantity(st);
+                                                            showToast(`Chỉ còn ${st} sản phẩm cho size ${size}`, 'warning');
+                                                        }
+                                                    }
+                                                }
+                                            }}
                                             className={`w-[36px] h-[36px] lg:w-[40px] lg:h-[40px] flex items-center justify-center rounded-none border text-sm font-medium transition-all ${
                                                 selectedSize === size 
                                                     ? 'border-black bg-black text-white' 
@@ -433,27 +456,36 @@ export default function ProductDetailPage() {
                                 <div className="flex items-center border border-gray-300 h-[42px] overflow-hidden shrink-0">
                                     <button aria-label="Giảm số lượng" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">−</button>
                                     <input 
-                                        type="number" 
-                                        min="1" 
-                                        value={quantity || ''} 
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={quantity === 0 ? '' : quantity} 
                                         onChange={(e) => {
-                                            const val = parseInt(e.target.value);
-                                            if (!isNaN(val)) {
-                                                const maxStock = getVariantStock();
-                                                if (maxStock !== null && val > maxStock) {
-                                                    setQuantity(maxStock);
-                                                    showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning', 'Vượt tồn kho');
-                                                } else {
-                                                    setQuantity(val);
-                                                }
-                                            } else if (e.target.value === '') {
-                                                setQuantity(0 as any);
+                                            const rawVal = e.target.value.replace(/[^0-9]/g, '');
+                                            if (rawVal === '') {
+                                                setQuantity(0);
+                                                return;
+                                            }
+                                            let val = parseInt(rawVal, 10);
+                                            if (isNaN(val) || val < 1) val = 1;
+                                            
+                                            const maxStock = getVariantStock();
+                                            if (maxStock !== null && val > maxStock) {
+                                                setQuantity(maxStock <= 0 ? 1 : maxStock);
+                                                showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning', 'Vượt tồn kho');
+                                            } else {
+                                                setQuantity(val);
                                             }
                                         }}
                                         onBlur={() => {
-                                            if (!quantity || quantity < 1) setQuantity(1);
+                                            const maxStock = getVariantStock();
+                                            if (!quantity || quantity < 1) {
+                                                setQuantity(1);
+                                            } else if (maxStock !== null && quantity > maxStock) {
+                                                setQuantity(maxStock <= 0 ? 1 : maxStock);
+                                            }
                                         }}
-                                        className="w-12 h-full text-center text-sm font-semibold border-x border-gray-300 focus:outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        className="w-12 h-full text-center text-sm font-semibold border-x border-gray-300 focus:outline-none appearance-none"
                                     />
                                     <button aria-label="Tăng số lượng" onClick={() => {
                                         const maxStock = getVariantStock();

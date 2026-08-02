@@ -328,7 +328,22 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         setIsLoading(true);
 
         try {
-            // Gửi dữ liệu đến API Backend
+            // 1. Kiểm tra tồn kho & hợp lệ đơn hàng với Backend trước khi tạo đơn
+            const validateRes = await fetch('/api/orders/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items,
+                    couponCode: appliedCoupon?.code || ''
+                })
+            });
+            const validateData = await validateRes.json();
+            if (!validateRes.ok || !validateData.success) {
+                const errorMsg = validateData.errors ? validateData.errors.join('\n') : (validateData.message || 'Không thể tạo đơn do vấn đề tồn kho.');
+                throw new Error(errorMsg);
+            }
+
+            // 2. Gửi dữ liệu đến API Backend đặt hàng
             const orderData: OrderData = {
                 id: orderId,
                 ...formData,
