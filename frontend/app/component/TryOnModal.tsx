@@ -113,7 +113,9 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
             }
 
             const jobId = data.jobId;
+            let attempts = 0;
             const pollInterval = setInterval(async () => {
+                attempts++;
                 try {
                     const statusRes = await fetch(`/api/tryon/job-status/${jobId}`);
                     if (!statusRes.ok) return;
@@ -140,12 +142,36 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
 
                             setResultImage(finalImg);
                             setStatus('done');
-                            toast.success('✨ AI thử đồ thành công!');
+                            toast.success('✨ AI thử đồ hoàn tất!');
                         } else if (job.status === 'failed') {
                             clearInterval(pollInterval);
-                            setStatus('error');
-                            toast.error(job.error || 'Thất bại');
+                            // Fallback sang Canvas Engine lập tức thay vì báo thất bại hẳn
+                            try {
+                                const fallbackImg = await renderSmartTryOn(
+                                    userPhoto,
+                                    product.image,
+                                    product.category || 'upper_body'
+                                );
+                                setResultImage(fallbackImg);
+                                setStatus('done');
+                                toast.success('✨ Thử đồ thành công với Smart Engine!');
+                            } catch {
+                                setStatus('error');
+                                toast.error(job.error || 'Thử đồ thất bại');
+                            }
                         }
+                    }
+                    // Nếu poll quá 40 lần (~100s), dùng Smart Fitting Engine lập tức
+                    if (attempts > 40) {
+                        clearInterval(pollInterval);
+                        const fallbackImg = await renderSmartTryOn(
+                            userPhoto,
+                            product.image,
+                            product.category || 'upper_body'
+                        );
+                        setResultImage(fallbackImg);
+                        setStatus('done');
+                        toast.success('✨ Thử đồ hoàn tất!');
                     }
                 } catch (pollErr) {
                     console.warn('Poll error:', pollErr);
