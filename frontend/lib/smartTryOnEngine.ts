@@ -40,7 +40,7 @@ function detectPhotoType(W: number, H: number): 'fullbody' | 'halfbody' | 'close
 }
 
 /**
- * Bóc nền trắng/be/xám của sản phẩm và cắt móc treo
+ * Bóc nền trắng/be/xám của sản phẩm (giữ nguyên hình dáng sản phẩm, không cắt phần trên)
  */
 function cleanGarmentBackground(img: HTMLImageElement): HTMLCanvasElement {
     const w = img.naturalWidth || img.width;
@@ -53,19 +53,16 @@ function cleanGarmentBackground(img: HTMLImageElement): HTMLCanvasElement {
 
     const imgData = ctx.getImageData(0, 0, w, h);
     const data = imgData.data;
-    const cutY = Math.round(h * 0.18); // Cắt 18% phần trên (móc treo)
 
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
             const idx = (y * w + x) * 4;
-            if (y < cutY) { data[idx + 3] = 0; continue; }
-
             const r = data[idx], g = data[idx + 1], b = data[idx + 2];
 
             // Xóa nền sáng các loại (trắng, be, xám nhạt, cream)
             const bright = (r + g + b) / 3;
-            const isBrightBg = bright > 200 && Math.max(Math.abs(r - g), Math.abs(g - b), Math.abs(r - b)) < 30;
-            const isBeigeBg = r > 195 && g > 185 && b > 165 && r > b + 15;
+            const isBrightBg = bright > 215 && Math.max(Math.abs(r - g), Math.abs(g - b), Math.abs(r - b)) < 25;
+            const isBeigeBg = r > 210 && g > 200 && b > 185 && r > b + 15;
 
             if (isBrightBg || isBeigeBg) {
                 data[idx + 3] = 0;
@@ -87,41 +84,40 @@ function calcGarmentPosition(
 ): { destX: number; destY: number; destW: number; destH: number } {
     const cat = category.toLowerCase();
 
-    // ── Xác định tỷ lệ theo category
     let widthRatio: number, heightRatio: number, yRatio: number;
 
-    if (['lower_body', 'quan', 'pants', 'jeans', 'shorts', 'skirt'].some(k => cat.includes(k))) {
-        // Quần / Váy
+    const isLower = ['lower_body', 'quan', 'pants', 'jeans', 'shorts', 'skirt', 'bottoms'].some(k => cat.includes(k));
+    const isDress = ['dresses', 'vay', 'dam', 'one-piece'].some(k => cat.includes(k));
+
+    if (isLower) {
+        // Quần / Váy hạ thấp xuống phần hông & chân (từ 58% - 62% chiều cao ảnh trở xuống)
         switch (photoType) {
             case 'fullbody':
-                widthRatio = 0.50; heightRatio = 0.42; yRatio = 0.52; break;
+                widthRatio = 0.42; heightRatio = 0.45; yRatio = 0.53; break;
             case 'halfbody':
-                widthRatio = 0.55; heightRatio = 0.40; yRatio = 0.55; break;
-            default: // closeup: quần sẽ không thấy — đặt ở dưới cùng
-                widthRatio = 0.65; heightRatio = 0.35; yRatio = 0.62; break;
+                widthRatio = 0.45; heightRatio = 0.42; yRatio = 0.58; break;
+            default: // closeup: hạ sát đáy ảnh
+                widthRatio = 0.50; heightRatio = 0.38; yRatio = 0.62; break;
         }
-    } else if (['dresses', 'vay', 'dam', 'one-piece'].some(k => cat.includes(k))) {
+    } else if (isDress) {
         // Đầm / Váy liền
         switch (photoType) {
             case 'fullbody':
-                widthRatio = 0.60; heightRatio = 0.62; yRatio = 0.30; break;
+                widthRatio = 0.52; heightRatio = 0.62; yRatio = 0.30; break;
             case 'halfbody':
-                widthRatio = 0.64; heightRatio = 0.55; yRatio = 0.34; break;
+                widthRatio = 0.56; heightRatio = 0.55; yRatio = 0.34; break;
             default:
-                widthRatio = 0.70; heightRatio = 0.50; yRatio = 0.45; break;
+                widthRatio = 0.60; heightRatio = 0.50; yRatio = 0.45; break;
         }
     } else {
-        // Áo (Tops / Polo / T-Shirt / Hoodie)
+        // Áo (Tops / Polo / T-Shirt / Hoodie) - Phủ đúng thân trên
         switch (photoType) {
             case 'fullbody':
-                // Toàn thân: Vai ở khoảng 30-35% chiều cao
-                widthRatio = 0.55; heightRatio = 0.38; yRatio = 0.30; break;
+                widthRatio = 0.52; heightRatio = 0.38; yRatio = 0.28; break;
             case 'halfbody':
-                // Nửa người: Vai ở khoảng 42-48% chiều cao
-                widthRatio = 0.58; heightRatio = 0.40; yRatio = 0.42; break;
+                widthRatio = 0.56; heightRatio = 0.42; yRatio = 0.34; break;
             default:
-                // Selfie cận cảnh: Phần ngực/vai chiếm phần dưới 40% ảnh
-                widthRatio = 0.75; heightRatio = 0.42; yRatio = 0.56; break;
+                widthRatio = 0.68; heightRatio = 0.46; yRatio = 0.48; break;
         }
     }
 
