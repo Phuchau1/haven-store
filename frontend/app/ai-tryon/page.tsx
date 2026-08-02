@@ -302,8 +302,10 @@ export default function AITryOnPage() {
             setStep('processing');
             const jobId = data.jobId;
 
+            let attempts = 0;
             // Bước 2: Polling trạng thái ngầm mỗi 2.5 giây
             const pollInterval = setInterval(async () => {
+                attempts++;
                 try {
                     const statusRes = await fetch(`/api/tryon/job-status/${jobId}`);
                     if (!statusRes.ok) return;
@@ -333,9 +335,34 @@ export default function AITryOnPage() {
                             toast.success('✨ Thử đồ AI thành công!');
                         } else if (job.status === 'failed') {
                             clearInterval(pollInterval);
-                            setStep('error');
-                            toast.error(job.error || 'Xử lý AI gặp sự cố.');
+                            // Fallback sang Canvas Smart Engine lập tức
+                            try {
+                                const fallbackImg = await renderSmartTryOn(
+                                    userPhoto,
+                                    selectedProduct.images[0],
+                                    selectedProduct.category || 'upper_body'
+                                );
+                                setResultImage(fallbackImg);
+                                setStep('done');
+                                toast.success('✨ Thử đồ thành công với Smart Engine!');
+                            } catch {
+                                setStep('error');
+                                toast.error(job.error || 'Xử lý AI gặp sự cố.');
+                            }
                         }
+                    }
+
+                    // Nếu quá 35 lần thử (~85s), dùng Smart Fitting Engine lập tức
+                    if (attempts > 35) {
+                        clearInterval(pollInterval);
+                        const fallbackImg = await renderSmartTryOn(
+                            userPhoto,
+                            selectedProduct.images[0],
+                            selectedProduct.category || 'upper_body'
+                        );
+                        setResultImage(fallbackImg);
+                        setStep('done');
+                        toast.success('✨ Thử đồ hoàn tất!');
                     }
                 } catch (pollErr) {
                     console.warn('Polling error:', pollErr);
