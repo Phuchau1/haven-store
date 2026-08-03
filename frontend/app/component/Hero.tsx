@@ -200,7 +200,7 @@ export default function Hero() {
                     transition={{ duration: 0.7, delay: 1.05 }}
                     className="flex flex-col sm:flex-row items-start gap-3 mt-8"
                 >
-                    {/* Primary CTA: KHÁM PHÁ NGAY */}
+                    {/* Primary CTA: HÀNG MỚI VỀ */}
                     <Link href={(settings as any).heroBtn1Link || settings.bannerLink || "/products"}>
                         <motion.button
                             whileHover={{ scale: 1.02 }}
@@ -213,7 +213,7 @@ export default function Hero() {
                                 letterSpacing: '0.05em',
                             }}
                         >
-                            <span className="uppercase relative z-10">{(settings as any).heroBtn1Text || "Khám Phá Ngay"}</span>
+                            <span className="uppercase relative z-10">{(settings as any).heroBtn1Text || "Hàng Mới Về"}</span>
                             <ArrowRight size={16} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
                             <div className="absolute inset-0 bg-black/10 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
                         </motion.button>
