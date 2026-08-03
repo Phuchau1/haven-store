@@ -40,6 +40,23 @@ export interface Product {
     inStock: boolean;
     soldQuantity?: number;
     createdAt?: string; // Thêm trường createdAt
+    sku?: string;
+    barcode?: string;
+    productCode?: string;
+    brand?: string;
+    costPrice?: number;
+    wholesalePrice?: number;
+    gender?: string;
+    styleCategory?: string;
+    season?: string;
+    occasion?: string;
+    fitType?: string;
+    material?: string;
+    inventoryAlloc?: any;
+    shipping?: any;
+    multilingual?: any;
+    channels?: any;
+    flashSale?: any;
     variants?: ProductVariantStock[];
 }
 
