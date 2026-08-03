@@ -162,7 +162,7 @@ export default function NewArrivals() {
     }
 
     return (
-        <section className="py-16 bg-gray-50/50">
+        <section id="new-arrivals" className="py-16 bg-gray-50/50">
             <div className="container-torano">
                 {/* Header */}
                 <div className="flex flex-col items-center justify-center mb-12">

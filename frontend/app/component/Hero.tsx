@@ -201,7 +201,7 @@ export default function Hero() {
                     className="flex flex-col sm:flex-row items-start gap-3 mt-8"
                 >
                     {/* Primary CTA: HÀNG MỚI VỀ */}
-                    <Link href={(settings as any).heroBtn1Link || settings.bannerLink || "/products"}>
+                    <Link href={(settings as any).heroBtn1Link || "#new-arrivals"}>
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
