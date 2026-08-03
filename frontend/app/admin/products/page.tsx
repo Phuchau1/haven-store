@@ -24,6 +24,7 @@ import { EmptyState } from '../components/EmptyState';
 import { AdminPagination } from '../components/AdminPagination';
 import { useToast } from '../components/AdminToast';
 import EnterpriseEditProductModal from './components/EnterpriseEditProductModal';
+import ConfirmModal from '@/app/component/ConfirmModal';
 
 const CATEGORIES_LIST = [
     { id: 'cat-clothing', name: 'Thời Trang Nam' },
@@ -288,37 +289,61 @@ export default function AdminProducts() {
         }
     }, [formData.colors, formData.sizes, formData.price, formData.originalPrice, formData.variants]);
 
-    // ── SOFT HIDE / UNHIDE TOGGLE (Không cho phép xóa mất sản phẩm) ──
-    const handleToggleHide = async (product: Product) => {
+    // ── Confirm Modal State ──
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title?: string;
+        message: string;
+        confirmText?: string;
+        type?: 'warning' | 'danger' | 'info';
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        message: '',
+        onConfirm: () => {}
+    });
+
+    // ── SOFT HIDE / UNHIDE TOGGLE ──
+    const handleToggleHide = (product: Product) => {
         const isHiding = product.inStock;
+        const title = isHiding ? 'Ẩn sản phẩm khỏi cửa hàng?' : 'Hiện lại sản phẩm?';
         const confirmMsg = isHiding
-            ? `Bạn có chắc chắn muốn ẨN sản phẩm "${product.name}" khỏi cửa hàng?`
+            ? `Bạn có chắc chắn muốn ẨN sản phẩm "${product.name}" khỏi cửa hàng? Khách hàng sẽ tạm thời không tìm thấy sản phẩm này.`
             : `Bạn có muốn HIỆN LẠI sản phẩm "${product.name}" trên cửa hàng?`;
         
-        if (!confirm(confirmMsg)) return;
+        setConfirmModal({
+            isOpen: true,
+            title,
+            message: confirmMsg,
+            confirmText: isHiding ? 'Ẩn sản phẩm' : 'Hiện sản phẩm',
+            type: isHiding ? 'warning' : 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const { _id, __v, ...cleanProduct } = product as any;
+                    const updatedProduct = {
+                        ...cleanProduct,
+                        inStock: !isHiding,
+                        status: isHiding ? 'draft' : 'published'
+                    };
 
-        try {
-            const updatedProduct = {
-                ...product,
-                inStock: !isHiding,
-                status: isHiding ? 'draft' : 'published'
-            };
-
-            const res = await fetch('/api/products', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedProduct),
-            });
-            const data = await res.json();
-            if (data.success) {
-                setProducts(products.map(p => p.id === product.id ? updatedProduct as Product : p));
-                showToast('success', isHiding ? 'Đã ẨN sản phẩm khỏi cửa hàng' : 'Đã HIỆN sản phẩm lên cửa hàng');
-            } else {
-                showToast('error', 'Không thể cập nhật trạng thái sản phẩm');
+                    const res = await fetch('/api/products', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedProduct),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setProducts(products.map(p => p.id === product.id ? updatedProduct as Product : p));
+                        showToast('success', isHiding ? 'Đã ẨN sản phẩm khỏi cửa hàng' : 'Đã HIỆN sản phẩm lên cửa hàng');
+                    } else {
+                        showToast('error', 'Không thể cập nhật trạng thái sản phẩm');
+                    }
+                } catch {
+                    showToast('error', 'Lỗi khi cập nhật sản phẩm');
+                }
             }
-        } catch {
-            showToast('error', 'Lỗi khi cập nhật sản phẩm');
-        }
+        });
     };
 
     const handleOpenModal = (product?: Product) => {
@@ -865,6 +890,17 @@ export default function AdminProducts() {
                 }}
                 categories={CATEGORIES_LIST}
                 showToast={showToast}
+            />
+
+            {/* ── SweetAlert Style Confirm Modal ── */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText={confirmModal.confirmText}
+                type={confirmModal.type}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
             />
         </div>
     );
