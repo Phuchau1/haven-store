@@ -14,11 +14,11 @@ services:
       - key: NODE_VERSION
         value: 20
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://phuchau:phuchau123@cluster0.mongodb.net/fashion-store?retryWrites=true&w=majority
       - key: EMAIL_USER
-        sync: false
+        value: ntphau21@gmail.com
       - key: EMAIL_PASS
-        sync: false
+        value: app_password_here
       - key: FRONTEND_URL
         value: https://fashion-frontend-imqb.onrender.com
       - key: VNP_TMN_CODE

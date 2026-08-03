@@ -51,8 +51,8 @@ const RETRY_DELAY  = 5000; // Thời gian chờ giữa các lần thử (mili gi
  * @param {number} retries - Số lần thử còn lại (đệ quy)
  */
 async function connectDB(retries = MAX_RETRIES) {
-    // Đọc URI từ biến môi trường, fallback về localhost nếu không có
-    const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/fashion_store';
+    // Đọc URI từ biến môi trường, fallback về MongoDB Atlas Cloud nếu không có
+    const uri = process.env.MONGODB_URI || 'mongodb+srv://phuchau:phuchau123@cluster0.mongodb.net/fashion-store?retryWrites=true&w=majority';
 
     // Ẩn thông tin đăng nhập trong log để bảo mật
     const safeUri = uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@');
