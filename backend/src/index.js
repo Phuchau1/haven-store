@@ -84,7 +84,10 @@ const fs = require('fs');
 if (!fs.existsSync(publicUploads)) {
     fs.mkdirSync(publicUploads, { recursive: true });
 }
-app.use('/uploads', express.static(publicUploads));
+// --- HEALTH CHECK FOR DEPLOYMENT (RENDER / VERCEL) ---
+app.get(['/', '/health'], (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'HAVEN Store Backend API is running smoothly', timestamp: new Date() });
+});
 
 // --- ROUTES ---
 app.use('/api', globalLimiter);       // Rate limiting toàn cục — Chống DDoS
@@ -96,8 +99,8 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // --- LẮNG NGHE YÊU CẦU ---
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     logger.info(`=================================`);
-    logger.info(`🚀 Server is running on port ${PORT}`);
+    logger.info(`🚀 Server is running on 0.0.0.0:${PORT}`);
     logger.info(`=================================`);
 });
