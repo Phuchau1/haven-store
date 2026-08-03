@@ -211,25 +211,35 @@ const updateProduct = async (req, res, next) => {
 const deleteProduct = async (req, res, next) => {
     try {
         const id = typeof req.query.id === 'string' ? req.query.id : undefined;
-        if (!id) {
-            return res.status(400).json({ success: false, message: 'Thiếu ID sản phẩm' });
+        const _id = typeof req.query._id === 'string' ? req.query._id : undefined;
+        const targetId = id || _id;
+
+        if (!targetId) {
+            return res.status(400).json({ success: false, message: 'Thiếu mã ID sản phẩm cần xóa' });
         }
         
-        const deletedProduct = await ProductModel.findOneAndDelete({ id });
+        let deletedProduct = null;
+        if (id) {
+            deletedProduct = await ProductModel.findOneAndDelete({ id });
+        }
+        if (!deletedProduct && targetId) {
+            deletedProduct = await ProductModel.findByIdAndDelete(targetId);
+        }
         
-        // Xoá cache list và detail
+        // Xoá cache list và detail ngay lập tức
         await delCache('products:*', true);
-        await delCache(`product:${id}`, false);
+        if (id) await delCache(`product:${id}`, false);
+        invalidateCache('/api/products');
         
         if (!deletedProduct) {
-            return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
+            return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm để xóa' });
         }
         
-        log(`Đã xóa sản phẩm: ${id}`);
-        res.json({ success: true, message: 'Xóa thành công' });
+        log(`Đã xóa sản phẩm thành công: ${targetId}`);
+        return res.json({ success: true, message: 'Đã xóa sản phẩm thành công' });
     } catch (error) {
         log(`Lỗi khi xóa sản phẩm: ${error.message}`);
-        next(error);
+        return res.status(500).json({ success: false, message: error.message || 'Lỗi khi xóa sản phẩm' });
     }
 };
 

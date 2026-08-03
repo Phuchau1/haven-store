@@ -346,6 +346,34 @@ export default function AdminProducts() {
         });
     };
 
+    // ── HARD DELETE (Xóa vĩnh viễn với Modal SweetAlert Danger) ──
+    const handleDeleteProduct = (product: Product) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Xóa vĩnh viễn sản phẩm?',
+            message: `Bạn có chắc chắn muốn XÓA VĨNH VIỄN sản phẩm "${product.name}" (Mã ID: ${product.id})? Thao tác này sẽ xóa toàn bộ dữ liệu khỏi hệ thống và KHÔNG THỂ KHÔI PHỤC!`,
+            confirmText: 'Xóa vĩnh viễn',
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await fetch(`/api/products?id=${encodeURIComponent(product.id)}`, {
+                        method: 'DELETE',
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setProducts(products.filter(p => p.id !== product.id));
+                        showToast('success', `Đã xóa vĩnh viễn sản phẩm "${product.name}"`);
+                    } else {
+                        showToast('error', 'Không thể xóa sản phẩm', data.message);
+                    }
+                } catch {
+                    showToast('error', 'Lỗi kết nối khi xóa sản phẩm');
+                }
+            }
+        });
+    };
+
     const handleOpenModal = (product?: Product) => {
         if (product) {
             setEditingProduct(product);
@@ -712,6 +740,14 @@ export default function AdminProducts() {
                                                     }}
                                                 >
                                                     {product.inStock ? <EyeOff size={15} /> : <Eye size={15} />}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteProduct(product)}
+                                                    aria-label="Xóa vĩnh viễn"
+                                                    title="Xóa vĩnh viễn sản phẩm"
+                                                    className="p-2 rounded-lg transition-all min-h-[36px] min-w-[36px] flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                >
+                                                    <Trash2 size={15} />
                                                 </button>
                                             </div>
                                         </td>
