@@ -145,15 +145,21 @@ export default function AdminUsers() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <select
-                                                value={user.role}
-                                                onChange={(e) => handleUpdateRole(user.id, e.target.value as 'admin' | 'user')}
-                                                className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border-none focus:ring-2 focus:ring-indigo-500/20 ${user.role === 'admin' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600'
-                                                    }`}
-                                            >
-                                                <option value="user">USER</option>
-                                                <option value="admin">ADMIN</option>
-                                            </select>
+                                            {user.email?.toLowerCase().trim() === 'ntphau21@gmail.com' ? (
+                                                <span className="px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                                    ADMIN MẶC ĐỊNH
+                                                </span>
+                                            ) : (
+                                                <select
+                                                    value={user.role}
+                                                    onChange={(e) => handleUpdateRole(user.id, e.target.value as 'admin' | 'user')}
+                                                    className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border-none focus:ring-2 focus:ring-indigo-500/20 ${user.role === 'admin' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600'
+                                                        }`}
+                                                >
+                                                    <option value="user">USER</option>
+                                                    <option value="admin">ADMIN</option>
+                                                </select>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -162,13 +168,15 @@ export default function AdminUsers() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <button
-                                                onClick={() => handleDelete(user.id)}
-                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                                                title="Xóa người dùng"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            {user.email?.toLowerCase().trim() !== 'ntphau21@gmail.com' && (
+                                                <button
+                                                    onClick={() => handleDelete(user.id)}
+                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                    title="Xóa người dùng"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

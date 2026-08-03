@@ -315,14 +315,23 @@ const updateUserRole = async (req, res, next) => {
         if (!id || !['admin', 'user'].includes(role)) {
             return res.status(400).json({ success: false, message: 'Dữ liệu không hợp lệ' });
         }
-        
-        const user = await UserModel.findOneAndUpdate({ id }, { role }, { new: true }).select('-password');
-        
-        if (!user) {
+
+        const targetUser = await UserModel.findOne({ id });
+        if (!targetUser) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
         }
+
+        const SYSTEM_ADMINS = ['ntphau21@gmail.com', 'admin@havenstore.vn'];
+        if (SYSTEM_ADMINS.includes(targetUser.email?.toLowerCase().trim()) && role !== 'admin') {
+            return res.status(400).json({ success: false, message: 'Tài khoản Quản trị viên Mặc định Hệ thống không thể bị hạ quyền' });
+        }
+
+        targetUser.role = role;
+        await targetUser.save();
+        const userObj = targetUser.toObject();
+        delete userObj.password;
         
-        res.json({ success: true, message: 'Cập nhật quyền thành công', user });
+        res.json({ success: true, message: 'Cập nhật quyền thành công', user: userObj });
     } catch (error) {
         next(error);
     }
@@ -341,12 +350,17 @@ const deleteUser = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu ID người dùng' });
         }
         
-        const user = await UserModel.findOneAndDelete({ id });
-        
-        if (!user) {
+        const targetUser = await UserModel.findOne({ id });
+        if (!targetUser) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
         }
-        
+
+        const SYSTEM_ADMINS = ['ntphau21@gmail.com', 'admin@havenstore.vn'];
+        if (SYSTEM_ADMINS.includes(targetUser.email?.toLowerCase().trim())) {
+            return res.status(400).json({ success: false, message: 'Tài khoản Quản trị viên Mặc định Hệ thống không thể bị xóa' });
+        }
+
+        await UserModel.findOneAndDelete({ id });
         res.json({ success: true, message: 'Xóa người dùng thành công' });
     } catch (error) {
         next(error);
