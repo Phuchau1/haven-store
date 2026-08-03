@@ -31,3 +31,13 @@ export function getProductSlug(product: { id?: string; name?: string; slug?: str
     }
     return product.id || '';
 }
+
+// ===== HELPER CHUẨN HÓA TIÊU ĐỀ SẢN PHẨM TRÁNH DÍNH CHỮ/LỖI DẤU CÂU =====
+export function cleanProductTitle(name: string): string {
+    if (!name) return '';
+    return name
+        .replace(/\.([a-zA-ZÀ-ỹ])/g, '. $1')  // Thêm khoảng trắng sau dấu chấm nếu bị dính (vd: Nút.Fitted -> Nút. Fitted)
+        .replace(/([a-zA-ZÀ-ỹ])\.([a-zA-ZÀ-ỹ])/g, '$1. $2')
+        .replace(/\s+/g, ' ')
+        .trim();
+}

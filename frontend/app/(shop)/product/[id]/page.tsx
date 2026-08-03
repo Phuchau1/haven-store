@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2 } from 'lucide-react';
 import ImageZoom from '@/app/component/ImageZoom';
-import { formatPrice, slugify, getProductSlug } from '@/lib/format';
+import { formatPrice, slugify, getProductSlug, cleanProductTitle } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
 import { Product, Color } from '@/types';
 import ProductCard from '@/app/component/ProductCard';
@@ -314,7 +314,9 @@ export default function ProductDetailPage() {
                         {/* Title & Rating */}
                         <div>
                             <p className="text-xs tracking-[3px] uppercase text-gray-400 font-light">{product.categoryLabel}</p>
-                            <h1 className="mt-2 text-3xl lg:text-4xl font-light text-black tracking-tight">{product.name}</h1>
+                            <h1 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-semibold text-slate-900 leading-snug tracking-tight">
+                                {cleanProductTitle(product.name)}
+                            </h1>
                             <div className="flex items-center gap-3 mt-3">
                                 <div className="flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (

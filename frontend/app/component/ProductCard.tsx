@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '@/types';
-import { formatPrice, getProductSlug } from '@/lib/format';
+import { formatPrice, getProductSlug, cleanProductTitle } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
 import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 import { useAuth } from '@/app/component/AuthContext';
@@ -140,7 +140,7 @@ export default function ProductCard({ product, index = 0, showSold = false, show
 
                     {/* Name */}
                     <h3 className="text-[14px] leading-[1.5] font-semibold text-gray-900 line-clamp-2 min-h-[42px]" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
-                        {product.name}
+                        {cleanProductTitle(product.name)}
                     </h3>
 
                     {/* Price & Sold */}
