@@ -249,7 +249,7 @@ export default function AdminProducts() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const productsRes = await fetch('/api/products');
+                const productsRes = await fetch(`/api/products?includeHidden=true&_t=${Date.now()}`, { cache: 'no-store' });
                 if (productsRes.ok) {
                     const d = await productsRes.json();
                     if (d.success) setProducts(d.products);
@@ -915,7 +915,7 @@ export default function AdminProducts() {
                     });
                     const data = await res.json();
                     if (data.success) {
-                        const productsRes = await fetch(`/api/products?_t=${Date.now()}`, { cache: 'no-store' });
+                        const productsRes = await fetch(`/api/products?includeHidden=true&_t=${Date.now()}`, { cache: 'no-store' });
                         if (productsRes.ok) {
                             const d = await productsRes.json();
                             if (d.success) setProducts(d.products);

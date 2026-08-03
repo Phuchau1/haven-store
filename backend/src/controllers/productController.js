@@ -43,11 +43,19 @@ const getProducts = async (req, res, next) => {
             return res.json({ success: true, products: cachedProducts, cached: true });
         }
 
-        const { category, subCategory, search, sort, discounted, discount, limit } = req.query;
+        const { category, subCategory, search, sort, discounted, discount, limit, admin, includeHidden } = req.query;
         const limitNumber = limit ? parseInt(limit, 10) : undefined;
 
         let query = {};
         const andConditions = [];
+
+        // Nếu không phải Admin hoặc không yêu cầu includeHidden -> Lọc bỏ sản phẩm bị ẩn (draft / inStock == false)
+        if (admin !== 'true' && includeHidden !== 'true') {
+            andConditions.push({
+                status: { $ne: 'draft' },
+                inStock: { $ne: false }
+            });
+        }
 
         // --- 3. Xây dựng điều kiện lọc (Filters) ---
 
