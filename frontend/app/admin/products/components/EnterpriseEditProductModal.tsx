@@ -133,8 +133,8 @@ export default function EnterpriseEditProductModal({
                     'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop'
                 ],
                 colors: [
-                    { name: 'Đen', hex: '#000000' },
-                    { name: 'Trắng', hex: '#FFFFFF' }
+                    { name: 'Đen', hex: '#000000', image: '' },
+                    { name: 'Trắng', hex: '#FFFFFF', image: '' }
                 ],
                 sizes: ['S', 'M', 'L', 'XL'],
                 variants: [
@@ -492,41 +492,42 @@ export default function EnterpriseEditProductModal({
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/50 backdrop-blur-sm overflow-hidden font-sans">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-hidden font-sans">
+                {/* LARGER AND MORE SPACIOUS CONTAINER (98vw & 96vh) */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                    initial={{ opacity: 0, scale: 0.98, y: 8 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                    transition={{ duration: 0.18 }}
-                    className="w-full max-w-7xl h-[94vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 text-slate-900"
+                    exit={{ opacity: 0, scale: 0.98, y: 8 }}
+                    transition={{ duration: 0.16 }}
+                    className="w-[98vw] max-w-[1700px] h-[96vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-slate-300 text-slate-900"
                 >
                     {/* ───────────────────────────────────────────────────────────────────────────
-                        HUMAN CLEAN LIGHT HEADER BAR
+                        HEADER BAR - EXTRA CLEAR & PROMINENT
                     ─────────────────────────────────────────────────────────────────────────── */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80 flex-shrink-0">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                            <div className="w-10 h-10 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600 flex-shrink-0">
-                                <Package size={20} />
+                    <div className="flex items-center justify-between px-6 py-4 border-b-2 border-slate-200 bg-slate-100 flex-shrink-0">
+                        <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md flex-shrink-0">
+                                <Package size={24} />
                             </div>
                             <div className="min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 truncate tracking-tight">
                                         {formData.name || (product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới')}
                                     </h2>
-                                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${
+                                    <span className={`px-3 py-1 rounded-full text-xs font-extrabold tracking-wide uppercase ${
                                         formData.status === 'published'
-                                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                            : 'bg-amber-100 text-amber-800 border border-amber-300'
+                                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                            : 'bg-amber-100 text-amber-900 border border-amber-300'
                                     }`}>
-                                        {formData.status === 'published' ? '● Đang bán' : '○ Bản nháp'}
+                                        {formData.status === 'published' ? '● ĐANG BÁN' : '○ BẢN NHÁP'}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
-                                    <span>Mã ID: <strong className="text-slate-800 font-mono">{formData.id}</strong></span>
-                                    <span>SKU: <strong className="text-slate-800 font-mono">{formData.sku}</strong></span>
+                                <div className="flex items-center gap-4 text-xs font-semibold text-slate-600 mt-1">
+                                    <span>Mã ID: <strong className="text-slate-900 font-mono text-sm">{formData.id}</strong></span>
+                                    <span>SKU: <strong className="text-slate-900 font-mono text-sm">{formData.sku}</strong></span>
                                     {lastSavedTime && (
-                                        <span className="text-emerald-600 font-medium flex items-center gap-1">
-                                            <CheckCircle2 size={13} /> Đã lưu lúc {lastSavedTime}
+                                        <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                            <CheckCircle2 size={14} /> Đã lưu lúc {lastSavedTime}
                                         </span>
                                     )}
                                 </div>
@@ -534,32 +535,32 @@ export default function EnterpriseEditProductModal({
                         </div>
 
                         {/* Actions buttons */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-3 flex-shrink-0">
                             <button
                                 type="button"
                                 onClick={(e) => handleFormSubmit(e, true)}
                                 disabled={isSubmitting}
-                                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition-colors shadow-sm"
+                                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white hover:bg-slate-200 text-slate-800 border-2 border-slate-300 transition-colors shadow-sm"
                             >
-                                <Save size={14} /> Lưu nháp
+                                <Save size={16} /> Lưu nháp
                             </button>
 
                             <button
                                 type="button"
                                 onClick={(e) => handleFormSubmit(e, false)}
                                 disabled={isSubmitting}
-                                className="flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-md transition-all disabled:opacity-50"
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-lg transition-all disabled:opacity-50"
                             >
-                                {isSubmitting ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
                                 Lưu sản phẩm (Ctrl+S)
                             </button>
 
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors ml-1"
+                                className="p-2.5 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors ml-1"
                             >
-                                <X size={20} />
+                                <X size={24} />
                             </button>
                         </div>
                     </div>
@@ -569,8 +570,8 @@ export default function EnterpriseEditProductModal({
                     ─────────────────────────────────────────────────────────────────────────── */}
                     <div className="flex flex-1 overflow-hidden">
 
-                        {/* ── LEFT SIDEBAR NAVIGATION ── */}
-                        <div className="w-56 sm:w-64 border-r border-slate-200 bg-slate-50/60 flex flex-col flex-shrink-0 overflow-y-auto p-3 space-y-1">
+                        {/* ── LEFT SIDEBAR NAVIGATION (WIDER & LARGER FONTS) ── */}
+                        <div className="w-64 sm:w-72 border-r-2 border-slate-200 bg-slate-50 flex flex-col flex-shrink-0 overflow-y-auto p-4 space-y-1.5">
                             {navTabs.map((tab) => {
                                 const Icon = tab.icon;
                                 const isActive = activeTab === tab.id;
@@ -579,23 +580,23 @@ export default function EnterpriseEditProductModal({
                                         key={tab.id}
                                         type="button"
                                         onClick={() => setActiveTab(tab.id as any)}
-                                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all text-left ${
+                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all text-left ${
                                             isActive
-                                                ? 'bg-slate-900 text-white shadow-sm font-semibold'
+                                                ? 'bg-slate-900 text-white shadow-md'
                                                 : tab.highlight
-                                                ? 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 font-semibold'
-                                                : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
+                                                ? 'bg-purple-100 text-purple-900 hover:bg-purple-200 border-2 border-purple-300 font-bold'
+                                                : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <Icon size={16} className={isActive ? 'text-white' : tab.highlight ? 'text-purple-600' : 'text-slate-500'} />
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <Icon size={19} className={isActive ? 'text-white' : tab.highlight ? 'text-purple-700' : 'text-slate-500'} />
                                             <span className="truncate">{tab.label}</span>
                                         </div>
                                         {tab.badge !== undefined && tab.badge !== null && (
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                            <span className={`px-2.5 py-0.5 rounded-lg text-xs font-extrabold ${
                                                 isActive
                                                     ? 'bg-white/20 text-white'
-                                                    : 'bg-slate-200 text-slate-700'
+                                                    : 'bg-slate-200 text-slate-800'
                                             }`}>
                                                 {tab.badge}
                                             </span>
@@ -605,22 +606,22 @@ export default function EnterpriseEditProductModal({
                             })}
                         </div>
 
-                        {/* ── RIGHT MAIN CONTENT AREA ── */}
-                        <div ref={formContainerRef} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 bg-white text-slate-900">
+                        {/* ── RIGHT MAIN CONTENT AREA (MORE SPACIOUS PADDING & CLEAR BORDERS) ── */}
+                        <div ref={formContainerRef} className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 bg-white text-slate-900">
 
                             {/* ── TAB 1: THÔNG TIN CHUNG ── */}
                             {activeTab === 'overview' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <FileText size={18} className="text-blue-600" /> Thông tin sản phẩm cơ bản
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <FileText size={22} className="text-blue-600" /> Thông tin sản phẩm cơ bản
                                         </h3>
-                                        <span className="text-xs text-slate-500">Trường có dấu (*) là bắt buộc</span>
+                                        <span className="text-xs font-semibold text-slate-500">Trường có dấu (*) là bắt buộc</span>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <div className="sm:col-span-2">
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Tên sản phẩm <span className="text-red-500">*</span>
                                             </label>
                                             <input
@@ -631,39 +632,39 @@ export default function EnterpriseEditProductModal({
                                                     setAutoSaveStatus('dirty');
                                                 }}
                                                 placeholder="VD: Áo Khoác Nữ Regular Fit Cao Cấp"
-                                                className={`w-full px-3.5 py-2.5 rounded-lg bg-white border text-sm font-medium focus:outline-none focus:ring-2 ${
+                                                className={`w-full px-4 py-3 rounded-xl bg-white border-2 text-sm sm:text-base font-semibold focus:outline-none focus:ring-2 ${
                                                     errors.name ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-slate-900 focus:ring-slate-100'
                                                 }`}
                                             />
-                                            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+                                            {errors.name && <p className="text-xs font-bold text-red-500 mt-1">{errors.name}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Mã SKU chính
                                             </label>
                                             <input
                                                 type="text"
                                                 value={formData.sku || ''}
                                                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-mono text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Mã Vạch Barcode
                                             </label>
                                             <input
                                                 type="text"
                                                 value={formData.barcode || ''}
                                                 onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-mono text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Danh mục chính <span className="text-red-500">*</span>
                                             </label>
                                             <select
@@ -676,7 +677,7 @@ export default function EnterpriseEditProductModal({
                                                         categoryLabel: selectedCat?.name || ''
                                                     });
                                                 }}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
                                                 {categories.map(cat => (
                                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -685,13 +686,13 @@ export default function EnterpriseEditProductModal({
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Thương hiệu
                                             </label>
                                             <select
                                                 value={formData.brand || 'HAVEN'}
                                                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
                                                 {brands.map(b => (
                                                     <option key={b} value={b}>{b}</option>
@@ -700,13 +701,13 @@ export default function EnterpriseEditProductModal({
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Đối tượng (Gender)
                                             </label>
                                             <select
                                                 value={formData.gender || 'Unisex'}
                                                 onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
                                                 <option value="Men">Nam</option>
                                                 <option value="Women">Nữ</option>
@@ -715,13 +716,13 @@ export default function EnterpriseEditProductModal({
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Phong cách (Style)
                                             </label>
                                             <select
                                                 value={formData.styleCategory || 'Casual'}
                                                 onChange={(e) => setFormData({ ...formData, styleCategory: e.target.value })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
                                                 <option value="Casual">Casual Thường Ngày</option>
                                                 <option value="Minimal">Minimal Tối Giản</option>
@@ -733,7 +734,7 @@ export default function EnterpriseEditProductModal({
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                        <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                             Mô tả ngắn sản phẩm
                                         </label>
                                         <textarea
@@ -741,12 +742,12 @@ export default function EnterpriseEditProductModal({
                                             value={formData.shortDescription || ''}
                                             onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
                                             placeholder="Tóm tắt ngắn gọn 2-3 câu về sản phẩm..."
-                                            className="w-full p-3.5 rounded-lg bg-white border border-slate-300 text-sm text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                            className="w-full p-4 rounded-xl bg-white border-2 border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-slate-900 font-medium"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                        <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                             Bài viết chi tiết (Rich Content)
                                         </label>
                                         <textarea
@@ -754,7 +755,7 @@ export default function EnterpriseEditProductModal({
                                             value={formData.richContent || ''}
                                             onChange={(e) => setFormData({ ...formData, richContent: e.target.value })}
                                             placeholder="Mô tả kỹ lưỡng chất liệu, thiết kế, hướng dẫn giặt sấy..."
-                                            className="w-full p-3.5 rounded-lg bg-white border border-slate-300 text-sm font-mono text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-100"
+                                            className="w-full p-4 rounded-xl bg-white border-2 border-slate-300 text-sm font-mono text-slate-900 focus:outline-none focus:border-slate-900"
                                         />
                                     </div>
                                 </div>
@@ -762,56 +763,56 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 2: HÌNH ẢNH ── */}
                             {activeTab === 'media' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
                                         <div>
-                                            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                                <ImageIcon size={18} className="text-blue-600" /> Thư viện hình ảnh
+                                            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                                <ImageIcon size={22} className="text-blue-600" /> Thư viện hình ảnh sản phẩm
                                             </h3>
-                                            <p className="text-xs text-slate-500 mt-0.5">
+                                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
                                                 Ảnh đầu tiên sẽ làm **Ảnh đại diện chính**. Hỗ trợ định dạng JPG, PNG, WEBP.
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Upload controls */}
-                                    <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                                        <label className="cursor-pointer px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-2 transition-colors shadow-sm">
-                                            <Upload size={14} /> Tải ảnh lên
+                                    <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
+                                        <label className="cursor-pointer px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-colors shadow-md">
+                                            <Upload size={18} /> Tải ảnh từ máy
                                             <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
                                         </label>
 
-                                        <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                                        <div className="flex items-center gap-2 flex-1 min-w-[300px]">
                                             <input
                                                 type="text"
                                                 value={newImageUrl}
                                                 onChange={(e) => setNewImageUrl(e.target.value)}
-                                                placeholder="Dán URL hình ảnh..."
-                                                className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-slate-900"
+                                                placeholder="Dán URL hình ảnh mới..."
+                                                className="flex-1 px-4 py-2.5 rounded-xl bg-white border-2 border-slate-300 text-xs sm:text-sm font-mono text-slate-900 focus:outline-none focus:border-slate-900"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleAddImageUrl}
-                                                className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold border border-slate-300 shadow-sm"
+                                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs sm:text-sm font-extrabold border-2 border-slate-300 shadow-sm"
                                             >
-                                                <Plus size={14} /> Thêm URL
+                                                <Plus size={16} /> Thêm URL
                                             </button>
                                         </div>
                                     </div>
 
-                                    {/* Image List */}
-                                    <div className="space-y-3">
+                                    {/* Image List (LARGER THUMBNAILS) */}
+                                    <div className="space-y-4">
                                         {(formData.images || []).map((imgUrl: string, idx: number) => (
                                             <div
                                                 key={`img-${idx}`}
-                                                className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
                                                     idx === 0
-                                                        ? 'bg-blue-50/50 border-blue-200'
+                                                        ? 'bg-blue-50/70 border-blue-300 shadow-sm'
                                                         : 'bg-white border-slate-200'
                                                 }`}
                                             >
-                                                {/* FIXED Direct image with referrerPolicy */}
-                                                <div className="w-16 h-16 relative rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 flex items-center justify-center">
+                                                {/* FIXED Direct image with referrerPolicy & LARGER SIZE (24x24) */}
+                                                <div className="w-20 h-20 sm:w-24 sm:h-24 relative rounded-xl overflow-hidden border-2 border-slate-300 bg-slate-100 flex-shrink-0 flex items-center justify-center shadow">
                                                     <img
                                                         src={imgUrl}
                                                         alt={`Product ${idx + 1}`}
@@ -822,8 +823,8 @@ export default function EnterpriseEditProductModal({
                                                         }}
                                                     />
                                                     {idx === 0 && (
-                                                        <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider shadow">
-                                                            Chính
+                                                        <span className="absolute top-1 left-1 px-2 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow">
+                                                            Ảnh chính
                                                         </span>
                                                     )}
                                                 </div>
@@ -838,20 +839,20 @@ export default function EnterpriseEditProductModal({
                                                             setFormData({ ...formData, images: newImgs });
                                                             setAutoSaveStatus('dirty');
                                                         }}
-                                                        className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900"
+                                                        className="w-full px-3.5 py-2 rounded-lg bg-slate-50 border border-slate-300 text-xs sm:text-sm font-mono text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900"
                                                     />
-                                                    <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-1">
+                                                    <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 mt-2">
                                                         <span>Kích thước: 1200x1500px</span>
                                                         <span>Chuẩn WebP</span>
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-1">
+                                                <div className="flex items-center gap-1.5 flex-shrink-0">
                                                     {idx !== 0 && (
                                                         <button
                                                             type="button"
                                                             onClick={() => handleSetPrimaryImage(idx)}
-                                                            className="px-2.5 py-1 rounded text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200"
+                                                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 border border-blue-300"
                                                         >
                                                             Đặt làm ảnh chính
                                                         </button>
@@ -860,24 +861,24 @@ export default function EnterpriseEditProductModal({
                                                         type="button"
                                                         onClick={() => handleMoveImage(idx, 'up')}
                                                         disabled={idx === 0}
-                                                        className="p-1.5 text-slate-500 hover:text-slate-900 disabled:opacity-30"
+                                                        className="p-2 text-slate-600 hover:text-slate-900 disabled:opacity-30"
                                                     >
-                                                        <ArrowUp size={14} />
+                                                        <ArrowUp size={16} />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleMoveImage(idx, 'down')}
                                                         disabled={idx === (formData.images.length - 1)}
-                                                        className="p-1.5 text-slate-500 hover:text-slate-900 disabled:opacity-30"
+                                                        className="p-2 text-slate-600 hover:text-slate-900 disabled:opacity-30"
                                                     >
-                                                        <ArrowDown size={14} />
+                                                        <ArrowDown size={16} />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveImage(idx)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                                                     >
-                                                        <Trash2 size={15} />
+                                                        <Trash2 size={18} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -888,47 +889,47 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 3: BIẾN THỂ (VARIANTS & COLORS/SIZES) ── */}
                             {activeTab === 'variants' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+                                <div className="space-y-8 max-w-6xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
                                         <div>
-                                            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                                <Layers size={18} className="text-blue-600" /> Quản lý Màu sắc, Kích thước & Biến thể
+                                            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                                <Layers size={22} className="text-blue-600" /> Quản lý Màu sắc, Kích thước & Biến thể
                                             </h3>
-                                            <p className="text-xs text-slate-500 mt-0.5">
+                                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
                                                 Thêm bớt màu sắc (gán ảnh mẫu theo màu), kích thước và điều chỉnh giá/kho riêng biệt.
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* ── SECTION 1: COLORS & SIZES MANAGEMENT SIDE-BY-SIDE ── */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         
                                         {/* 1. COLOR MANAGEMENT CARD */}
-                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-4 shadow-sm">
                                             <div className="flex items-center justify-between">
-                                                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block" />
+                                                <label className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                                    <span className="w-3 h-3 rounded-full bg-blue-600 inline-block" />
                                                     Danh sách Màu sắc ({formData.colors?.length || 0})
                                                 </label>
                                                 <button
                                                     type="button"
                                                     onClick={handleAddColor}
-                                                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
+                                                    className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md"
                                                 >
-                                                    <Plus size={13} /> Thêm màu
+                                                    <Plus size={15} /> Thêm màu
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                                            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
                                                 {(formData.colors || []).map((color: any, idx: number) => (
-                                                    <div key={`col-${idx}`} className="p-2.5 rounded-lg bg-white border border-slate-200 space-y-2 shadow-sm">
-                                                        <div className="flex items-center gap-2">
+                                                    <div key={`col-${idx}`} className="p-3.5 rounded-xl bg-white border-2 border-slate-200 space-y-2.5 shadow-sm">
+                                                        <div className="flex items-center gap-3">
                                                             {/* Color Picker Dot */}
                                                             <input
                                                                 type="color"
                                                                 value={color.hex || '#000000'}
                                                                 onChange={(e) => handleColorChange(idx, 'hex', e.target.value)}
-                                                                className="w-8 h-8 rounded-lg border border-slate-300 cursor-pointer p-0.5 bg-white flex-shrink-0"
+                                                                className="w-10 h-10 rounded-xl border-2 border-slate-300 cursor-pointer p-0.5 bg-white flex-shrink-0 shadow-sm"
                                                                 title="Chọn mã màu HEX"
                                                             />
 
@@ -938,38 +939,42 @@ export default function EnterpriseEditProductModal({
                                                                 value={color.name || ''}
                                                                 onChange={(e) => handleColorChange(idx, 'name', e.target.value)}
                                                                 placeholder="Tên màu (Đen, Trắng, Tím...)"
-                                                                className="flex-1 px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-300 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
+                                                                className="flex-1 px-3 py-2 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
                                                             />
 
                                                             {/* Delete Color */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleRemoveColor(idx)}
-                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0"
+                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-xl flex-shrink-0"
                                                                 title="Xóa màu này"
                                                             >
-                                                                <Trash2 size={15} />
+                                                                <Trash2 size={18} />
                                                             </button>
                                                         </div>
 
                                                         {/* Color Specific Image Selection */}
-                                                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                                                            <span className="text-[11px] text-slate-500 font-semibold flex-shrink-0">Ảnh theo màu:</span>
+                                                        <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                                                            <span className="text-xs text-slate-600 font-bold flex-shrink-0">Ảnh theo màu:</span>
                                                             
-                                                            {color.image && (
+                                                            {color.image ? (
                                                                 <img
                                                                     src={color.image}
                                                                     alt={color.name}
                                                                     referrerPolicy="no-referrer"
-                                                                    className="w-6 h-6 rounded border border-slate-300 object-cover flex-shrink-0"
+                                                                    className="w-8 h-8 rounded-lg border-2 border-slate-300 object-cover flex-shrink-0 shadow-sm"
                                                                     onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
                                                                 />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400 font-bold flex-shrink-0">
+                                                                    Chưa chọn
+                                                                </div>
                                                             )}
 
                                                             <select
                                                                 value={color.image || ''}
                                                                 onChange={(e) => handleColorChange(idx, 'image', e.target.value)}
-                                                                className="flex-1 px-2 py-1 rounded bg-slate-50 border border-slate-300 text-[11px] text-slate-800 focus:outline-none focus:border-slate-900"
+                                                                className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                                                             >
                                                                 <option value="">-- Chọn ảnh đại diện cho màu --</option>
                                                                 {(formData.images || []).map((imgUrl: string, imgIdx: number) => (
@@ -985,64 +990,64 @@ export default function EnterpriseEditProductModal({
                                         </div>
 
                                         {/* 2. SIZE MANAGEMENT CARD */}
-                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-4 shadow-sm">
                                             <div className="flex items-center justify-between">
-                                                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" />
+                                                <label className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                                    <span className="w-3 h-3 rounded-full bg-emerald-600 inline-block" />
                                                     Danh sách Kích thước ({formData.sizes?.length || 0})
                                                 </label>
                                                 <button
                                                     type="button"
                                                     onClick={handleAddSize}
-                                                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
+                                                    className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md"
                                                 >
-                                                    <Plus size={13} /> Thêm size
+                                                    <Plus size={15} /> Thêm size
                                                 </button>
                                             </div>
 
                                             {/* Quick Add Presets */}
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                                <span className="text-[11px] font-semibold text-slate-500">Thêm nhanh:</span>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="text-xs font-bold text-slate-600">Thêm nhanh:</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleQuickAddSizes(['S', 'M', 'L', 'XL', 'XXL'])}
-                                                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 text-[10px] font-bold text-slate-700 shadow-sm"
+                                                    className="px-3 py-1 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-bold text-slate-800 shadow-sm"
                                                 >
                                                     + S, M, L, XL, XXL
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleQuickAddSizes(['28', '29', '30', '31', '32', '34'])}
-                                                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 text-[10px] font-bold text-slate-700 shadow-sm"
+                                                    className="px-3 py-1 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-bold text-slate-800 shadow-sm"
                                                 >
                                                     + Quần (28-34)
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleQuickAddSizes(['Freesize'])}
-                                                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 text-[10px] font-bold text-slate-700 shadow-sm"
+                                                    className="px-3 py-1 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-bold text-slate-800 shadow-sm"
                                                 >
                                                     + Freesize
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                                            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
                                                 {(formData.sizes || []).map((size: string, idx: number) => (
-                                                    <div key={`sz-${idx}`} className="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 shadow-sm">
+                                                    <div key={`sz-${idx}`} className="flex items-center gap-2 p-2.5 rounded-xl bg-white border-2 border-slate-200 shadow-sm">
                                                         <input
                                                             type="text"
                                                             value={size}
                                                             onChange={(e) => handleSizeChange(idx, e.target.value)}
                                                             placeholder="S, M, L..."
-                                                            className="flex-1 px-2.5 py-1 rounded bg-slate-50 border border-slate-300 text-xs font-bold uppercase text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
+                                                            className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm font-extrabold uppercase text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => handleRemoveSize(idx)}
-                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
                                                             title="Xóa size này"
                                                         >
-                                                            <Trash2 size={14} />
+                                                            <Trash2 size={16} />
                                                         </button>
                                                     </div>
                                                 ))}
@@ -1052,19 +1057,19 @@ export default function EnterpriseEditProductModal({
                                     </div>
 
                                     {/* ── SECTION 2: BULK UPDATER & MATRIX VARIANT TABLE ── */}
-                                    <div className="space-y-3 pt-2 border-t border-slate-200">
+                                    <div className="space-y-4 pt-3 border-t-2 border-slate-200">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                            <span className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
                                                 Ma trận Biến thể chi tiết ({formData.variants?.length || 0} biến thể)
                                             </span>
-                                            <span className="text-[11px] text-slate-500 font-medium">
+                                            <span className="text-xs text-slate-600 font-bold">
                                                 Tự động tạo từ {formData.colors?.length || 0} màu × {formData.sizes?.length || 0} size
                                             </span>
                                         </div>
 
                                         {/* Bulk update bar */}
-                                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-3 shadow-sm">
-                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                        <div className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-wrap items-center gap-4 shadow-sm">
+                                            <span className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-wider">
                                                 Cập nhật hàng loạt:
                                             </span>
                                             <input
@@ -1072,34 +1077,34 @@ export default function EnterpriseEditProductModal({
                                                 placeholder="Tồn kho chung (VD: 50)"
                                                 value={bulkStock}
                                                 onChange={(e) => setBulkStock(e.target.value ? Number(e.target.value) : '')}
-                                                className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs w-36 focus:outline-none focus:border-slate-900"
+                                                className="px-4 py-2 rounded-xl bg-white border-2 border-slate-300 text-xs sm:text-sm font-bold w-44 focus:outline-none focus:border-slate-900"
                                             />
                                             <input
                                                 type="number"
                                                 placeholder="Giá bán chung (VD: 299000)"
                                                 value={bulkPrice}
                                                 onChange={(e) => setBulkPrice(e.target.value ? Number(e.target.value) : '')}
-                                                className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs w-40 focus:outline-none focus:border-slate-900"
+                                                className="px-4 py-2 rounded-xl bg-white border-2 border-slate-300 text-xs sm:text-sm font-bold w-48 focus:outline-none focus:border-slate-900"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleApplyBulkVariants}
-                                                className="px-4 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm"
+                                                className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-extrabold transition-all shadow-md"
                                             >
                                                 Áp dụng tất cả
                                             </button>
                                         </div>
 
-                                        {/* Matrix Variant Table */}
-                                        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-                                            <table className="w-full text-left text-xs">
-                                                <thead className="bg-slate-100 uppercase text-[10px] font-bold text-slate-700 border-b border-slate-200">
+                                        {/* Matrix Variant Table (LARGE, CLEAR & HIGH CONTRAST) */}
+                                        <div className="overflow-x-auto rounded-2xl border-2 border-slate-200 bg-white shadow-md">
+                                            <table className="w-full text-left text-xs sm:text-sm">
+                                                <thead className="bg-slate-100 uppercase text-xs font-extrabold text-slate-800 border-b-2 border-slate-200">
                                                     <tr>
-                                                        <th className="p-3">Màu sắc & Ảnh mẫu</th>
-                                                        <th className="p-3">Kích thước</th>
-                                                        <th className="p-3">Mã SKU riêng</th>
-                                                        <th className="p-3">Giá bán riêng (VND)</th>
-                                                        <th className="p-3">Tồn kho</th>
+                                                        <th className="p-4">Màu sắc & Ảnh mẫu</th>
+                                                        <th className="p-4">Kích thước</th>
+                                                        <th className="p-4">Mã SKU riêng</th>
+                                                        <th className="p-4">Giá bán riêng (VND)</th>
+                                                        <th className="p-4">Tồn kho (Cái)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-100">
@@ -1108,25 +1113,25 @@ export default function EnterpriseEditProductModal({
                                                         const displayImg = colorObj?.image || formData.images?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100';
 
                                                         return (
-                                                            <tr key={`v-${idx}`} className="hover:bg-slate-50">
-                                                                <td className="p-3 font-semibold text-slate-900">
-                                                                    <div className="flex items-center gap-2">
+                                                            <tr key={`v-${idx}`} className="hover:bg-slate-50 transition-colors">
+                                                                <td className="p-4 font-bold text-slate-900">
+                                                                    <div className="flex items-center gap-3">
                                                                         <span
-                                                                            className="w-3.5 h-3.5 rounded-full border border-slate-300 flex-shrink-0 shadow-sm"
+                                                                            className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0 shadow-sm"
                                                                             style={{ background: colorObj?.hex || '#000000' }}
                                                                         />
                                                                         <img
                                                                             src={displayImg}
                                                                             alt={variant.color}
                                                                             referrerPolicy="no-referrer"
-                                                                            className="w-7 h-7 rounded border border-slate-200 object-cover flex-shrink-0"
+                                                                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-slate-300 object-cover flex-shrink-0 shadow-sm"
                                                                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
                                                                         />
-                                                                        <span>{variant.color}</span>
+                                                                        <span className="text-sm font-extrabold">{variant.color}</span>
                                                                     </div>
                                                                 </td>
-                                                                <td className="p-3 font-bold text-blue-700">{variant.size}</td>
-                                                                <td className="p-3">
+                                                                <td className="p-4 font-extrabold text-blue-700 text-base">{variant.size}</td>
+                                                                <td className="p-4">
                                                                     <input
                                                                         type="text"
                                                                         value={variant.sku || ''}
@@ -1135,10 +1140,10 @@ export default function EnterpriseEditProductModal({
                                                                             updated[idx].sku = e.target.value;
                                                                             setFormData({ ...formData, variants: updated });
                                                                         }}
-                                                                        className="px-2.5 py-1 rounded bg-slate-50 border border-slate-300 font-mono text-xs w-36 focus:bg-white focus:border-slate-900"
+                                                                        className="px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 font-mono text-xs sm:text-sm font-bold w-40 focus:bg-white focus:border-slate-900"
                                                                     />
                                                                 </td>
-                                                                <td className="p-3">
+                                                                <td className="p-4">
                                                                     <input
                                                                         type="number"
                                                                         value={variant.price || 0}
@@ -1147,10 +1152,10 @@ export default function EnterpriseEditProductModal({
                                                                             updated[idx].price = Number(e.target.value);
                                                                             setFormData({ ...formData, variants: updated });
                                                                         }}
-                                                                        className="px-2.5 py-1 rounded bg-slate-50 border border-slate-300 text-xs w-28 font-medium focus:bg-white focus:border-slate-900"
+                                                                        className="px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm sm:text-base font-extrabold text-blue-700 w-32 focus:bg-white focus:border-slate-900"
                                                                     />
                                                                 </td>
-                                                                <td className="p-3">
+                                                                <td className="p-4">
                                                                     <input
                                                                         type="number"
                                                                         value={variant.stock || 0}
@@ -1159,7 +1164,7 @@ export default function EnterpriseEditProductModal({
                                                                             updated[idx].stock = Number(e.target.value);
                                                                             setFormData({ ...formData, variants: updated });
                                                                         }}
-                                                                        className="px-2.5 py-1 rounded bg-slate-50 border border-slate-300 text-xs w-20 font-bold text-emerald-700 focus:bg-white focus:border-slate-900"
+                                                                        className="px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm sm:text-base font-extrabold text-emerald-700 w-24 focus:bg-white focus:border-slate-900"
                                                                     />
                                                                 </td>
                                                             </tr>
@@ -1174,68 +1179,68 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 4: GIÁ & LỢI NHUẬN (PRICING) ── */}
                             {activeTab === 'pricing' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <DollarSign size={18} className="text-blue-600" /> Thiết lập giá & Tỷ suất lợi nhuận
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <DollarSign size={22} className="text-blue-600" /> Thiết lập giá & Tỷ suất lợi nhuận
                                         </h3>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Giá bán lẻ (VND) <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="number"
                                                 value={formData.price || 0}
                                                 onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-base font-bold text-blue-700 focus:outline-none focus:border-slate-900"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-lg font-extrabold text-blue-700 focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Giá gốc niêm yết
                                             </label>
                                             <input
                                                 type="number"
                                                 value={formData.originalPrice || 0}
                                                 onChange={(e) => setFormData({ ...formData, originalPrice: Number(e.target.value) })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium focus:outline-none focus:border-slate-900"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Giá nhập / Giá vốn
                                             </label>
                                             <input
                                                 type="number"
                                                 value={formData.costPrice || 0}
                                                 onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm font-medium focus:outline-none focus:border-slate-900"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
                                     </div>
 
                                     {/* Profit Card */}
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                                        <div className="p-3 bg-white rounded-lg border border-slate-200">
-                                            <span className="text-xs text-slate-500 block mb-1">Lợi nhuận / sản phẩm</span>
-                                            <span className={`text-base font-bold ${profitVal >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    <div className="p-6 rounded-2xl bg-slate-50 border-2 border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center shadow-sm">
+                                        <div className="p-4 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Lợi nhuận / sản phẩm</span>
+                                            <span className={`text-xl font-extrabold ${profitVal >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                                                 {profitVal.toLocaleString('vi-VN')} đ
                                             </span>
                                         </div>
-                                        <div className="p-3 bg-white rounded-lg border border-slate-200">
-                                            <span className="text-xs text-slate-500 block mb-1">Tỷ suất lợi nhuận Margin</span>
-                                            <span className={`text-base font-bold ${profitMargin >= 30 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                        <div className="p-4 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Tỷ suất lợi nhuận Margin</span>
+                                            <span className={`text-xl font-extrabold ${profitMargin >= 30 ? 'text-emerald-700' : 'text-amber-600'}`}>
                                                 {profitMargin}%
                                             </span>
                                         </div>
-                                        <div className="p-3 bg-white rounded-lg border border-slate-200">
-                                            <span className="text-xs text-slate-500 block mb-1">Mức giảm so với niêm yết</span>
-                                            <span className="text-base font-bold text-blue-600">
+                                        <div className="p-4 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Mức giảm so với niêm yết</span>
+                                            <span className="text-xl font-extrabold text-blue-700">
                                                 {formData.originalPrice > formData.price
                                                     ? `-${Math.round((1 - formData.price / formData.originalPrice) * 100)}%`
                                                     : '0%'}
@@ -1247,16 +1252,16 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 5: QUẢN LÝ KHO (INVENTORY) ── */}
                             {activeTab === 'inventory' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <Boxes size={18} className="text-blue-600" /> Quản lý phân bổ kho
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <Boxes size={22} className="text-blue-600" /> Quản lý phân bổ kho
                                         </h3>
                                     </div>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                                            <span className="text-xs text-slate-500 block mb-1">Kho tổng trung tâm</span>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
+                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Kho tổng trung tâm</span>
                                             <input
                                                 type="number"
                                                 value={formData.inventoryAlloc?.main || 100}
@@ -1264,11 +1269,11 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     inventoryAlloc: { ...formData.inventoryAlloc, main: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-1.5 rounded-lg bg-white text-sm font-bold text-slate-900 border border-slate-300"
+                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-slate-900 border-2 border-slate-300"
                                             />
                                         </div>
-                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                                            <span className="text-xs text-slate-500 block mb-1">Kho Online E-commerce</span>
+                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
+                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Kho Online E-commerce</span>
                                             <input
                                                 type="number"
                                                 value={formData.inventoryAlloc?.online || 80}
@@ -1276,11 +1281,11 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     inventoryAlloc: { ...formData.inventoryAlloc, online: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-1.5 rounded-lg bg-white text-sm font-bold text-blue-700 border border-slate-300"
+                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-blue-700 border-2 border-slate-300"
                                             />
                                         </div>
-                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                                            <span className="text-xs text-slate-500 block mb-1">Kho POS Cửa hàng</span>
+                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
+                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Kho POS Cửa hàng</span>
                                             <input
                                                 type="number"
                                                 value={formData.inventoryAlloc?.offline || 50}
@@ -1288,11 +1293,11 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     inventoryAlloc: { ...formData.inventoryAlloc, offline: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-1.5 rounded-lg bg-white text-sm font-bold text-purple-700 border border-slate-300"
+                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-purple-700 border-2 border-slate-300"
                                             />
                                         </div>
-                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                                            <span className="text-xs text-slate-500 block mb-1">Ngưỡng cảnh báo hết</span>
+                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
+                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Ngưỡng cảnh báo hết</span>
                                             <input
                                                 type="number"
                                                 value={formData.inventoryAlloc?.threshold || 10}
@@ -1300,7 +1305,7 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     inventoryAlloc: { ...formData.inventoryAlloc, threshold: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-1.5 rounded-lg bg-white text-sm font-bold text-amber-700 border border-slate-300"
+                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-amber-700 border-2 border-slate-300"
                                             />
                                         </div>
                                     </div>
@@ -1309,35 +1314,35 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 6: SEO ── */}
                             {activeTab === 'seo' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <Search size={18} className="text-blue-600" /> Tối ưu hóa SEO Google
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <Search size={22} className="text-blue-600" /> Tối ưu hóa SEO Google
                                         </h3>
-                                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                        <span className="px-4 py-1.5 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 border border-blue-300">
                                             Điểm SEO: {seoScore}/100
                                         </span>
                                     </div>
 
                                     {/* Google Live Snippet Preview */}
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                    <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-2">
+                                        <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
                                             Xem trước kết quả trên Google
                                         </span>
-                                        <div className="text-blue-700 text-sm font-semibold hover:underline cursor-pointer">
+                                        <div className="text-blue-700 text-base font-bold hover:underline cursor-pointer">
                                             {formData.seo?.title || `${formData.name} - HAVEN Store`}
                                         </div>
-                                        <div className="text-xs text-emerald-700 font-mono">
+                                        <div className="text-xs text-emerald-700 font-mono font-bold">
                                             https://havenstore.vn/products/{formData.seo?.slug || 'san-pham'}
                                         </div>
-                                        <div className="text-xs text-slate-600 line-clamp-2">
+                                        <div className="text-xs sm:text-sm text-slate-700 line-clamp-2">
                                             {formData.seo?.description || formData.shortDescription || 'Mô tả hiển thị khi người dùng tìm kiếm trên Google...'}
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Meta Title
                                             </label>
                                             <input
@@ -1347,12 +1352,12 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     seo: { ...formData.seo, title: e.target.value }
                                                 })}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-sm text-slate-800 focus:outline-none focus:border-slate-900"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                                 Meta Description
                                             </label>
                                             <textarea
@@ -1362,7 +1367,7 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     seo: { ...formData.seo, description: e.target.value }
                                                 })}
-                                                className="w-full p-3.5 rounded-lg bg-white border border-slate-300 text-sm text-slate-800 focus:outline-none focus:border-slate-900"
+                                                className="w-full p-4 rounded-xl bg-white border-2 border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
                                     </div>
@@ -1371,38 +1376,38 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 7: AI ENTERPRISE ── */}
                             {activeTab === 'ai' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-purple-200 pb-3">
-                                        <h3 className="text-base font-bold text-purple-900 flex items-center gap-2">
-                                            <Sparkles size={18} className="text-purple-600" /> Trợ lý AI Enterprise
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-purple-200 pb-4">
+                                        <h3 className="text-lg font-extrabold text-purple-900 flex items-center gap-2">
+                                            <Sparkles size={22} className="text-purple-600" /> Trợ lý AI Enterprise
                                         </h3>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <button
                                             type="button"
                                             onClick={() => handleRunAIAction('description')}
                                             disabled={!!aiGenerating}
-                                            className="p-4 rounded-xl bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200 text-left space-y-2 transition-all shadow-sm"
+                                            className="p-5 rounded-2xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 text-left space-y-2 transition-all shadow-sm"
                                         >
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-bold text-purple-900">AI Viết mô tả Rich Text</span>
-                                                <Sparkles size={16} className="text-purple-600" />
+                                                <span className="text-base font-extrabold text-purple-950">AI Viết mô tả Rich Text</span>
+                                                <Sparkles size={20} className="text-purple-600" />
                                             </div>
-                                            <p className="text-xs text-slate-600">Tự động viết bài giới thiệu thu hút và chuyên nghiệp.</p>
+                                            <p className="text-xs sm:text-sm font-medium text-slate-700">Tự động viết bài giới thiệu thu hút và chuyên nghiệp.</p>
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={() => handleRunAIAction('seo')}
                                             disabled={!!aiGenerating}
-                                            className="p-4 rounded-xl bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200 text-left space-y-2 transition-all shadow-sm"
+                                            className="p-5 rounded-2xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 text-left space-y-2 transition-all shadow-sm"
                                         >
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-bold text-purple-900">AI Tối ưu thẻ SEO</span>
-                                                <Search size={16} className="text-purple-600" />
+                                                <span className="text-base font-extrabold text-purple-950">AI Tối ưu thẻ SEO</span>
+                                                <Search size={20} className="text-purple-600" />
                                             </div>
-                                            <p className="text-xs text-slate-600">Tự động tạo Title & Description chuẩn SEO.</p>
+                                            <p className="text-xs sm:text-sm font-medium text-slate-700">Tự động tạo Title & Description chuẩn SEO.</p>
                                         </button>
                                     </div>
                                 </div>
@@ -1410,48 +1415,48 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 8: THUỘC TÍNH (SPECS) ── */}
                             {activeTab === 'specs' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <Sliders size={18} className="text-blue-600" /> Thông số kỹ thuật
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <Sliders size={22} className="text-blue-600" /> Thông số kỹ thuật
                                         </h3>
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
                                         <input
                                             type="text"
                                             placeholder="Tên thông số (VD: Độ co giãn)"
                                             value={specKey}
                                             onChange={(e) => setSpecKey(e.target.value)}
-                                            className="flex-1 px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-xs"
+                                            className="flex-1 px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-semibold"
                                         />
                                         <input
                                             type="text"
                                             placeholder="Giá trị (VD: Co giãn 4 chiều)"
                                             value={specValue}
                                             onChange={(e) => setSpecValue(e.target.value)}
-                                            className="flex-1 px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-xs"
+                                            className="flex-1 px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-semibold"
                                         />
                                         <button
                                             type="button"
                                             onClick={handleAddSpec}
-                                            className="px-4 py-2.5 rounded-lg bg-slate-900 text-white text-xs font-bold"
+                                            className="px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-extrabold shadow-md"
                                         >
                                             Thêm
                                         </button>
                                     </div>
 
-                                    <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden">
+                                    <div className="divide-y-2 divide-slate-100 rounded-2xl border-2 border-slate-200 bg-white overflow-hidden shadow-sm">
                                         {Object.entries(formData.specifications || {}).map(([key, val]: any) => (
-                                            <div key={key} className="flex items-center justify-between p-3 text-xs">
-                                                <span className="font-bold text-slate-700 w-1/3">{key}</span>
-                                                <span className="text-slate-600 flex-1">{val}</span>
+                                            <div key={key} className="flex items-center justify-between p-4 text-sm font-medium">
+                                                <span className="font-extrabold text-slate-900 w-1/3">{key}</span>
+                                                <span className="text-slate-700 flex-1">{val}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveSpec(key)}
-                                                    className="text-red-600 p-1 hover:bg-red-50 rounded"
+                                                    className="text-red-600 p-2 hover:bg-red-50 rounded-xl"
                                                 >
-                                                    <Trash2 size={14} />
+                                                    <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         ))}
@@ -1461,16 +1466,16 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 10: VẬN CHUYỂN ── */}
                             {activeTab === 'shipping' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <Truck size={18} className="text-blue-600" /> Kích thước & Đóng gói
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <Truck size={22} className="text-blue-600" /> Kích thước & Đóng gói
                                         </h3>
                                     </div>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Khối lượng (gam)</label>
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Khối lượng (gam)</label>
                                             <input
                                                 type="number"
                                                 value={formData.shipping?.weight || 350}
@@ -1478,11 +1483,11 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     shipping: { ...formData.shipping, weight: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-sm font-bold"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-extrabold"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Dài (cm)</label>
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Dài (cm)</label>
                                             <input
                                                 type="number"
                                                 value={formData.shipping?.length || 30}
@@ -1490,11 +1495,11 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     shipping: { ...formData.shipping, length: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-sm"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Rộng (cm)</label>
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Rộng (cm)</label>
                                             <input
                                                 type="number"
                                                 value={formData.shipping?.width || 20}
@@ -1502,11 +1507,11 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     shipping: { ...formData.shipping, width: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-sm"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Cao (cm)</label>
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Cao (cm)</label>
                                             <input
                                                 type="number"
                                                 value={formData.shipping?.height || 5}
@@ -1514,7 +1519,7 @@ export default function EnterpriseEditProductModal({
                                                     ...formData,
                                                     shipping: { ...formData.shipping, height: Number(e.target.value) }
                                                 })}
-                                                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-sm"
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold"
                                             />
                                         </div>
                                     </div>
@@ -1523,14 +1528,14 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 12: KÊNH BÁN HÀNG ── */}
                             {activeTab === 'channels' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <Store size={18} className="text-blue-600" /> Kênh phân phối
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <Store size={22} className="text-blue-600" /> Kênh phân phối
                                         </h3>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {[
                                             { key: 'website', label: 'Website HAVEN Store (Chính)' },
                                             { key: 'mobileApp', label: 'Ứng dụng HAVEN Mobile' },
@@ -1539,8 +1544,8 @@ export default function EnterpriseEditProductModal({
                                             { key: 'tiktok', label: 'TikTok Shop' },
                                             { key: 'shopee', label: 'Shopee Mall' }
                                         ].map((ch) => (
-                                            <label key={ch.key} className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
-                                                <span className="text-xs font-semibold text-slate-800">{ch.label}</span>
+                                            <label key={ch.key} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 cursor-pointer">
+                                                <span className="text-sm font-extrabold text-slate-900">{ch.label}</span>
                                                 <input
                                                     type="checkbox"
                                                     checked={formData.channels?.[ch.key] !== false}
@@ -1548,7 +1553,7 @@ export default function EnterpriseEditProductModal({
                                                         ...formData,
                                                         channels: { ...formData.channels, [ch.key]: e.target.checked }
                                                     })}
-                                                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                                                    className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"
                                                 />
                                             </label>
                                         ))}
@@ -1558,24 +1563,24 @@ export default function EnterpriseEditProductModal({
 
                             {/* ── TAB 13: LỊCH SỬ CHỈNH SỬA ── */}
                             {activeTab === 'audit' && (
-                                <div className="space-y-6 max-w-4xl">
-                                    <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <History size={18} className="text-blue-600" /> Lịch sử chỉnh sửa
+                                <div className="space-y-6 max-w-5xl">
+                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                            <History size={22} className="text-blue-600" /> Lịch sử chỉnh sửa
                                         </h3>
                                     </div>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-4">
                                         {auditLogs.map((log) => (
-                                            <div key={log.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                                            <div key={log.id} className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm space-y-1">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="font-bold text-blue-700">{log.user}</span>
-                                                    <span className="text-slate-500">{log.time}</span>
+                                                    <span className="font-extrabold text-blue-700">{log.user}</span>
+                                                    <span className="text-xs font-semibold text-slate-500">{log.time}</span>
                                                 </div>
-                                                <div className="text-slate-700">
+                                                <div className="text-slate-800 font-medium">
                                                     Hành động: <strong>{log.action}</strong>
                                                 </div>
-                                                <div className="text-[11px] text-slate-500 font-mono">
+                                                <div className="text-xs text-slate-500 font-mono">
                                                     IP: {log.ip} | Trình duyệt: {log.browser}
                                                 </div>
                                             </div>
