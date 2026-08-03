@@ -203,7 +203,7 @@ export default function InventoryStockPage() {
                                 Quản Lý Tồn Kho WMS
                                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">Enterprise</span>
                             </h1>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Quản lý trực quan tồn khả dụng, tồn giữ đơn, hàng lỗi & giá trị vốn lưu động theo SKU từ MongoDB</p>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Quản lý trực quan tồn khả dụng, tồn giữ đơn, hàng lỗi & giá trị vốn lưu động theo SKU</p>
                         </div>
                     </div>
                 </div>

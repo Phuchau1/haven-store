@@ -60,7 +60,7 @@ export default function ProductTabs({ product }: ProductTabsProps) {
 
         setIsSubmittingReview(true);
         try {
-            // Gửi đến API mới — lưu vĩnh viễn vào MongoDB
+            // Gửi đến API mới — lưu vĩnh viễn vào Database
             const res = await fetch('/api/reviews', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

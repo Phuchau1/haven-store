@@ -59,10 +59,10 @@ export default function WmsDashboardPage() {
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
                             Enterprise WMS System
                         </span>
-                        <span className="text-xs" style={{ color: 'var(--adm-text-subtle)' }}>• Tự động đồng bộ MongoDB</span>
+                        <span className="text-xs" style={{ color: 'var(--adm-text-subtle)' }}>• Tự động đồng bộ</span>
                     </div>
                     <h1 className="text-xl font-bold tracking-tight mt-1" style={{ color: 'var(--adm-text)' }}>Báo Cáo Tồn Kho Executive WMS</h1>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Quản lý giá trị kho, 6 trạng thái tồn kho và cảnh báo theo thời gian thực từ MongoDB</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>Quản lý giá trị kho, 6 trạng thái tồn kho và cảnh báo theo thời gian thực</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default function WmsDashboardPage() {
                         </div>
                     </div>
                     <p className="text-2xl font-black text-purple-600">{metrics?.totalSold || 0}</p>
-                    <p className="text-[11px]" style={{ color: 'var(--adm-text-subtle)' }}>Số lượng đã bán (MongoDB)</p>
+                    <p className="text-[11px]" style={{ color: 'var(--adm-text-subtle)' }}>Số lượng đã bán</p>
                 </motion.div>
 
                 {/* 6. Hàng hỏng (Damaged) */}
@@ -192,7 +192,7 @@ export default function WmsDashboardPage() {
                     <h3 className="font-bold text-sm flex items-center justify-between" style={{ color: 'var(--adm-text)' }}>
                         <span className="flex items-center gap-2">
                             <Package size={16} className="text-amber-500" />
-                            Top Tồn Kho Nhiều Nhất (MongoDB)
+                            Top Tồn Kho Nhiều Nhất
                         </span>
                         <span className="text-xs" style={{ color: 'var(--adm-text-subtle)' }}>High Stock Items</span>
                     </h3>

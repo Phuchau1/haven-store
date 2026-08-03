@@ -190,7 +190,7 @@ export default function Header() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [navMenus, setNavMenus] = useState<MenuNode[]>([]);
 
-    // Fetch menus from MongoDB
+    // Fetch menus
     useEffect(() => {
         const fetchMenus = async () => {
             try {
@@ -247,7 +247,7 @@ export default function Header() {
 
                         {/* Desktop Navigation */}
                         <nav className="hidden lg:flex items-center gap-4">
-                            {/* Dynamic menus from MongoDB */}
+                            {/* Dynamic menus */}
                             {navMenus.map(menu => (
                                 <DesktopMenuItem key={menu.id} menu={menu} />
                             ))}

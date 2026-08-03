@@ -197,7 +197,7 @@ export default function LuckyWheelAdminPage() {
             });
             const data = await res.json();
             if (data.success) {
-                toast.success('✨ Đã lưu cấu hình vòng quay & đồng bộ MongoDB!');
+                toast.success('✨ Đã lưu cấu hình vòng quay!');
                 fetchConfig();
             } else {
                 throw new Error(data.message);
