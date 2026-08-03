@@ -200,8 +200,8 @@ export default function Hero() {
                     transition={{ duration: 0.7, delay: 1.05 }}
                     className="flex flex-col sm:flex-row items-start gap-3 mt-8"
                 >
-                    {/* Primary CTA: MUA NGAY */}
-                    <Link href={settings.bannerLink || "/products"}>
+                    {/* Primary CTA: KHÁM PHÁ NGAY */}
+                    <Link href={(settings as any).heroBtn1Link || settings.bannerLink || "/products"}>
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -213,14 +213,14 @@ export default function Hero() {
                                 letterSpacing: '0.05em',
                             }}
                         >
-                            <span className="uppercase relative z-10">Mua Ngay</span>
+                            <span className="uppercase relative z-10">{(settings as any).heroBtn1Text || "Khám Phá Ngay"}</span>
                             <ArrowRight size={16} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
                             <div className="absolute inset-0 bg-black/10 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
                         </motion.button>
                     </Link>
 
-                    {/* Secondary CTA: ƯU ĐÃI ĐẶC BIỆT */}
-                    <Link href="/products?discounted=true">
+                    {/* Secondary CTA: SĂN SALE HOT */}
+                    <Link href={(settings as any).heroBtn2Link || "/products?discounted=true"}>
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -232,7 +232,7 @@ export default function Hero() {
                                 letterSpacing: '0.05em',
                             }}
                         >
-                            <span className="uppercase">Ưu Đãi Đặc Biệt</span>
+                            <span className="uppercase">{(settings as any).heroBtn2Text || "Săn Sale Hot"}</span>
                         </motion.button>
                     </Link>
                 </motion.div>
