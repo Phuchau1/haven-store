@@ -841,6 +841,99 @@ export default function EnterpriseEditProductModal({
                                         </div>
                                     </div>
 
+                                    {/* ── MARKETING BADGES & FLAGS CARD ── */}
+                                    <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50/80 via-orange-50/50 to-red-50/50 border-2 border-amber-200 space-y-4 shadow-sm">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                                <span className="w-3 h-3 rounded-full bg-amber-500 inline-block animate-pulse" />
+                                                Nhãn tiếp thị & Nổi bật (Marketing Badges)
+                                            </label>
+                                            {formData.badge && (
+                                                <span className="px-3 py-1 rounded-full bg-amber-500 text-white font-extrabold text-xs uppercase shadow-sm">
+                                                    Đang gắn nhãn: {formData.badge}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <span className="text-xs font-bold text-slate-700 block">Chọn nhanh nhãn nổi bật (Hàng mới, Hot, Giảm giá...):</span>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, badge: 'HOT' })}
+                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
+                                                        formData.badge === 'HOT' ? 'bg-orange-600 text-white border-orange-600 shadow-md' : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50'
+                                                    }`}
+                                                >
+                                                    🔥 HOT (Bán chạy)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, badge: 'NEW' })}
+                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
+                                                        formData.badge === 'NEW' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white text-emerald-600 border-emerald-300 hover:bg-emerald-50'
+                                                    }`}
+                                                >
+                                                    🆕 NEW (Hàng mới về)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, badge: 'SALE' })}
+                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
+                                                        formData.badge === 'SALE' ? 'bg-red-600 text-white border-red-600 shadow-md' : 'bg-white text-red-600 border-red-300 hover:bg-red-50'
+                                                    }`}
+                                                >
+                                                    🏷️ SALE (Giảm giá)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, badge: 'BEST SELLER' })}
+                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
+                                                        formData.badge === 'BEST SELLER' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-900 border-slate-300 hover:bg-slate-100'
+                                                    }`}
+                                                >
+                                                    ⭐ BEST SELLER
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, badge: 'FLASH SALE' })}
+                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
+                                                        formData.badge === 'FLASH SALE' ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'bg-white text-purple-600 border-purple-300 hover:bg-purple-50'
+                                                    }`}
+                                                >
+                                                    ⚡ FLASH SALE
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, badge: 'FREE SHIP' })}
+                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
+                                                        formData.badge === 'FREE SHIP' ? 'bg-teal-600 text-white border-teal-600 shadow-md' : 'bg-white text-teal-600 border-teal-300 hover:bg-teal-50'
+                                                    }`}
+                                                >
+                                                    🚚 FREESHIP
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, badge: '' })}
+                                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-500 border border-slate-300 hover:bg-slate-100"
+                                                >
+                                                    ✕ Bỏ nhãn
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 pt-2 border-t border-amber-200">
+                                            <span className="text-xs font-bold text-slate-700 flex-shrink-0">Tự nhập nhãn tùy chỉnh khác:</span>
+                                            <input
+                                                type="text"
+                                                value={formData.badge || ''}
+                                                onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                                                placeholder="VD: GIẢM 50%, GIỚI HẠN, BÁN CHẠY..."
+                                                className="flex-1 px-3.5 py-2 rounded-xl bg-white border-2 border-amber-300 text-xs sm:text-sm font-extrabold text-amber-900 focus:outline-none focus:border-amber-600"
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
                                             Mô tả ngắn sản phẩm
@@ -1354,6 +1447,53 @@ export default function EnterpriseEditProductModal({
                                                 }}
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold focus:outline-none focus:border-slate-900"
                                             />
+                                        </div>
+                                    </div>
+
+                                    {/* ── QUICK DISCOUNT GENERATOR ── */}
+                                    <div className="p-5 rounded-2xl bg-red-50/60 border-2 border-red-200 space-y-3 shadow-sm">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs sm:text-sm font-extrabold text-red-900 uppercase tracking-wider flex items-center gap-2">
+                                                <span className="w-3 h-3 rounded-full bg-red-600 inline-block animate-bounce" />
+                                                Công cụ Tính nhanh Giảm Giá (% OFF & Badge)
+                                            </label>
+                                            <span className="text-xs font-bold text-red-700">
+                                                Tự động tính Giá bán & Gán Nhãn Giảm Giá
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            {[10, 15, 20, 25, 30, 40, 50].map((pct) => (
+                                                <button
+                                                    key={`disc-btn-${pct}`}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const orig = Number(formData.originalPrice || formData.price || 0);
+                                                        if (orig > 0) {
+                                                            const newPrice = Math.round(orig * (1 - pct / 100));
+                                                            const updatedVariants = (formData.variants || []).map((v: any) => ({
+                                                                ...v,
+                                                                price: newPrice,
+                                                                originalPrice: orig
+                                                            }));
+                                                            setFormData({
+                                                                ...formData,
+                                                                originalPrice: orig,
+                                                                price: newPrice,
+                                                                badge: `SALE ${pct}%`,
+                                                                variants: updatedVariants
+                                                            });
+                                                            setAutoSaveStatus('dirty');
+                                                            showToast('success', `Áp dụng giảm ${pct}%! Giá mới: ${newPrice.toLocaleString('vi-VN')}đ`);
+                                                        } else {
+                                                            showToast('warning', 'Vui lòng nhập Giá gốc niêm yết trước');
+                                                        }
+                                                    }}
+                                                    className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-red-600 hover:text-white border-2 border-red-300 text-xs font-extrabold text-red-700 shadow-sm transition-all"
+                                                >
+                                                    🔥 Giảm {pct}%
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
 
