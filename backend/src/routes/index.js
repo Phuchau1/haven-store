@@ -29,17 +29,15 @@ const poRoutes = require('./poRoutes');
 const inventoryReportRoutes = require('./inventoryReportRoutes');
 const barcodeRoutes = require('./barcodeRoutes');
 const exportRoutes = require('./exportRoutes');
-const aiRoutes = require('./aiRoutes');
 const luckyWheelRoutes = require('./luckyWheelRoutes');
+
 const recentlyViewedRoutes = require('./recentlyViewedRoutes');
 const loyaltyRoutes        = require('./loyaltyRoutes');
 const analyticsRoutes      = require('./analyticsRoutes');
-const tryOnRoutes          = require('./tryOnRoutes');
-const aiStylistRoutes      = require('./aiStylistRoutes');
 const wmsRoutes            = require('./wmsRoutes');
 
 const crmRoutes          = require('./crmRoutes');
-const aiEnterpriseRoutes = require('./aiEnterpriseRoutes');
+
 const carrierRoutes      = require('./carrierRoutes');      // Carrier Simulation Engine
 
 router.use('/auth', authRoutes);
@@ -61,16 +59,12 @@ router.use('/payment', paymentRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/articles', articleRoutes);
 router.use('/export', exportRoutes);
-router.use('/ai', aiRoutes);
 router.use('/lucky-wheel', luckyWheelRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
 router.use('/loyalty',  loyaltyRoutes);   // Hệ thống điểm tích lũy
 router.use('/analytics', analyticsRoutes); // Analytics & tracking
-router.use('/tryon',    tryOnRoutes);      // AI Virtual Try-On
-router.use('/ai-stylist', aiStylistRoutes); // World-class AI Recommendation Engine
 router.use('/wms',      wmsRoutes);        // Enterprise WMS & Logistics Management
 router.use('/crm',      crmRoutes);        // Enterprise CRM 360 & Referral
-router.use('/ai-enterprise', aiEnterpriseRoutes); // AI Enterprise Copywriter, Fraud Check & Demand Forecast
 router.use('/carrier',  carrierRoutes);    // Carrier Simulation Engine (GHN/GHTK/J&T/VTP/BEST/NJV)
 
 // WMS API

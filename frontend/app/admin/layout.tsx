@@ -8,7 +8,7 @@ import {
     LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
     Menu, X, Bell, User, Star, Palette, Ruler,
     ChevronRight, Search, MoreHorizontal, Zap, Home, Heart,
-    Bot, Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
+    Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
     Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText,
     ClipboardList, BarChart3, Navigation, ShieldCheck, ArrowLeftRight, RotateCcw
 } from 'lucide-react';
@@ -47,7 +47,6 @@ const MENU_ITEMS = [
     { icon: Zap,             label: 'Flash Sale',    href: '/admin/flash-sales',       group: 'store' },
     { icon: Ticket,          label: 'Mã giảm giá',  href: '/admin/coupons',           group: 'store' },
     { icon: Gift,            label: 'Vòng quay',     href: '/admin/lucky-wheel',       group: 'store' },
-    { icon: Bot,             label: 'Cấu hình AI',   href: '/admin/ai-settings',       group: 'store' },
     { icon: CreditCard,      label: 'Thanh toán',    href: '/admin/payment-methods',   group: 'store' },
     { icon: Truck,           label: 'Vận chuyển',    href: '/admin/shipping-methods',  group: 'store' },
     { icon: Settings,        label: 'Cài đặt',       href: '/admin/settings',          group: 'store' },
