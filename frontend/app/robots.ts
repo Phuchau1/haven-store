@@ -1,13 +1,12 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-    const baseUrl = 'https://haven-store-web-green.vercel.app';
-
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://havenstore.vn';
     return {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin', '/account', '/checkout'], // Chặn Google Bot vào các trang bảo mật
+            disallow: ['/admin/', '/api/'],
         },
         sitemap: `${baseUrl}/sitemap.xml`,
     };
