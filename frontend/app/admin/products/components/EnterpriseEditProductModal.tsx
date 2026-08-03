@@ -348,6 +348,61 @@ export default function EnterpriseEditProductModal({
         setAutoSaveStatus('dirty');
     };
 
+    // ── Color Management ──
+    const handleAddColor = () => {
+        setFormData((prev: any) => ({
+            ...prev,
+            colors: [...(prev.colors || []), { name: 'Màu mới', hex: '#000000', image: '' }]
+        }));
+        setAutoSaveStatus('dirty');
+    };
+
+    const handleRemoveColor = (index: number) => {
+        const colors = [...(formData.colors || [])];
+        colors.splice(index, 1);
+        setFormData((prev: any) => ({ ...prev, colors }));
+        setAutoSaveStatus('dirty');
+    };
+
+    const handleColorChange = (index: number, field: 'name' | 'hex' | 'image', value: string) => {
+        const colors = [...(formData.colors || [])];
+        colors[index] = { ...colors[index], [field]: value };
+        setFormData((prev: any) => ({ ...prev, colors }));
+        setAutoSaveStatus('dirty');
+    };
+
+    // ── Size Management ──
+    const handleAddSize = () => {
+        setFormData((prev: any) => ({
+            ...prev,
+            sizes: [...(prev.sizes || []), '']
+        }));
+        setAutoSaveStatus('dirty');
+    };
+
+    const handleRemoveSize = (index: number) => {
+        const sizes = [...(formData.sizes || [])];
+        sizes.splice(index, 1);
+        setFormData((prev: any) => ({ ...prev, sizes }));
+        setAutoSaveStatus('dirty');
+    };
+
+    const handleSizeChange = (index: number, value: string) => {
+        const sizes = [...(formData.sizes || [])];
+        sizes[index] = value;
+        setFormData((prev: any) => ({ ...prev, sizes }));
+        setAutoSaveStatus('dirty');
+    };
+
+    const handleQuickAddSizes = (presetSizes: string[]) => {
+        setFormData((prev: any) => ({
+            ...prev,
+            sizes: Array.from(new Set([...(prev.sizes || []), ...presetSizes]))
+        }));
+        setAutoSaveStatus('dirty');
+        showToast('success', `Đã thêm nhanh kích thước: ${presetSizes.join(', ')}`);
+    };
+
     const handleAddSpec = () => {
         if (!specKey.trim() || !specValue.trim()) return;
         setFormData((prev: any) => ({
@@ -831,100 +886,288 @@ export default function EnterpriseEditProductModal({
                                 </div>
                             )}
 
-                            {/* ── TAB 3: BIẾN THỂ (VARIANTS) ── */}
+                            {/* ── TAB 3: BIẾN THỂ (VARIANTS & COLORS/SIZES) ── */}
                             {activeTab === 'variants' && (
                                 <div className="space-y-6 max-w-5xl">
                                     <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
-                                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                            <Layers size={18} className="text-blue-600" /> Bảng biến thể sản phẩm
-                                        </h3>
+                                        <div>
+                                            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                                                <Layers size={18} className="text-blue-600" /> Quản lý Màu sắc, Kích thước & Biến thể
+                                            </h3>
+                                            <p className="text-xs text-slate-500 mt-0.5">
+                                                Thêm bớt màu sắc (gán ảnh mẫu theo màu), kích thước và điều chỉnh giá/kho riêng biệt.
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    {/* Bulk update bar */}
-                                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-3">
-                                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                            Cập nhật hàng loạt:
-                                        </span>
-                                        <input
-                                            type="number"
-                                            placeholder="Tồn kho (VD: 50)"
-                                            value={bulkStock}
-                                            onChange={(e) => setBulkStock(e.target.value ? Number(e.target.value) : '')}
-                                            className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs w-36"
-                                        />
-                                        <input
-                                            type="number"
-                                            placeholder="Giá bán (VD: 299000)"
-                                            value={bulkPrice}
-                                            onChange={(e) => setBulkPrice(e.target.value ? Number(e.target.value) : '')}
-                                            className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs w-40"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={handleApplyBulkVariants}
-                                            className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold"
-                                        >
-                                            Áp dụng tất cả
-                                        </button>
-                                    </div>
+                                    {/* ── SECTION 1: COLORS & SIZES MANAGEMENT SIDE-BY-SIDE ── */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        
+                                        {/* 1. COLOR MANAGEMENT CARD */}
+                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block" />
+                                                    Danh sách Màu sắc ({formData.colors?.length || 0})
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddColor}
+                                                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
+                                                >
+                                                    <Plus size={13} /> Thêm màu
+                                                </button>
+                                            </div>
 
-                                    {/* Variants Table */}
-                                    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                                        <table className="w-full text-left text-xs">
-                                            <thead className="bg-slate-100 uppercase text-[10px] font-bold text-slate-700 border-b border-slate-200">
-                                                <tr>
-                                                    <th className="p-3">Màu sắc</th>
-                                                    <th className="p-3">Kích thước</th>
-                                                    <th className="p-3">Mã SKU riêng</th>
-                                                    <th className="p-3">Giá bán (VND)</th>
-                                                    <th className="p-3">Tồn kho</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-100">
-                                                {(formData.variants || []).map((variant: any, idx: number) => (
-                                                    <tr key={`v-${idx}`} className="hover:bg-slate-50">
-                                                        <td className="p-3 font-semibold text-slate-900">{variant.color}</td>
-                                                        <td className="p-3 font-bold text-blue-700">{variant.size}</td>
-                                                        <td className="p-3">
+                                            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                                                {(formData.colors || []).map((color: any, idx: number) => (
+                                                    <div key={`col-${idx}`} className="p-2.5 rounded-lg bg-white border border-slate-200 space-y-2 shadow-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            {/* Color Picker Dot */}
+                                                            <input
+                                                                type="color"
+                                                                value={color.hex || '#000000'}
+                                                                onChange={(e) => handleColorChange(idx, 'hex', e.target.value)}
+                                                                className="w-8 h-8 rounded-lg border border-slate-300 cursor-pointer p-0.5 bg-white flex-shrink-0"
+                                                                title="Chọn mã màu HEX"
+                                                            />
+
+                                                            {/* Color Name */}
                                                             <input
                                                                 type="text"
-                                                                value={variant.sku || ''}
-                                                                onChange={(e) => {
-                                                                    const updated = [...formData.variants];
-                                                                    updated[idx].sku = e.target.value;
-                                                                    setFormData({ ...formData, variants: updated });
-                                                                }}
-                                                                className="px-2 py-1 rounded bg-slate-50 border border-slate-200 font-mono text-xs w-36"
+                                                                value={color.name || ''}
+                                                                onChange={(e) => handleColorChange(idx, 'name', e.target.value)}
+                                                                placeholder="Tên màu (Đen, Trắng, Tím...)"
+                                                                className="flex-1 px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-300 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
                                                             />
-                                                        </td>
-                                                        <td className="p-3">
-                                                            <input
-                                                                type="number"
-                                                                value={variant.price || 0}
-                                                                onChange={(e) => {
-                                                                    const updated = [...formData.variants];
-                                                                    updated[idx].price = Number(e.target.value);
-                                                                    setFormData({ ...formData, variants: updated });
-                                                                }}
-                                                                className="px-2 py-1 rounded bg-slate-50 border border-slate-200 text-xs w-28 font-medium"
-                                                            />
-                                                        </td>
-                                                        <td className="p-3">
-                                                            <input
-                                                                type="number"
-                                                                value={variant.stock || 0}
-                                                                onChange={(e) => {
-                                                                    const updated = [...formData.variants];
-                                                                    updated[idx].stock = Number(e.target.value);
-                                                                    setFormData({ ...formData, variants: updated });
-                                                                }}
-                                                                className="px-2 py-1 rounded bg-slate-50 border border-slate-200 text-xs w-20 font-bold text-emerald-700"
-                                                            />
-                                                        </td>
-                                                    </tr>
+
+                                                            {/* Delete Color */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveColor(idx)}
+                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0"
+                                                                title="Xóa màu này"
+                                                            >
+                                                                <Trash2 size={15} />
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Color Specific Image Selection */}
+                                                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                                                            <span className="text-[11px] text-slate-500 font-semibold flex-shrink-0">Ảnh theo màu:</span>
+                                                            
+                                                            {color.image && (
+                                                                <img
+                                                                    src={color.image}
+                                                                    alt={color.name}
+                                                                    referrerPolicy="no-referrer"
+                                                                    className="w-6 h-6 rounded border border-slate-300 object-cover flex-shrink-0"
+                                                                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
+                                                                />
+                                                            )}
+
+                                                            <select
+                                                                value={color.image || ''}
+                                                                onChange={(e) => handleColorChange(idx, 'image', e.target.value)}
+                                                                className="flex-1 px-2 py-1 rounded bg-slate-50 border border-slate-300 text-[11px] text-slate-800 focus:outline-none focus:border-slate-900"
+                                                            >
+                                                                <option value="">-- Chọn ảnh đại diện cho màu --</option>
+                                                                {(formData.images || []).map((imgUrl: string, imgIdx: number) => (
+                                                                    <option key={`opt-img-${imgIdx}`} value={imgUrl}>
+                                                                        Ảnh {imgIdx + 1}: {imgUrl.substring(0, 35)}...
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    </div>
                                                 ))}
-                                            </tbody>
-                                        </table>
+                                            </div>
+                                        </div>
+
+                                        {/* 2. SIZE MANAGEMENT CARD */}
+                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" />
+                                                    Danh sách Kích thước ({formData.sizes?.length || 0})
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddSize}
+                                                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
+                                                >
+                                                    <Plus size={13} /> Thêm size
+                                                </button>
+                                            </div>
+
+                                            {/* Quick Add Presets */}
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="text-[11px] font-semibold text-slate-500">Thêm nhanh:</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleQuickAddSizes(['S', 'M', 'L', 'XL', 'XXL'])}
+                                                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 text-[10px] font-bold text-slate-700 shadow-sm"
+                                                >
+                                                    + S, M, L, XL, XXL
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleQuickAddSizes(['28', '29', '30', '31', '32', '34'])}
+                                                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 text-[10px] font-bold text-slate-700 shadow-sm"
+                                                >
+                                                    + Quần (28-34)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleQuickAddSizes(['Freesize'])}
+                                                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 text-[10px] font-bold text-slate-700 shadow-sm"
+                                                >
+                                                    + Freesize
+                                                </button>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                                                {(formData.sizes || []).map((size: string, idx: number) => (
+                                                    <div key={`sz-${idx}`} className="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 shadow-sm">
+                                                        <input
+                                                            type="text"
+                                                            value={size}
+                                                            onChange={(e) => handleSizeChange(idx, e.target.value)}
+                                                            placeholder="S, M, L..."
+                                                            className="flex-1 px-2.5 py-1 rounded bg-slate-50 border border-slate-300 text-xs font-bold uppercase text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveSize(idx)}
+                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                            title="Xóa size này"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    {/* ── SECTION 2: BULK UPDATER & MATRIX VARIANT TABLE ── */}
+                                    <div className="space-y-3 pt-2 border-t border-slate-200">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                                Ma trận Biến thể chi tiết ({formData.variants?.length || 0} biến thể)
+                                            </span>
+                                            <span className="text-[11px] text-slate-500 font-medium">
+                                                Tự động tạo từ {formData.colors?.length || 0} màu × {formData.sizes?.length || 0} size
+                                            </span>
+                                        </div>
+
+                                        {/* Bulk update bar */}
+                                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-3 shadow-sm">
+                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                                Cập nhật hàng loạt:
+                                            </span>
+                                            <input
+                                                type="number"
+                                                placeholder="Tồn kho chung (VD: 50)"
+                                                value={bulkStock}
+                                                onChange={(e) => setBulkStock(e.target.value ? Number(e.target.value) : '')}
+                                                className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs w-36 focus:outline-none focus:border-slate-900"
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="Giá bán chung (VD: 299000)"
+                                                value={bulkPrice}
+                                                onChange={(e) => setBulkPrice(e.target.value ? Number(e.target.value) : '')}
+                                                className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs w-40 focus:outline-none focus:border-slate-900"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleApplyBulkVariants}
+                                                className="px-4 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm"
+                                            >
+                                                Áp dụng tất cả
+                                            </button>
+                                        </div>
+
+                                        {/* Matrix Variant Table */}
+                                        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+                                            <table className="w-full text-left text-xs">
+                                                <thead className="bg-slate-100 uppercase text-[10px] font-bold text-slate-700 border-b border-slate-200">
+                                                    <tr>
+                                                        <th className="p-3">Màu sắc & Ảnh mẫu</th>
+                                                        <th className="p-3">Kích thước</th>
+                                                        <th className="p-3">Mã SKU riêng</th>
+                                                        <th className="p-3">Giá bán riêng (VND)</th>
+                                                        <th className="p-3">Tồn kho</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100">
+                                                    {(formData.variants || []).map((variant: any, idx: number) => {
+                                                        const colorObj = (formData.colors || []).find((c: any) => c.name === variant.color);
+                                                        const displayImg = colorObj?.image || formData.images?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100';
+
+                                                        return (
+                                                            <tr key={`v-${idx}`} className="hover:bg-slate-50">
+                                                                <td className="p-3 font-semibold text-slate-900">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span
+                                                                            className="w-3.5 h-3.5 rounded-full border border-slate-300 flex-shrink-0 shadow-sm"
+                                                                            style={{ background: colorObj?.hex || '#000000' }}
+                                                                        />
+                                                                        <img
+                                                                            src={displayImg}
+                                                                            alt={variant.color}
+                                                                            referrerPolicy="no-referrer"
+                                                                            className="w-7 h-7 rounded border border-slate-200 object-cover flex-shrink-0"
+                                                                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
+                                                                        />
+                                                                        <span>{variant.color}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="p-3 font-bold text-blue-700">{variant.size}</td>
+                                                                <td className="p-3">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={variant.sku || ''}
+                                                                        onChange={(e) => {
+                                                                            const updated = [...formData.variants];
+                                                                            updated[idx].sku = e.target.value;
+                                                                            setFormData({ ...formData, variants: updated });
+                                                                        }}
+                                                                        className="px-2.5 py-1 rounded bg-slate-50 border border-slate-300 font-mono text-xs w-36 focus:bg-white focus:border-slate-900"
+                                                                    />
+                                                                </td>
+                                                                <td className="p-3">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={variant.price || 0}
+                                                                        onChange={(e) => {
+                                                                            const updated = [...formData.variants];
+                                                                            updated[idx].price = Number(e.target.value);
+                                                                            setFormData({ ...formData, variants: updated });
+                                                                        }}
+                                                                        className="px-2.5 py-1 rounded bg-slate-50 border border-slate-300 text-xs w-28 font-medium focus:bg-white focus:border-slate-900"
+                                                                    />
+                                                                </td>
+                                                                <td className="p-3">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={variant.stock || 0}
+                                                                        onChange={(e) => {
+                                                                            const updated = [...formData.variants];
+                                                                            updated[idx].stock = Number(e.target.value);
+                                                                            setFormData({ ...formData, variants: updated });
+                                                                        }}
+                                                                        className="px-2.5 py-1 rounded bg-slate-50 border border-slate-300 text-xs w-20 font-bold text-emerald-700 focus:bg-white focus:border-slate-900"
+                                                                    />
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             )}
