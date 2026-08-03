@@ -7,6 +7,7 @@
  */
 const { ProductModel } = require('../models/Product');
 const { getCache, setCache, delCache } = require('../utils/redisClient');
+const { invalidateCache } = require('../middleware/cacheMiddleware');
 const { ProductReviewModel } = require('../models/ProductReview');
 const { ProductVariantModel } = require('../models/ProductVariant');
 const { OrderModel } = require('../models/Order');
@@ -154,6 +155,7 @@ const createProduct = async (req, res, next) => {
         
         // Xóa TẤT CẢ cache liên quan đến danh sách sản phẩm
         await delCache('products:*', true);
+        invalidateCache('/api/products');
         
         log(`Đã thêm sản phẩm thành công: ${newProduct.id}`);
         return res.json({ success: true, message: 'Thêm sản phẩm thành công', product: newProduct });
@@ -191,6 +193,7 @@ const updateProduct = async (req, res, next) => {
         // Xoá cache để cập nhật dữ liệu mới cho user
         await delCache('products:*', true);
         if (id) await delCache(`product:${id}`, false);
+        invalidateCache('/api/products');
         
         log(`Đã cập nhật sản phẩm thành công: ${id || _id}`);
         return res.json({ success: true, message: 'Cập nhật thành công', product: updatedProduct });

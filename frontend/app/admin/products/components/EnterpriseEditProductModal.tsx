@@ -1194,7 +1194,15 @@ export default function EnterpriseEditProductModal({
                                             <input
                                                 type="number"
                                                 value={formData.price || 0}
-                                                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                                                onChange={(e) => {
+                                                    const newPrice = Number(e.target.value);
+                                                    const updatedVariants = (formData.variants || []).map((v: any) => ({
+                                                        ...v,
+                                                        price: newPrice
+                                                    }));
+                                                    setFormData({ ...formData, price: newPrice, variants: updatedVariants });
+                                                    setAutoSaveStatus('dirty');
+                                                }}
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-lg font-extrabold text-blue-700 focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
@@ -1206,7 +1214,15 @@ export default function EnterpriseEditProductModal({
                                             <input
                                                 type="number"
                                                 value={formData.originalPrice || 0}
-                                                onChange={(e) => setFormData({ ...formData, originalPrice: Number(e.target.value) })}
+                                                onChange={(e) => {
+                                                    const newOrig = Number(e.target.value);
+                                                    const updatedVariants = (formData.variants || []).map((v: any) => ({
+                                                        ...v,
+                                                        originalPrice: newOrig
+                                                    }));
+                                                    setFormData({ ...formData, originalPrice: newOrig, variants: updatedVariants });
+                                                    setAutoSaveStatus('dirty');
+                                                }}
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
@@ -1218,7 +1234,15 @@ export default function EnterpriseEditProductModal({
                                             <input
                                                 type="number"
                                                 value={formData.costPrice || 0}
-                                                onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
+                                                onChange={(e) => {
+                                                    const newCost = Number(e.target.value);
+                                                    const updatedVariants = (formData.variants || []).map((v: any) => ({
+                                                        ...v,
+                                                        costPrice: newCost
+                                                    }));
+                                                    setFormData({ ...formData, costPrice: newCost, variants: updatedVariants });
+                                                    setAutoSaveStatus('dirty');
+                                                }}
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold focus:outline-none focus:border-slate-900"
                                             />
                                         </div>
