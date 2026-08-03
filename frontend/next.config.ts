@@ -53,7 +53,7 @@ const nextConfig: NextConfig = {
       { source: '/collections/tui-xach', destination: '/products?category=cat-womens&subCategory=tui-xach' },
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com'}/api/:path*`,
       },
     ];
   },

@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
 import { getProductSlug } from '@/lib/format';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
 
 interface Product {
   id: string;

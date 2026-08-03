@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 2. Dynamic published products
     try {
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
         const res = await fetch(`${backendUrl}/api/products`, { cache: 'no-store' });
         if (res.ok) {
             const data = await res.json();

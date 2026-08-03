@@ -2,7 +2,7 @@
  * Utility client-side cho Analytics Tracking
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
 
 function getSessionId() {
     if (typeof window === 'undefined') return '';

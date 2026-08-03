@@ -6,7 +6,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         const resolvedParams = await params;
         const target = decodeURIComponent(resolvedParams.id || '').toLowerCase();
         
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/products`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com'}/api/products`);
         if (!res.ok) return { title: 'Sản phẩm | HAVEN STORE' };
         const data = await res.json();
         

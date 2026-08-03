@@ -18,7 +18,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
 
 interface ChatSession {
     id: string;

@@ -6,7 +6,7 @@ export const useSocket = (userId?: string) => {
     const [lastMessage, setLastMessage] = useState<{ orderId: string, status: string, customerEmail?: string } | null>(null);
 
     useEffect(() => {
-        const socketIoUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const socketIoUrl = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
         
         const socketInstance = io(socketIoUrl, {
             transports: ['websocket', 'polling']
