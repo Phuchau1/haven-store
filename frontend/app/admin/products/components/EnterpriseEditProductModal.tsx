@@ -260,6 +260,9 @@ export default function EnterpriseEditProductModal({
         try {
             const finalPayload = {
                 ...formData,
+                description: formData.description || formData.shortDescription || '',
+                shortDescription: formData.shortDescription || formData.description || '',
+                categoryLabel: formData.categoryLabel || formData.category || 'Quần Áo',
                 status: isDraft ? 'draft' : (formData.status || 'published'),
                 inStock: isDraft ? false : (formData.inStock !== false)
             };
