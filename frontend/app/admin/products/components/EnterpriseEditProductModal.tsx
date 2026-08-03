@@ -19,6 +19,51 @@ interface EnterpriseEditProductModalProps {
     showToast: (type: 'success' | 'error' | 'info' | 'warning', message: string, desc?: string) => void;
 }
 
+const SUBCATEGORIES_MAP: Record<string, { id: string; name: string }[]> = {
+    'cat-womens': [
+        { id: 'ao-so-mi-nu', name: 'Áo sơ mi nữ' },
+        { id: 'ao-polo-nu', name: 'Áo polo nữ' },
+        { id: 'ao-thun-nu', name: 'Áo T-shirt nữ' },
+        { id: 'ao-khoac-nu', name: 'Áo khoác nữ' },
+        { id: 'quan-au-nu', name: 'Quần âu nữ' },
+        { id: 'quan-jean-nu', name: 'Quần jean nữ' },
+        { id: 'quan-short-nu', name: 'Quần short nữ' },
+        { id: 'vay-lien-dam', name: 'Váy liền đầm' },
+        { id: 'chan-vay', name: 'Chân váy' },
+        { id: 'giay-dep-nu', name: 'Giày dép nữ' },
+        { id: 'tui-xach', name: 'Túi xách' }
+    ],
+    'cat-clothing': [
+        { id: 'ao-so-mi-nam', name: 'Áo sơ mi nam' },
+        { id: 'ao-polo-nam', name: 'Áo polo nam' },
+        { id: 'ao-thun-nam', name: 'Áo T-shirt nam' },
+        { id: 'ao-khoac-nam', name: 'Áo khoác nam' },
+        { id: 'quan-au-nam', name: 'Quần âu nam' },
+        { id: 'quan-jean-nam', name: 'Quần jean nam' },
+        { id: 'quan-short-nam', name: 'Quần short nam' },
+        { id: 'quan-kaki-nam', name: 'Quần kaki nam' },
+        { id: 'bo-vest-nam', name: 'Bộ vest nam' }
+    ],
+    'cat-accessories': [
+        { id: 'tui-xach', name: 'Túi xách' },
+        { id: 'vi-da', name: 'Ví da' },
+        { id: 'that-lung', name: 'Thắt lưng' },
+        { id: 'mu', name: 'Mũ / Nón' },
+        { id: 'tat', name: 'Tất / Vớ' }
+    ],
+    'cat-shoes': [
+        { id: 'giay-dep-nu', name: 'Giày dép nữ' },
+        { id: 'giay-the-thao', name: 'Giày thể thao' },
+        { id: 'giay-da', name: 'Giày da' },
+        { id: 'dep', name: 'Dép' }
+    ],
+    'cat-sport': [
+        { id: 'bo-the-thao', name: 'Bộ đồ thể thao' },
+        { id: 'ao-the-thao', name: 'Áo thể thao' },
+        { id: 'quan-the-thao', name: 'Quần thể thao' }
+    ]
+};
+
 export default function EnterpriseEditProductModal({
     isOpen,
     onClose,
@@ -701,17 +746,49 @@ export default function EnterpriseEditProductModal({
                                             <select
                                                 value={formData.category || ''}
                                                 onChange={(e) => {
-                                                    const selectedCat = categories.find(c => c.id === e.target.value);
+                                                    const catId = e.target.value;
+                                                    const selectedCat = categories.find(c => c.id === catId);
+                                                    const subList = SUBCATEGORIES_MAP[catId] || [];
+                                                    const defaultSub = subList.length > 0 ? subList[0] : null;
                                                     setFormData({
                                                         ...formData,
-                                                        category: e.target.value,
-                                                        categoryLabel: selectedCat?.name || ''
+                                                        category: catId,
+                                                        categoryLabel: selectedCat?.name || '',
+                                                        subCategory: defaultSub ? defaultSub.id : '',
+                                                        subCategoryLabel: defaultSub ? defaultSub.name : ''
                                                     });
+                                                    setAutoSaveStatus('dirty');
                                                 }}
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
                                                 {categories.map(cat => (
                                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
+                                                Danh mục con (Phân loại chi tiết)
+                                            </label>
+                                            <select
+                                                value={formData.subCategory || ''}
+                                                onChange={(e) => {
+                                                    const subId = e.target.value;
+                                                    const subList = SUBCATEGORIES_MAP[formData.category] || SUBCATEGORIES_MAP['cat-womens'] || [];
+                                                    const foundSub = subList.find(s => s.id === subId);
+                                                    setFormData({
+                                                        ...formData,
+                                                        subCategory: subId,
+                                                        subCategoryLabel: foundSub ? foundSub.name : subId
+                                                    });
+                                                    setAutoSaveStatus('dirty');
+                                                }}
+                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
+                                            >
+                                                <option value="">-- Chọn danh mục con --</option>
+                                                {(SUBCATEGORIES_MAP[formData.category] || SUBCATEGORIES_MAP['cat-womens'] || []).map(sub => (
+                                                    <option key={sub.id} value={sub.id}>{sub.name}</option>
                                                 ))}
                                             </select>
                                         </div>
