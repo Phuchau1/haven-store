@@ -366,8 +366,36 @@ export default function EnterpriseEditProductModal({
 
     const handleColorChange = (index: number, field: 'name' | 'hex' | 'image', value: string) => {
         const colors = [...(formData.colors || [])];
+        const oldColorName = colors[index]?.name;
         colors[index] = { ...colors[index], [field]: value };
-        setFormData((prev: any) => ({ ...prev, colors }));
+
+        let updatedImages = [...(formData.images || [])];
+        let updatedVariants = [...(formData.variants || [])];
+
+        if (field === 'image' && value && !updatedImages.includes(value)) {
+            updatedImages.push(value);
+        }
+
+        const colorName = colors[index].name;
+        if (field === 'image' || field === 'name') {
+            updatedVariants = updatedVariants.map((v: any) => {
+                if (v.color === oldColorName || v.color === colorName) {
+                    return {
+                        ...v,
+                        color: colorName,
+                        image: field === 'image' ? value : (v.image || value)
+                    };
+                }
+                return v;
+            });
+        }
+
+        setFormData((prev: any) => ({
+            ...prev,
+            colors,
+            images: updatedImages,
+            variants: updatedVariants
+        }));
         setAutoSaveStatus('dirty');
     };
 
@@ -499,7 +527,7 @@ export default function EnterpriseEditProductModal({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: 8 }}
                     transition={{ duration: 0.16 }}
-                    className="w-[98vw] max-w-[1700px] h-[96vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-slate-300 text-slate-900"
+                    className="w-full max-w-6xl h-[88vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 text-slate-900"
                 >
                     {/* ───────────────────────────────────────────────────────────────────────────
                         HEADER BAR - EXTRA CLEAR & PROMINENT

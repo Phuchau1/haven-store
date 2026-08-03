@@ -358,7 +358,11 @@ export default function ProductDetailPage() {
                                             onClick={() => {
                                                 setSelectedColor(color);
                                                 if (color.image) {
-                                                    const imgIndex = product.images.findIndex((img: any) => img === color.image);
+                                                    let imgIndex = (product.images || []).findIndex((img: any) => img === color.image);
+                                                    if (imgIndex === -1 && color.image) {
+                                                        product.images = [color.image, ...(product.images || [])];
+                                                        imgIndex = 0;
+                                                    }
                                                     if (imgIndex !== -1) {
                                                         setSelectedImage(imgIndex);
                                                     }
