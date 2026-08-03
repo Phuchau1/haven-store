@@ -20,19 +20,22 @@ const InventoryTransactionSchema = new Schema({
         type: String,
         required: true,
         enum: [
-            'IMPORT',      // Nhập kho từ NCC
-            'EXPORT_SALE', // Xuất bán
-            'EXPORT_DAMAGE',// Xuất hủy hàng hỏng
-            'RESERVE',     // Giữ tồn khi tạo đơn
-            'RELEASE',     // Hoàn tồn khi hủy đơn
-            'DEDUCT',      // Trừ tồn chính thức khi giao hàng
-            'ADJUST_UP',   // Điều chỉnh tăng
-            'ADJUST_DOWN', // Điều chỉnh giảm
-            'TRANSFER_OUT',// Chuyển kho ra
-            'TRANSFER_IN', // Chuyển kho vào
-            'STOCKTAKE',   // Kiểm kê cân bằng
-            'RETURN_IN',   // Nhập hàng trả lại
-            'RETURN_DAMAGE'// Nhập hàng trả lại hỏng
+            'IMPORT',        // Nhập kho từ NCC
+            'EXPORT_SALE',   // Xuất bán
+            'EXPORT_DAMAGE', // Xuất hủy hàng hỏng
+            'RESERVE',       // Giữ tồn khi tạo đơn
+            'RELEASE',       // Hoàn tồn khi hủy đơn
+            'DEDUCT',        // Trừ tồn chính thức khi giao hàng
+            'ADJUST',        // Điều chỉnh tồn chung
+            'ADJUST_IN',     // Điều chỉnh tăng (Nhập thêm)
+            'ADJUST_OUT',    // Điều chỉnh giảm (Xác nhận xuất/báo hỏng)
+            'ADJUST_UP',     // Điều chỉnh tăng
+            'ADJUST_DOWN',   // Điều chỉnh giảm
+            'TRANSFER_OUT',  // Chuyển kho ra
+            'TRANSFER_IN',   // Chuyển kho vào
+            'STOCKTAKE',     // Kiểm kê cân bằng
+            'RETURN_IN',     // Nhập hàng trả lại
+            'RETURN_DAMAGE'  // Nhập hàng trả lại hỏng
         ],
         index: true
     },
