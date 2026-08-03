@@ -527,7 +527,7 @@ export default function EnterpriseEditProductModal({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: 8 }}
                     transition={{ duration: 0.16 }}
-                    className="w-full max-w-6xl h-[88vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 text-slate-900"
+                    className="w-[98vw] max-w-[1800px] h-[95vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 text-slate-900"
                 >
                     {/* ───────────────────────────────────────────────────────────────────────────
                         HEADER BAR - EXTRA CLEAR & PROMINENT
@@ -981,36 +981,37 @@ export default function EnterpriseEditProductModal({
                                                             </button>
                                                         </div>
 
-                                                        {/* Color Specific Image Selection */}
-                                                        <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
-                                                            <span className="text-xs text-slate-600 font-bold flex-shrink-0">Ảnh theo màu:</span>
-                                                            
-                                                            {color.image ? (
-                                                                <img
-                                                                    src={color.image}
-                                                                    alt={color.name}
-                                                                    referrerPolicy="no-referrer"
-                                                                    className="w-8 h-8 rounded-lg border-2 border-slate-300 object-cover flex-shrink-0 shadow-sm"
-                                                                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
-                                                                />
-                                                            ) : (
-                                                                <div className="w-8 h-8 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400 font-bold flex-shrink-0">
-                                                                    Chưa chọn
-                                                                </div>
-                                                            )}
+                                                        {/* Color Specific Image Selection - Clean Stacked Layout */}
+                                                        <div className="space-y-1.5 pt-2.5 border-t border-slate-100">
+                                                            <label className="text-xs text-slate-600 font-bold block">Ảnh theo màu:</label>
+                                                            <div className="flex items-center gap-2.5">
+                                                                {color.image ? (
+                                                                    <img
+                                                                        src={color.image}
+                                                                        alt={color.name}
+                                                                        referrerPolicy="no-referrer"
+                                                                        className="w-9 h-9 rounded-lg border-2 border-slate-300 object-cover flex-shrink-0 shadow-sm"
+                                                                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-9 h-9 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400 font-bold flex-shrink-0">
+                                                                        Chưa chọn
+                                                                    </div>
+                                                                )}
 
-                                                            <select
-                                                                value={color.image || ''}
-                                                                onChange={(e) => handleColorChange(idx, 'image', e.target.value)}
-                                                                className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-900"
-                                                            >
-                                                                <option value="">-- Chọn ảnh đại diện cho màu --</option>
-                                                                {(formData.images || []).map((imgUrl: string, imgIdx: number) => (
-                                                                    <option key={`opt-img-${imgIdx}`} value={imgUrl}>
-                                                                        Ảnh {imgIdx + 1}: {imgUrl.substring(0, 35)}...
-                                                                    </option>
-                                                                ))}
-                                                            </select>
+                                                                <select
+                                                                    value={color.image || ''}
+                                                                    onChange={(e) => handleColorChange(idx, 'image', e.target.value)}
+                                                                    className="flex-1 w-full truncate px-3 py-2 rounded-lg bg-slate-50 border-2 border-slate-300 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-900"
+                                                                >
+                                                                    <option value="">-- Chọn ảnh đại diện cho màu --</option>
+                                                                    {(formData.images || []).map((imgUrl: string, imgIdx: number) => (
+                                                                        <option key={`opt-img-${imgIdx}`} value={imgUrl}>
+                                                                            Ảnh {imgIdx + 1}: {imgUrl.substring(0, 45)}...
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -1059,20 +1060,20 @@ export default function EnterpriseEditProductModal({
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-1">
                                                 {(formData.sizes || []).map((size: string, idx: number) => (
-                                                    <div key={`sz-${idx}`} className="flex items-center gap-2 p-2.5 rounded-xl bg-white border-2 border-slate-200 shadow-sm">
+                                                    <div key={`sz-${idx}`} className="flex items-center gap-2 p-2 rounded-xl bg-white border-2 border-slate-200 shadow-sm">
                                                         <input
                                                             type="text"
                                                             value={size}
                                                             onChange={(e) => handleSizeChange(idx, e.target.value)}
                                                             placeholder="S, M, L..."
-                                                            className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm font-extrabold uppercase text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
+                                                            className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm font-extrabold uppercase text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => handleRemoveSize(idx)}
-                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0"
                                                             title="Xóa size này"
                                                         >
                                                             <Trash2 size={16} />
