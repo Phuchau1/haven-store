@@ -15,7 +15,7 @@ services:
       - key: NODE_VERSION
         value: 20
       - key: MONGODB_URI
-        value: mongodb+srv://phuchau:phuchau123@cluster0.mongodb.net/fashion-store?retryWrites=true&w=majority
+        value: mongodb+srv://ntphau21_db_user:l4AQJN8xt0oPC8GD@cluster0.kyrsbnq.mongodb.net/fashion_store
       - key: EMAIL_USER
         value: ntphau21@gmail.com
       - key: EMAIL_PASS
