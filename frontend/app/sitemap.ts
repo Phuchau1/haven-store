@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://havenstore.vn';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://haven-store-web-green.vercel.app';
 
     // 1. Static main pages
     const routes = [
