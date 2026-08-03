@@ -72,16 +72,8 @@ async function connectDB(retries = MAX_RETRIES) {
         // vì sự kiện 'connected' ở trên sẽ tự xử lý
     } catch (err) {
         dbLog(`Kết nối MongoDB thất bại: ${err.message}`);
-
-        if (retries > 0) {
-            // Còn lần thử → chờ rồi thử lại
-            dbLog(`Thử lại sau ${RETRY_DELAY / 1000} giây... (còn ${retries} lần thử)`);
-            setTimeout(() => connectDB(retries - 1), RETRY_DELAY);
-        } else {
-            // Hết lần thử → dừng tiến trình server
-            dbLog('Kết nối MongoDB thất bại sau số lần thử tối đa. Đang tắt server...');
-            process.exit(1);
-        }
+        dbLog(`Tự động thử lại kết nối MongoDB sau ${RETRY_DELAY / 1000} giây...`);
+        setTimeout(() => connectDB(MAX_RETRIES), RETRY_DELAY);
     }
 }
 

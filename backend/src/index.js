@@ -52,12 +52,6 @@ const PORT = process.env.PORT || 5000;
 logger.info(`Starting server on port ${PORT}...`);
 logger.info(`CWD: ${process.cwd()}`);
 
-// Kết nối cơ sở dữ liệu MongoDB
-connectDB();
-
-// Khởi động các Cronjob chạy ngầm
-startCronJobs();
-
 // --- BẢO MẬT (SECURITY) ---
 app.use(helmet()); 
 
@@ -103,4 +97,8 @@ server.listen(PORT, '0.0.0.0', () => {
     logger.info(`=================================`);
     logger.info(`🚀 Server is running on 0.0.0.0:${PORT}`);
     logger.info(`=================================`);
+
+    // Kết nối cơ sở dữ liệu MongoDB & Khởi động Cronjob ngầm sau khi mở cổng thành công
+    connectDB();
+    startCronJobs();
 });
