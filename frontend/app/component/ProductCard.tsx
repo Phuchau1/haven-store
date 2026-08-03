@@ -36,8 +36,10 @@ export default function ProductCard({ product, index = 0, showSold = false, show
         addItem(product, product.sizes[0], product.colors[0]);
     };
 
-    const discount = product.originalPrice
-        ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    const origPrice = Number(product.originalPrice) || 0;
+    const currPrice = Number(product.price) || 0;
+    const discount = origPrice > currPrice
+        ? Math.round(((origPrice - currPrice) / origPrice) * 100)
         : 0;
 
     return (

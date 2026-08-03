@@ -81,7 +81,7 @@ export default function FlashSale() {
             } else {
                 const threshold = parseInt(tab, 10);
                 const filtered = allProducts.filter(p => {
-                    if (p.originalPrice && p.price) {
+                    if (p.originalPrice && p.price && p.originalPrice > p.price) {
                         const pct = Math.round((1 - p.price / p.originalPrice) * 100);
                         return pct >= threshold;
                     }

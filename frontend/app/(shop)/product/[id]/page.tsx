@@ -271,7 +271,7 @@ export default function ProductDetailPage() {
         }
     }
 
-    const discount = currentOriginalPrice > 0
+    const discount = currentOriginalPrice > currentPrice
         ? Math.round(((currentOriginalPrice - currentPrice) / currentOriginalPrice) * 100)
         : 0;
 
