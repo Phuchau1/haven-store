@@ -36,6 +36,8 @@ const login = async (req, res, next) => {
         const isPasswordCorrect = user.password === hashedPassword;
         if (!isPasswordCorrect) {
             return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' });
+        }
+
         // Tự động nâng cấp quyền Admin cho tài khoản mặc định
         const ADMIN_EMAILS = ['ntphau21@gmail.com', 'admin@havenstore.vn'];
         if (ADMIN_EMAILS.includes(email.toLowerCase().trim()) && user.role !== 'admin') {
