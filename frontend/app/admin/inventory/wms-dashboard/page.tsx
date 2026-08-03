@@ -217,7 +217,7 @@ export default function WmsDashboardPage() {
                     <h3 className="font-bold text-sm flex items-center justify-between" style={{ color: 'var(--adm-text)' }}>
                         <span className="flex items-center gap-2">
                             <TrendingUp size={16} className="text-purple-500" />
-                            Top Bán Chạy Nhất (Best Sellers - MongoDB)
+                            Top Bán Chạy Nhất
                         </span>
                         <span className="text-xs" style={{ color: 'var(--adm-text-subtle)' }}>High Volume</span>
                     </h3>
