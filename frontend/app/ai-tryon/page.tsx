@@ -244,6 +244,8 @@ export default function AITryOnPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [loadingProducts, setLoadingProducts] = useState(true);
+    const [tryOnMode, setTryOnMode] = useState<'standard' | 'perfect'>('perfect');
+    const [gender, setGender] = useState<'male' | 'female'>('male');
 
     // Fetch products
     useEffect(() => {
@@ -285,7 +287,9 @@ export default function AITryOnPage() {
                 body: JSON.stringify({
                     userImageBase64: userPhoto,
                     garmentImageUrl: selectedProduct.images[0],
-                    category: selectedProduct.category || selectedProduct.subCategory || 'tops'
+                    category: selectedProduct.category || selectedProduct.subCategory || 'tops',
+                    tryOnMode,
+                    gender
                 })
             });
 
@@ -457,6 +461,57 @@ export default function AITryOnPage() {
                                 onUpload={handlePhotoUpload}
                                 onClear={() => { setUserPhoto(null); setResultImage(null); setStep('idle'); }}
                             />
+
+                            {/* Mode & Gender Selection */}
+                            <div className="mt-4 pt-4 border-t border-slate-800/60">
+                                <label className="text-[10px] font-bold text-slate-400 block mb-2 tracking-wider">CHẾ ĐỘ THỬ ĐỒ AI</label>
+                                <div className="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800/60">
+                                    <button
+                                        type="button"
+                                        onClick={() => setTryOnMode('perfect')}
+                                        className={`py-2 text-[11px] font-bold rounded-lg transition-all ${tryOnMode === 'perfect'
+                                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                                            : 'text-slate-400 hover:text-white'}`}
+                                    >
+                                        ✨ Thân AI + Mặt bạn
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTryOnMode('standard')}
+                                        className={`py-2 text-[11px] font-bold rounded-lg transition-all ${tryOnMode === 'standard'
+                                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                                            : 'text-slate-400 hover:text-white'}`}
+                                    >
+                                        👤 Giữ dáng bạn
+                                    </button>
+                                </div>
+                            </div>
+
+                            {tryOnMode === 'perfect' && (
+                                <div className="mt-3">
+                                    <label className="text-[10px] font-bold text-slate-400 block mb-2 tracking-wider">GIỚI TÍNH CƠ THỂ AI</label>
+                                    <div className="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800/60">
+                                        <button
+                                            type="button"
+                                            onClick={() => setGender('male')}
+                                            className={`py-1.5 text-[11px] font-semibold rounded-lg transition-all ${gender === 'male'
+                                                ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/20'
+                                                : 'text-slate-500 hover:text-slate-300'}`}
+                                        >
+                                            Nam (Male Body)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setGender('female')}
+                                            className={`py-1.5 text-[11px] font-semibold rounded-lg transition-all ${gender === 'female'
+                                                ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/20'
+                                                : 'text-slate-500 hover:text-slate-300'}`}
+                                        >
+                                            Nữ (Female Body)
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Tips */}
                             <div className="mt-4 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
@@ -670,6 +725,12 @@ export default function AITryOnPage() {
                                                     setSelectedProduct(product);
                                                     setResultImage(null);
                                                     if (step === 'done' || step === 'error') setStep('idle');
+                                                    const nameOrCat = (product.name + ' ' + (product.category || '')).toLowerCase();
+                                                    if (['women', 'nu', 'dress', 'vay', 'dam', 'skirt'].some(k => nameOrCat.includes(k))) {
+                                                        setGender('female');
+                                                    } else {
+                                                        setGender('male');
+                                                    }
                                                 }}
                                             />
                                         ))}

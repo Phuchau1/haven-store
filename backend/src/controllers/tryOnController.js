@@ -20,6 +20,9 @@ setInterval(() => {
 
 // ─── Helpers ─────────────────────────────────────────────────
 
+const MALE_TEMPLATE = 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=600&h=800&fit=crop';
+const FEMALE_TEMPLATE = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=800&fit=crop';
+
 function mapCategory(cat = '') {
     const c = cat.toLowerCase();
     if (['quan','pants','jeans','shorts','skirt','bottoms','lower'].some(k => c.includes(k))) return 'lower_body';
@@ -34,30 +37,37 @@ async function urlToBase64(url) {
     return `data:${mime};base64,${Buffer.from(res.data).toString('base64')}`;
 }
 
-/** Upload base64 image to ImgBB → get public HTTPS URL */
-async function uploadBase64ToImgBB(base64DataUrl) {
-    const clean = base64DataUrl.replace(/^data:image\/\w+;base64,/, '');
-    const form  = new URLSearchParams();
-    form.append('image', clean);
-    form.append('key',   '6d207e02198a847aa98d0a2a901485a5');
+/** Upload base64 image or pass URL through ImgBB to get public HTTPS URL */
+async function uploadToImgBBIfNeeded(img) {
+    if (img.startsWith('data:image')) {
+        const clean = img.replace(/^data:image\/\w+;base64,/, '');
+        const form  = new URLSearchParams();
+        form.append('image', clean);
+        form.append('key',   '6d207e02198a847aa98d0a2a901485a5');
 
-    const res = await axios.post('https://api.imgbb.com/1/upload', form, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        timeout: 20000
-    });
-    const url = res.data?.data?.url;
-    if (!url) throw new Error('ImgBB upload failed: no URL returned');
-    return url.replace(/^http:/, 'https:');
+        const res = await axios.post('https://api.imgbb.com/1/upload', form, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            timeout: 20000
+        });
+        const url = res.data?.data?.url;
+        if (!url) throw new Error('ImgBB upload failed: no URL returned');
+        return url.replace(/^http:/, 'https:');
+    }
+    return img;
+}
+
+async function uploadBase64ToImgBB(base64DataUrl) {
+    return await uploadToImgBBIfNeeded(base64DataUrl);
 }
 
 // ─── Replicate IDM-VTON ───────────────────────────────────────
 
-async function runReplicateIDMVTON(personBase64, garmentUrl, category) {
+async function runReplicateIDMVTON(personImg, garmentUrl, category) {
     const token = process.env.REPLICATE_API_TOKEN;
     if (!token) throw new Error('REPLICATE_API_TOKEN not configured');
 
-    logger.info('[TryOn] Uploading person image to ImgBB...');
-    const personUrl = await uploadBase64ToImgBB(personBase64);
+    logger.info('[TryOn] Uploading person image to ImgBB if needed...');
+    const personUrl = await uploadToImgBBIfNeeded(personImg);
     logger.info(`[TryOn] Person URL: ${personUrl}`);
 
     const garmentSecure = garmentUrl.replace(/^http:/, 'https:');
@@ -82,7 +92,7 @@ async function runReplicateIDMVTON(personBase64, garmentUrl, category) {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type':  'application/json',
-                'Prefer':        'wait'   // synchronous wait nếu model nhanh
+                'Prefer':        'wait'
             },
             timeout: 120000
         }
@@ -93,7 +103,7 @@ async function runReplicateIDMVTON(personBase64, garmentUrl, category) {
     logger.info(`[TryOn] Prediction ID: ${predId} — polling...`);
 
     // ── Poll kết quả (tối đa 3 phút) ───────────────────────
-    const MAX_POLLS = 36; // 36 × 5s = 3 phút
+    const MAX_POLLS = 36;
     for (let i = 1; i <= MAX_POLLS; i++) {
         await new Promise(r => setTimeout(r, 5000));
 
@@ -105,14 +115,14 @@ async function runReplicateIDMVTON(personBase64, garmentUrl, category) {
             }
         );
 
-        const { status, output, error: rErr, logs } = poll.data;
+        const { status, output, error: rErr } = poll.data;
         logger.info(`[TryOn] Poll ${i}/${MAX_POLLS} → status: ${status}`);
 
         if (status === 'succeeded') {
             const outputUrl = Array.isArray(output) ? output[0] : output;
             if (!outputUrl) throw new Error('Replicate returned empty output');
             logger.info(`[TryOn] ✅ IDM-VTON succeeded: ${outputUrl}`);
-            return await urlToBase64(outputUrl);
+            return outputUrl;
         }
 
         if (status === 'failed' || status === 'canceled') {
@@ -123,10 +133,68 @@ async function runReplicateIDMVTON(personBase64, garmentUrl, category) {
     throw new Error('Replicate timeout after 3 minutes');
 }
 
+// ─── Replicate Face Swap ──────────────────────────────────────
+
+async function runReplicateFaceSwap(targetImageUrl, swapImageUrl) {
+    const token = process.env.REPLICATE_API_TOKEN;
+    if (!token) throw new Error('REPLICATE_API_TOKEN not configured');
+
+    logger.info('[TryOn] Creating Replicate Face Swap prediction...');
+    const createRes = await axios.post(
+        'https://api.replicate.com/v1/models/lucataco/faceswap/predictions',
+        {
+            input: {
+                target_image: targetImageUrl,
+                swap_image:   swapImageUrl
+            }
+        },
+        {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type':  'application/json'
+            },
+            timeout: 120000
+        }
+    );
+
+    const predId = createRes.data?.id;
+    if (!predId) throw new Error('No prediction ID from Replicate FaceSwap');
+    logger.info(`[TryOn] FaceSwap Prediction ID: ${predId} — polling...`);
+
+    const MAX_POLLS = 24; // 24 * 3s = 72s
+    for (let i = 1; i <= MAX_POLLS; i++) {
+        await new Promise(r => setTimeout(r, 3000));
+
+        const poll = await axios.get(
+            `https://api.replicate.com/v1/predictions/${predId}`,
+            {
+                headers: { 'Authorization': `Bearer ${token}` },
+                timeout: 15000
+            }
+        );
+
+        const { status, output, error: rErr } = poll.data;
+        logger.info(`[TryOn] FaceSwap Poll ${i}/${MAX_POLLS} → status: ${status}`);
+
+        if (status === 'succeeded') {
+            const outputUrl = Array.isArray(output) ? output[0] : output;
+            if (!outputUrl) throw new Error('Replicate FaceSwap returned empty output');
+            logger.info(`[TryOn] ✅ FaceSwap succeeded: ${outputUrl}`);
+            return outputUrl;
+        }
+
+        if (status === 'failed' || status === 'canceled') {
+            throw new Error(`Replicate FaceSwap ${status}: ${rErr || 'unknown error'}`);
+        }
+    }
+
+    throw new Error('Replicate FaceSwap timeout');
+}
+
 // ─── ENDPOINT: Tạo job thử đồ ────────────────────────────────
 
 exports.runTryOn = async (req, res) => {
-    const { userImageBase64, garmentImageUrl, category } = req.body;
+    const { userImageBase64, garmentImageUrl, category, tryOnMode, gender } = req.body;
 
     if (!userImageBase64 || !garmentImageUrl) {
         return res.status(400).json({ success: false, message: 'Thiếu ảnh người dùng hoặc ảnh sản phẩm.' });
@@ -138,12 +206,14 @@ exports.runTryOn = async (req, res) => {
         jobId,
         status:    'processing',
         progress:  5,
-        message:   '🚀 Đang khởi động IDM-VTON AI...',
+        message:   tryOnMode === 'perfect' ? '🚀 Đang khởi động AI FaceSwap Studio...' : '🚀 Đang khởi động IDM-VTON AI...',
         resultImage: null,
         requireComposite: false,
         userImage:   userImageBase64,
         garmentUrl:  garmentImageUrl,
         category:    category || 'upper_body',
+        tryOnMode:   tryOnMode || 'standard',
+        gender:      gender || 'female',
         createdAt:   Date.now()
     });
 
@@ -151,36 +221,73 @@ exports.runTryOn = async (req, res) => {
     res.json({ success: true, jobId });
 
     // Xử lý ngầm
-    _processJob(jobId, userImageBase64, garmentImageUrl, category).catch(err => {
+    _processJob(jobId, userImageBase64, garmentImageUrl, category, tryOnMode, gender).catch(err => {
         logger.error(`[TryOn] Unhandled job error: ${err.message}`);
     });
 };
 
 // ─── Xử lý ngầm ──────────────────────────────────────────────
 
-async function _processJob(jobId, userImageBase64, garmentImageUrl, category) {
+async function _processJob(jobId, userImageBase64, garmentImageUrl, category, tryOnMode, gender) {
     const update = (data) => {
         const j = jobsStore.get(jobId);
         if (j) jobsStore.set(jobId, { ...j, ...data });
     };
 
-    // ── Thử Replicate IDM-VTON ──────────────────────────────
     try {
-        update({ progress: 20, message: '🤖 IDM-VTON đang phân tích ảnh người...' });
-        await new Promise(r => setTimeout(r, 2000)); // brief delay for UX
+        if (tryOnMode === 'perfect') {
+            update({ progress: 15, message: '📸 Đang chuẩn bị khuôn mặt...' });
+            const userFaceUrl = await uploadBase64ToImgBB(userImageBase64);
 
-        update({ progress: 40, message: '👗 Đang ghép trang phục lên cơ thể...' });
-        const result = await runReplicateIDMVTON(userImageBase64, garmentImageUrl, category);
+            let modelTemplateUrl = FEMALE_TEMPLATE;
+            if (gender === 'male') {
+                modelTemplateUrl = MALE_TEMPLATE;
+            } else if (gender === 'female') {
+                modelTemplateUrl = FEMALE_TEMPLATE;
+            } else {
+                const cat = (category || '').toLowerCase();
+                const isMaleCat = ['men', 'nam', 'unisex'].some(k => cat.includes(k));
+                const isFemaleCat = ['women', 'nu', 'dress', 'vay', 'dam', 'skirt'].some(k => cat.includes(k));
+                if (isMaleCat) modelTemplateUrl = MALE_TEMPLATE;
+                else if (isFemaleCat) modelTemplateUrl = FEMALE_TEMPLATE;
+            }
 
-        update({
-            status:      'completed',
-            progress:    100,
-            message:     '✨ AI thử đồ thành công!',
-            resultImage: result,
-            isAiGenerated: true,
-            requireComposite: false
-        });
-        logger.info(`[TryOn] ✅ Job ${jobId} completed via Replicate IDM-VTON`);
+            update({ progress: 30, message: '👗 AI đang mặc trang phục lên người mẫu...' });
+            const dressedModelUrl = await runReplicateIDMVTON(modelTemplateUrl, garmentImageUrl, category);
+
+            update({ progress: 65, message: '🎭 Đang ghép khuôn mặt của bạn vào người mẫu...' });
+            const finalImageUrl = await runReplicateFaceSwap(dressedModelUrl, userFaceUrl);
+
+            update({ progress: 85, message: '✨ Đang đồng bộ hóa kết quả...' });
+            const result = await urlToBase64(finalImageUrl);
+
+            update({
+                status:      'completed',
+                progress:    100,
+                message:     '✨ AI thử đồ hoàn hảo thành công!',
+                resultImage: result,
+                isAiGenerated: true,
+                requireComposite: false
+            });
+            logger.info(`[TryOn] ✅ Perfect TryOn Job ${jobId} completed`);
+        } else {
+            // Standard tryon on user's own body
+            update({ progress: 20, message: '🤖 IDM-VTON đang phân tích ảnh người...' });
+            const dressedUrl = await runReplicateIDMVTON(userImageBase64, garmentImageUrl, category);
+            
+            update({ progress: 80, message: '✨ Đang chuẩn bị kết quả...' });
+            const result = await urlToBase64(dressedUrl);
+
+            update({
+                status:      'completed',
+                progress:    100,
+                message:     '✨ AI thử đồ thành công!',
+                resultImage: result,
+                isAiGenerated: true,
+                requireComposite: false
+            });
+            logger.info(`[TryOn] ✅ Standard TryOn Job ${jobId} completed`);
+        }
         return;
 
     } catch (err) {
@@ -200,7 +307,7 @@ async function _processJob(jobId, userImageBase64, garmentImageUrl, category) {
         garmentUrl: garmentImageUrl,
         category:   category || 'upper_body'
     });
-    logger.info(`[TryOn] ⚡ Job ${jobId} completed via Canvas fallback`);
+    logger.info(`[TryOn] ✅ Fallback applied for job ${jobId}`);
 }
 
 // ─── ENDPOINT: Kiểm tra trạng thái job ───────────────────────

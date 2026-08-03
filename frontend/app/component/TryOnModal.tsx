@@ -73,6 +73,14 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
     const [status, setStatus] = useState<'idle' | 'processing' | 'done' | 'error'>('idle');
     const [dragging, setDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [tryOnMode, setTryOnMode] = useState<'standard' | 'perfect'>('perfect');
+    const [gender, setGender] = useState<'male' | 'female'>(() => {
+        const cat = (product.category || '').toLowerCase();
+        if (['women', 'nu', 'dress', 'vay', 'dam', 'skirt'].some(k => cat.includes(k))) {
+            return 'female';
+        }
+        return 'male';
+    });
 
     const handleFile = (file: File) => {
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -107,7 +115,9 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
                 body: JSON.stringify({
                     userImageBase64: userPhoto,
                     garmentImageUrl: product.image,
-                    category: product.category || 'tops'
+                    category: product.category || 'tops',
+                    tryOnMode,
+                    gender
                 })
             });
 
@@ -288,6 +298,57 @@ export default function TryOnModal({ isOpen, onClose, product }: TryOnModalProps
                                             <p>• Đứng thẳng, nền đơn giản</p>
                                             <p>• Toàn thân hoặc nửa người trên</p>
                                         </div>
+
+                                        {/* TryOn Mode Selector */}
+                                        <div className="mt-3 pt-3 border-t border-slate-800/60">
+                                            <label className="text-[10px] font-bold text-slate-400 block mb-1.5 tracking-wider">CHẾ ĐỘ THỬ ĐỒ AI</label>
+                                            <div className="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800/60">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTryOnMode('perfect')}
+                                                    className={`py-1.5 text-[10px] font-bold rounded-lg transition-all ${tryOnMode === 'perfect'
+                                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                                                        : 'text-slate-400 hover:text-white'}`}
+                                                >
+                                                    ✨ Thân AI
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTryOnMode('standard')}
+                                                    className={`py-1.5 text-[10px] font-bold rounded-lg transition-all ${tryOnMode === 'standard'
+                                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                                                        : 'text-slate-400 hover:text-white'}`}
+                                                >
+                                                    👤 Giữ dáng
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {tryOnMode === 'perfect' && (
+                                            <div className="mt-2.5">
+                                                <label className="text-[10px] font-bold text-slate-400 block mb-1.5 tracking-wider">GIỚI TÍNH CƠ THỂ AI</label>
+                                                <div className="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800/60">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setGender('male')}
+                                                        className={`py-1 text-[10px] font-semibold rounded-md transition-all ${gender === 'male'
+                                                            ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/20'
+                                                            : 'text-slate-500 hover:text-slate-300'}`}
+                                                    >
+                                                        Nam
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setGender('female')}
+                                                        className={`py-1 text-[10px] font-semibold rounded-md transition-all ${gender === 'female'
+                                                            ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/20'
+                                                            : 'text-slate-500 hover:text-slate-300'}`}
+                                                    >
+                                                        Nữ
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Right: Product + Result */}
