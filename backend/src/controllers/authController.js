@@ -36,6 +36,11 @@ const login = async (req, res, next) => {
         const isPasswordCorrect = user.password === hashedPassword;
         if (!isPasswordCorrect) {
             return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' });
+        // Tự động nâng cấp quyền Admin cho tài khoản mặc định
+        const ADMIN_EMAILS = ['ntphau21@gmail.com', 'admin@havenstore.vn'];
+        if (ADMIN_EMAILS.includes(email.toLowerCase().trim()) && user.role !== 'admin') {
+            user.role = 'admin';
+            await user.save();
         }
 
         // Loại bỏ trường password trước khi trả về client
@@ -85,12 +90,15 @@ const register = async (req, res, next) => {
         // Tạo ID ngẫu nhiên cho user (vd: usr-a1b2c3d4e)
         const id = `usr-${Math.random().toString(36).substr(2, 9)}`;
 
+        const ADMIN_EMAILS = ['ntphau21@gmail.com', 'admin@havenstore.vn'];
+        const isDefaultAdmin = ADMIN_EMAILS.includes(email.toLowerCase().trim());
+
         const newUser = new UserModel({
             id,
             name,
             email,
             password: hashedPassword,
-            role: 'user',       // Mặc định người dùng thường
+            role: isDefaultAdmin ? 'admin' : 'user',       // Mặc định admin cho ntphau21@gmail.com
             phone: phone || '',
             address: ''
         });
@@ -289,9 +297,11 @@ const googleLogin = async (req, res, next) => {
         
         const payload = ticket.getPayload();
         
-        // Tìm user theo email trả về từ Google
+        const ADMIN_EMAILS = ['ntphau21@gmail.com', 'admin@havenstore.vn'];
+        const isDefaultAdmin = ADMIN_EMAILS.includes((payload.email || '').toLowerCase().trim());
+
         let user = await UserModel.findOne({ email: payload.email });
-        
+
         if (!user) {
             // Lần đầu đăng nhập → Tạo tài khoản tự động
             user = new UserModel({
@@ -300,13 +310,17 @@ const googleLogin = async (req, res, next) => {
                 email: payload.email,
                 googleId: payload.sub,
                 avatar: payload.picture,
-                role: 'user',
+                role: isDefaultAdmin ? 'admin' : 'user',
             });
             await user.save();
-        } else if (!user.googleId) {
-            // Đã có tài khoản bằng email này (tạo thủ công trước đó) → Liên kết tài khoản Google
-            user.googleId = payload.sub;
-            user.avatar = payload.picture;
+        } else {
+            if (!user.googleId) {
+                user.googleId = payload.sub;
+                user.avatar = payload.picture;
+            }
+            if (isDefaultAdmin && user.role !== 'admin') {
+                user.role = 'admin';
+            }
             await user.save();
         }
 
