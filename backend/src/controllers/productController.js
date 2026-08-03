@@ -142,24 +142,24 @@ const getProducts = async (req, res, next) => {
  */
 const createProduct = async (req, res, next) => {
     try {
-        const newProductData = req.body;
+        const { _id, __v, ...newProductData } = req.body;
         
-        // Nếu không có ID sản phẩm, tự tạo ID ngẫu nhiên (bắt đầu bằng 'sp-')
+        // Nếu không có ID sản phẩm, tự tạo ID ngẫu nhiên
         if (!newProductData.id) {
-            newProductData.id = `sp-${Math.random().toString(36).substr(2, 9)}`;
+            newProductData.id = `LF-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
         }
 
         const newProduct = new ProductModel(newProductData);
         await newProduct.save();
         
-        // Xóa TẤT CẢ cache liên quan đến danh sách sản phẩm để đảm bảo dữ liệu luôn mới nhất
+        // Xóa TẤT CẢ cache liên quan đến danh sách sản phẩm
         await delCache('products:*', true);
         
-        log(`Đã thêm sản phẩm: ${newProduct.id}`);
-        res.json({ success: true, message: 'Thêm sản phẩm thành công', product: newProduct });
+        log(`Đã thêm sản phẩm thành công: ${newProduct.id}`);
+        return res.json({ success: true, message: 'Thêm sản phẩm thành công', product: newProduct });
     } catch (error) {
         log(`Lỗi khi thêm sản phẩm: ${error.message}`);
-        next(error);
+        return res.status(500).json({ success: false, message: error.message || 'Lỗi khi thêm sản phẩm mới' });
     }
 };
 
@@ -170,24 +170,33 @@ const createProduct = async (req, res, next) => {
  */
 const updateProduct = async (req, res, next) => {
     try {
-        const { id, ...data } = req.body;
+        const { id, _id, __v, ...data } = req.body;
         
-        // Tìm và sửa (findOneAndUpdate) theo trường 'id' tuỳ chỉnh, không phải MongoDB _id
-        const updatedProduct = await ProductModel.findOneAndUpdate({ id }, data, { new: true });
+        if (!id && !_id) {
+            return res.status(400).json({ success: false, message: 'Thiếu mã ID sản phẩm' });
+        }
+
+        let updatedProduct = null;
+        if (id) {
+            updatedProduct = await ProductModel.findOneAndUpdate({ id }, { $set: data }, { new: true, runValidators: false });
+        }
+        if (!updatedProduct && _id) {
+            updatedProduct = await ProductModel.findByIdAndUpdate(_id, { $set: data }, { new: true, runValidators: false });
+        }
         
         if (!updatedProduct) {
-            return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
+            return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm để cập nhật' });
         }
         
         // Xoá cache để cập nhật dữ liệu mới cho user
         await delCache('products:*', true);
-        await delCache(`product:${id}`, false); // Xóa luôn cache trang chi tiết của sản phẩm này
+        if (id) await delCache(`product:${id}`, false);
         
-        log(`Đã cập nhật sản phẩm: ${id}`);
-        res.json({ success: true, message: 'Cập nhật thành công', product: updatedProduct });
+        log(`Đã cập nhật sản phẩm thành công: ${id || _id}`);
+        return res.json({ success: true, message: 'Cập nhật thành công', product: updatedProduct });
     } catch (error) {
         log(`Lỗi khi cập nhật sản phẩm: ${error.message}`);
-        next(error);
+        return res.status(500).json({ success: false, message: error.message || 'Lỗi khi cập nhật sản phẩm' });
     }
 };
 

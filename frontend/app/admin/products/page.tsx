@@ -846,10 +846,11 @@ export default function AdminProducts() {
                 product={editingProduct}
                 onSave={async (productPayload) => {
                     const method = editingProduct ? 'PUT' : 'POST';
+                    const { _id, __v, ...cleanPayload } = productPayload;
                     const res = await fetch('/api/products', {
                         method,
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(productPayload),
+                        body: JSON.stringify(cleanPayload),
                     });
                     const data = await res.json();
                     if (data.success) {
