@@ -266,12 +266,19 @@ export default function Header() {
 
                             {/* Wishlist */}
                             <Link href="/yeu-thich" className="relative p-2 hover:bg-gray-100 rounded-full transition-all duration-200 text-black hover:text-[#C9A227]" aria-label="Yêu thích">
-                                <Heart size={20} strokeWidth={2} />
-                                {favorites.length > 0 && (
-                                    <span className="absolute 0 right-0 -top-1 w-4 h-4 bg-[#D32F2F] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                        {favorites.length}
-                                    </span>
-                                )}
+                                <Heart size={22} strokeWidth={2} />
+                                <AnimatePresence>
+                                    {favorites.length > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            exit={{ scale: 0 }}
+                                            className="absolute -top-1 -right-1 bg-rose-600 text-white text-[11px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold border-2 border-white box-content shadow-sm leading-none"
+                                        >
+                                            {favorites.length}
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
                             </Link>
 
                             {/* User */}
