@@ -323,7 +323,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token || user?.id}` 
                 }
             });
             const data = await res.json();

@@ -136,7 +136,7 @@ export default function LuckyWheelAdminPage() {
             const params = new URLSearchParams({ page: String(page), limit: '20' });
             if (search) params.set('search', search);
             const res = await fetch(`/api/lucky-wheel/history?${params}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             });
             const data = await res.json();
             if (data.success) {
@@ -155,7 +155,7 @@ export default function LuckyWheelAdminPage() {
         setLoadingStats(true);
         try {
             const res = await fetch('/api/lucky-wheel/stats', {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             });
             const data = await res.json();
             if (data.success) {
@@ -190,7 +190,7 @@ export default function LuckyWheelAdminPage() {
             const res = await fetch('/api/lucky-wheel/config', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${token || user?.id}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ prizes: config.prizes })
@@ -248,7 +248,7 @@ export default function LuckyWheelAdminPage() {
         if (prizeId && prizeId.length === 24) {
             fetch(`/api/lucky-wheel/prize/${prizeId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             }).then(r => r.json()).then(data => {
                 if (data.success) {
                     toast.success(`Đã xóa ô "${deletedPrize.reward}" khỏi Database!`);

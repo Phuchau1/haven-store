@@ -33,7 +33,7 @@ function LoginContent() {
             const data = await res.json();
 
             if (data.success) {
-                login(data.user);
+                login(data.user, data.user.id);
                 if (redirectUrl) {
                     router.push(redirectUrl);
                 } else if (data.user.role === 'admin') {

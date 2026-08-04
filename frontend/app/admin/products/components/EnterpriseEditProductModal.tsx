@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Product } from '@/types';
 import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 interface EnterpriseEditProductModalProps {
     isOpen: boolean;
@@ -972,7 +973,7 @@ export default function EnterpriseEditProductModal({
                                                             method: 'POST',
                                                             headers: {
                                                                 'Content-Type': 'application/json',
-                                                                Authorization: `Bearer ${localStorage.getItem('token')}`
+                                                                'x-user-id': useAuthStore.getState().user?.id || ''
                                                             },
                                                             body: JSON.stringify({
                                                                 productName: formData.name,

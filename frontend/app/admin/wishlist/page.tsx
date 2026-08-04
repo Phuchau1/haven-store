@@ -119,7 +119,7 @@ export default function AdminWishlistPage() {
         setLoadingStats(true);
         try {
             const res = await fetch('/api/wishlist/admin-stats', {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             });
             const data = await res.json();
             if (data.success) {
@@ -143,7 +143,7 @@ export default function AdminWishlistPage() {
                 sort_by: sortBy
             });
             const res = await fetch(`/api/wishlist/admin-products?${params}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             });
             const data = await res.json();
             if (data.success) {
@@ -165,7 +165,7 @@ export default function AdminWishlistPage() {
             if (searchQuery) params.set('search', searchQuery);
 
             const res = await fetch(`/api/wishlist/admin-customers?${params}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             });
             const data = await res.json();
             if (data.success) {
@@ -192,7 +192,7 @@ export default function AdminWishlistPage() {
         setLoadingProductUsers(true);
         try {
             const res = await fetch(`/api/wishlist/admin-products/${product.id}/users`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             });
             const data = await res.json();
             if (data.success) {
@@ -211,7 +211,7 @@ export default function AdminWishlistPage() {
         setLoadingCustomerProducts(true);
         try {
             const res = await fetch(`/api/wishlist/admin-customers/${customer.userId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token || user?.id}` }
             });
             const data = await res.json();
             if (data.success) {
