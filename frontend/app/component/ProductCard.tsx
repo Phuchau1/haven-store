@@ -74,13 +74,13 @@ export default function ProductCard({ product, index = 0, showSold = false, show
 
                     {/* Badges */}
                     <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-                        {/* Không hiện badge "Sale" nếu đã có badge % giảm giá */}
-                        {product.badge && product.badge !== 'Sale' && product.badge !== 'SALE' && (
+                        {/* Không hiện badge có chữ Sale nếu hệ thống đã tự tính % giảm giá */}
+                        {product.badge && !(showDiscount && discount > 0 && product.badge.toUpperCase().includes('SALE')) && (
                             <span
                                 className={`inline-block px-2 py-1 text-[10px] uppercase font-bold rounded-md tracking-wider ${
-                                    product.badge === 'Mới' || product.badge === 'NEW'
+                                    product.badge.toUpperCase() === 'MỚI' || product.badge.toUpperCase() === 'NEW'
                                         ? 'bg-[#2E7D32] text-white'
-                                        : product.badge === 'Hot' || product.badge === 'HOT'
+                                        : product.badge.toUpperCase() === 'HOT'
                                             ? 'bg-[#FF6B35] text-white'
                                             : 'bg-[#111111] text-white'
                                 }`}
