@@ -21,7 +21,7 @@ export default function ProductsClient() {
         search: searchParam || '',
         sizes: [],
         colors: [],
-        priceRange: [0, 3000000],
+        priceRange: [0, 100000000],
         sortBy: 'newest',
     });
 
@@ -159,7 +159,7 @@ export default function ProductsClient() {
                                             category: '',
                                             sizes: [],
                                             colors: [],
-                                            priceRange: [0, 3000000],
+                                            priceRange: [0, 100000000],
                                             sortBy: 'newest',
                                         })
                                     }

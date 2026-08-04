@@ -34,7 +34,7 @@ const sortOptions = [
     { value: 'price-desc'as const, label: 'Giá: Cao → Thấp' },
 ];
 
-const MAX_PRICE = 5000000;
+const MAX_PRICE = 100000000;
 
 function formatPrice(price: number) {
     if (price >= 1000000) return (price / 1000000).toFixed(price % 1000000 === 0 ? 0 : 1) + 'tr';

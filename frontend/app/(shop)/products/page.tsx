@@ -71,7 +71,7 @@ const DEFAULT_FILTER: FilterState = {
     search: '',
     sizes: [],
     colors: [],
-    priceRange: [0, 3000000],
+    priceRange: [0, 100000000],
     sortBy: 'newest',
     discount: '',
 };
@@ -114,7 +114,7 @@ function ProductsContent() {
             // Reset client-side filters khi đổi danh mục từ URL
             sizes: [],
             colors: [],
-            priceRange: [0, 3000000],
+            priceRange: [0, 100000000],
         }));
         setCurrentPage(1);
     }, [searchParams, pathname]);
@@ -260,7 +260,7 @@ function ProductsContent() {
                                         ...prev,
                                         sizes: [],
                                         colors: [],
-                                        priceRange: [0, 3000000],
+                                        priceRange: [0, 100000000],
                                     }))}
                                     className="mt-6 px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-900 transition-colors"
                                 >
