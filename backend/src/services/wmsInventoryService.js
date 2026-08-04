@@ -305,26 +305,21 @@ async function adjustStock({ sku, adjustQty, reason = '', performedBy = 'Admin',
         // ĐỒNG BỘ NGƯỢC LẠI WEB (ProductModel)
         if (!isDamageReason) {
             let productDoc = null;
-            // Nếu sku dạng WMS-ID, lấy ID gốc
-            if (inv.sku.startsWith('WMS-')) {
-                const pId = inv.sku.replace('WMS-', '');
-                // pId is usually the string 'id' field, not the ObjectId '_id'
-                productDoc = await ProductModel.findOne({ id: pId }).session(session);
-                // Fallback in case pId is actually an ObjectId
-                if (!productDoc && pId.length === 24) {
-                    productDoc = await ProductModel.findById(pId).session(session);
-                }
-                if (productDoc && productDoc.variants) {
-                    productDoc.variants.forEach(v => {
-                        v.stock = inv.available;
-                    });
-                }
-            } else {
-                // Hỗ trợ tìm qua _id lưu trong productId nếu có dạng ObjectID
-                const realId = inv.productId && inv.productId.length === 24 ? inv.productId : null;
-                productDoc = realId ? await ProductModel.findById(realId).session(session) : await ProductModel.findOne({ 'variants.color': inv.color, 'variants.size': inv.size, name: inv.productName }).session(session);
-                if (productDoc && productDoc.variants) {
-                    const variant = productDoc.variants.find(v => (v.color === inv.color || (!v.color && inv.color === 'Mặc định')) && (v.size === inv.size || (!v.size && inv.size === 'One Size')));
+            // Luôn đồng bộ vào đúng biến thể dựa trên inv.productId, inv.color, inv.size
+            const realId = inv.productId && inv.productId.length === 24 ? inv.productId : null;
+            productDoc = realId 
+                ? await ProductModel.findById(realId).session(session) 
+                : await ProductModel.findOne({ 'variants.color': inv.color, 'variants.size': inv.size, name: inv.productName }).session(session);
+                
+            if (productDoc && productDoc.variants) {
+                // Nếu sản phẩm không có biến thể, hoặc biến thể rỗng
+                if (productDoc.variants.length === 0) {
+                    productDoc.stock = inv.available;
+                } else {
+                    const variant = productDoc.variants.find(v => 
+                        (v.color === inv.color || (!v.color && inv.color === 'Mặc định')) 
+                        && (v.size === inv.size || (!v.size && inv.size === 'One Size'))
+                    );
                     if (variant) {
                         variant.stock = inv.available;
                     }
