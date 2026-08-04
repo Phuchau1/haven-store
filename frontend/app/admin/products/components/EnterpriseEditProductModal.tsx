@@ -1652,7 +1652,7 @@ export default function EnterpriseEditProductModal({
                                             {formData.seo?.title || `${formData.name} - HAVEN Store`}
                                         </div>
                                         <div className="text-xs text-emerald-700 font-mono font-bold">
-                                            https://havenstore.vn/products/{formData.seo?.slug || 'san-pham'}
+                                            https://haven-store-web-green.vercel.app/products/{formData.seo?.slug || 'san-pham'}
                                         </div>
                                         <div className="text-xs sm:text-sm text-slate-700 line-clamp-2">
                                             {formData.seo?.description || formData.shortDescription || 'Mô tả hiển thị khi người dùng tìm kiếm trên Google...'}
