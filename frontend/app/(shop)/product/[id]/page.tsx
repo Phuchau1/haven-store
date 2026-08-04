@@ -113,6 +113,15 @@ export default function ProductDetailPage() {
 
                         setProduct(foundProduct);
                         addProduct(foundProduct); // Lưu vào lịch sử xem
+                        
+                        // Tự động chọn nếu chỉ có 1 màu hoặc 1 size
+                        if (foundProduct.colors && foundProduct.colors.length === 1) {
+                            setSelectedColor(foundProduct.colors[0]);
+                        }
+                        if (foundProduct.sizes && foundProduct.sizes.length === 1) {
+                            setSelectedSize(foundProduct.sizes[0]);
+                        }
+
                         const related = data.products
                             .filter((p: Product) => p.category === foundProduct.category && p.id !== foundProduct.id)
                             .slice(0, 4);
