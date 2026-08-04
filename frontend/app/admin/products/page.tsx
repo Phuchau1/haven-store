@@ -500,7 +500,7 @@ export default function AdminProducts() {
                             value={searchQuery}
                             onChange={e => handleSearchChange(e.target.value)}
                             placeholder="Tìm tên sản phẩm, mã ID..."
-                            className="adm-input w-full min-h-[44px] pl-10 pr-4"
+                            className="adm-input w-full min-h-[44px] !pl-10 pr-4"
                         />
                     </div>
                     {/* Filter toggle */}
