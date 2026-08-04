@@ -74,7 +74,7 @@ interface Category {
 }
 
 export default function AdminWishlistPage() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'customers'>('dashboard');
 
     // Dashboard State

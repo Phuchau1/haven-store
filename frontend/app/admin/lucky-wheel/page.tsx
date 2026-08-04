@@ -73,7 +73,7 @@ const DEFAULT_COLORS = [
 ];
 
 export default function LuckyWheelAdminPage() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const [activeTab, setActiveTab] = useState<'config' | 'history' | 'stats'>('config');
 
     // Config state
