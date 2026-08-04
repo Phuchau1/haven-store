@@ -11,6 +11,7 @@ const mongoose             = require('mongoose');
 const Inventory            = require('../models/Inventory');
 const InventoryTransaction = require('../models/InventoryTransaction');
 const { AuditLogModel: AuditLog } = require('../models/AuditLog');
+const { ProductModel }     = require('../models/Product');
 const logger               = require('../utils/logger');
 
 // Helper: sinh mã giao dịch kho
@@ -300,6 +301,35 @@ async function adjustStock({ sku, adjustQty, reason = '', performedBy = 'Admin',
         if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
 
         await inv.save({ session });
+
+        // ĐỒNG BỘ NGƯỢC LẠI WEB (ProductModel)
+        if (!isDamageReason) {
+            let productDoc = null;
+            // Nếu sku dạng WMS-ID, lấy ID gốc
+            if (inv.sku.startsWith('WMS-')) {
+                const pId = inv.sku.replace('WMS-', '');
+                productDoc = await ProductModel.findById(pId).session(session);
+                if (productDoc && productDoc.variants) {
+                    productDoc.variants.forEach(v => {
+                        v.stock = inv.available;
+                    });
+                }
+            } else {
+                // Hỗ trợ tìm qua _id lưu trong productId nếu có dạng ObjectID
+                const realId = inv.productId && inv.productId.length === 24 ? inv.productId : null;
+                productDoc = realId ? await ProductModel.findById(realId).session(session) : await ProductModel.findOne({ 'variants.color': inv.color, 'variants.size': inv.size, name: inv.productName }).session(session);
+                if (productDoc && productDoc.variants) {
+                    const variant = productDoc.variants.find(v => (v.color === inv.color || (!v.color && inv.color === 'Mặc định')) && (v.size === inv.size || (!v.size && inv.size === 'One Size')));
+                    if (variant) {
+                        variant.stock = inv.available;
+                    }
+                }
+            }
+            if (productDoc) {
+                productDoc.inStock = productDoc.variants.some(v => v.stock > 0);
+                await productDoc.save({ session });
+            }
+        }
 
         // Ghi InventoryTransaction log
         const txCode = genTxCode(adjustQty > 0 ? 'ADJ_IN' : 'ADJ_OUT');

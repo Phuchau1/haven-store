@@ -688,26 +688,25 @@ async function autoSeedWmsData() {
                         { sku },
                         {
                             $setOnInsert: {
-                                // Chỉ set khi TẠO MỚI, không ghi đè nếu đã tồn tại
                                 productId: product._id ? product._id.toString() : `PROD-${sku}`,
-                                available,
                                 reserved: 0,
-                                sold: product.soldQuantity || 0,
                                 damaged: 0,
                                 transfer: 0,
                                 warehouseName: 'Tổng Kho Chính',
                                 locationRack: 'KHO-AUTO-SYNC',
                                 minStock: 5,
                                 costPrice,
-                                status
                             },
                             $set: {
-                                // Luôn cập nhật thông tin sản phẩm
+                                // Luôn cập nhật thông tin sản phẩm VÀ số lượng tồn kho để đồng bộ tuyệt đối
                                 sku,
                                 productName: product.name,
                                 color: variant.color || 'Mặc định',
                                 size: variant.size || 'One Size',
                                 sellingPrice,
+                                available,
+                                sold: product.soldQuantity || 0,
+                                status
                             }
                         },
                         { upsert: true }
@@ -730,16 +729,13 @@ async function autoSeedWmsData() {
                     {
                         $setOnInsert: {
                             productId: product._id ? product._id.toString() : `PROD-${sku}`,
-                            available,
                             reserved: 0,
-                            sold: product.soldQuantity || 0,
                             damaged: 0,
                             transfer: 0,
                             warehouseName: 'Tổng Kho Chính',
                             locationRack: 'KHO-AUTO-SYNC',
                             minStock: 5,
                             costPrice,
-                            status
                         },
                         $set: {
                             sku,
@@ -747,6 +743,9 @@ async function autoSeedWmsData() {
                             color: 'Mặc định',
                             size: 'One Size',
                             sellingPrice: basePrice,
+                            available,
+                            sold: product.soldQuantity || 0,
+                            status
                         }
                     },
                     { upsert: true }
