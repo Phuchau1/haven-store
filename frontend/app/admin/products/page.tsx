@@ -76,36 +76,6 @@ const DEFAULT_CATEGORIES = [
             { id: 'giay-dep-nu', name: 'Giày dép nữ' },
             { id: 'tui-xach', name: 'Túi xách' }
         ]
-    },
-    {
-        id: 'cat-accessories',
-        name: 'Phụ Kiện Thời Trang',
-        subCategories: [
-            { id: 'tui-xach', name: 'Túi xách' },
-            { id: 'vi-da', name: 'Ví da' },
-            { id: 'that-lung', name: 'Thắt lưng' },
-            { id: 'mu', name: 'Mũ / Nón' },
-            { id: 'tat', name: 'Tất / Vớ' }
-        ]
-    },
-    {
-        id: 'cat-shoes',
-        name: 'Giày Dép',
-        subCategories: [
-            { id: 'giay-dep-nu', name: 'Giày dép nữ' },
-            { id: 'giay-the-thao', name: 'Giày thể thao' },
-            { id: 'giay-da', name: 'Giày da' },
-            { id: 'dep', name: 'Dép' }
-        ]
-    },
-    {
-        id: 'cat-sport',
-        name: 'Đồ Thể Thao',
-        subCategories: [
-            { id: 'bo-the-thao', name: 'Bộ đồ thể thao' },
-            { id: 'ao-the-thao', name: 'Áo thể thao' },
-            { id: 'quan-the-thao', name: 'Quần thể thao' }
-        ]
     }
 ];
 
