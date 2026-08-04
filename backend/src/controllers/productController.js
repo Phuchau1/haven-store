@@ -159,6 +159,9 @@ const createProduct = async (req, res, next) => {
         const newProduct = new ProductModel(newProductData);
         await newProduct.save();
         
+        // Đồng bộ dữ liệu sang ProductVariantModel
+        await syncProductVariants(newProduct);
+        
         // Xóa TẤT CẢ cache liên quan đến danh sách sản phẩm
         await delCache('products:*', true);
         invalidateCache('/api/products');
@@ -195,6 +198,9 @@ const updateProduct = async (req, res, next) => {
         if (!updatedProduct) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm để cập nhật' });
         }
+        
+        // Đồng bộ dữ liệu sang ProductVariantModel
+        await syncProductVariants(updatedProduct);
         
         // Xoá cache để cập nhật dữ liệu mới cho user
         await delCache('products:*', true);
@@ -425,6 +431,54 @@ const syncSoldQuantity = async (req, res, next) => {
         next(error);
     }
 };
+
+// --- Helper Functions ---
+async function syncProductVariants(product) {
+    if (!product.variants || !Array.isArray(product.variants)) return;
+
+    const currentVariantIds = [];
+
+    for (const v of product.variants) {
+        const color = v.color || 'Mặc định';
+        for (const s of v.sizes) {
+            const size = s.size || 'Mặc định';
+            const stock = s.stock || 0;
+            const sku = s.sku || `${product.id}-${color}-${size}`;
+            const id = `${product.id}-${color}-${size}`;
+
+            currentVariantIds.push(id);
+
+            await ProductVariantModel.findOneAndUpdate(
+                { product_id: product.id, size_id: size, color_id: color },
+                {
+                    $set: {
+                        id,
+                        product_id: product.id,
+                        size_id: size,
+                        color_id: color,
+                        price: product.price,
+                        sku,
+                        stock,
+                        status: product.status || 'active'
+                    },
+                    $setOnInsert: {
+                        reserved_stock: 0,
+                        warehouse_stocks: [{ warehouse_id: 'WH-MAIN', stock }]
+                    }
+                },
+                { upsert: true, new: true, runValidators: false }
+            );
+        }
+    }
+
+    // Xoá các biến thể không còn tồn tại trong sản phẩm
+    if (currentVariantIds.length > 0) {
+        await ProductVariantModel.deleteMany({
+            product_id: product.id,
+            id: { $nin: currentVariantIds }
+        });
+    }
+}
 
 module.exports = {
     getProducts,
