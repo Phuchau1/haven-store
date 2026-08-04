@@ -17,13 +17,38 @@ const QuantityControl = ({ item, updateQuantity }: { item: any, updateQuantity: 
     }, [item.quantity]);
 
     const getMaxStock = () => {
-        const variant = item.product.variants?.find(
-            (v: any) => 
-                (v.color === item.selectedColor.name || v.color === 'Mặc định' || (!v.color && item.selectedColor.name === 'Mặc định')) 
-                && 
-                (v.size === item.selectedSize || v.size === 'One Size' || (!v.size && item.selectedSize === 'One Size'))
+        const { product, selectedColor, selectedSize } = item;
+        if (!product || !selectedColor || !selectedSize) return 999;
+        const variants = product.variants || [];
+        const match = variants.find((v: any) => 
+            (v.color === selectedColor.name || v.color === 'Mặc định' || (!v.color && selectedColor.name === 'Mặc định')) 
+            && 
+            (v.size === selectedSize || v.size === 'One Size' || (!v.size && selectedSize === 'One Size'))
         );
-        return variant?.stock !== undefined ? variant.stock : 999;
+        
+        let stock = 999;
+        if (match && match.stock !== undefined) {
+            stock = Number(match.stock) || 0;
+        } else if (variants.length === 0) {
+            stock = product.inStock ? 50 : 0;
+        }
+
+        if (product.isFlashSale) {
+            const fsVariant = product.flashSaleVariants?.find((v: any) => 
+                (v.color === selectedColor.name || v.color === 'Mặc định' || (!v.color && selectedColor.name === 'Mặc định')) 
+                && 
+                (v.size === selectedSize || v.size === 'One Size' || (!v.size && selectedSize === 'One Size'))
+            );
+            if (fsVariant) {
+                const fsStock = fsVariant.stockQuantity !== undefined ? Number(fsVariant.stockQuantity) : (Number(fsVariant.stock) || 0);
+                const fsSold = Number(fsVariant.soldQuantity) || 0;
+                stock = Math.min(stock, fsStock - fsSold);
+            } else if (product.flashSaleStock !== undefined && product.flashSaleStock !== null) {
+                const totalFsStock = Number(product.flashSaleStock) || 0;
+                stock = Math.min(stock, totalFsStock);
+            }
+        }
+        return Math.max(0, stock);
     };
 
     return (
@@ -186,13 +211,38 @@ export default function CartDrawer() {
                                                             <button
                                                                 onClick={() => {
                                                                     const getMaxStock = () => {
-                                                                        const variant = item.product.variants?.find(
-                                                                            (v: any) => 
-                                                                                (v.color === item.selectedColor.name || v.color === 'Mặc định' || (!v.color && item.selectedColor.name === 'Mặc định')) 
-                                                                                && 
-                                                                                (v.size === item.selectedSize || v.size === 'One Size' || (!v.size && item.selectedSize === 'One Size'))
+                                                                        const { product, selectedColor, selectedSize } = item;
+                                                                        if (!product || !selectedColor || !selectedSize) return 999;
+                                                                        const variants = product.variants || [];
+                                                                        const match = variants.find((v: any) => 
+                                                                            (v.color === selectedColor.name || v.color === 'Mặc định' || (!v.color && selectedColor.name === 'Mặc định')) 
+                                                                            && 
+                                                                            (v.size === selectedSize || v.size === 'One Size' || (!v.size && selectedSize === 'One Size'))
                                                                         );
-                                                                        return variant?.stock !== undefined ? variant.stock : 999;
+                                                                        
+                                                                        let stock = 999;
+                                                                        if (match && match.stock !== undefined) {
+                                                                            stock = Number(match.stock) || 0;
+                                                                        } else if (variants.length === 0) {
+                                                                            stock = product.inStock ? 50 : 0;
+                                                                        }
+
+                                                                        if (product.isFlashSale) {
+                                                                            const fsVariant = product.flashSaleVariants?.find((v: any) => 
+                                                                                (v.color === selectedColor.name || v.color === 'Mặc định' || (!v.color && selectedColor.name === 'Mặc định')) 
+                                                                                && 
+                                                                                (v.size === selectedSize || v.size === 'One Size' || (!v.size && selectedSize === 'One Size'))
+                                                                            );
+                                                                            if (fsVariant) {
+                                                                                const fsStock = fsVariant.stockQuantity !== undefined ? Number(fsVariant.stockQuantity) : (Number(fsVariant.stock) || 0);
+                                                                                const fsSold = Number(fsVariant.soldQuantity) || 0;
+                                                                                stock = Math.min(stock, fsStock - fsSold);
+                                                                            } else if (product.flashSaleStock !== undefined && product.flashSaleStock !== null) {
+                                                                                const totalFsStock = Number(product.flashSaleStock) || 0;
+                                                                                stock = Math.min(stock, totalFsStock);
+                                                                            }
+                                                                        }
+                                                                        return Math.max(0, stock);
                                                                     };
                                                                     const maxStock = getMaxStock();
                                                                     if (item.quantity >= maxStock) {

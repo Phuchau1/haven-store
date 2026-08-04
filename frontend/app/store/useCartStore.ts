@@ -44,13 +44,37 @@ export const useCartStore = create<CartStore>()(
                 
                 // Fetch max stock for the selected variant
                 const getMaxStock = () => {
-                    const variant = product.variants?.find(
-                        (v: any) => 
+                    if (!product || !color || !size) return 999;
+                    const variants = product.variants || [];
+                    const match = variants.find((v: any) => 
+                        (v.color === color.name || v.color === 'Mặc định' || (!v.color && color.name === 'Mặc định')) 
+                        && 
+                        (v.size === size || v.size === 'One Size' || (!v.size && size === 'One Size'))
+                    );
+                    
+                    let stock = 999;
+                    if (match && match.stock !== undefined) {
+                        stock = Number(match.stock) || 0;
+                    } else if (variants.length === 0) {
+                        stock = product.inStock ? 50 : 0;
+                    }
+
+                    if (product.isFlashSale) {
+                        const fsVariant = product.flashSaleVariants?.find((v: any) => 
                             (v.color === color.name || v.color === 'Mặc định' || (!v.color && color.name === 'Mặc định')) 
                             && 
                             (v.size === size || v.size === 'One Size' || (!v.size && size === 'One Size'))
-                    );
-                    return variant?.stock !== undefined ? variant.stock : 999;
+                        );
+                        if (fsVariant) {
+                            const fsStock = fsVariant.stockQuantity !== undefined ? Number(fsVariant.stockQuantity) : (Number(fsVariant.stock) || 0);
+                            const fsSold = Number(fsVariant.soldQuantity) || 0;
+                            stock = Math.min(stock, fsStock - fsSold);
+                        } else if (product.flashSaleStock !== undefined && product.flashSaleStock !== null) {
+                            const totalFsStock = Number(product.flashSaleStock) || 0;
+                            stock = Math.min(stock, totalFsStock);
+                        }
+                    }
+                    return Math.max(0, stock);
                 };
                 const maxStock = getMaxStock();
                 

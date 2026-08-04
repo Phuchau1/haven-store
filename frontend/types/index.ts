@@ -57,6 +57,9 @@ export interface Product {
     multilingual?: any;
     channels?: any;
     flashSale?: any;
+    isFlashSale?: boolean;
+    flashSaleVariants?: any[];
+    flashSaleStock?: number;
     variants?: ProductVariantStock[];
 }
 
