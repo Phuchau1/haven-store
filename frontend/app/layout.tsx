@@ -6,7 +6,6 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/app/component/AuthContext';
 import { ToastProvider } from '@/app/component/ToastProvider';
-import LiveChatWidget from '@/app/component/LiveChatWidget';
 
 export const metadata: Metadata = {
   title: 'HAVEN STORE - Thời Trang Cao Cấp | Quần Áo & Giày Dép Nam Nữ',
@@ -77,7 +76,6 @@ export default function RootLayout({
               },
             }}
           />
-          <LiveChatWidget />
           </ToastProvider>
         </GoogleOAuthProvider>
       </body>
