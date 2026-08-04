@@ -34,10 +34,28 @@ const getStats = async (req, res, next) => {
 
         // Lấy toàn bộ sản phẩm và đơn hàng
         const products = await ProductModel.find();
-        const orders = await OrderModel.find().sort({ createdAt: -1 });
+        const allOrders = await OrderModel.find().sort({ createdAt: -1 });
         const users = await UserModel ? await UserModel.find() : [];
 
-        // Thống kê trạng thái đơn hàng chi tiết
+        // Tính toán khoảng thời gian
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+        // Reset now for month/year since setDate mutates it
+        const now2 = new Date();
+        const startOfMonth = new Date(now2.getFullYear(), now2.getMonth(), 1);
+        const startOfYear = new Date(now2.getFullYear(), 0, 1);
+
+        let startDate = new Date(0);
+        if (timeframe === 'today') startDate = startOfToday;
+        if (timeframe === 'week') startDate = startOfWeek;
+        if (timeframe === 'month') startDate = startOfMonth;
+        if (timeframe === 'year') startDate = startOfYear;
+
+        // Lọc đơn hàng theo timeframe
+        const orders = allOrders.filter(o => new Date(o.createdAt) >= startDate);
+
+        // Thống kê trạng thái đơn hàng chi tiết (chỉ tính trong timeframe)
         const orderStatusCounts = {
             pending: orders.filter(o => o.status === 'pending').length,
             confirmed: orders.filter(o => o.status === 'confirmed').length,
@@ -48,17 +66,10 @@ const getStats = async (req, res, next) => {
             cancelled: orders.filter(o => o.status === 'cancelled').length,
         };
 
-        // Tính doanh thu theo thời gian
-        const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-
-        const revenueToday = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfToday).reduce((s, o) => s + (o.totalAmount || 0), 0);
-        const revenueWeek = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfWeek).reduce((s, o) => s + (o.totalAmount || 0), 0);
-        const revenueMonth = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfMonth).reduce((s, o) => s + (o.totalAmount || 0), 0);
-        const revenueYear = orders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfYear).reduce((s, o) => s + (o.totalAmount || 0), 0);
+        const revenueToday = allOrders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfToday).reduce((s, o) => s + (o.totalAmount || 0), 0);
+        const revenueWeek = allOrders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfWeek).reduce((s, o) => s + (o.totalAmount || 0), 0);
+        const revenueMonth = allOrders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfMonth).reduce((s, o) => s + (o.totalAmount || 0), 0);
+        const revenueYear = allOrders.filter(o => (o.status === 'delivered' || o.status === 'completed') && new Date(o.createdAt) >= startOfYear).reduce((s, o) => s + (o.totalAmount || 0), 0);
 
         const totalRevenue = orders
             .filter(o => o.status === 'delivered' || o.status === 'completed')
@@ -106,7 +117,7 @@ const getStats = async (req, res, next) => {
             const dateStart = new Date(todayReset.getTime() - i * 24 * 60 * 60 * 1000);
             const dateEnd = new Date(dateStart.getTime() + 24 * 60 * 60 * 1000);
 
-            const dailyOrders = orders.filter(o => {
+            const dailyOrders = allOrders.filter(o => {
                 const d = new Date(o.createdAt);
                 return d >= dateStart && d < dateEnd;
             });

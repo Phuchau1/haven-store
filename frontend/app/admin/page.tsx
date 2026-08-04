@@ -177,16 +177,6 @@ export default function AdminDashboard() {
         fetchStats();
     }, [fetchStats]);
 
-    const displayRevenue = () => {
-        if (!stats) return 0;
-        switch (timeframe) {
-            case 'today': return stats.revenueToday || 0;
-            case 'week': return stats.revenueWeek || 0;
-            case 'month': return stats.revenueMonth || stats.totalRevenue || 0;
-            case 'year': return stats.revenueYear || stats.totalRevenue || 0;
-            default: return stats.totalRevenue || 0;
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -252,7 +242,7 @@ export default function AdminDashboard() {
                     </div>
                 ) : stats ? (
                     CARD_CONFIGS.map((cfg) => {
-                        const rawValue = cfg.key === 'totalRevenue' ? displayRevenue() : (stats[cfg.key as keyof DashboardStats] as number);
+                        const rawValue = (stats[cfg.key as keyof DashboardStats] as number);
                         const trendMap: Record<string, string> = {
                             totalRevenue: stats.trends?.revenue || '+0%',
                             orderCount: stats.trends?.orders || '+0%',
