@@ -102,11 +102,16 @@ const getStats = async (req, res, next) => {
             .sort((a, b) => a.sales - b.sales)
             .slice(0, 5);
 
-        // Kho hàng
+        const filteredProducts = products.filter(p => {
+            const date = p.createdAt ? new Date(p.createdAt) : (p._id ? p._id.getTimestamp() : new Date(0));
+            return date >= startDate;
+        });
+
+        // Kho hàng (dựa trên sản phẩm được lọc theo thời gian)
         const stockStatus = {
-            inStock: products.filter(p => p.inStock && (p.stock === undefined || p.stock > 5)).length,
-            lowStock: products.filter(p => p.inStock && p.stock !== undefined && p.stock > 0 && p.stock <= 5).length,
-            outOfStock: products.filter(p => !p.inStock || p.stock === 0).length,
+            inStock: filteredProducts.filter(p => p.inStock && (p.stock === undefined || p.stock > 5)).length,
+            lowStock: filteredProducts.filter(p => p.inStock && p.stock !== undefined && p.stock > 0 && p.stock <= 5).length,
+            outOfStock: filteredProducts.filter(p => !p.inStock || p.stock === 0).length,
         };
 
         // Sparklines & Trends (10 ngày)
@@ -167,7 +172,7 @@ const getStats = async (req, res, next) => {
                 grossProfit,
                 orderCount: orders.length,
                 orderStatusCounts,
-                productCount: products.length,
+                productCount: filteredProducts.length,
                 customerCount: new Set(orders.map(o => o.email)).size,
                 recentOrders: orders.slice(0, 6),
                 pendingOrders: orders.filter(o => !['delivered', 'completed', 'cancelled', 'returned', 'refunded'].includes(o.status)).slice(0, 10),
