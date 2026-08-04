@@ -34,6 +34,7 @@ const luckyWheelRoutes = require('./luckyWheelRoutes');
 const recentlyViewedRoutes = require('./recentlyViewedRoutes');
 const loyaltyRoutes        = require('./loyaltyRoutes');
 const analyticsRoutes      = require('./analyticsRoutes');
+const aiRoutes             = require('./aiRoutes');
 const wmsRoutes            = require('./wmsRoutes');
 
 const crmRoutes          = require('./crmRoutes');
@@ -45,6 +46,7 @@ router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/admin', adminRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/ai', aiRoutes);
 router.use('/settings', settingRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/reviews', reviewRoutes);   // ← Route đánh giá riêng biệt

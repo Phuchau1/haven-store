@@ -8,6 +8,7 @@ import {
     ArrowUp, ArrowDown, Layers, Store, Upload, Info
 } from 'lucide-react';
 import { Product } from '@/types';
+import { toast } from 'react-hot-toast';
 
 interface EnterpriseEditProductModalProps {
     isOpen: boolean;
@@ -954,9 +955,47 @@ export default function EnterpriseEditProductModal({
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                            Bài viết chi tiết (Rich Content)
-                                        </label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">
+                                                Bài viết chi tiết (Rich Content)
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    if (!formData.name) {
+                                                        toast.error('Vui lòng nhập tên sản phẩm trước khi dùng AI');
+                                                        return;
+                                                    }
+                                                    const toastId = toast.loading('✨ AI đang soạn bài viết...');
+                                                    try {
+                                                        const res = await fetch('/api/ai/generate', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                                Authorization: `Bearer ${localStorage.getItem('token')}`
+                                                            },
+                                                            body: JSON.stringify({
+                                                                productName: formData.name,
+                                                                category: formData.category,
+                                                                shortDescription: formData.shortDescription
+                                                            })
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            setFormData({ ...formData, richContent: data.data });
+                                                            toast.success('✨ Đã tạo bài viết bằng AI!', { id: toastId });
+                                                        } else {
+                                                            toast.error(data.message || 'Lỗi tạo AI', { id: toastId });
+                                                        }
+                                                    } catch (err) {
+                                                        toast.error('Không thể kết nối AI', { id: toastId });
+                                                    }
+                                                }}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity"
+                                            >
+                                                <span>✨</span> AI Viết Giùm
+                                            </button>
+                                        </div>
                                         <textarea
                                             rows={6}
                                             value={formData.richContent || ''}
