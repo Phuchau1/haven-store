@@ -415,18 +415,31 @@ const createOrder = async (req, res, next) => {
             }
         }
 
-        // Xử lý phí vận chuyển
+        // Xử lý phí vận chuyển (Bảo mật: Tính lại giống Mock API dựa trên address)
         let calculatedShippingFee = 0;
-        let finalShippingMethodId = null;
-        if (body.shippingMethodId) {
-            const sm = await ShippingMethodModel.findOne({ id: body.shippingMethodId }).session(session);
-            if (sm && sm.is_active) {
-                finalShippingMethodId = sm.id;
-                if (sm.free_shipping_threshold > 0 && calculatedTotalAmount >= sm.free_shipping_threshold) {
-                    calculatedShippingFee = 0;
-                } else {
-                    calculatedShippingFee = sm.cost;
-                }
+        let finalShippingMethodId = body.shippingMethodId || 'GHN';
+        
+        if (body.address) {
+            const isHCM = body.address.toLowerCase().includes('hồ chí minh');
+            const totalWeight = 200 * body.items.reduce((sum, i) => sum + i.quantity, 0); // Mỗi item mặc định 200g
+            
+            let baseFee = 35000;
+            if (finalShippingMethodId === 'GHN') baseFee = isHCM ? 20000 : 35000;
+            if (finalShippingMethodId === 'GHTK') baseFee = isHCM ? 18000 : 32000;
+            if (finalShippingMethodId === 'VIETTEL') baseFee = isHCM ? 22000 : 38000;
+            if (finalShippingMethodId === 'JT') baseFee = isHCM ? 15000 : 30000;
+
+            let weightSurcharge = 0;
+            if (totalWeight > 500) {
+                const extraWeight = totalWeight - 500;
+                weightSurcharge = Math.ceil(extraWeight / 500) * 5000;
+            }
+
+            calculatedShippingFee = baseFee + weightSurcharge;
+            
+            // Freeship nếu đơn > 500k
+            if (calculatedTotalAmount >= 500000) {
+                calculatedShippingFee = 0;
             }
         }
 

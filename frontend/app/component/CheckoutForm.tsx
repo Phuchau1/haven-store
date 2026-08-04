@@ -38,10 +38,13 @@ interface ShippingMethod {
     id: string;
     name_methond: string;
     description: string;
-    is_active: boolean;
+    is_active?: boolean;
     cost: number;
-    free_shipping_threshold: number;
+    free_shipping_threshold?: number;
     estimated_time: string;
+    logo?: string;
+    original_cost?: number;
+    freeship_applied?: boolean;
 }
 
 interface SavedAddress {
@@ -100,6 +103,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
     const [showVoucherList, setShowVoucherList] = useState(false);
     const [couponsLoading, setCouponsLoading] = useState(false);
+    const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
     // ── Saved Addresses ──
     const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -117,7 +121,8 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const selectedShippingMethod = shippingMethods.find(sm => sm.id === selectedShippingMethodId);
     let shippingFee = 0;
     if (selectedShippingMethod) {
-        if (selectedShippingMethod.free_shipping_threshold > 0 && totalAmount >= selectedShippingMethod.free_shipping_threshold) {
+        const isFree = selectedShippingMethod.freeship_applied || ((selectedShippingMethod.free_shipping_threshold ?? 0) > 0 && totalAmount >= (selectedShippingMethod.free_shipping_threshold ?? 0));
+        if (isFree) {
             shippingFee = 0;
         } else {
             shippingFee = selectedShippingMethod.cost;
@@ -210,22 +215,38 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
     React.useEffect(() => {
         const fetchShippingMethods = async () => {
+            const province = localAddress.city;
+            const district = localAddress.district;
+            
+            if (!province) {
+                setShippingMethods([]);
+                setSelectedShippingMethodId('');
+                return;
+            }
+
+            setIsCalculatingShipping(true);
             try {
-                const res = await fetch('/api/admin/extra/shipping-methods');
+                const totalWeight = 200 * items.reduce((sum, i) => sum + i.quantity, 0);
+                const res = await fetch('/api/shipping/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ province, district, totalWeight, totalAmount })
+                });
                 const data = await res.json();
                 if (data.success) {
-                    const activeMethods = data.data.filter((sm: ShippingMethod) => sm.is_active);
-                    setShippingMethods(activeMethods);
-                    if (activeMethods.length > 0) {
-                        setSelectedShippingMethodId(activeMethods[0].id);
+                    setShippingMethods(data.data);
+                    if (data.data.length > 0) {
+                        setSelectedShippingMethodId(data.data[0].id);
                     }
                 }
             } catch (err) {
-                console.error("Failed to fetch shipping methods", err);
+                console.error("Failed to calculate shipping", err);
+            } finally {
+                setIsCalculatingShipping(false);
             }
         };
         fetchShippingMethods();
-    }, []);
+    }, [localAddress.city, localAddress.district, items, totalAmount]);
 
     // Cập nhật form nếu user đăng nhập hoặc từ thông tin đã lưu
     React.useEffect(() => {
@@ -789,53 +810,71 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-5">
                     Phương thức vận chuyển
                 </h3>
-                <div className="space-y-3">
-                    {shippingMethods.map(sm => {
-                        const isFree = sm.free_shipping_threshold > 0 && totalAmount >= sm.free_shipping_threshold;
-                        const fee = isFree ? 0 : sm.cost;
-                        return (
-                            <label
-                                key={sm.id}
-                                className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                                    selectedShippingMethodId === sm.id
-                                        ? 'border-emerald-500 bg-emerald-50'
-                                        : 'border-gray-100 hover:border-gray-200'
-                                }`}
-                            >
-                                <input
-                                    type="radio"
-                                    name="shippingMethod"
-                                    value={sm.id}
-                                    checked={selectedShippingMethodId === sm.id}
-                                    onChange={(e) => setSelectedShippingMethodId(e.target.value)}
-                                    className="sr-only"
-                                />
-                                <div
-                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                
+                {isCalculatingShipping ? (
+                    <div className="flex flex-col items-center justify-center py-6 text-gray-400">
+                        <Loader2 className="w-8 h-8 animate-spin mb-2" />
+                        <p className="text-sm">Đang tính phí vận chuyển...</p>
+                    </div>
+                ) : shippingMethods.length === 0 ? (
+                    <div className="text-center py-6 text-gray-400 text-sm bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        Vui lòng chọn Tỉnh/Thành phố để xem phí vận chuyển.
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {shippingMethods.map(sm => {
+                            const isFree = sm.freeship_applied || ((sm.free_shipping_threshold ?? 0) > 0 && totalAmount >= (sm.free_shipping_threshold ?? 0));
+                            const fee = isFree ? 0 : sm.cost;
+                            return (
+                                <label
+                                    key={sm.id}
+                                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                                         selectedShippingMethodId === sm.id
-                                            ? 'border-emerald-500'
-                                            : 'border-gray-300'
+                                            ? 'border-emerald-500 bg-emerald-50'
+                                            : 'border-gray-100 hover:border-gray-200'
                                     }`}
                                 >
-                                    {selectedShippingMethodId === sm.id && (
-                                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                                    )}
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold text-gray-800">{sm.name_methond}</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">{sm.description}</p>
-                                </div>
-                                <div className="text-right">
-                                    {isFree ? (
-                                        <span className="text-sm font-bold text-emerald-600">Miễn phí</span>
-                                    ) : (
-                                        <span className="text-sm font-bold text-gray-900">{formatPrice(sm.cost)}</span>
-                                    )}
-                                </div>
-                            </label>
-                        );
-                    })}
-                </div>
+                                    <input
+                                        type="radio"
+                                        name="shippingMethod"
+                                        value={sm.id}
+                                        checked={selectedShippingMethodId === sm.id}
+                                        onChange={(e) => setSelectedShippingMethodId(e.target.value)}
+                                        className="sr-only"
+                                    />
+                                    <div
+                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                            selectedShippingMethodId === sm.id
+                                                ? 'border-emerald-500'
+                                                : 'border-gray-300'
+                                        }`}
+                                    >
+                                        {selectedShippingMethodId === sm.id && (
+                                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                                            {sm.name_methond}
+                                            {sm.logo && <span className="px-2 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-500 uppercase">{sm.id}</span>}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-0.5">Thời gian giao hàng: {sm.estimated_time || '2-3 ngày'}</p>
+                                    </div>
+                                    <div className="text-right flex flex-col items-end">
+                                        {isFree ? (
+                                            <>
+                                                {(sm.original_cost ?? 0) > 0 && <span className="text-xs text-gray-400 line-through mb-0.5">{formatPrice(sm.original_cost ?? 0)}</span>}
+                                                <span className="text-sm font-bold text-emerald-600">Miễn phí</span>
+                                            </>
+                                        ) : (
+                                            <span className="text-sm font-bold text-gray-900">{formatPrice(sm.cost)}</span>
+                                        )}
+                                    </div>
+                                </label>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
             {/* Payment Method */}
