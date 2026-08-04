@@ -124,19 +124,18 @@ export default function ImageZoom({
                 />
 
                 {/* Badge */}
-                {badge ? (
-                    <div className="absolute top-3 left-3 z-10">
+                {badge && !(discount > 0 && badge.toUpperCase().includes('SALE')) ? (
+                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
                         <span className={`px-3 py-1 text-xs font-bold rounded-full shadow ${
-                            badge === 'Sale' ? 'bg-red-500 text-white' :
-                            badge === 'Mới' || badge === 'NEW' ? 'bg-emerald-500 text-white' :
-                            badge === 'Hot' || badge === 'HOT' ? 'bg-orange-500 text-white' :
+                            badge.toUpperCase() === 'MỚI' || badge.toUpperCase() === 'NEW' ? 'bg-emerald-500 text-white' :
+                            badge.toUpperCase() === 'HOT' ? 'bg-orange-500 text-white' :
                             'bg-black text-white'
                         }`}>
-                            {badge}{badge === 'Sale' && discount > 0 ? ` -${discount}%` : ''}
+                            {badge}
                         </span>
                     </div>
                 ) : discount > 0 ? (
-                    <div className="absolute top-3 left-3 z-10">
+                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
                         <span className="px-3 py-1 text-xs font-bold rounded-full bg-red-500 text-white shadow">
                             -{discount}%
                         </span>
