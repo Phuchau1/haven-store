@@ -14,6 +14,37 @@ const { AuditLogModel: AuditLog } = require('../models/AuditLog');
 const { ProductModel }     = require('../models/Product');
 const logger               = require('../utils/logger');
 
+/**
+ * Đồng bộ số lượng khả dụng từ kho WMS sang bảng Sản Phẩm trên Web (ProductModel)
+ */
+async function syncInventoryToWeb(inv, session) {
+    if (!inv) return;
+    try {
+        const realId = inv.productId && inv.productId.length === 24 ? inv.productId : null;
+        let productDoc = realId 
+            ? await ProductModel.findById(realId).session(session) 
+            : await ProductModel.findOne({ 'variants.color': inv.color, 'variants.size': inv.size, name: inv.productName }).session(session);
+            
+        if (productDoc && productDoc.variants) {
+            if (productDoc.variants.length === 0) {
+                productDoc.stock = inv.available;
+            } else {
+                const variant = productDoc.variants.find(v => 
+                    (v.color === inv.color || (!v.color && inv.color === 'Mặc định')) 
+                    && (v.size === inv.size || (!v.size && inv.size === 'One Size'))
+                );
+                if (variant) {
+                    variant.stock = inv.available;
+                }
+            }
+            productDoc.inStock = productDoc.variants.some(v => v.stock > 0) || productDoc.stock > 0;
+            await productDoc.save({ session });
+        }
+    } catch (err) {
+        logger.error(`[WMS] Lỗi đồng bộ tồn kho sang Web cho SKU ${inv.sku}: ${err.message}`);
+    }
+}
+
 // Helper: sinh mã giao dịch kho
 function genTxCode(type) {
     return `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
@@ -50,6 +81,7 @@ async function reserveStock(orderId, items = [], externalSession = null) {
             if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
 
             await inv.save({ session });
+            await syncInventoryToWeb(inv, session);
         }
 
         if (isLocalSession) await session.commitTransaction();
@@ -85,6 +117,7 @@ async function releaseStock(orderId, items = [], externalSession = null) {
                 if (inv.available > inv.minStock) inv.status = 'IN_STOCK';
                 if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
                 await inv.save({ session });
+                await syncInventoryToWeb(inv, session);
             }
         }
 
@@ -160,6 +193,7 @@ async function auditStocktake(stocktakeItems = [], user = 'Admin', notes = '') {
             if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
 
             await inv.save({ session });
+            await syncInventoryToWeb(inv, session);
 
             results.push({
                 sku,
@@ -218,6 +252,7 @@ async function processReturnOrder(orderId, returnItems = [], returnType = 'RETUR
 
             if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
             await inv.save({ session });
+            if (isGood) await syncInventoryToWeb(inv, session);
 
             // Ghi nhật ký giao dịch kho Immutable Audit Trail
             const txCode = `RET-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
@@ -301,35 +336,7 @@ async function adjustStock({ sku, adjustQty, reason = '', performedBy = 'Admin',
         if (!inv.productId) inv.productId = `PROD-${inv.sku}`;
 
         await inv.save({ session });
-
-        // ĐỒNG BỘ NGƯỢC LẠI WEB (ProductModel)
-        if (!isDamageReason) {
-            let productDoc = null;
-            // Luôn đồng bộ vào đúng biến thể dựa trên inv.productId, inv.color, inv.size
-            const realId = inv.productId && inv.productId.length === 24 ? inv.productId : null;
-            productDoc = realId 
-                ? await ProductModel.findById(realId).session(session) 
-                : await ProductModel.findOne({ 'variants.color': inv.color, 'variants.size': inv.size, name: inv.productName }).session(session);
-                
-            if (productDoc && productDoc.variants) {
-                // Nếu sản phẩm không có biến thể, hoặc biến thể rỗng
-                if (productDoc.variants.length === 0) {
-                    productDoc.stock = inv.available;
-                } else {
-                    const variant = productDoc.variants.find(v => 
-                        (v.color === inv.color || (!v.color && inv.color === 'Mặc định')) 
-                        && (v.size === inv.size || (!v.size && inv.size === 'One Size'))
-                    );
-                    if (variant) {
-                        variant.stock = inv.available;
-                    }
-                }
-            }
-            if (productDoc) {
-                productDoc.inStock = productDoc.variants.some(v => v.stock > 0);
-                await productDoc.save({ session });
-            }
-        }
+        if (!isDamageReason) await syncInventoryToWeb(inv, session);
 
         // Ghi InventoryTransaction log
         const txCode = genTxCode(adjustQty > 0 ? 'ADJ_IN' : 'ADJ_OUT');
