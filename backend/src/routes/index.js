@@ -40,8 +40,10 @@ const wmsRoutes            = require('./wmsRoutes');
 const crmRoutes          = require('./crmRoutes');
 
 const carrierRoutes      = require('./carrierRoutes');      // Carrier Simulation Engine
+const shippingRoutes     = require('./shippingRoutes');     // Mock Shipping API
 
 router.use('/auth', authRoutes);
+router.use('/shipping', shippingRoutes);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/admin', adminRoutes);
