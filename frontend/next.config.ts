@@ -35,6 +35,8 @@ const nextConfig: NextConfig = {
       { source: '/collections/vi-da-nam', destination: '/products?category=cat-clothing&subCategory=vi-da-nam' },
       { source: '/collections/day-lung-nam', destination: '/products?category=cat-clothing&subCategory=day-lung-nam' },
       { source: '/collections/dep-nam', destination: '/products?category=cat-clothing&subCategory=dep-nam' },
+      // Sale
+      { source: '/collections/sale', destination: '/products?discount=true' },
       // Nữ
       { source: '/collections/do-nu', destination: '/products?category=cat-womens' },
       { source: '/collections/ao-nu', destination: '/products?category=cat-womens&subCategory=ao-nu' },

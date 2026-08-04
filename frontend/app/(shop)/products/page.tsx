@@ -49,6 +49,7 @@ function getCategoryTitle(filters: FilterState, pathname: string) {
             'quan-jean-nu': 'Quần Jean Nữ', 'quan-short-nu': 'Quần Short Nữ',
             'vay-dam': 'Váy / Đầm', 'vay-lien-dam': 'Váy Liền Đầm', 'chan-vay': 'Chân Váy',
             'phu-kien-nu': 'Phụ Kiện Nữ', 'giay-dep-nu': 'Giày Dép Nữ', 'tui-xach': 'Túi Xách',
+            'sale': 'Danh Mục Sale'
         };
         if (slugMap[slug]) return slugMap[slug];
     }
