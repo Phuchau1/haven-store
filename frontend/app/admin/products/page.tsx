@@ -26,14 +26,6 @@ import { useToast } from '../components/AdminToast';
 import EnterpriseEditProductModal from './components/EnterpriseEditProductModal';
 import ConfirmModal from '@/app/component/ConfirmModal';
 
-const CATEGORIES_LIST = [
-    { id: 'cat-clothing', name: 'Thời Trang Nam' },
-    { id: 'cat-womens', name: 'Thời Trang Nữ' },
-    { id: 'cat-accessories', name: 'Phụ Kiện Thời Trang' },
-    { id: 'cat-shoes', name: 'Giày Dép' },
-    { id: 'cat-sport', name: 'Đồ Thể Thao' }
-];
-
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const isValidImageSrc = (src?: string | null): src is string => {
     if (!src || src.trim() === '') return false;
@@ -54,6 +46,7 @@ export default function AdminProducts() {
 
     // ── Data State ──
     const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Array<{ id: string; name: string; subCategories?: Array<{ id: string; name: string }> }>>([]);
     const [loading, setLoading] = useState(true);
 
     // ── Modal State ──
@@ -542,11 +535,9 @@ export default function AdminProducts() {
                                         className={selectCls}
                                     >
                                         <option value="">Tất cả danh mục</option>
-                                        <option value="cat-clothing">Nam</option>
-                                        <option value="cat-womens">Nữ</option>
-                                        <option value="cat-kids">Trẻ em</option>
-                                        <option value="cat-accessories">Phụ kiện</option>
-                                        <option value="cat-shoes">Giày dép</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 {/* Status filter */}
@@ -924,7 +915,7 @@ export default function AdminProducts() {
                         throw new Error(data.message || 'Không thể lưu sản phẩm');
                     }
                 }}
-                categories={CATEGORIES_LIST}
+                categories={categories}
                 showToast={showToast}
             />
 
