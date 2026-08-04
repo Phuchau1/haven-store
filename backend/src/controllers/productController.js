@@ -440,36 +440,33 @@ async function syncProductVariants(product) {
 
     for (const v of product.variants) {
         const color = v.color || 'Mặc định';
-        if (!v.sizes || !Array.isArray(v.sizes)) continue;
-        for (const s of v.sizes) {
-            const size = s.size || 'Mặc định';
-            const stock = s.stock || 0;
-            const sku = s.sku || `${product.id}-${color}-${size}`;
-            const id = `${product.id}-${color}-${size}`;
+        const size = v.size || 'Mặc định';
+        const stock = v.stock || 0;
+        const sku = v.sku || `${product.id}-${color}-${size}`;
+        const id = `${product.id}-${color}-${size}`;
 
-            currentVariantIds.push(id);
+        currentVariantIds.push(id);
 
-            await ProductVariantModel.findOneAndUpdate(
-                { product_id: product.id, size_id: size, color_id: color },
-                {
-                    $set: {
-                        id,
-                        product_id: product.id,
-                        size_id: size,
-                        color_id: color,
-                        price: product.price,
-                        sku,
-                        stock,
-                        status: product.status || 'active'
-                    },
-                    $setOnInsert: {
-                        reserved_stock: 0,
-                        warehouse_stocks: [{ warehouse_id: 'WH-MAIN', stock }]
-                    }
+        await ProductVariantModel.findOneAndUpdate(
+            { product_id: product.id, size_id: size, color_id: color },
+            {
+                $set: {
+                    id,
+                    product_id: product.id,
+                    size_id: size,
+                    color_id: color,
+                    price: v.price || product.price,
+                    sku,
+                    stock,
+                    status: product.status || 'active'
                 },
-                { upsert: true, new: true, runValidators: false }
-            );
-        }
+                $setOnInsert: {
+                    reserved_stock: 0,
+                    warehouse_stocks: [{ warehouse_id: 'WH-MAIN', stock }]
+                }
+            },
+            { upsert: true, new: true, runValidators: false }
+        );
     }
 
     // Xoá các biến thể không còn tồn tại trong sản phẩm
