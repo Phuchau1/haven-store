@@ -88,7 +88,11 @@ const ProductSchema = new Schema({
     rating:           { type: Number, required: true, default: 5 },  // Điểm đánh giá trung bình (1-5)
     reviews:          { type: Number, required: true, default: 0 },  // Tổng số lượt đánh giá
     inStock:          { type: Boolean, required: true, default: true }, // Trạng thái còn hàng
-    soldQuantity:     { type: Number, required: true, default: 0 }   // Tổng số lượng đã bán
+    soldQuantity:     { type: Number, required: true, default: 0 },  // Tổng số lượng đã bán
+
+    // --- NEW FIELDS FOR SHIPPING & CHANNELS ---
+    shipping:         { type: Object, default: { weight: 350, length: 30, width: 20, height: 5 } },
+    channels:         { type: Object, default: { website: true, mobileApp: true, pos: true, facebook: true, tiktok: true, shopee: true } }
 }, { timestamps: true }); // Tự động thêm createdAt và updatedAt
 
 /* ---------- Chỉ mục (Index) tối ưu tốc độ truy vấn ---------- */
