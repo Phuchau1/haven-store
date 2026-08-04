@@ -9,6 +9,7 @@ import ProductCard from './ProductCard';
 
 const DISCOUNT_TABS = [
     { label: 'Tất cả', value: 'all', color: 'bg-[#111111] text-white', activeColor: 'bg-[#111111] text-white' },
+    { label: 'Sale 20%+', value: '20', color: 'bg-white text-[#111111] border-gray-200', activeColor: 'bg-[#111111] text-white' },
     { label: 'Sale 30%+', value: '30', color: 'bg-white text-[#111111] border-gray-200', activeColor: 'bg-[#111111] text-white' },
     { label: 'Sale 40%+', value: '40', color: 'bg-white text-[#111111] border-gray-200', activeColor: 'bg-[#111111] text-white' },
     { label: 'Sale 50%+', value: '50', color: 'bg-white text-[#111111] border-gray-200', activeColor: 'bg-[#111111] text-white' },
@@ -236,6 +237,9 @@ export default function FlashSale() {
                         Xem tất cả Flash Sale
                     </Link>
                     <div className="flex flex-wrap items-center justify-center gap-2">
+                        <Link href="/products?discount=20" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
+                            <Percent size={12} /> Sale 20%+
+                        </Link>
                         <Link href="/products?discount=30" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
                             <Percent size={12} /> Sale 30%+
                         </Link>
