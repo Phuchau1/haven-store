@@ -1,19 +1,30 @@
 'use client';
 // ===== CART DRAWER - Ngăn kéo giỏ hàng bên phải =====
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
 import { formatPrice } from '@/lib/format';
+import { toast } from 'react-hot-toast';
 
 const QuantityControl = ({ item, updateQuantity }: { item: any, updateQuantity: any }) => {
-    const [localQuantity, setLocalQuantity] = React.useState<number | string>(item.quantity);
+    const [localQuantity, setLocalQuantity] = useState<number | string>(item.quantity);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setLocalQuantity(item.quantity);
     }, [item.quantity]);
+
+    const getMaxStock = () => {
+        const variant = item.product.variants?.find(
+            (v: any) => 
+                (v.color === item.selectedColor.name || v.color === 'Mặc định' || (!v.color && item.selectedColor.name === 'Mặc định')) 
+                && 
+                (v.size === item.selectedSize || v.size === 'One Size' || (!v.size && item.selectedSize === 'One Size'))
+        );
+        return variant?.stock !== undefined ? variant.stock : 999;
+    };
 
     return (
         <input 
@@ -25,8 +36,13 @@ const QuantityControl = ({ item, updateQuantity }: { item: any, updateQuantity: 
                 if (val === '') {
                     setLocalQuantity('');
                 } else {
-                    const num = parseInt(val);
+                    let num = parseInt(val);
                     if (!isNaN(num)) {
+                        const maxStock = getMaxStock();
+                        if (num > maxStock) {
+                            toast.error(`Sản phẩm này chỉ còn ${maxStock} sản phẩm trong kho`);
+                            num = maxStock;
+                        }
                         setLocalQuantity(num);
                         if (num > 0) {
                             updateQuantity(item.product.id, item.selectedSize, item.selectedColor.name, num);
@@ -47,6 +63,15 @@ const QuantityControl = ({ item, updateQuantity }: { item: any, updateQuantity: 
 
 export default function CartDrawer() {
     const { items, isOpen, closeCart, removeItem, updateQuantity, totalAmount, totalItems } = useCart();
+
+    useEffect(() => {
+        const handleStockExceeded = (e: any) => {
+            const { maxStock } = e.detail;
+            toast.error(`Sản phẩm này chỉ còn ${maxStock} sản phẩm trong kho!`);
+        };
+        window.addEventListener('cart-stock-exceeded', handleStockExceeded);
+        return () => window.removeEventListener('cart-stock-exceeded', handleStockExceeded);
+    }, []);
 
     return (
         <AnimatePresence>
@@ -159,14 +184,28 @@ export default function CartDrawer() {
                                                             </button>
                                                             <QuantityControl item={item} updateQuantity={updateQuantity} />
                                                             <button
-                                                                onClick={() =>
-                                                                    updateQuantity(
-                                                                        item.product.id,
-                                                                        item.selectedSize,
-                                                                        item.selectedColor.name,
-                                                                        item.quantity + 1
-                                                                    )
-                                                                }
+                                                                onClick={() => {
+                                                                    const getMaxStock = () => {
+                                                                        const variant = item.product.variants?.find(
+                                                                            (v: any) => 
+                                                                                (v.color === item.selectedColor.name || v.color === 'Mặc định' || (!v.color && item.selectedColor.name === 'Mặc định')) 
+                                                                                && 
+                                                                                (v.size === item.selectedSize || v.size === 'One Size' || (!v.size && item.selectedSize === 'One Size'))
+                                                                        );
+                                                                        return variant?.stock !== undefined ? variant.stock : 999;
+                                                                    };
+                                                                    const maxStock = getMaxStock();
+                                                                    if (item.quantity >= maxStock) {
+                                                                        toast.error(`Sản phẩm này chỉ còn ${maxStock} sản phẩm trong kho`);
+                                                                    } else {
+                                                                        updateQuantity(
+                                                                            item.product.id,
+                                                                            item.selectedSize,
+                                                                            item.selectedColor.name,
+                                                                            item.quantity + 1
+                                                                        );
+                                                                    }
+                                                                }}
                                                                 className="p-1.5 hover:bg-gray-100 transition-colors"
                                                                 aria-label="Tăng số lượng"
                                                             >

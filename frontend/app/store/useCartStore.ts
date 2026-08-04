@@ -40,10 +40,33 @@ export const useCartStore = create<CartStore>()(
             let newItems: CartItem[];
             if (existingIndex > -1) {
                 newItems = [...state.items];
+                const newQuantity = newItems[existingIndex].quantity + quantity;
+                
+                // Fetch max stock for the selected variant
+                const getMaxStock = () => {
+                    const variant = product.variants?.find(
+                        (v: any) => 
+                            (v.color === color.name || v.color === 'Mặc định' || (!v.color && color.name === 'Mặc định')) 
+                            && 
+                            (v.size === size || v.size === 'One Size' || (!v.size && size === 'One Size'))
+                    );
+                    return variant?.stock !== undefined ? variant.stock : 999;
+                };
+                const maxStock = getMaxStock();
+                
                 newItems[existingIndex] = {
                     ...newItems[existingIndex],
-                    quantity: newItems[existingIndex].quantity + quantity,
+                    quantity: newQuantity > maxStock ? maxStock : newQuantity,
                 };
+                
+                // Show a quick warning if it exceeded stock
+                if (newQuantity > maxStock) {
+                    console.warn(`Cannot add more than stock. Limited to ${maxStock}`);
+                    // Optionally, trigger a custom event here if you want to show a toast from outside
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('cart-stock-exceeded', { detail: { maxStock } }));
+                    }
+                }
             } else {
                 newItems = [...state.items, { product, quantity, selectedSize: size, selectedColor: color }];
             }
