@@ -10,6 +10,7 @@ import { formatPrice } from '@/lib/format';
 import { OrderData } from '@/types';
 import { useVoucherStore } from '@/app/store/useVoucherStore';
 import { useCheckoutStore } from '@/app/store/useCheckoutStore';
+import { useCartStore } from '@/app/store/useCartStore';
 
 interface CheckoutFormProps {
     onSuccess: (orderId: string, email: string) => void;
@@ -59,7 +60,13 @@ interface SavedAddress {
 }
 
 export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
-    const { items, totalAmount } = useCart();
+    const { items: cartItems, totalAmount: cartTotalAmount } = useCart();
+    const buyNowItem = useCartStore(s => s.buyNowItem);
+    
+    // Nếu có buyNowItem, ghi đè items và totalAmount
+    const items = buyNowItem ? [buyNowItem] : cartItems;
+    const totalAmount = buyNowItem ? (buyNowItem.product.price * buyNowItem.quantity) : cartTotalAmount;
+    
     const { user, updateProfile } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');

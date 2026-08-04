@@ -15,9 +15,8 @@ import ProductTabs from '@/app/component/ProductTabs';
 import { useRecentlyViewed } from '@/app/hooks/useRecentlyViewed';
 import RecentlyViewed from '@/app/component/RecentlyViewed';
 import { useAuth } from '@/app/component/AuthContext';
-
+import { useCartStore } from '@/app/store/useCartStore';
 import { useToast } from '@/app/component/ToastProvider';
-
 const COLOR_CLASS_MAP: Record<string, string> = {
     'Đen': 'bg-black',
     'Trắng': 'bg-white',
@@ -253,7 +252,11 @@ export default function ProductDetailPage() {
         }
 
         const productToCart = { ...product, price: currentPrice, originalPrice: currentOriginalPrice };
-        addItem(productToCart, selectedSize, selectedColor, quantity, false);
+        
+        // Thay vì add vào giỏ hàng chung, lưu vào state Buy Now
+        const { setBuyNowItem } = useCartStore.getState();
+        setBuyNowItem({ product: productToCart, selectedSize, selectedColor, quantity });
+        
         closeCart();
         router.push('/checkout'); // Chuyển đến trang thanh toán
     };

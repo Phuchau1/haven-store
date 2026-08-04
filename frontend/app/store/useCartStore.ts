@@ -4,11 +4,14 @@ import { useAuthStore } from '@/app/store/useAuthStore';
 
 interface CartStore {
     items: CartItem[];
+    buyNowItem: CartItem | null;
     isOpen: boolean;
     openCart: () => void;
     closeCart: () => void;
     toggleCart: () => void;
     addItem: (product: Product, size: string, color: Color, quantity?: number, openDrawer?: boolean) => void;
+    setBuyNowItem: (item: CartItem | null) => void;
+    clearBuyNowItem: () => void;
     removeItem: (productId: string, size: string, colorName: string) => void;
     updateQuantity: (productId: string, size: string, colorName: string, quantity: number) => void;
     clearCart: () => void;         // Xóa local + xóa DB (dùng sau thanh toán)
@@ -22,10 +25,13 @@ interface CartStore {
 export const useCartStore = create<CartStore>()(
     (set, get) => ({
         items: [],
+        buyNowItem: null,
         isOpen: false,
         openCart: () => set({ isOpen: true }),
         closeCart: () => set({ isOpen: false }),
         toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
+        setBuyNowItem: (item) => set({ buyNowItem: item }),
+        clearBuyNowItem: () => set({ buyNowItem: null }),
 
         addItem: (product, size, color, quantity = 1, openDrawer = true) => {
             // Tính toán newItems TRƯỚC rồi set — tránh race condition

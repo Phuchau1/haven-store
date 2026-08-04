@@ -13,11 +13,18 @@ import OrderSuccessModal from '@/app/component/OrderSuccessModal';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { useVoucherStore } from '@/app/store/useVoucherStore';
 import { useCheckoutStore } from '@/app/store/useCheckoutStore';
+import { useCartStore } from '@/app/store/useCartStore';
 import { Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
     const router = useRouter();
-    const { items, totalAmount, clearCart, closeCart } = useCart();
+    const { items: cartItems, totalAmount: cartTotalAmount, clearCart, closeCart } = useCart();
+    
+    // Ưu tiên hiển thị Buy Now Item nếu có
+    const buyNowItem = useCartStore(s => s.buyNowItem);
+    const items = buyNowItem ? [buyNowItem] : cartItems;
+    const totalAmount = buyNowItem ? (buyNowItem.product.price * buyNowItem.quantity) : cartTotalAmount;
+    
     const { user } = useAuthStore();
     const { appliedVoucher, removeVoucher } = useVoucherStore();
     const { shippingFee } = useCheckoutStore();
@@ -29,12 +36,23 @@ export default function CheckoutPage() {
     React.useEffect(() => {
         setIsMounted(true);
         closeCart();
+        
+        // Cleanup: Nếu user rời khỏi trang checkout (không mua nữa), xoá state buyNowItem
+        return () => {
+            useCartStore.getState().clearBuyNowItem();
+        };
     }, [closeCart]);
 
     const handleOrderSuccess = (orderId: string, email: string) => {
         setOrderInfo({ orderId, email });
         setShowSuccessModal(true);
-        clearCart();
+        
+        const buyNowItem = useCartStore.getState().buyNowItem;
+        if (buyNowItem) {
+            useCartStore.getState().clearBuyNowItem();
+        } else {
+            clearCart();
+        }
         removeVoucher(); // reset voucher sau khi đặt hàng xong
     };
 
