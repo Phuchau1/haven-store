@@ -53,6 +53,8 @@ const OrderSchema = new Schema({
     paymentMethod:   { type: String, required: true },
     items:           [OrderItemSchema],
     totalAmount:     { type: Number, required: true },
+    shippingFee:     { type: Number, default: 0 },
+    shippingMethodId:{ type: String },
     couponCode:      { type: String, default: '' },
     discountAmount:  { type: Number, default: 0 },
     finalAmount:     { type: Number, default: 0 },

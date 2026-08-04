@@ -12,6 +12,7 @@ import CheckoutForm from '@/app/component/CheckoutForm';
 import OrderSuccessModal from '@/app/component/OrderSuccessModal';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { useVoucherStore } from '@/app/store/useVoucherStore';
+import { useCheckoutStore } from '@/app/store/useCheckoutStore';
 import { Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -19,7 +20,8 @@ export default function CheckoutPage() {
     const { items, totalAmount, clearCart, closeCart } = useCart();
     const { user } = useAuthStore();
     const { appliedVoucher, removeVoucher } = useVoucherStore();
-    const finalTotal = appliedVoucher ? appliedVoucher.finalAmount : totalAmount;
+    const { shippingFee } = useCheckoutStore();
+    const finalTotal = (appliedVoucher ? appliedVoucher.finalAmount : totalAmount) + shippingFee;
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [orderInfo, setOrderInfo] = useState({ orderId: '', email: '' });
     const [isMounted, setIsMounted] = useState(false);
@@ -155,7 +157,9 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="flex justify-between text-sm text-emerald-600">
                                         <span>Phí vận chuyển</span>
-                                        <span className="font-medium">Miễn phí</span>
+                                        <span className="font-medium">
+                                            {shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}
+                                        </span>
                                     </div>
 
                                     {/* Voucher discount row */}

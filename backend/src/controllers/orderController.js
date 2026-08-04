@@ -12,6 +12,7 @@ const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
 const { InventoryHistoryModel } = require('../models/InventoryHistory');
 const { CouponModel } = require('../models/Coupon');
+const { ShippingMethodModel } = require('../models/ShippingMethod');
 // Sử dụng BullMQ queue để gửi email bất đồng bộ (không làm chậm tốc độ tạo đơn)
 const { enqueueOrderEmail } = require('../services/queueService');
 // Điểm tích lũy: cộng điểm sau khi tạo đơn, thu hồi khi hủy đơn
@@ -414,7 +415,22 @@ const createOrder = async (req, res, next) => {
             }
         }
 
-        const calculatedFinalAmount = calculatedTotalAmount - calculatedDiscount;
+        // Xử lý phí vận chuyển
+        let calculatedShippingFee = 0;
+        let finalShippingMethodId = null;
+        if (body.shippingMethodId) {
+            const sm = await ShippingMethodModel.findOne({ id: body.shippingMethodId }).session(session);
+            if (sm && sm.is_active) {
+                finalShippingMethodId = sm.id;
+                if (sm.free_shipping_threshold > 0 && calculatedTotalAmount >= sm.free_shipping_threshold) {
+                    calculatedShippingFee = 0;
+                } else {
+                    calculatedShippingFee = sm.cost;
+                }
+            }
+        }
+
+        const calculatedFinalAmount = calculatedTotalAmount - calculatedDiscount + calculatedShippingFee;
 
         const newOrderData = {
             ...body,
@@ -422,6 +438,8 @@ const createOrder = async (req, res, next) => {
             status: 'pending', // Chờ xác nhận
             totalAmount: calculatedTotalAmount,
             discountAmount: calculatedDiscount,
+            shippingFee: calculatedShippingFee,
+            shippingMethodId: finalShippingMethodId,
             finalAmount: calculatedFinalAmount,
             createdAt: new Date().toISOString()
         };

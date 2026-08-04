@@ -9,6 +9,7 @@ import { useAuth } from '@/app/component/AuthContext';
 import { formatPrice } from '@/lib/format';
 import { OrderData } from '@/types';
 import { useVoucherStore } from '@/app/store/useVoucherStore';
+import { useCheckoutStore } from '@/app/store/useCheckoutStore';
 
 interface CheckoutFormProps {
     onSuccess: (orderId: string, email: string) => void;
@@ -33,6 +34,16 @@ interface PaymentMethod {
     is_active?: boolean;
 }
 
+interface ShippingMethod {
+    id: string;
+    name_methond: string;
+    description: string;
+    is_active: boolean;
+    cost: number;
+    free_shipping_threshold: number;
+    estimated_time: string;
+}
+
 interface SavedAddress {
     id: string;
     full_name: string;
@@ -50,6 +61,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [orderId] = useState(`LF-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
+    const setStoreShippingFee = useCheckoutStore(state => state.setShippingFee);
 
     const router = useRouter();
 
@@ -76,6 +88,8 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     });
 
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+    const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+    const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string>('');
 
     // ── Voucher states ──
     const [voucherInput, setVoucherInput] = useState('');
@@ -100,7 +114,21 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const [selectedDistrictCode, setSelectedDistrictCode] = useState<number | null>(null);
     const [localAddress, setLocalAddress] = useState({ city: '', district: '', ward: '', street: '' });
 
-    const finalTotal = appliedCoupon ? appliedCoupon.finalAmount : totalAmount;
+    const selectedShippingMethod = shippingMethods.find(sm => sm.id === selectedShippingMethodId);
+    let shippingFee = 0;
+    if (selectedShippingMethod) {
+        if (selectedShippingMethod.free_shipping_threshold > 0 && totalAmount >= selectedShippingMethod.free_shipping_threshold) {
+            shippingFee = 0;
+        } else {
+            shippingFee = selectedShippingMethod.cost;
+        }
+    }
+    
+    React.useEffect(() => {
+        setStoreShippingFee(shippingFee);
+    }, [shippingFee, setStoreShippingFee]);
+
+    const finalTotal = (appliedCoupon ? appliedCoupon.finalAmount : totalAmount) + shippingFee;
 
     React.useEffect(() => {
         fetch('https://provinces.open-api.vn/api/?depth=1')
@@ -178,6 +206,25 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         };
         fetchPaymentMethods();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    React.useEffect(() => {
+        const fetchShippingMethods = async () => {
+            try {
+                const res = await fetch('/api/admin/extra/shipping-methods');
+                const data = await res.json();
+                if (data.success) {
+                    const activeMethods = data.data.filter((sm: ShippingMethod) => sm.is_active);
+                    setShippingMethods(activeMethods);
+                    if (activeMethods.length > 0) {
+                        setSelectedShippingMethodId(activeMethods[0].id);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch shipping methods", err);
+            }
+        };
+        fetchShippingMethods();
     }, []);
 
     // Cập nhật form nếu user đăng nhập hoặc từ thông tin đã lưu
@@ -349,9 +396,11 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 ...formData,
                 items,
                 totalAmount,
-                couponCode: appliedCoupon?.code || '',
-                discountAmount: appliedCoupon?.discountAmount || 0,
+                couponCode: appliedCoupon ? appliedCoupon.code : '',
+                discountAmount: appliedCoupon ? appliedCoupon.discountAmount : 0,
                 finalAmount: finalTotal,
+                shippingFee,
+                shippingMethodId: selectedShippingMethodId,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             };
@@ -735,6 +784,60 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 </AnimatePresence>
             </div>
 
+            {/* Shipping Method */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 mb-6">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-5">
+                    Phương thức vận chuyển
+                </h3>
+                <div className="space-y-3">
+                    {shippingMethods.map(sm => {
+                        const isFree = sm.free_shipping_threshold > 0 && totalAmount >= sm.free_shipping_threshold;
+                        const fee = isFree ? 0 : sm.cost;
+                        return (
+                            <label
+                                key={sm.id}
+                                className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                    selectedShippingMethodId === sm.id
+                                        ? 'border-emerald-500 bg-emerald-50'
+                                        : 'border-gray-100 hover:border-gray-200'
+                                }`}
+                            >
+                                <input
+                                    type="radio"
+                                    name="shippingMethod"
+                                    value={sm.id}
+                                    checked={selectedShippingMethodId === sm.id}
+                                    onChange={(e) => setSelectedShippingMethodId(e.target.value)}
+                                    className="sr-only"
+                                />
+                                <div
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                        selectedShippingMethodId === sm.id
+                                            ? 'border-emerald-500'
+                                            : 'border-gray-300'
+                                    }`}
+                                >
+                                    {selectedShippingMethodId === sm.id && (
+                                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold text-gray-800">{sm.name_methond}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">{sm.description}</p>
+                                </div>
+                                <div className="text-right">
+                                    {isFree ? (
+                                        <span className="text-sm font-bold text-emerald-600">Miễn phí</span>
+                                    ) : (
+                                        <span className="text-sm font-bold text-gray-900">{formatPrice(sm.cost)}</span>
+                                    )}
+                                </div>
+                            </label>
+                        );
+                    })}
+                </div>
+            </div>
+
             {/* Payment Method */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100">
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-5">
@@ -928,7 +1031,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         </div>
                         <div className="flex justify-between text-sm text-emerald-600">
                             <span>Phí vận chuyển</span>
-                            <span>Miễn phí</span>
+                            <span>{shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}</span>
                         </div>
 
                         {/* Discount row */}

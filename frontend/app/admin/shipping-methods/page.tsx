@@ -8,6 +8,9 @@ interface ShippingMethod {
     name_methond: string;
     description: string;
     is_active: boolean;
+    cost: number;
+    free_shipping_threshold: number;
+    estimated_time: string;
 }
 
 export default function AdminShippingMethodsPage() {
@@ -16,7 +19,10 @@ export default function AdminShippingMethodsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<ShippingMethod | null>(null);
 
-    const [formData, setFormData] = useState({ id: '', name_methond: '', description: '', is_active: true });
+    const [formData, setFormData] = useState({ 
+        id: '', name_methond: '', description: '', is_active: true, 
+        cost: 0, free_shipping_threshold: 0, estimated_time: '2-3 ngày' 
+    });
 
     const fetchItems = async () => {
         setLoading(true);
@@ -39,7 +45,7 @@ export default function AdminShippingMethodsPage() {
             setFormData({ ...item });
         } else {
             setEditingItem(null);
-            setFormData({ id: '', name_methond: '', description: '', is_active: true });
+            setFormData({ id: '', name_methond: '', description: '', is_active: true, cost: 0, free_shipping_threshold: 0, estimated_time: '2-3 ngày' });
         }
         setIsModalOpen(true);
     };
@@ -95,22 +101,32 @@ export default function AdminShippingMethodsPage() {
                         <tr>
                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên Phương thức</th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th>
+                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phí / Freeship</th>
+                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả / T.Gian</th>
                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                             <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
-                            <tr><td colSpan={5} className="px-6 py-12 text-center"><Loader2 className="animate-spin text-gray-400 mx-auto mb-2" size={24} /></td></tr>
+                            <tr><td colSpan={6} className="px-6 py-12 text-center"><Loader2 className="animate-spin text-gray-400 mx-auto mb-2" size={24} /></td></tr>
                         ) : methods.length === 0 ? (
-                            <tr><td colSpan={5} className="px-6 py-12 text-center"><p className="text-gray-500 text-sm">Chưa có dữ liệu.</p></td></tr>
+                            <tr><td colSpan={6} className="px-6 py-12 text-center"><p className="text-gray-500 text-sm">Chưa có dữ liệu.</p></td></tr>
                         ) : (
                             methods.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 text-sm text-gray-500 font-mono">{item.id}</td>
                                     <td className="px-6 py-4 text-sm font-bold text-gray-900">{item.name_methond}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">{item.description}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-700">
+                                        <div className="font-semibold text-emerald-600">{item.cost?.toLocaleString('vi-VN')} đ</div>
+                                        {item.free_shipping_threshold > 0 && (
+                                            <div className="text-xs text-gray-500 mt-1">Freeship từ {item.free_shipping_threshold?.toLocaleString('vi-VN')} đ</div>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                        <div>{item.description}</div>
+                                        <div className="text-xs text-indigo-600 font-medium mt-1">Giao: {item.estimated_time}</div>
+                                    </td>
                                     <td className="px-6 py-4 text-sm">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                                             {item.is_active ? 'Hoạt động' : 'Tạm ẩn'}
@@ -133,23 +149,39 @@ export default function AdminShippingMethodsPage() {
                 {isModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden">
                             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                                 <h3 className="text-lg font-bold text-gray-900">{editingItem ? 'Chỉnh sửa' : 'Thêm mới'}</h3>
                                 <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
                             </div>
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ID</label>
-                                    <input required disabled={!!editingItem} value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-gray-100" />
+                            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ID</label>
+                                        <input required disabled={!!editingItem} value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-gray-100" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tên Phương thức</label>
+                                        <input required value={formData.name_methond} onChange={e => setFormData({...formData, name_methond: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Phí vận chuyển (đ)</label>
+                                        <input required type="number" value={formData.cost} onChange={e => setFormData({...formData, cost: Number(e.target.value)})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Điều kiện Freeship (đ)</label>
+                                        <input required type="number" value={formData.free_shipping_threshold} onChange={e => setFormData({...formData, free_shipping_threshold: Number(e.target.value)})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20" />
+                                    </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tên Phương thức</label>
-                                    <input required value={formData.name_methond} onChange={e => setFormData({...formData, name_methond: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20" />
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Thời gian giao (Dự kiến)</label>
+                                    <input required value={formData.estimated_time} onChange={e => setFormData({...formData, estimated_time: e.target.value})} placeholder="VD: 2-3 ngày" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mô tả</label>
-                                    <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 resize-none" rows={3}></textarea>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mô tả chi tiết</label>
+                                    <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 resize-none" rows={2}></textarea>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
