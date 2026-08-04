@@ -289,6 +289,12 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             phone: addr.phone,
             address: fullAddressStr
         }));
+        setLocalAddress({
+            city: addr.city,
+            district: addr.district,
+            ward: addr.ward,
+            street: addr.street
+        });
     };
 
     // Fetch available coupons when panel opens
