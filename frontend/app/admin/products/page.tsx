@@ -53,7 +53,11 @@ const DEFAULT_CATEGORIES = [
             { id: 'quan-jean-nam', name: 'Quần jean nam' },
             { id: 'quan-short-nam', name: 'Quần short nam' },
             { id: 'quan-kaki-nam', name: 'Quần kaki nam' },
-            { id: 'bo-vest-nam', name: 'Bộ vest nam' }
+            { id: 'bo-vest-nam', name: 'Bộ vest nam' },
+            { id: 'giay-da-nam', name: 'Giày da nam' },
+            { id: 'vi-da-nam', name: 'Ví da nam' },
+            { id: 'day-lung-nam', name: 'Dây lưng nam' },
+            { id: 'dep-nam', name: 'Dép nam' }
         ]
     },
     {

@@ -32,7 +32,11 @@ const SUBCATEGORIES_MAP = {
         { id: 'quan-jean-nam', name: 'Quần jean nam', order: 6 },
         { id: 'quan-short-nam', name: 'Quần short nam', order: 7 },
         { id: 'quan-kaki-nam', name: 'Quần kaki nam', order: 8 },
-        { id: 'bo-vest-nam', name: 'Bộ vest nam', order: 9 }
+        { id: 'bo-vest-nam', name: 'Bộ vest nam', order: 9 },
+        { id: 'giay-da-nam', name: 'Giày da nam', order: 10 },
+        { id: 'vi-da-nam', name: 'Ví da nam', order: 11 },
+        { id: 'day-lung-nam', name: 'Dây lưng nam', order: 12 },
+        { id: 'dep-nam', name: 'Dép nam', order: 13 }
     ],
     'cat-accessories': [
         { id: 'tui-xach', name: 'Túi xách', order: 1 },
