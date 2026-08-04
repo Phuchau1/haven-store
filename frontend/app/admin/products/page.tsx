@@ -40,13 +40,78 @@ const isValidImageSrc = (src?: string | null): src is string => {
 
 const ITEMS_PER_PAGE = 10;
 
+const DEFAULT_CATEGORIES = [
+    {
+        id: 'cat-clothing',
+        name: 'Thời Trang Nam',
+        subCategories: [
+            { id: 'ao-so-mi-nam', name: 'Áo sơ mi nam' },
+            { id: 'ao-polo-nam', name: 'Áo polo nam' },
+            { id: 'ao-thun-nam', name: 'Áo T-shirt nam' },
+            { id: 'ao-khoac-nam', name: 'Áo khoác nam' },
+            { id: 'quan-au-nam', name: 'Quần âu nam' },
+            { id: 'quan-jean-nam', name: 'Quần jean nam' },
+            { id: 'quan-short-nam', name: 'Quần short nam' },
+            { id: 'quan-kaki-nam', name: 'Quần kaki nam' },
+            { id: 'bo-vest-nam', name: 'Bộ vest nam' }
+        ]
+    },
+    {
+        id: 'cat-womens',
+        name: 'Thời Trang Nữ',
+        subCategories: [
+            { id: 'ao-so-mi-nu', name: 'Áo sơ mi nữ' },
+            { id: 'ao-polo-nu', name: 'Áo polo nữ' },
+            { id: 'ao-thun-nu', name: 'Áo T-shirt nữ' },
+            { id: 'ao-khoac-nu', name: 'Áo khoác nữ' },
+            { id: 'quan-au-nu', name: 'Quần âu nữ' },
+            { id: 'quan-jean-nu', name: 'Quần jean nữ' },
+            { id: 'quan-short-nu', name: 'Quần short nữ' },
+            { id: 'vay-lien-dam', name: 'Váy liền đầm' },
+            { id: 'chan-vay', name: 'Chân váy' },
+            { id: 'giay-dep-nu', name: 'Giày dép nữ' },
+            { id: 'tui-xach', name: 'Túi xách' }
+        ]
+    },
+    {
+        id: 'cat-accessories',
+        name: 'Phụ Kiện Thời Trang',
+        subCategories: [
+            { id: 'tui-xach', name: 'Túi xách' },
+            { id: 'vi-da', name: 'Ví da' },
+            { id: 'that-lung', name: 'Thắt lưng' },
+            { id: 'mu', name: 'Mũ / Nón' },
+            { id: 'tat', name: 'Tất / Vớ' }
+        ]
+    },
+    {
+        id: 'cat-shoes',
+        name: 'Giày Dép',
+        subCategories: [
+            { id: 'giay-dep-nu', name: 'Giày dép nữ' },
+            { id: 'giay-the-thao', name: 'Giày thể thao' },
+            { id: 'giay-da', name: 'Giày da' },
+            { id: 'dep', name: 'Dép' }
+        ]
+    },
+    {
+        id: 'cat-sport',
+        name: 'Đồ Thể Thao',
+        subCategories: [
+            { id: 'bo-the-thao', name: 'Bộ đồ thể thao' },
+            { id: 'ao-the-thao', name: 'Áo thể thao' },
+            { id: 'quan-the-thao', name: 'Quần thể thao' }
+        ]
+    }
+];
+
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function AdminProducts() {
     const { showToast } = useToast();
 
     // ── Data State ──
     const [products, setProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<Array<{ id: string; name: string; subCategories?: Array<{ id: string; name: string }> }>>([]);
+    const [categories, setCategories] = useState<Array<{ id: string; name: string; subCategories?: Array<{ id: string; name: string }> }>>(DEFAULT_CATEGORIES);
     const [loading, setLoading] = useState(true);
 
     // ── Modal State ──
@@ -242,10 +307,29 @@ export default function AdminProducts() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const productsRes = await fetch(`/api/products?includeHidden=true&_t=${Date.now()}`, { cache: 'no-store' });
-                if (productsRes.ok) {
-                    const d = await productsRes.json();
+                const [productsRes, categoriesRes] = await Promise.allSettled([
+                    fetch(`/api/products?includeHidden=true&_t=${Date.now()}`, { cache: 'no-store' }),
+                    fetch(`/api/categories?_t=${Date.now()}`)
+                ]);
+
+                if (productsRes.status === 'fulfilled' && productsRes.value.ok) {
+                    const d = await productsRes.value.json();
                     if (d.success) setProducts(d.products);
+                }
+
+                if (categoriesRes.status === 'fulfilled' && categoriesRes.value.ok) {
+                    const c = await categoriesRes.value.json();
+                    if (c.success && Array.isArray(c.categories) && c.categories.length > 0) {
+                        const mappedCats = c.categories.map((cat: any) => ({
+                            id: cat.id,
+                            name: cat.name,
+                            subCategories: (cat.subcategories || cat.subCategories || []).map((sub: any) => ({
+                                id: sub.id,
+                                name: sub.name
+                            }))
+                        }));
+                        setCategories(mappedCats);
+                    }
                 }
             } catch {
                 showToast('error', 'Lỗi tải dữ liệu');

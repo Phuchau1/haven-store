@@ -21,7 +21,70 @@ interface EnterpriseEditProductModalProps {
     showToast: (type: 'success' | 'error' | 'info' | 'warning', message: string, desc?: string) => void;
 }
 
-// SUBCATEGORIES_MAP removed as it's now dynamic
+const DEFAULT_CATEGORIES = [
+    {
+        id: 'cat-clothing',
+        name: 'Thời Trang Nam',
+        subCategories: [
+            { id: 'ao-so-mi-nam', name: 'Áo sơ mi nam' },
+            { id: 'ao-polo-nam', name: 'Áo polo nam' },
+            { id: 'ao-thun-nam', name: 'Áo T-shirt nam' },
+            { id: 'ao-khoac-nam', name: 'Áo khoác nam' },
+            { id: 'quan-au-nam', name: 'Quần âu nam' },
+            { id: 'quan-jean-nam', name: 'Quần jean nam' },
+            { id: 'quan-short-nam', name: 'Quần short nam' },
+            { id: 'quan-kaki-nam', name: 'Quần kaki nam' },
+            { id: 'bo-vest-nam', name: 'Bộ vest nam' }
+        ]
+    },
+    {
+        id: 'cat-womens',
+        name: 'Thời Trang Nữ',
+        subCategories: [
+            { id: 'ao-so-mi-nu', name: 'Áo sơ mi nữ' },
+            { id: 'ao-polo-nu', name: 'Áo polo nữ' },
+            { id: 'ao-thun-nu', name: 'Áo T-shirt nữ' },
+            { id: 'ao-khoac-nu', name: 'Áo khoác nữ' },
+            { id: 'quan-au-nu', name: 'Quần âu nữ' },
+            { id: 'quan-jean-nu', name: 'Quần jean nữ' },
+            { id: 'quan-short-nu', name: 'Quần short nữ' },
+            { id: 'vay-lien-dam', name: 'Váy liền đầm' },
+            { id: 'chan-vay', name: 'Chân váy' },
+            { id: 'giay-dep-nu', name: 'Giày dép nữ' },
+            { id: 'tui-xach', name: 'Túi xách' }
+        ]
+    },
+    {
+        id: 'cat-accessories',
+        name: 'Phụ Kiện Thời Trang',
+        subCategories: [
+            { id: 'tui-xach', name: 'Túi xách' },
+            { id: 'vi-da', name: 'Ví da' },
+            { id: 'that-lung', name: 'Thắt lưng' },
+            { id: 'mu', name: 'Mũ / Nón' },
+            { id: 'tat', name: 'Tất / Vớ' }
+        ]
+    },
+    {
+        id: 'cat-shoes',
+        name: 'Giày Dép',
+        subCategories: [
+            { id: 'giay-dep-nu', name: 'Giày dép nữ' },
+            { id: 'giay-the-thao', name: 'Giày thể thao' },
+            { id: 'giay-da', name: 'Giày da' },
+            { id: 'dep', name: 'Dép' }
+        ]
+    },
+    {
+        id: 'cat-sport',
+        name: 'Đồ Thể Thao',
+        subCategories: [
+            { id: 'bo-the-thao', name: 'Bộ đồ thể thao' },
+            { id: 'ao-the-thao', name: 'Áo thể thao' },
+            { id: 'quan-the-thao', name: 'Quần thể thao' }
+        ]
+    }
+];
 
 export default function EnterpriseEditProductModal({
     isOpen,
@@ -32,6 +95,7 @@ export default function EnterpriseEditProductModal({
     brands = ['HAVEN', 'Routine', 'Uniqlo', 'Zara', 'H&M', 'Nike', 'Adidas'],
     showToast
 }: EnterpriseEditProductModalProps) {
+    const activeCategories = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORIES;
     // ── Active Tab State ──
     const [activeTab, setActiveTab] = useState<
         'overview' | 'media' | 'variants' | 'pricing' | 'inventory' | 'seo' |
@@ -706,7 +770,7 @@ export default function EnterpriseEditProductModal({
                                                 value={formData.category || ''}
                                                 onChange={(e) => {
                                                     const catId = e.target.value;
-                                                    const selectedCat = categories.find(c => c.id === catId);
+                                                    const selectedCat = activeCategories.find(c => c.id === catId);
                                                     const subList = selectedCat?.subCategories || [];
                                                     const defaultSub = subList.length > 0 ? subList[0] : null;
                                                     setFormData({
@@ -721,7 +785,7 @@ export default function EnterpriseEditProductModal({
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
                                                 <option value="">-- Chọn danh mục chính --</option>
-                                                {categories.map(cat => (
+                                                {activeCategories.map(cat => (
                                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                                 ))}
                                             </select>
@@ -735,7 +799,7 @@ export default function EnterpriseEditProductModal({
                                                 value={formData.subCategory || ''}
                                                 onChange={(e) => {
                                                     const subId = e.target.value;
-                                                    const selectedCat = categories.find(c => c.id === formData.category);
+                                                    const selectedCat = activeCategories.find(c => c.id === formData.category);
                                                     const subList = selectedCat?.subCategories || [];
                                                     const foundSub = subList.find(s => s.id === subId);
                                                     setFormData({
@@ -748,7 +812,7 @@ export default function EnterpriseEditProductModal({
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
                                                 <option value="">-- Chọn danh mục con --</option>
-                                                {(categories.find(c => c.id === formData.category)?.subCategories || []).map(sub => (
+                                                {(activeCategories.find(c => c.id === formData.category)?.subCategories || []).map(sub => (
                                                     <option key={sub.id} value={sub.id}>{sub.name}</option>
                                                 ))}
                                             </select>
