@@ -480,3 +480,5 @@
 [2026-08-04 12:23:05] INFO: 🚀 Server is running on 0.0.0.0:5000 
 [2026-08-04 12:23:05] INFO: ================================= 
 [2026-08-04 12:23:05] INFO: [CronJob] Order expiration cron service started. 
+[2026-08-05 00:18:11] INFO: [Redis] REDIS_URL is not set. Skipping Redis connection. Cache operations will be bypassed. 
+[2026-08-05 00:18:11] INFO: [BullMQ] REDIS_HOST is not set. Email tasks will be executed synchronously. 

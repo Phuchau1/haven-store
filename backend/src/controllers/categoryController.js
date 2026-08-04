@@ -15,10 +15,14 @@ const { getCache, setCache, delCache } = require('../utils/redisClient');
 const getCategories = async (req, res, next) => {
     try {
         const cacheKey = 'categories:' + (req.query.active === 'true' ? 'active' : 'all');
-        const cachedCategories = await getCache(cacheKey);
         
-        if (cachedCategories) {
-            return res.json({ success: true, categories: cachedCategories, cached: true });
+        if (req.query.clearCache === 'true') {
+            await delCache(cacheKey);
+        } else {
+            const cachedCategories = await getCache(cacheKey);
+            if (cachedCategories) {
+                return res.json({ success: true, categories: cachedCategories, cached: true });
+            }
         }
 
         const filter = {};

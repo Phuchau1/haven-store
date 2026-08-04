@@ -720,6 +720,7 @@ export default function EnterpriseEditProductModal({
                                                 }}
                                                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                                             >
+                                                <option value="">-- Chọn danh mục chính --</option>
                                                 {categories.map(cat => (
                                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                                 ))}
