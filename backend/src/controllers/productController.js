@@ -74,13 +74,11 @@ const getProducts = async (req, res, next) => {
         }
 
         // Lọc các sản phẩm Đang giảm giá (bất kỳ mức nào)
-        if (discounted === 'true' && !discount) {
+        if ((discounted === 'true' || discount === 'true')) {
             // Lấy sản phẩm có Giá gốc > Giá bán
             query.$expr = { $gt: ["$originalPrice", "$price"] };
-        }
-
-        // Lọc sản phẩm theo % giảm giá tối thiểu
-        if (discount) {
+        } else if (discount) {
+            // Lọc sản phẩm theo % giảm giá tối thiểu
             const discPercent = parseInt(discount, 10);
             if (!isNaN(discPercent)) {
                 const minFraction = discPercent / 100; // vd: 20% -> 0.2
