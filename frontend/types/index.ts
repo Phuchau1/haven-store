@@ -118,6 +118,8 @@ export interface OrderData {
     totalAmount: number;
     couponCode?: string;
     discountAmount?: number;
+    shippingFee?: number;
+    shippingMethodId?: string;
     finalAmount: number;
     note?: string;
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'return_requested' | 'returning' | 'return_received' | 'refunded';
