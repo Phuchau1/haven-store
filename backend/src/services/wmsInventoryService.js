@@ -308,7 +308,12 @@ async function adjustStock({ sku, adjustQty, reason = '', performedBy = 'Admin',
             // Nếu sku dạng WMS-ID, lấy ID gốc
             if (inv.sku.startsWith('WMS-')) {
                 const pId = inv.sku.replace('WMS-', '');
-                productDoc = await ProductModel.findById(pId).session(session);
+                // pId is usually the string 'id' field, not the ObjectId '_id'
+                productDoc = await ProductModel.findOne({ id: pId }).session(session);
+                // Fallback in case pId is actually an ObjectId
+                if (!productDoc && pId.length === 24) {
+                    productDoc = await ProductModel.findById(pId).session(session);
+                }
                 if (productDoc && productDoc.variants) {
                     productDoc.variants.forEach(v => {
                         v.stock = inv.available;
