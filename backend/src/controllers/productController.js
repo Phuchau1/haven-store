@@ -440,6 +440,7 @@ async function syncProductVariants(product) {
 
     for (const v of product.variants) {
         const color = v.color || 'Mặc định';
+        if (!v.sizes || !Array.isArray(v.sizes)) continue;
         for (const s of v.sizes) {
             const size = s.size || 'Mặc định';
             const stock = s.stock || 0;
