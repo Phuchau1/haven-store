@@ -355,59 +355,61 @@ export default function ProductDetailPage() {
                         <p className="text-sm text-gray-600 leading-relaxed font-light">{product.shortDescription || product.description}</p>
 
                         {/* Color Selection */}
-                        <div>
-                            <div className="flex items-center justify-between mb-3">
-                                <label className="text-sm font-medium text-gray-800">Màu sắc</label>
-                                {selectedColor && <span className="text-xs text-gray-500">{selectedColor.name}</span>}
+                        {product.colors && product.colors.length > 1 && (
+                            <div>
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="text-sm font-medium text-gray-800">Màu sắc</label>
+                                    {selectedColor && <span className="text-xs text-gray-500">{selectedColor.name}</span>}
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.colors.map((color: any) => {
+                                        const outOfStock = isColorOutOfStock(color.name);
+                                        return (
+                                            <button
+                                                key={color.name}
+                                                onClick={() => {
+                                                    setSelectedColor(color);
+                                                    if (color.image) {
+                                                        let imgIndex = (product.images || []).findIndex((img: any) => img === color.image);
+                                                        if (imgIndex === -1 && color.image) {
+                                                            product.images = [color.image, ...(product.images || [])];
+                                                            imgIndex = 0;
+                                                        }
+                                                        if (imgIndex !== -1) {
+                                                            setSelectedImage(imgIndex);
+                                                        }
+                                                    }
+                                                    // Clamp quantity if selected variant stock is smaller
+                                                    const variants = product.variants || [];
+                                                    const match = variants.find((v: any) => v.color === color.name && v.size === selectedSize);
+                                                    if (match) {
+                                                        const st = Math.max(0, Number(match.stock) || 0);
+                                                        if (st > 0 && quantity > st) {
+                                                            setQuantity(st);
+                                                            showToast(`Chỉ còn ${st} sản phẩm cho màu ${color.name}`, 'warning');
+                                                        }
+                                                    }
+                                                }}
+                                                className={`relative flex items-center gap-2 px-4 py-2 rounded-none border transition-all ${
+                                                    selectedColor?.name === color.name 
+                                                        ? 'border-black bg-gray-50' 
+                                                        : outOfStock 
+                                                            ? 'border-gray-200 bg-gray-50/50 text-gray-300 opacity-50 cursor-not-allowed line-through' 
+                                                            : 'border-gray-300 hover:border-gray-400'
+                                                }`}
+                                                title={outOfStock ? `${color.name} (Hết hàng cho size ${selectedSize})` : color.name}
+                                            >
+                                                <span className={`w-5 h-5 rounded-none border border-gray-300 ${getColorSwatchClass(color.name)}`} />
+                                                <span className="text-sm">{color.name}</span>
+                                                {selectedColor?.name === color.name && (
+                                                    <Check size={14} className="absolute top-1 right-1 text-black" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                                {product.colors.map((color: any) => {
-                                    const outOfStock = isColorOutOfStock(color.name);
-                                    return (
-                                        <button
-                                            key={color.name}
-                                            onClick={() => {
-                                                setSelectedColor(color);
-                                                if (color.image) {
-                                                    let imgIndex = (product.images || []).findIndex((img: any) => img === color.image);
-                                                    if (imgIndex === -1 && color.image) {
-                                                        product.images = [color.image, ...(product.images || [])];
-                                                        imgIndex = 0;
-                                                    }
-                                                    if (imgIndex !== -1) {
-                                                        setSelectedImage(imgIndex);
-                                                    }
-                                                }
-                                                // Clamp quantity if selected variant stock is smaller
-                                                const variants = product.variants || [];
-                                                const match = variants.find((v: any) => v.color === color.name && v.size === selectedSize);
-                                                if (match) {
-                                                    const st = Math.max(0, Number(match.stock) || 0);
-                                                    if (st > 0 && quantity > st) {
-                                                        setQuantity(st);
-                                                        showToast(`Chỉ còn ${st} sản phẩm cho màu ${color.name}`, 'warning');
-                                                    }
-                                                }
-                                            }}
-                                            className={`relative flex items-center gap-2 px-4 py-2 rounded-none border transition-all ${
-                                                selectedColor?.name === color.name 
-                                                    ? 'border-black bg-gray-50' 
-                                                    : outOfStock 
-                                                        ? 'border-gray-200 bg-gray-50/50 text-gray-300 opacity-50 cursor-not-allowed line-through' 
-                                                        : 'border-gray-300 hover:border-gray-400'
-                                            }`}
-                                            title={outOfStock ? `${color.name} (Hết hàng cho size ${selectedSize})` : color.name}
-                                        >
-                                            <span className={`w-5 h-5 rounded-none border border-gray-300 ${getColorSwatchClass(color.name)}`} />
-                                            <span className="text-sm">{color.name}</span>
-                                            {selectedColor?.name === color.name && (
-                                                <Check size={14} className="absolute top-1 right-1 text-black" />
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        )}
 
                         {/* Size Selection */}
                         <div>
