@@ -7,16 +7,8 @@ import { LayoutDashboard, Home, Users, FileText, ShoppingCart, History, BarChart
 import { motion } from 'framer-motion';
 
 const tabs = [
-    { name: 'WMS Dashboard',     href: '/admin/inventory/wms-dashboard', icon: BarChart3      },
-    { name: 'Tồn kho SKU',       href: '/admin/inventory/stock',         icon: Home           },
-    { name: 'Phiếu kho',         href: '/admin/inventory/receipts',      icon: FileText       },
-    { name: 'Kiểm kê',           href: '/admin/inventory/stocktake',    icon: ClipboardList  },
-    { name: 'Lịch sử GD',         href: '/admin/inventory/transactions', icon: History        },
-    { name: 'Hoàn Hàng',          href: '/admin/inventory/returns',      icon: ArrowLeftRight },
-    { name: 'Vận đơn',            href: '/admin/inventory/logistics',   icon: Navigation     },
-    { name: 'Audit Log',         href: '/admin/inventory/audit-log',    icon: ShieldCheck    },
-    { name: 'Nhà cung cấp',      href: '/admin/inventory/suppliers',   icon: Users          },
-    { name: 'Đơn mua hàng',       href: '/admin/inventory/purchase-orders', icon: ShoppingCart },
+    { name: 'Bảng Điều Khiển WMS',     href: '/admin/inventory/wms-dashboard', icon: BarChart3      },
+    { name: 'Quản Lý Tồn Kho',       href: '/admin/inventory/stock',         icon: Home           },
 ];
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {
@@ -30,7 +22,7 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
                 role="tablist"
                 aria-label="Inventory navigation"
                 style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}
-                className="flex items-center gap-1 overflow-x-auto rounded-2xl border p-1.5 shadow-sm scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="w-fit inline-flex items-center gap-1 overflow-x-auto rounded-2xl border p-1.5 shadow-sm scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
                 {tabs.map((tab) => {
                     const isActive = pathname.startsWith(tab.href);
