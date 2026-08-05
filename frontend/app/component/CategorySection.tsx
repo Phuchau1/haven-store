@@ -173,7 +173,7 @@ export default function CategorySection() {
     return (
         <section className="py-6 px-4 container-torano mx-auto">
             <div 
-                className="relative w-full h-[350px] md:h-[500px] lg:h-[600px] overflow-hidden bg-black rounded-[24px] shadow-lg"
+                className="relative w-full h-[350px] md:h-[500px] lg:h-[750px] overflow-hidden bg-black rounded-[24px] shadow-lg"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onWheel={(e) => {
@@ -198,7 +198,7 @@ export default function CategorySection() {
                             <img 
                                 src={currentSlide.image} 
                                 alt={currentSlide.title} 
-                                className="w-full h-full object-cover object-top select-none pointer-events-none"
+                                className="w-full h-full object-cover object-[center_20%] select-none pointer-events-none"
                             />
                             <div className="absolute inset-0 bg-black/35" />
                         </div>
