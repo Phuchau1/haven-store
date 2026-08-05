@@ -39,10 +39,10 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         return (
             <Link
                 href={menu.link}
-                className="relative text-[15px] font-semibold tracking-wide text-gray-800 hover:text-[#C9A227] transition-colors group px-3 py-1 whitespace-nowrap"
+                className="relative text-[17px] font-bold tracking-wide text-gray-900 hover:text-[#C9A227] transition-colors group px-4 py-1 whitespace-nowrap uppercase"
             >
                 {menu.title}
-                <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#C9A227] scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
         );
     }
@@ -55,13 +55,13 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         >
             <Link
                 href={menu.link}
-                className={`relative flex items-center gap-1 text-[15px] font-semibold tracking-wide transition-colors px-3 py-1 whitespace-nowrap group ${open ? 'text-[#C9A227]' : 'text-gray-800 hover:text-[#C9A227]'}`}
+                className={`relative flex items-center gap-1 text-[17px] font-bold tracking-wide transition-colors px-4 py-1 whitespace-nowrap group uppercase ${open ? 'text-[#C9A227]' : 'text-gray-900 hover:text-[#C9A227]'}`}
             >
                 {menu.title}
                 <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown size={14} />
+                    <ChevronDown size={15} />
                 </motion.span>
-                <span className={`absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] transition-transform duration-300 ${open ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+                <span className={`absolute bottom-0 left-2 right-2 h-[2px] bg-[#C9A227] transition-transform duration-300 ${open ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </Link>
 
             <AnimatePresence>
@@ -223,38 +223,37 @@ export default function Header() {
             {/* Main Header */}
             <header
                 className={`sticky top-0 z-50 transition-all duration-500 ${isScrolled
-                    ? 'bg-white/95 backdrop-blur-[12px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] border-b border-gray-100'
-                    : 'bg-white/70 backdrop-blur-[8px] border-b border-transparent'
+                    ? 'bg-white/98 backdrop-blur-[12px] shadow-[0_4px_24px_rgba(0,0,0,0.10)] border-b border-gray-200'
+                    : 'bg-white border-b border-gray-100'
                     }`}
             >
                 <div className="container-torano">
-                    <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-16' : 'h-20 md:h-24'}`}>
+                    <div className="grid grid-cols-3 items-center h-20">
 
-                        {/* Mobile menu button */}
-                        <button
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="lg:hidden p-2 hover:bg-gray-50 rounded-xl transition-all"
-                            aria-label="Menu"
-                        >
-                            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                        </button>
+                        {/* Left: Logo + Mobile button */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                className="lg:hidden p-2 hover:bg-gray-50 rounded-xl transition-all"
+                                aria-label="Menu"
+                            >
+                                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                            </button>
+                            <Link href="/" className="flex items-center h-16 py-2 overflow-visible">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src="/logo-new.png" alt="HAVEN" className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" />
+                            </Link>
+                        </div>
 
-                        {/* Logo */}
-                        <Link href="/" className="flex items-center justify-center h-full py-1.5 overflow-visible">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/logo-new.png" alt="HAVEN" className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" />
-                        </Link>
-
-                        {/* Desktop Navigation */}
-                        <nav className="hidden lg:flex items-center gap-4">
-                            {/* Dynamic menus */}
+                        {/* Center: Desktop Navigation */}
+                        <nav className="hidden lg:flex items-center justify-center gap-1">
                             {navMenus.map(menu => (
                                 <DesktopMenuItem key={menu.id} menu={menu} />
                             ))}
                         </nav>
 
-                        {/* Actions */}
-                        <div className="flex items-center gap-1 lg:gap-2">
+                        {/* Right: Actions */}
+                        <div className="flex items-center justify-end gap-1 lg:gap-2">
                             {/* Search */}
                             <button
                                 onClick={() => setIsSearchOpen(!isSearchOpen)}
