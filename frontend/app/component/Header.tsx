@@ -236,8 +236,17 @@ export default function Header() {
                 Miễn phí vận chuyển cho đơn hàng từ 500.000đ 🚚
             </div>
 
+            {/* Hover trigger zone at the very top of viewport when header is hidden */}
+            {!isVisible && (
+                <div 
+                    className="fixed top-0 left-0 right-0 h-4 z-50 pointer-events-auto"
+                    onMouseEnter={() => setIsVisible(true)}
+                />
+            )}
+
             {/* Main Header */}
             <header
+                onMouseEnter={() => setIsVisible(true)}
                 className={`sticky top-0 z-50 transition-all duration-300 transform ${
                     isVisible ? 'translate-y-0' : '-translate-y-full'
                 } ${isScrolled
