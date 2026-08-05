@@ -311,9 +311,40 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         if (next && availableCoupons.length === 0) {
             setCouponsLoading(true);
             try {
+                // Fetch public coupons
                 const res = await fetch('/api/coupons/available');
                 const data = await res.json();
-                if (data.success) setAvailableCoupons(data.coupons);
+                let combinedCoupons: any[] = [];
+                if (data.success) {
+                    combinedCoupons = [...data.coupons];
+                }
+
+                // If user is logged in, fetch their personal won coupons
+                if (user) {
+                    const token = localStorage.getItem('token') || '';
+                    const resMy = await fetch('/api/coupons/my-coupons', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const dataMy = await resMy.json();
+                    if (dataMy.success && dataMy.coupons) {
+                        const now = new Date();
+                        const activeMyCoupons = dataMy.coupons
+                            .filter((c: any) => !c.is_used && new Date(c.expires_at) >= now)
+                            .map((c: any) => ({
+                                id: c._id,
+                                code: c.coupon_code,
+                                discount_type: c.type,
+                                discount_value: c.discount_value,
+                                start_date: new Date(c.createdAt).toISOString().slice(0, 10),
+                                end_date: new Date(c.expires_at).toISOString().slice(0, 10),
+                                name: c.reward_name,
+                                isPersonal: true
+                            }));
+                        combinedCoupons = [...activeMyCoupons, ...combinedCoupons];
+                    }
+                }
+
+                setAvailableCoupons(combinedCoupons);
             } catch { /* ignore */ }
             setCouponsLoading(false);
         }
@@ -786,10 +817,13 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                                     }
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 flex-wrap">
                                                         <span className="text-sm font-bold text-gray-800 font-mono tracking-wider">{coupon.code}</span>
+                                                        {(coupon as any).isPersonal && (
+                                                            <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-bold">Vòng quay 🪄</span>
+                                                        )}
                                                         {isApplied && (
-                                                            <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Đang dùng</span>
+                                                            <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold">Đang dùng</span>
                                                         )}
                                                     </div>
                                                     <p className="text-xs text-gray-500 mt-0.5">

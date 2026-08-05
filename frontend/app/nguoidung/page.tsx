@@ -1259,6 +1259,114 @@ export default function NguoiDungPage() {
                                 </div>
                             )}
 
+                            {activeMainTab === 'vouchers' && (
+                                <motion.div
+                                    key="vouchers"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8"
+                                >
+                                    <div className="flex items-center gap-3 mb-8">
+                                        <div className="p-3 bg-amber-50 text-[#C9A227] rounded-2xl">
+                                            <Ticket size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-slate-900 font-serif">Ví Voucher của tôi</h3>
+                                            <p className="text-xs text-slate-400 mt-1">Các voucher cá nhân bạn đã quay trúng thưởng từ Vòng quay may mắn.</p>
+                                        </div>
+                                    </div>
+
+                                    {loadingCoupons ? (
+                                        <div className="space-y-4">
+                                            {[1, 2].map(i => (
+                                                <div key={i} className="h-28 bg-slate-50 rounded-2xl animate-pulse" />
+                                            ))}
+                                        </div>
+                                    ) : myCoupons.length === 0 ? (
+                                        <div className="text-center py-16 border border-dashed border-slate-200 rounded-2xl bg-slate-50">
+                                            <Ticket size={48} className="mx-auto text-slate-300 mb-4 animate-bounce" />
+                                            <p className="text-slate-500 font-medium">Bạn chưa sở hữu voucher nào.</p>
+                                            <p className="text-xs text-slate-400 mt-1">Hãy tham gia Vòng quay may mắn để trúng các voucher hấp dẫn!</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {myCoupons.map((coupon: any) => {
+                                                const isExpired = new Date(coupon.expires_at) < new Date();
+                                                const isUsed = coupon.is_used;
+                                                const isInactive = isExpired || isUsed;
+                                                
+                                                return (
+                                                    <div 
+                                                        key={coupon._id}
+                                                        className={`relative flex border rounded-2xl overflow-hidden transition-all duration-300 bg-white ${
+                                                            isInactive 
+                                                                ? 'border-slate-100 opacity-60' 
+                                                                : 'border-slate-150 hover:shadow-md hover:border-slate-200'
+                                                        }`}
+                                                    >
+                                                        {/* Ticket punch effect */}
+                                                        <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-slate-50 border-r border-slate-150 rounded-full z-10" />
+                                                        <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-slate-50 border-l border-slate-150 rounded-full z-10" />
+
+                                                        {/* Left column: value */}
+                                                        <div className={`w-1/3 flex flex-col justify-center items-center p-3 border-r border-dashed ${
+                                                            isInactive ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-slate-50 border-slate-200'
+                                                        }`}>
+                                                            {coupon.type === 'percent' ? (
+                                                                <span className="text-2xl font-black font-sans text-amber-600">{coupon.discount_value}%</span>
+                                                            ) : coupon.type === 'shipping' ? (
+                                                                <span className="text-xs font-black uppercase text-teal-600 tracking-wider">FREESHIP</span>
+                                                            ) : (
+                                                                <span className="text-xl font-black font-sans text-indigo-600">-{coupon.discount_value / 1000}K</span>
+                                                            )}
+                                                            <span className="text-[9px] uppercase tracking-wider text-slate-400 mt-1 font-bold">Voucher</span>
+                                                        </div>
+
+                                                        {/* Right column: info & Copy */}
+                                                        <div className="w-2/3 p-4 flex flex-col justify-between">
+                                                            <div>
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <span className="text-xs font-bold text-slate-800 line-clamp-1">{coupon.reward_name}</span>
+                                                                    {isInactive && (
+                                                                        <span className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded font-black ${
+                                                                            isUsed ? 'bg-slate-200 text-slate-500' : 'bg-rose-100 text-rose-600'
+                                                                        }`}>
+                                                                            {isUsed ? 'Đã dùng' : 'Hết hạn'}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 mt-2 bg-slate-50 border border-slate-100 px-2 py-1.5 rounded-lg w-fit">
+                                                                    <span className="text-[10px] font-mono font-bold text-slate-700 select-all">{coupon.coupon_code}</span>
+                                                                    {!isInactive && (
+                                                                        <button 
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                navigator.clipboard.writeText(coupon.coupon_code);
+                                                                                setCopiedCode(coupon.coupon_code);
+                                                                                showToast('Đã sao chép mã giảm giá thành công!', 'success', 'Sao chép');
+                                                                                setTimeout(() => setCopiedCode(null), 2000);
+                                                                            }}
+                                                                            className="text-slate-400 hover:text-[#C9A227] transition-colors"
+                                                                            title="Sao chép mã"
+                                                                        >
+                                                                            {copiedCode === coupon.coupon_code ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-[9px] text-slate-400 mt-3 font-semibold">
+                                                                Hạn dùng: {new Date(coupon.expires_at).toLocaleDateString('vi-VN')} {new Date(coupon.expires_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
+
                             {activeMainTab === 'settings' && (
                                 <motion.div
                                     key="settings"
