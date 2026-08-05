@@ -39,7 +39,7 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         return (
             <Link
                 href={menu.link}
-                className="relative text-[16px] font-semibold tracking-wide text-gray-800 hover:text-[#C9A227] transition-colors group px-3 py-1 whitespace-nowrap"
+                className="relative text-[18px] font-semibold tracking-wide text-gray-800 hover:text-[#C9A227] transition-colors group px-4 py-1 whitespace-nowrap"
             >
                 {menu.title}
                 <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
@@ -55,11 +55,11 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         >
             <Link
                 href={menu.link}
-                className={`relative flex items-center gap-1 text-[16px] font-semibold tracking-wide transition-colors px-3 py-1 whitespace-nowrap group ${open ? 'text-[#C9A227]' : 'text-gray-800 hover:text-[#C9A227]'}`}
+                className={`relative flex items-center gap-1 text-[18px] font-semibold tracking-wide transition-colors px-4 py-1 whitespace-nowrap group ${open ? 'text-[#C9A227]' : 'text-gray-800 hover:text-[#C9A227]'}`}
             >
                 {menu.title}
                 <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown size={15} />
+                    <ChevronDown size={16} />
                 </motion.span>
                 <span className={`absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] transition-transform duration-300 ${open ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </Link>
@@ -225,7 +225,7 @@ export default function Header() {
                 {/* Main nav bar */}
                 <div className={`transition-all duration-300 ${isScrolled ? 'bg-white/98 backdrop-blur-[12px]' : 'bg-white'} border-b border-gray-100`}>
                 <div className="container-torano">
-                    <div className="grid grid-cols-3 items-center h-[88px]">
+                    <div className="grid grid-cols-3 items-center h-[100px]">
 
                         {/* Left: Logo + Mobile button */}
                         <div className="flex items-center gap-2">
@@ -236,9 +236,9 @@ export default function Header() {
                             >
                                 {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                             </button>
-                            <Link href="/" className="flex items-center h-20 py-1 overflow-visible">
+                            <Link href="/" className="flex items-center h-24 py-1 overflow-visible">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/logo-new.png" alt="HAVEN" className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" style={{maxHeight: '56px'}} />
+                                <img src="/logo-new.png" alt="HAVEN" className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" style={{maxHeight: '68px'}} />
                             </Link>
                         </div>
 
