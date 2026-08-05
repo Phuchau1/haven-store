@@ -1,10 +1,12 @@
 'use client';
-// ===== HEADER COMPONENT — Dynamic category nav with subcategory dropdowns =====
-import React, { useState, useEffect, useRef } from 'react';
+// ===== SMART HEADER — Hide on scroll down, show on scroll up =====
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-// Image unused
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Search, Menu, X, Heart, User, LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
+import {
+    ShoppingBag, Search, Menu, X, Heart, User,
+    LayoutDashboard, LogOut, ChevronDown,
+} from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
 import { useAuth } from '@/app/component/AuthContext';
 import { useFavoritesStore } from '@/app/store/useFavoritesStore';
@@ -185,71 +187,132 @@ export default function Header() {
     const { favorites } = useFavoritesStore();
     const router = useRouter();
 
-    const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [navMenus, setNavMenus] = useState<MenuNode[]>([]);
 
-    // Fetch menus
+    // ── Smart scroll state ──────────────────────────────────────────────────
+    const [isScrolled, setIsScrolled] = useState(false);   // nền mờ khi cuộn
+    const [isVisible, setIsVisible] = useState(true);       // ẩn/hiện header
+
+    const lastScrollY = useRef(0);
+    const rafId = useRef<number | null>(null);
+    const SCROLL_THRESHOLD = 80; // kích hoạt sau 80px đầu
+    const SCROLL_DELTA = 4;      // độ nhạy: cần cuộn ít nhất 4px
+
+    const handleScroll = useCallback(() => {
+        if (rafId.current !== null) return; // throttle bằng rAF
+        rafId.current = requestAnimationFrame(() => {
+            const currentY = window.scrollY;
+            const delta = currentY - lastScrollY.current;
+
+            // Luôn hiện khi ở đầu trang
+            if (currentY <= SCROLL_THRESHOLD) {
+                setIsVisible(true);
+                setIsScrolled(false);
+            } else {
+                setIsScrolled(true);
+                if (delta > SCROLL_DELTA) {
+                    // Cuộn xuống → ẩn header
+                    setIsVisible(false);
+                    // Đóng mobile menu khi ẩn
+                    setIsMobileMenuOpen(false);
+                } else if (delta < -SCROLL_DELTA) {
+                    // Cuộn lên → hiện header
+                    setIsVisible(true);
+                }
+            }
+
+            lastScrollY.current = currentY;
+            rafId.current = null;
+        });
+    }, []);
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+        };
+    }, [handleScroll]);
+
+    // ── Fetch menus ────────────────────────────────────────────────────────
     useEffect(() => {
         const fetchMenus = async () => {
             try {
                 const res = await fetch('/api/menus?active=true');
                 const data = await res.json();
-                if (data.success && data.menus) {
-                    setNavMenus(data.menus);
-                }
+                if (data.success && data.menus) setNavMenus(data.menus);
             } catch {
-                // Fallback to empty — nav still works
+                // Fallback — nav still works
             }
         };
         fetchMenus();
     }, []);
 
-    // Scroll handler
-    useEffect(() => {
-        const handleScroll = () => setIsScrolled(window.scrollY > 50);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
     return (
         <>
-            {/* Sticky Header — bao gồm cả top bar để không bao giờ mất khi scroll */}
-            <header className="sticky top-0 z-50 shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
-                {/* Top bar */}
+            {/* ── Fixed smart header ────────────────────────────────────────── */}
+            <header
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    zIndex: 9999,
+                    transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+                    transition: 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, box-shadow 0.3s ease',
+                    willChange: 'transform',
+                    backgroundColor: isScrolled ? 'rgba(255,255,255,0.97)' : '#ffffff',
+                    backdropFilter: isScrolled ? 'blur(12px)' : 'none',
+                    WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'none',
+                    boxShadow: isScrolled
+                        ? '0 4px 24px rgba(0,0,0,0.09)'
+                        : '0 1px 0 rgba(0,0,0,0.06)',
+                }}
+            >
+                {/* Top announcement bar */}
                 <div className="bg-black text-white text-center py-2.5 text-xs tracking-[3px] uppercase font-light">
                     Miễn phí vận chuyển cho đơn hàng từ 500.000đ 🚚
                 </div>
 
-                {/* Main nav bar */}
-                <div className={`transition-all duration-300 ${isScrolled ? 'bg-white/98 backdrop-blur-[12px]' : 'bg-white'} border-b border-gray-100`}>
+                {/* Main nav */}
                 <div className="container-torano">
-                    <div className="grid grid-cols-3 items-center h-[100px]">
-
-                        {/* Left: Logo + Mobile button */}
+                    <div
+                        className="grid items-center"
+                        style={{
+                            gridTemplateColumns: '1fr auto 1fr',
+                            height: 'var(--header-nav-height, 80px)',
+                            transition: 'height 0.3s ease',
+                        }}
+                    >
+                        {/* ── Left: Logo + Mobile button ─────────────────── */}
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="lg:hidden p-2 hover:bg-gray-50 rounded-xl transition-all"
+                                className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-all"
                                 aria-label="Menu"
                             >
                                 {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                             </button>
-                            <Link href="/" className="flex items-center h-24 py-1 overflow-visible">
+                            <Link href="/" className="flex items-center overflow-visible" style={{ height: 'var(--header-logo-height, 72px)', padding: '6px 0' }}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/logo-new.png" alt="HAVEN" className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm" style={{maxHeight: '68px'}} />
+                                <img
+                                    src="/logo-new.png"
+                                    alt="HAVEN"
+                                    className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm"
+                                />
                             </Link>
                         </div>
 
-                        {/* Center: Desktop Navigation */}
+                        {/* ── Center: Desktop Navigation ────────────────── */}
                         <nav className="hidden lg:flex items-center justify-center gap-1">
                             {navMenus.map(menu => (
                                 <DesktopMenuItem key={menu.id} menu={menu} />
                             ))}
                         </nav>
 
-                        {/* Right: Actions */}
+                        {/* ── Right: Action Icons ───────────────────────── */}
                         <div className="flex items-center justify-end gap-1 lg:gap-2">
                             {/* Search */}
                             <button
@@ -257,7 +320,7 @@ export default function Header() {
                                 className={`p-2 rounded-full transition-all duration-200 ${isSearchOpen ? 'bg-[#111111] text-white' : 'hover:bg-gray-100 text-black hover:text-[#C9A227]'}`}
                                 aria-label="Tìm kiếm"
                             >
-                                <Search size={20} strokeWidth={2} />
+                                <Search size={21} strokeWidth={2} />
                             </button>
 
                             {/* Wishlist */}
@@ -338,17 +401,16 @@ export default function Header() {
                         </div>
                     </div>
                 </div>
-                </div>
 
-                {/* Search Bar */}
+                {/* ── Search Bar ─────────────────────────────────────────── */}
                 <AnimatePresence>
                     {isSearchOpen && (
                         <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="border-t border-gray-100 overflow-hidden"
+                            transition={{ duration: 0.28 }}
+                            className="border-t border-gray-100 overflow-hidden bg-white"
                         >
                             <div className="max-w-2xl mx-auto px-4 py-4">
                                 <div className="relative">
@@ -371,7 +433,7 @@ export default function Header() {
                     )}
                 </AnimatePresence>
 
-                {/* Mobile Menu */}
+                {/* ── Mobile Menu ───────────────────────────────────────── */}
                 <AnimatePresence>
                     {isMobileMenuOpen && (
                         <motion.div
@@ -382,7 +444,6 @@ export default function Header() {
                             className="lg:hidden border-t border-gray-100 overflow-hidden bg-white"
                         >
                             <nav className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-                                {/* Dynamic menus */}
                                 {navMenus.map(menu => (
                                     <MobileMenuItem key={menu.id} menu={menu} onClose={() => setIsMobileMenuOpen(false)} />
                                 ))}
@@ -391,6 +452,12 @@ export default function Header() {
                     )}
                 </AnimatePresence>
             </header>
+
+            {/* ── Spacer: chừa khoảng trống đúng bằng chiều cao header ── */}
+            <div
+                aria-hidden="true"
+                style={{ height: 'var(--header-total-height, 120px)', flexShrink: 0 }}
+            />
         </>
     );
 }

@@ -67,6 +67,12 @@
 
 /* ===== CSS CUSTOM PROPERTIES — ADMIN DESIGN TOKENS ===== */
 :root {
+  /* === Header height CSS variables (desktop first) === */
+  --header-topbar-height: 40px;   /* black announcement bar */
+  --header-nav-height: 80px;      /* main nav bar */
+  --header-logo-height: 68px;     /* logo max height */
+  --header-total-height: 120px;   /* topbar + nav combined */
+
   /* === Shop/Public Site (Premium Fashion) === */
   --foreground: #222222;
   --background: #ffffff;
@@ -81,6 +87,25 @@
   --new-green: #2E7D32;
   --font-display: 'Be Vietnam Pro', 'Inter', sans-serif;
   --font-body: 'Be Vietnam Pro', 'Inter', sans-serif;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  :root {
+    --header-nav-height: 70px;
+    --header-logo-height: 56px;
+    --header-total-height: 110px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  :root {
+    --header-nav-height: 60px;
+    --header-logo-height: 48px;
+    --header-total-height: 100px;
+  }
+}
 
   /* === Admin Light Mode (Inspired by Yuu Shop Admin) === */
   --adm-bg: #F4F5F7;
