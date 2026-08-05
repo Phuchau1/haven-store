@@ -203,21 +203,27 @@ export default function CategorySection() {
                             <div className="absolute inset-0 bg-black/35" />
                         </div>
 
-                        {/* Content Overlay */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-8">
+                        {/* Content Overlay - Left-aligned to avoid overlapping center/right visual elements */}
+                        <div className="absolute inset-0 flex flex-col items-start justify-center text-left px-8 md:px-16 lg:px-24">
                             <motion.div
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3, duration: 0.6 }}
-                                className="max-w-4xl space-y-4 md:space-y-6"
+                                className="max-w-md md:max-w-lg lg:max-w-2xl space-y-4 md:space-y-6"
                             >
                                 {/* Brand Header */}
-                                <span className="text-white text-xs md:text-sm tracking-[0.3em] font-light uppercase block">
+                                <span 
+                                    className="text-white text-xs md:text-sm tracking-[0.3em] font-light uppercase block"
+                                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                                >
                                     HAVEN JOURNAL
                                 </span>
 
                                 {/* Main Title */}
-                                <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white tracking-wide uppercase font-serif leading-tight">
+                                <h2 
+                                    className="text-3xl md:text-5xl lg:text-6xl font-light text-white tracking-wide uppercase font-serif leading-[1.2]"
+                                    style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}
+                                >
                                     {currentSlide.title.split('/').map((line, idx) => (
                                         <span key={idx} className="block first:font-normal first:tracking-wider">
                                             {line.trim()}
@@ -229,7 +235,8 @@ export default function CategorySection() {
                                 <div className="pt-4 md:pt-6">
                                     <Link 
                                         href={currentSlide.link}
-                                        className="inline-block px-6 py-3 md:px-8 md:py-3.5 border border-white text-white text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-300"
+                                        className="inline-block px-6 py-3 md:px-8 md:py-3.5 border border-white text-white text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-300 shadow-md"
+                                        style={{ textShadow: 'none' }}
                                     >
                                         Khám phá bộ sưu tập
                                     </Link>
