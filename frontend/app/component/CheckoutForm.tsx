@@ -330,16 +330,23 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                             const now = new Date();
                             const activeMyCoupons = dataMy.coupons
                                 .filter((c: any) => !c.is_used && new Date(c.expires_at) >= now)
-                                .map((c: any) => ({
-                                    id: c._id,
-                                    code: c.coupon_code,
-                                    discount_type: c.type,
-                                    discount_value: c.discount_value,
-                                    start_date: new Date(c.createdAt).toISOString().slice(0, 10),
-                                    end_date: new Date(c.expires_at).toISOString().slice(0, 10),
-                                    name: c.reward_name,
-                                    isPersonal: true
-                                }));
+                                .map((c: any) => {
+                                    const valueText = c.type === 'percent' 
+                                        ? `${c.discount_value}%` 
+                                        : c.type === 'shipping' 
+                                            ? 'Miễn phí vận chuyển' 
+                                            : `${c.discount_value.toLocaleString('vi-VN')}đ`;
+                                    return {
+                                        id: c.id,
+                                        code: c.code,
+                                        discount_type: c.type,
+                                        discount_value: c.discount_value,
+                                        start_date: new Date().toISOString().slice(0, 10),
+                                        end_date: new Date(c.expires_at).toISOString().slice(0, 10),
+                                        name: `Voucher Vòng quay - Giảm ${valueText}`,
+                                        isPersonal: true
+                                    };
+                                });
                             combinedCoupons = [...activeMyCoupons, ...combinedCoupons];
                         }
                     } catch (err) {

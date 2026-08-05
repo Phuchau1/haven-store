@@ -1337,20 +1337,20 @@ export default function NguoiDungPage() {
                                                                     )}
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5 mt-2 bg-slate-50 border border-slate-100 px-2 py-1.5 rounded-lg w-fit">
-                                                                    <span className="text-[10px] font-mono font-bold text-slate-700 select-all">{coupon.coupon_code}</span>
+                                                                    <span className="text-[10px] font-mono font-bold text-slate-700 select-all">{coupon.code}</span>
                                                                     {!isInactive && (
                                                                         <button 
                                                                             type="button"
                                                                             onClick={() => {
-                                                                                navigator.clipboard.writeText(coupon.coupon_code);
-                                                                                setCopiedCode(coupon.coupon_code);
+                                                                                navigator.clipboard.writeText(coupon.code);
+                                                                                setCopiedCode(coupon.code);
                                                                                 showToast('Đã sao chép mã giảm giá thành công!', 'success', 'Sao chép');
                                                                                 setTimeout(() => setCopiedCode(null), 2000);
                                                                             }}
                                                                             className="text-slate-400 hover:text-[#C9A227] transition-colors"
                                                                             title="Sao chép mã"
                                                                         >
-                                                                            {copiedCode === coupon.coupon_code ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                                                                            {copiedCode === coupon.code ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
                                                                         </button>
                                                                     )}
                                                                 </div>
