@@ -34,7 +34,7 @@ const sortOptions = [
     { value: 'price-desc'as const, label: 'Giá: Cao → Thấp' },
 ];
 
-const MAX_PRICE = 100000000;
+const MAX_PRICE = 10000000;
 
 function formatPrice(price: number) {
     if (price >= 1000000) return (price / 1000000).toFixed(price % 1000000 === 0 ? 0 : 1) + 'tr';
@@ -237,8 +237,8 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                         { label: 'Dưới 300k', max: 300000 },
                         { label: 'Dưới 500k', max: 500000 },
                         { label: 'Dưới 1tr',  max: 1000000 },
+                        { label: 'Dưới 2tr',  max: 2000000 },
                         { label: 'Dưới 5tr',  max: 5000000 },
-                        { label: 'Dưới 20tr', max: 20000000 },
                         { label: 'Tất cả',    max: MAX_PRICE },
                     ].map(({ label, max }) => {
                         const active = priceRange[0] === 0 && priceRange[1] === max;
@@ -326,7 +326,7 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                     <div className="flex-1">
                         <label className="block text-[10px] text-gray-400 mb-1">Từ (triệu đ)</label>
                         <input
-                            type="number" min={0} max={100} step={0.5}
+                            type="number" min={0} max={10} step={0.1}
                             value={Math.round(priceRange[0] / 100000) / 10}
                             onChange={e => {
                                 const trieuVal = Math.max(0, Number(e.target.value));
@@ -342,7 +342,7 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                     <div className="flex-1">
                         <label className="block text-[10px] text-gray-400 mb-1">Đến (triệu đ)</label>
                         <input
-                            type="number" min={0} max={100} step={0.5}
+                            type="number" min={0} max={10} step={0.1}
                             value={Math.round(priceRange[1] / 100000) / 10}
                             onChange={e => {
                                 const trieuVal = Math.max(0, Number(e.target.value));
@@ -351,11 +351,11 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                                 handlePriceChange([priceRange[0], val]);
                             }}
                             className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-black transition-colors"
-                            placeholder="100"
+                            placeholder="10"
                         />
                     </div>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1 text-right">Nhập số triệu, ví dụ: 20 = 20 triệu đ</p>
+                <p className="text-[10px] text-gray-400 mt-1 text-right">Nhập số triệu, ví dụ: 5 = 5 triệu đ</p>
             </section>
 
             {/* ── Nút xóa bộ lọc ───────────────────────── */}
