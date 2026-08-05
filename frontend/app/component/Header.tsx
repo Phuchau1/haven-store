@@ -186,6 +186,8 @@ export default function Header() {
     const router = useRouter();
 
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
+    const lastScrollY = useRef(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [navMenus, setNavMenus] = useState<MenuNode[]>([]);
@@ -208,8 +210,22 @@ export default function Header() {
 
     // Scroll handler
     useEffect(() => {
-        const handleScroll = () => setIsScrolled(window.scrollY > 50);
-        window.addEventListener('scroll', handleScroll);
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            setIsScrolled(currentScrollY > 50);
+
+            // Hide header on scroll down, show on scroll up
+            if (currentScrollY < 80) {
+                setIsVisible(true);
+            } else if (currentScrollY > lastScrollY.current) {
+                setIsVisible(false); // scrolling down
+            } else {
+                setIsVisible(true); // scrolling up
+            }
+            lastScrollY.current = currentScrollY;
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -222,7 +238,9 @@ export default function Header() {
 
             {/* Main Header */}
             <header
-                className={`sticky top-0 z-50 transition-all duration-500 ${isScrolled
+                className={`sticky top-0 z-50 transition-all duration-300 transform ${
+                    isVisible ? 'translate-y-0' : '-translate-y-full'
+                } ${isScrolled
                     ? 'bg-white/95 backdrop-blur-[12px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] border-b border-gray-100'
                     : 'bg-white/70 backdrop-blur-[8px] border-b border-transparent'
                     }`}
