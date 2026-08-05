@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 interface Banner {
     id: string;
@@ -44,7 +44,19 @@ export default function CategorySection() {
     const [loading, setLoading] = useState(true);
     const [direction, setDirection] = useState<'up' | 'down'>('up'); // 'up' = bottom to top, 'down' = top to bottom
     const [isHovered, setIsHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         const fetchMiddleBanners = async () => {
@@ -66,10 +78,15 @@ export default function CategorySection() {
         fetchMiddleBanners();
     }, []);
 
-    // Autoplay logic
+    // Autoplay logic - Only auto slide on Mobile, Laptop/Desktop uses interactive scroll
     useEffect(() => {
-        if (loading || slides.length <= 1 || isHovered) {
-            if (timerRef.current) clearInterval(timerRef.current);
+        if (loading || slides.length <= 1) return;
+
+        if (!isMobile || isHovered) {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
             return;
         }
 
@@ -79,9 +96,12 @@ export default function CategorySection() {
         }, 5000);
 
         return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
         };
-    }, [slides, loading, isHovered]);
+    }, [slides, loading, isMobile, isHovered]);
 
     const handleNext = () => {
         setDirection('up');
@@ -93,17 +113,35 @@ export default function CategorySection() {
         setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
     };
 
+    const handleWheel = (e: React.WheelEvent) => {
+        if (wheelTimeoutRef.current) return;
+        
+        if (e.deltaY > 0) {
+            // Scroll down -> slide up (Next)
+            handleNext();
+        } else if (e.deltaY < 0) {
+            // Scroll up -> slide down (Prev)
+            handlePrev();
+        }
+
+        wheelTimeoutRef.current = setTimeout(() => {
+            wheelTimeoutRef.current = null;
+        }, 600); // 600ms transition lock
+    };
+
     if (loading) {
         return (
-            <section className="h-[450px] md:h-[600px] lg:h-[700px] w-full flex justify-center items-center bg-gray-50">
-                <Loader2 className="animate-spin text-gray-400" size={32} />
+            <section className="py-6 px-4 container-torano mx-auto">
+                <div className="h-[350px] md:h-[500px] lg:h-[600px] w-full flex justify-center items-center bg-slate-50 rounded-[24px] border border-slate-100">
+                    <Loader2 className="animate-spin text-slate-400" size={32} />
+                </div>
             </section>
         );
     }
 
     const currentSlide = slides[currentIndex];
 
-    // Variants for vertical slide transition from bottom to top
+    // Variants for vertical slide transition
     const slideVariants: any = {
         enter: (dir: 'up' | 'down') => ({
             y: dir === 'up' ? '100%' : '-100%',
@@ -133,110 +171,117 @@ export default function CategorySection() {
     };
 
     return (
-        <section 
-            className="relative w-full h-[450px] md:h-[650px] lg:h-[800px] overflow-hidden bg-black"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            <AnimatePresence initial={false} custom={direction}>
-                <motion.div
-                    key={currentIndex}
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    className="absolute inset-0 w-full h-full"
-                >
-                    {/* Background Image */}
-                    <div className="relative w-full h-full">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                            src={currentSlide.image} 
-                            alt={currentSlide.title} 
-                            className="w-full h-full object-cover object-center select-none pointer-events-none"
+        <section className="py-6 px-4 container-torano mx-auto">
+            <div 
+                className="relative w-full h-[350px] md:h-[500px] lg:h-[600px] overflow-hidden bg-black rounded-[24px] shadow-lg"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onWheel={(e) => {
+                    if (!isMobile) {
+                        handleWheel(e);
+                    }
+                }}
+            >
+                <AnimatePresence initial={false} custom={direction}>
+                    <motion.div
+                        key={currentIndex}
+                        custom={direction}
+                        variants={slideVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        className="absolute inset-0 w-full h-full"
+                    >
+                        {/* Background Image */}
+                        <div className="relative w-full h-full">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                                src={currentSlide.image} 
+                                alt={currentSlide.title} 
+                                className="w-full h-full object-cover object-center select-none pointer-events-none"
+                            />
+                            <div className="absolute inset-0 bg-black/35" />
+                        </div>
+
+                        {/* Content Overlay */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-8">
+                            <motion.div
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3, duration: 0.6 }}
+                                className="max-w-4xl space-y-4 md:space-y-6"
+                            >
+                                {/* Brand Header */}
+                                <span className="text-white text-xs md:text-sm tracking-[0.3em] font-light uppercase block">
+                                    HAVEN JOURNAL
+                                </span>
+
+                                {/* Main Title */}
+                                <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white tracking-wide uppercase font-serif leading-tight">
+                                    {currentSlide.title.split('/').map((line, idx) => (
+                                        <span key={idx} className="block first:font-normal first:tracking-wider">
+                                            {line.trim()}
+                                        </span>
+                                    ))}
+                                </h2>
+
+                                {/* Button */}
+                                <div className="pt-4 md:pt-6">
+                                    <Link 
+                                        href={currentSlide.link}
+                                        className="inline-block px-6 py-3 md:px-8 md:py-3.5 border border-white text-white text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-300"
+                                    >
+                                        Khám phá bộ sưu tập
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Vertical Navigation Indicators */}
+                <div className="absolute right-6 md:right-10 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-3">
+                    {slides.map((_, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => {
+                                setDirection(idx > currentIndex ? 'up' : 'down');
+                                setCurrentIndex(idx);
+                            }}
+                            className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300 ${
+                                idx === currentIndex 
+                                    ? 'bg-white scale-125 shadow-lg' 
+                                    : 'bg-white/40 hover:bg-white/70'
+                            }`}
+                            aria-label={`Slide ${idx + 1}`}
                         />
-                        <div className="absolute inset-0 bg-black/35" />
-                    </div>
+                    ))}
+                </div>
 
-                    {/* Content Overlay */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.6 }}
-                            className="max-w-4xl space-y-4 md:space-y-6"
-                        >
-                            {/* Brand Header */}
-                            <span className="text-white text-sm md:text-base tracking-[0.3em] font-light uppercase block">
-                                HAVEN JOURNAL
-                            </span>
-
-                            {/* Main Title (Elegant serif style) */}
-                            <h2 className="text-4xl md:text-6xl lg:text-7xl font-light text-white tracking-wide uppercase font-serif leading-tight">
-                                {currentSlide.title.split('/').map((line, idx) => (
-                                    <span key={idx} className="block first:font-normal first:tracking-wider">
-                                        {line.trim()}
-                                    </span>
-                                ))}
-                            </h2>
-
-                            {/* Subtitle / Button */}
-                            <div className="pt-6">
-                                <Link 
-                                    href={currentSlide.link}
-                                    className="inline-block px-8 py-3.5 border border-white text-white text-xs md:text-sm font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-300"
-                                >
-                                    Khám phá bộ sưu tập
-                                </Link>
-                            </div>
-                        </motion.div>
-                    </div>
-                </motion.div>
-            </AnimatePresence>
-
-            {/* Vertical Navigation Indicators */}
-            <div className="absolute right-6 md:right-10 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-3">
-                {slides.map((_, idx) => (
+                {/* Vertical Arrow Buttons */}
+                <div className="absolute left-6 md:left-10 bottom-6 md:bottom-10 z-20 flex flex-col gap-2">
                     <button
-                        key={idx}
-                        onClick={() => {
-                            setDirection(idx > currentIndex ? 'up' : 'down');
-                            setCurrentIndex(idx);
-                        }}
-                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                            idx === currentIndex 
-                                ? 'bg-white scale-125 shadow-lg' 
-                                : 'bg-white/40 hover:bg-white/70'
-                        }`}
-                        aria-label={`Slide ${idx + 1}`}
-                    />
-                ))}
-            </div>
+                        onClick={handlePrev}
+                        className="p-2 md:p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
+                        aria-label="Previous Slide"
+                    >
+                        <ChevronUp size={16} />
+                    </button>
+                    <button
+                        onClick={handleNext}
+                        className="p-2 md:p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
+                        aria-label="Next Slide"
+                    >
+                        <ChevronDown size={16} />
+                    </button>
+                </div>
 
-            {/* Vertical Arrow Buttons (Top Left / Right) */}
-            <div className="absolute left-6 md:left-10 bottom-6 md:bottom-10 z-20 flex flex-col gap-2">
-                <button
-                    onClick={handlePrev}
-                    className="p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
-                    aria-label="Previous Slide"
-                >
-                    <ChevronUp size={18} />
-                </button>
-                <button
-                    onClick={handleNext}
-                    className="p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
-                    aria-label="Next Slide"
-                >
-                    <ChevronDown size={18} />
-                </button>
-            </div>
-
-            {/* Slide Index Counter */}
-            <div className="absolute right-6 md:right-10 bottom-6 md:bottom-10 z-20 text-white font-mono text-sm tracking-widest select-none font-light">
-                <span className="text-white font-bold">{(currentIndex + 1).toString().padStart(2, '0')}</span>
-                <span className="text-white/40"> / </span>
-                <span>{slides.length.toString().padStart(2, '0')}</span>
+                {/* Slide Index Counter */}
+                <div className="absolute right-6 md:right-10 bottom-6 md:bottom-10 z-20 text-white font-mono text-xs md:text-sm tracking-widest select-none font-light">
+                    <span className="text-white font-bold">{(currentIndex + 1).toString().padStart(2, '0')}</span>
+                    <span className="text-white/40"> / </span>
+                    <span>{slides.length.toString().padStart(2, '0')}</span>
+                </div>
             </div>
         </section>
     );
