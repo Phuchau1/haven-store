@@ -219,18 +219,6 @@ export default function CategorySection() {
                                     HAVEN JOURNAL
                                 </span>
 
-                                {/* Main Title */}
-                                <h2 
-                                    className="text-3xl md:text-5xl lg:text-6xl font-light text-white tracking-wide uppercase font-serif leading-[1.2]"
-                                    style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}
-                                >
-                                    {currentSlide.title.split('/').map((line, idx) => (
-                                        <span key={idx} className="block first:font-normal first:tracking-wider">
-                                            {line.trim()}
-                                        </span>
-                                    ))}
-                                </h2>
-
                                 {/* Button */}
                                 <div className="pt-4 md:pt-6">
                                     <Link 
