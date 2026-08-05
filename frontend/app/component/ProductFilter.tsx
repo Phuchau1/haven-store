@@ -222,21 +222,16 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
             {/* ── Khoảng giá ───────────────────────────── */}
             <section>
-                <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400">
-                        Khoảng giá
-                    </h4>
-                    <span className="text-xs font-semibold text-black">
-                        {formatPrice(priceRange[0])} — {formatPrice(priceRange[1])}
-                    </span>
-                </div>
+                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400 mb-4">
+                    Khoảng giá
+                </h4>
 
                 {/* Dual Thumb Slider */}
-                <div className="px-1 space-y-3">
+                <div className="px-1 mb-4">
                     <div className="relative h-6 flex items-center">
-                        {/* Track */}
+                        {/* Track nền */}
                         <div className="absolute h-[4px] w-full bg-gray-200 rounded-full" />
-                        {/* Active segment */}
+                        {/* Đoạn active */}
                         <div
                             className="absolute h-[4px] bg-black rounded-full"
                             style={{
@@ -247,60 +242,105 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                         {/* Min thumb */}
                         <input
                             type="range"
-                            min={0} max={MAX_PRICE} step={50000}
+                            min={0} max={MAX_PRICE} step={100000}
                             value={priceRange[0]}
                             onChange={e => {
-                                const val = Math.min(Number(e.target.value), priceRange[1] - 50000);
+                                const val = Math.min(Number(e.target.value), priceRange[1] - 100000);
+                                setActiveThumb('min');
                                 handlePriceChange([val, priceRange[1]]);
                             }}
                             onMouseDown={() => setActiveThumb('min')}
                             onTouchStart={() => setActiveThumb('min')}
                             className={`absolute w-full h-1 appearance-none bg-transparent pointer-events-none
                                 [&::-webkit-slider-thumb]:pointer-events-auto
-                                [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:h-[18px]
+                                [&::-webkit-slider-thumb]:w-[20px] [&::-webkit-slider-thumb]:h-[20px]
                                 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none
                                 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2
                                 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md
-                                [&::-webkit-slider-thumb]:cursor-pointer
-                                [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-[18px]
-                                [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:rounded-full
+                                [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform
+                                [&::-webkit-slider-thumb]:hover:scale-110
+                                [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-[20px]
+                                [&::-moz-range-thumb]:h-[20px] [&::-moz-range-thumb]:rounded-full
                                 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2
                                 [&::-moz-range-thumb]:border-black [&::-moz-range-thumb]:shadow-md
                                 ${activeThumb === 'min' ? 'z-20' : 'z-10'}`}
                             aria-label="Giá tối thiểu"
                         />
-                        {/* Max thumb */}
+                        {/* Max thumb — mặc định z-20 để dễ kéo */}
                         <input
                             type="range"
-                            min={0} max={MAX_PRICE} step={50000}
+                            min={0} max={MAX_PRICE} step={100000}
                             value={priceRange[1]}
                             onChange={e => {
-                                const val = Math.max(Number(e.target.value), priceRange[0] + 50000);
+                                const val = Math.max(Number(e.target.value), priceRange[0] + 100000);
+                                setActiveThumb('max');
                                 handlePriceChange([priceRange[0], val]);
                             }}
                             onMouseDown={() => setActiveThumb('max')}
                             onTouchStart={() => setActiveThumb('max')}
                             className={`absolute w-full h-1 appearance-none bg-transparent pointer-events-none
                                 [&::-webkit-slider-thumb]:pointer-events-auto
-                                [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:h-[18px]
+                                [&::-webkit-slider-thumb]:w-[20px] [&::-webkit-slider-thumb]:h-[20px]
                                 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none
                                 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2
                                 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md
-                                [&::-webkit-slider-thumb]:cursor-pointer
-                                [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-[18px]
-                                [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:rounded-full
+                                [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform
+                                [&::-webkit-slider-thumb]:hover:scale-110
+                                [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-[20px]
+                                [&::-moz-range-thumb]:h-[20px] [&::-moz-range-thumb]:rounded-full
                                 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2
                                 [&::-moz-range-thumb]:border-black [&::-moz-range-thumb]:shadow-md
                                 ${activeThumb === 'max' ? 'z-20' : 'z-10'}`}
                             aria-label="Giá tối đa"
                         />
                     </div>
-                    {/* Labels */}
-                    <div className="flex justify-between text-[10px] text-gray-400 font-light select-none">
+                    {/* Track labels */}
+                    <div className="flex justify-between text-[10px] text-gray-400 font-light select-none mt-2">
                         <span>0đ</span>
                         <span>{formatPrice(MAX_PRICE)}</span>
                     </div>
                 </div>
+
+                {/* ── Ô nhập giá trực tiếp ─────────────────── */}
+                <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                        <label className="block text-[10px] text-gray-400 mb-1 font-medium">Từ</label>
+                        <input
+                            type="number"
+                            min={0}
+                            max={MAX_PRICE}
+                            step={100000}
+                            value={priceRange[0]}
+                            onChange={e => {
+                                const val = Math.max(0, Math.min(Number(e.target.value), priceRange[1] - 100000));
+                                handlePriceChange([val, priceRange[1]]);
+                            }}
+                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-black transition-colors"
+                            placeholder="0"
+                        />
+                    </div>
+                    <span className="text-gray-300 mt-4">—</span>
+                    <div className="flex-1">
+                        <label className="block text-[10px] text-gray-400 mb-1 font-medium">Đến</label>
+                        <input
+                            type="number"
+                            min={0}
+                            max={MAX_PRICE}
+                            step={100000}
+                            value={priceRange[1]}
+                            onChange={e => {
+                                const val = Math.min(MAX_PRICE, Math.max(Number(e.target.value), priceRange[0] + 100000));
+                                handlePriceChange([priceRange[0], val]);
+                            }}
+                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-black transition-colors"
+                            placeholder={String(MAX_PRICE)}
+                        />
+                    </div>
+                </div>
+                {/* Hiện giá đã chọn */}
+                <p className="text-center text-xs font-semibold text-black mt-3">
+                    {formatPrice(priceRange[0])} — {formatPrice(priceRange[1])}
+                </p>
             </section>
 
             {/* ── Nút xóa bộ lọc ───────────────────────── */}
