@@ -143,7 +143,7 @@ export default function CheckoutPage() {
                                                     className="object-cover"
                                                     sizes="64px"
                                                 />
-                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-black text-white text-[10px] rounded-full flex items-center justify-center font-medium">
+                                                <div className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 bg-black text-white text-[9px] rounded-full flex items-center justify-center font-bold border border-white shadow-sm z-10">
                                                     {item.quantity}
                                                 </div>
                                             </div>
