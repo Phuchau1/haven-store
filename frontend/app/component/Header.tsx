@@ -39,10 +39,10 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         return (
             <Link
                 href={menu.link}
-                className="relative text-[17px] font-bold tracking-wide text-gray-900 hover:text-[#C9A227] transition-colors group px-4 py-1 whitespace-nowrap uppercase"
+                className="relative text-[14px] font-semibold tracking-wide text-gray-800 hover:text-[#C9A227] transition-colors group px-3 py-1 whitespace-nowrap"
             >
                 {menu.title}
-                <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#C9A227] scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
         );
     }
@@ -55,13 +55,13 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         >
             <Link
                 href={menu.link}
-                className={`relative flex items-center gap-1 text-[17px] font-bold tracking-wide transition-colors px-4 py-1 whitespace-nowrap group uppercase ${open ? 'text-[#C9A227]' : 'text-gray-900 hover:text-[#C9A227]'}`}
+                className={`relative flex items-center gap-1 text-[14px] font-semibold tracking-wide transition-colors px-3 py-1 whitespace-nowrap group ${open ? 'text-[#C9A227]' : 'text-gray-800 hover:text-[#C9A227]'}`}
             >
                 {menu.title}
                 <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown size={15} />
+                    <ChevronDown size={13} />
                 </motion.span>
-                <span className={`absolute bottom-0 left-2 right-2 h-[2px] bg-[#C9A227] transition-transform duration-300 ${open ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+                <span className={`absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] transition-transform duration-300 ${open ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </Link>
 
             <AnimatePresence>
@@ -215,20 +215,17 @@ export default function Header() {
 
     return (
         <>
-            {/* Top bar */}
-            <div className="bg-black text-white text-center py-2 text-xs tracking-[3px] uppercase font-light">
-                Miễn phí vận chuyển cho đơn hàng từ 500.000đ 🚚
-            </div>
+            {/* Sticky Header — bao gồm cả top bar để không bao giờ mất khi scroll */}
+            <header className="sticky top-0 z-50 shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
+                {/* Top bar */}
+                <div className="bg-black text-white text-center py-1.5 text-[11px] tracking-[3px] uppercase font-light">
+                    Miễn phí vận chuyển cho đơn hàng từ 500.000đ 🚚
+                </div>
 
-            {/* Main Header */}
-            <header
-                className={`sticky top-0 z-50 transition-all duration-500 ${isScrolled
-                    ? 'bg-white/98 backdrop-blur-[12px] shadow-[0_4px_24px_rgba(0,0,0,0.10)] border-b border-gray-200'
-                    : 'bg-white border-b border-gray-100'
-                    }`}
-            >
+                {/* Main nav bar */}
+                <div className={`transition-all duration-300 ${isScrolled ? 'bg-white/98 backdrop-blur-[12px]' : 'bg-white'} border-b border-gray-100`}>
                 <div className="container-torano">
-                    <div className="grid grid-cols-3 items-center h-20">
+                    <div className="grid grid-cols-3 items-center h-16">
 
                         {/* Left: Logo + Mobile button */}
                         <div className="flex items-center gap-2">
@@ -340,6 +337,7 @@ export default function Header() {
                             </motion.button>
                         </div>
                     </div>
+                </div>
                 </div>
 
                 {/* Search Bar */}
