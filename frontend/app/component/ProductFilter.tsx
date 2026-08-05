@@ -321,41 +321,6 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                     </div>
                 </div>
 
-                {/* Nhập triệu đồng trực tiếp */}
-                <div className="flex items-end gap-2">
-                    <div className="flex-1">
-                        <label className="block text-[10px] text-gray-400 mb-1">Từ (triệu đ)</label>
-                        <input
-                            type="number" min={0} max={10} step={0.1}
-                            value={Math.round(priceRange[0] / 100000) / 10}
-                            onChange={e => {
-                                const trieuVal = Math.max(0, Number(e.target.value));
-                                const dongVal = Math.round(trieuVal * 1000000);
-                                const val = Math.min(dongVal, priceRange[1] - 100000);
-                                handlePriceChange([val, priceRange[1]]);
-                            }}
-                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-black transition-colors"
-                            placeholder="0"
-                        />
-                    </div>
-                    <span className="text-gray-300 pb-2">—</span>
-                    <div className="flex-1">
-                        <label className="block text-[10px] text-gray-400 mb-1">Đến (triệu đ)</label>
-                        <input
-                            type="number" min={0} max={10} step={0.1}
-                            value={Math.round(priceRange[1] / 100000) / 10}
-                            onChange={e => {
-                                const trieuVal = Math.max(0, Number(e.target.value));
-                                const dongVal = Math.round(trieuVal * 1000000);
-                                const val = Math.min(MAX_PRICE, Math.max(dongVal, priceRange[0] + 100000));
-                                handlePriceChange([priceRange[0], val]);
-                            }}
-                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-black transition-colors"
-                            placeholder="10"
-                        />
-                    </div>
-                </div>
-                <p className="text-[10px] text-gray-400 mt-1 text-right">Nhập số triệu, ví dụ: 5 = 5 triệu đ</p>
             </section>
 
             {/* ── Nút xóa bộ lọc ───────────────────────── */}
