@@ -203,8 +203,8 @@ export default function CategorySection() {
                             <div className="absolute inset-0 bg-black/35" />
                         </div>
 
-                        {/* Content Overlay - Left-aligned to avoid overlapping center/right visual elements */}
-                        <div className="absolute inset-0 flex flex-col items-start justify-center text-left px-8 md:px-16 lg:px-24">
+                        {/* Content Overlay - Bottom-left aligned to avoid overlapping visual elements and cursive text */}
+                        <div className="absolute inset-0 flex flex-col items-start justify-end text-left px-8 md:px-16 lg:px-24 pb-12 md:pb-16 lg:pb-20">
                             <motion.div
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
