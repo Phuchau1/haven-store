@@ -198,13 +198,13 @@ export default function CategorySection() {
                             <img 
                                 src={currentSlide.image} 
                                 alt={currentSlide.title} 
-                                className="w-full h-full object-cover object-center select-none pointer-events-none"
+                                className="w-full h-full object-cover object-top select-none pointer-events-none"
                             />
                             <div className="absolute inset-0 bg-black/35" />
                         </div>
 
-                        {/* Content Overlay - Bottom-left aligned to avoid overlapping visual elements and cursive text */}
-                        <div className="absolute inset-0 flex flex-col items-start justify-end text-left px-8 md:px-16 lg:px-24 pb-12 md:pb-16 lg:pb-20">
+                        {/* Content Overlay - Centered overlay */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 md:px-16 lg:px-24">
                             <motion.div
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -271,12 +271,7 @@ export default function CategorySection() {
                     </button>
                 </div>
 
-                {/* Slide Index Counter */}
-                <div className="absolute right-6 md:right-10 bottom-6 md:bottom-10 z-20 text-white font-mono text-xs md:text-sm tracking-widest select-none font-light">
-                    <span className="text-white font-bold">{(currentIndex + 1).toString().padStart(2, '0')}</span>
-                    <span className="text-white/40"> / </span>
-                    <span>{slides.length.toString().padStart(2, '0')}</span>
-                </div>
+                {/* Slide Index Counter removed as requested */}
             </div>
         </section>
     );
