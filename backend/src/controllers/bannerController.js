@@ -13,8 +13,12 @@ const { BannerModel } = require('../models/Banner');
  */
 exports.getBanners = async (req, res, next) => {
     try {
-        // Chỉ lấy những banner có trạng thái 'active', sắp xếp mới nhất lên đầu
-        const banners = await BannerModel.find({ status: 'active' }).sort({ createdAt: -1 });
+        const { type } = req.query;
+        const filter = { status: 'active' };
+        if (type) {
+            filter.type = type;
+        }
+        const banners = await BannerModel.find(filter).sort({ createdAt: -1 });
         res.json({ success: true, banners });
     } catch (error) {
         next(error);

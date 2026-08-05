@@ -1,112 +1,242 @@
 'use client';
-// ===== CATEGORY SECTION =====
-import React, { useState, useEffect } from 'react';
+// ===== CATEGORY SECTION (NOW VERTICAL SLIDER BANNER) =====
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { ArrowUpRight, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
-interface Category {
-    id: string | number;
-    name: string;
+interface Banner {
+    id: string;
+    title: string;
     image: string;
-    count: number;
+    video?: string;
+    link: string;
+    status: string;
 }
 
+const DEFAULT_SLIDES: Banner[] = [
+    {
+        id: 'default-middle-1',
+        title: 'NEW JOURNAL / NEW COLLECTION',
+        image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop&q=80',
+        link: '/products',
+        status: 'active'
+    },
+    {
+        id: 'default-middle-2',
+        title: 'ELEGANT STYLE / MINIMAL DESIGN',
+        image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&auto=format&fit=crop&q=80',
+        link: '/products',
+        status: 'active'
+    },
+    {
+        id: 'default-middle-3',
+        title: 'SUMMER VIBE / URBAN COMFORT',
+        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1600&auto=format&fit=crop&q=80',
+        link: '/products',
+        status: 'active'
+    }
+];
+
 export default function CategorySection() {
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [slides, setSlides] = useState<Banner[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [direction, setDirection] = useState<'up' | 'down'>('up'); // 'up' = bottom to top, 'down' = top to bottom
+    const [isHovered, setIsHovered] = useState(false);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchMiddleBanners = async () => {
             try {
-                const res = await fetch('/api/categories');
+                const res = await fetch('/api/banners?type=middle');
                 const data = await res.json();
-                if (data.success && data.categories) {
-                    setCategories(data.categories);
+                if (data.success && data.banners && data.banners.length > 0) {
+                    setSlides(data.banners);
+                } else {
+                    setSlides(DEFAULT_SLIDES);
                 }
             } catch (error) {
-                console.error('Error fetching categories:', error);
+                console.error('Error fetching middle banners:', error);
+                setSlides(DEFAULT_SLIDES);
             } finally {
                 setLoading(false);
             }
         };
-        fetchCategories();
+        fetchMiddleBanners();
     }, []);
+
+    // Autoplay logic
+    useEffect(() => {
+        if (loading || slides.length <= 1 || isHovered) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            return;
+        }
+
+        timerRef.current = setInterval(() => {
+            setDirection('up');
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
+        }, 5000);
+
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [slides, loading, isHovered]);
+
+    const handleNext = () => {
+        setDirection('up');
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
+    };
+
+    const handlePrev = () => {
+        setDirection('down');
+        setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
+    };
 
     if (loading) {
         return (
-            <section className="py-12 lg:py-24 px-4 flex justify-center items-center">
+            <section className="h-[450px] md:h-[600px] lg:h-[700px] w-full flex justify-center items-center bg-gray-50">
                 <Loader2 className="animate-spin text-gray-400" size={32} />
             </section>
         );
     }
+
+    const currentSlide = slides[currentIndex];
+
+    // Variants for vertical slide transition from bottom to top
+    const slideVariants: any = {
+        enter: (dir: 'up' | 'down') => ({
+            y: dir === 'up' ? '100%' : '-100%',
+            opacity: 0,
+            scale: 1.05
+        }),
+        center: {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            transition: {
+                y: { type: 'spring', stiffness: 300, damping: 30 },
+                opacity: { duration: 0.5 },
+                scale: { duration: 0.8, ease: 'easeOut' }
+            }
+        },
+        exit: (dir: 'up' | 'down') => ({
+            y: dir === 'up' ? '-100%' : '100%',
+            opacity: 0,
+            scale: 0.95,
+            transition: {
+                y: { type: 'spring', stiffness: 300, damping: 30 },
+                opacity: { duration: 0.5 },
+                scale: { duration: 0.8, ease: 'easeIn' }
+            }
+        })
+    };
+
     return (
-        <section className="py-12 lg:py-24 px-4 container-torano">
-            {/* Section Header */}
-            <div className="flex flex-col items-center justify-center mb-12">
+        <section 
+            className="relative w-full h-[450px] md:h-[650px] lg:h-[800px] overflow-hidden bg-black"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <AnimatePresence initial={false} custom={direction}>
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center"
+                    key={currentIndex}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    className="absolute inset-0 w-full h-full"
                 >
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold uppercase text-center w-full text-black tracking-tight mb-5">
-                        Danh mục nổi bật
-                    </h2>
-                    <div className="flex flex-col items-center gap-1">
-                        <span className="text-xs tracking-[0.18em] uppercase text-black font-bold">
-                            Khám phá phong cách
-                        </span>
-                        <span className="block w-full h-[2px] bg-black rounded-full" />
+                    {/* Background Image */}
+                    <div className="relative w-full h-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                            src={currentSlide.image} 
+                            alt={currentSlide.title} 
+                            className="w-full h-full object-cover object-center select-none pointer-events-none"
+                        />
+                        <div className="absolute inset-0 bg-black/35" />
+                    </div>
+
+                    {/* Content Overlay */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.6 }}
+                            className="max-w-4xl space-y-4 md:space-y-6"
+                        >
+                            {/* Brand Header */}
+                            <span className="text-white text-sm md:text-base tracking-[0.3em] font-light uppercase block">
+                                HAVEN JOURNAL
+                            </span>
+
+                            {/* Main Title (Elegant serif style) */}
+                            <h2 className="text-4xl md:text-6xl lg:text-7xl font-light text-white tracking-wide uppercase font-serif leading-tight">
+                                {currentSlide.title.split('/').map((line, idx) => (
+                                    <span key={idx} className="block first:font-normal first:tracking-wider">
+                                        {line.trim()}
+                                    </span>
+                                ))}
+                            </h2>
+
+                            {/* Subtitle / Button */}
+                            <div className="pt-6">
+                                <Link 
+                                    href={currentSlide.link}
+                                    className="inline-block px-8 py-3.5 border border-white text-white text-xs md:text-sm font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-300"
+                                >
+                                    Khám phá bộ sưu tập
+                                </Link>
+                            </div>
+                        </motion.div>
                     </div>
                 </motion.div>
+            </AnimatePresence>
+
+            {/* Vertical Navigation Indicators */}
+            <div className="absolute right-6 md:right-10 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-3">
+                {slides.map((_, idx) => (
+                    <button
+                        key={idx}
+                        onClick={() => {
+                            setDirection(idx > currentIndex ? 'up' : 'down');
+                            setCurrentIndex(idx);
+                        }}
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                            idx === currentIndex 
+                                ? 'bg-white scale-125 shadow-lg' 
+                                : 'bg-white/40 hover:bg-white/70'
+                        }`}
+                        aria-label={`Slide ${idx + 1}`}
+                    />
+                ))}
             </div>
 
-            {/* Categories Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-                {categories.map((cat, index) => (
-                    <motion.div
-                        key={cat.id}
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: index * 0.15 }}
-                    >
-                        <Link href={`/products?category=${cat.id}`} className="group block relative overflow-hidden rounded-[16px] aspect-[4/5] premium-shadow-hover hover:shadow-2xl transition-all duration-400 hover:-translate-y-2">
-                            {/* Image */}
-                            <Image
-                                src={cat.image}
-                                alt={cat.name}
-                                fill
-                                className="object-cover transition-transform duration-400 group-hover:scale-[1.08]"
-                                sizes="(max-width: 768px) 100vw, 33vw"
-                            />
-                            {/* Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent transition-colors duration-400 group-hover:bg-black/15" />
+            {/* Vertical Arrow Buttons (Top Left / Right) */}
+            <div className="absolute left-6 md:left-10 bottom-6 md:bottom-10 z-20 flex flex-col gap-2">
+                <button
+                    onClick={handlePrev}
+                    className="p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
+                    aria-label="Previous Slide"
+                >
+                    <ChevronUp size={18} />
+                </button>
+                <button
+                    onClick={handleNext}
+                    className="p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
+                    aria-label="Next Slide"
+                >
+                    <ChevronDown size={18} />
+                </button>
+            </div>
 
-                            {/* Content */}
-                            <div className="absolute bottom-0 left-0 right-0 p-8">
-                                <div className="flex items-end justify-between translate-y-4 group-hover:translate-y-0 transition-transform duration-400">
-                                    <div>
-                                        <h3 className="text-white text-3xl font-bold tracking-tight mb-2">
-                                            {cat.name}
-                                        </h3>
-                                        <p className="text-white/80 text-xs tracking-[0.1em] uppercase font-bold">
-                                            {cat.count} sản phẩm
-                                        </p>
-                                    </div>
-                                    <motion.div
-                                        className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 transition-all duration-400 group-hover:bg-white group-hover:text-[#C9A227] shadow-lg"
-                                    >
-                                        <ArrowUpRight size={24} />
-                                    </motion.div>
-                                </div>
-                            </div>
-                        </Link>
-                    </motion.div>
-                ))}
+            {/* Slide Index Counter */}
+            <div className="absolute right-6 md:right-10 bottom-6 md:bottom-10 z-20 text-white font-mono text-sm tracking-widest select-none font-light">
+                <span className="text-white font-bold">{(currentIndex + 1).toString().padStart(2, '0')}</span>
+                <span className="text-white/40"> / </span>
+                <span>{slides.length.toString().padStart(2, '0')}</span>
             </div>
         </section>
     );

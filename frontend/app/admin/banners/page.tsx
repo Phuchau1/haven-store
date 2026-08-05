@@ -9,6 +9,7 @@ interface Banner {
     image: string;
     video?: string;
     link: string;
+    type?: 'hero' | 'middle';
     status: string;
 }
 
@@ -19,7 +20,7 @@ export default function AdminBannersPage() {
     const [editingItem, setEditingItem] = useState<Banner | null>(null);
 
     const [formData, setFormData] = useState({
-        id: '', title: '', image: '', video: '', link: '', status: 'active'
+        id: '', title: '', image: '', video: '', link: '', type: 'hero' as 'hero' | 'middle', status: 'active'
     });
 
     const fetchItems = async () => {
@@ -42,10 +43,10 @@ export default function AdminBannersPage() {
     const openModal = (item?: Banner) => {
         if (item) {
             setEditingItem(item);
-            setFormData({ ...item, video: item.video || '' });
+            setFormData({ ...item, video: item.video || '', type: item.type || 'hero' });
         } else {
             setEditingItem(null);
-            setFormData({ id: '', title: '', image: '', video: '', link: '', status: 'active' });
+            setFormData({ id: '', title: '', image: '', video: '', link: '', type: 'hero', status: 'active' });
         }
         setIsModalOpen(true);
     };
@@ -111,6 +112,7 @@ export default function AdminBannersPage() {
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hình ảnh</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiêu đề</th>
+                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phân loại</th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                                 <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                             </tr>
@@ -118,13 +120,13 @@ export default function AdminBannersPage() {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center">
+                                    <td colSpan={6} className="px-6 py-12 text-center">
                                         <Loader2 className="animate-spin text-gray-400 mx-auto mb-2" size={24} />
                                     </td>
                                 </tr>
                             ) : banners.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center">
+                                    <td colSpan={6} className="px-6 py-12 text-center">
                                         <p className="text-gray-500 text-sm">Chưa có dữ liệu.</p>
                                     </td>
                                 </tr>
@@ -145,6 +147,11 @@ export default function AdminBannersPage() {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-500 font-mono">{item.id}</td>
                                         <td className="px-6 py-4 text-sm font-bold text-gray-900">{item.title}</td>
+                                        <td className="px-6 py-4 text-sm">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.type === 'middle' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                                                {item.type === 'middle' ? 'Banner giữa (danh mục)' : 'Banner chính (Hero)'}
+                                            </span>
+                                        </td>
                                         <td className="px-6 py-4 text-sm">
                                             <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                                                 {item.status}
@@ -197,6 +204,13 @@ export default function AdminBannersPage() {
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Link đích</label>
                                     <input required value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Phân loại Banner</label>
+                                    <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value as 'hero' | 'middle'})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20">
+                                        <option value="hero">Banner chính (Top)</option>
+                                        <option value="middle">Banner giữa (Danh mục)</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Trạng thái</label>

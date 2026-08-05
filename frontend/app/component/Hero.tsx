@@ -53,7 +53,7 @@ export default function Hero() {
                 }
 
                 // Fetch Banners
-                const resBanners = await fetch('/api/banners');
+                const resBanners = await fetch('/api/banners?type=hero');
                 const dataBanners = await resBanners.json();
                 
                 if (dataBanners.success && dataBanners.banners && dataBanners.banners.length > 0) {

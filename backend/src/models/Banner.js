@@ -7,6 +7,7 @@ const BannerSchema = new Schema({
     image: { type: String, required: true },
     video: { type: String, default: '' },
     link: { type: String, required: true },
+    type: { type: String, required: true, default: 'hero', enum: ['hero', 'middle'] },
     status: { type: String, required: true, default: 'active' },
     created_at: { type: String, required: true, default: () => new Date().toISOString() }
 }, { timestamps: true });
