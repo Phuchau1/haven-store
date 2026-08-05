@@ -21,6 +21,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0, showSold = false, showDiscount = true }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
+    const [selectedColor, setSelectedColor] = useState<typeof product.colors[0] | null>(null);
     const { addItem } = useCart();
     const { isFavorite, toggleFavorite } = useFavoritesStore();
     const { user } = useAuth();
@@ -33,7 +34,7 @@ export default function ProductCard({ product, index = 0, showSold = false, show
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        addItem(product, product.sizes[0], product.colors[0]);
+        addItem(product, product.sizes[0], selectedColor || product.colors[0]);
     };
 
     const origPrice = Number(product.originalPrice) || 0;
@@ -42,6 +43,9 @@ export default function ProductCard({ product, index = 0, showSold = false, show
         ? Math.round(((origPrice - currPrice) / origPrice) * 100)
         : 0;
 
+    const displayedImage = selectedColor?.image || product.images[0];
+    const hoverImage = selectedColor?.image ? selectedColor.image : (product.images[1] || product.images[0]);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -49,7 +53,11 @@ export default function ProductCard({ product, index = 0, showSold = false, show
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: index * 0.08 }}
         >
-            <Link href={`/product/${getProductSlug(product)}`} className="group block h-full flex flex-col transition-all duration-400 hover:-translate-y-[6px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] bg-white border border-[#EAEAEA] rounded-[16px] overflow-hidden">
+            <Link 
+                href={`/product/${getProductSlug(product)}`} 
+                className="group block h-full flex flex-col transition-all duration-400 hover:-translate-y-[6px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] bg-white border border-[#EAEAEA] rounded-[16px] overflow-hidden"
+                onMouseLeave={() => setSelectedColor(null)}
+            >
                 <div
                     className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-white transition-all duration-400"
                     onMouseEnter={() => setIsHovered(true)}
@@ -57,7 +65,7 @@ export default function ProductCard({ product, index = 0, showSold = false, show
                 >
                     {/* Image 1 (Default) */}
                     <Image
-                        src={product.images[0]}
+                        src={displayedImage}
                         alt={product.name}
                         fill
                         className={`object-cover transition-all duration-700 ${isHovered ? 'opacity-0 scale-[1.08]' : 'opacity-100 scale-100'}`}
@@ -65,7 +73,7 @@ export default function ProductCard({ product, index = 0, showSold = false, show
                     />
                     {/* Image 2 (Hover) */}
                     <Image
-                        src={product.images[1] || product.images[0]}
+                        src={hoverImage}
                         alt={product.name}
                         fill
                         className={`object-cover transition-all duration-700 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.04]'}`}
@@ -139,6 +147,36 @@ export default function ProductCard({ product, index = 0, showSold = false, show
                 <div className="p-4 space-y-1 flex-1 flex flex-col bg-white">
                     {/* Category */}
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.12em]">{product.categoryLabel}</p>
+
+                    {/* Colors Swatches */}
+                    {product.colors && product.colors.length > 1 ? (
+                        <div className="flex items-center gap-1.5 py-1 z-20 min-h-[22px]">
+                            {product.colors.map((color, idx) => {
+                                const isActive = selectedColor ? selectedColor.name === color.name : idx === 0;
+                                return (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setSelectedColor(color);
+                                        }}
+                                        onMouseEnter={() => setSelectedColor(color)}
+                                        className={`w-3.5 h-3.5 rounded-full border border-gray-200 transition-all duration-200 ${
+                                            isActive
+                                                ? 'ring-1 ring-offset-1 ring-slate-800 scale-110 shadow-sm'
+                                                : 'hover:scale-110'
+                                        }`}
+                                        style={{ backgroundColor: color.hex }}
+                                        title={color.name}
+                                    />
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="h-[22px]" />
+                    )}
 
                     {/* Name */}
                     <h3 className="text-[14px] leading-[1.5] font-semibold text-gray-900 line-clamp-2 min-h-[42px]" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
