@@ -222,16 +222,46 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
             {/* ── Khoảng giá ───────────────────────────── */}
             <section>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400 mb-4">
-                    Khoảng giá
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400">
+                        Khoảng giá
+                    </h4>
+                    <span className="text-xs font-bold text-black bg-gray-100 px-2 py-0.5 rounded-lg">
+                        {formatPrice(priceRange[0])} — {formatPrice(priceRange[1])}
+                    </span>
+                </div>
 
-                {/* Dual Thumb Slider */}
+                {/* Nút preset nhanh */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                    {[
+                        { label: 'Dưới 300k', max: 300000 },
+                        { label: 'Dưới 500k', max: 500000 },
+                        { label: 'Dưới 1tr',  max: 1000000 },
+                        { label: 'Dưới 5tr',  max: 5000000 },
+                        { label: 'Dưới 20tr', max: 20000000 },
+                        { label: 'Tất cả',    max: MAX_PRICE },
+                    ].map(({ label, max }) => {
+                        const active = priceRange[0] === 0 && priceRange[1] === max;
+                        return (
+                            <button
+                                key={label}
+                                onClick={() => handlePriceChange([0, max])}
+                                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border ${
+                                    active
+                                        ? 'bg-black text-white border-black'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Slider */}
                 <div className="px-1 mb-4">
                     <div className="relative h-6 flex items-center">
-                        {/* Track nền */}
                         <div className="absolute h-[4px] w-full bg-gray-200 rounded-full" />
-                        {/* Đoạn active */}
                         <div
                             className="absolute h-[4px] bg-black rounded-full"
                             style={{
@@ -239,10 +269,8 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                                 right: `${100 - (priceRange[1] / MAX_PRICE) * 100}%`,
                             }}
                         />
-                        {/* Min thumb */}
                         <input
-                            type="range"
-                            min={0} max={MAX_PRICE} step={100000}
+                            type="range" min={0} max={MAX_PRICE} step={100000}
                             value={priceRange[0]}
                             onChange={e => {
                                 const val = Math.min(Number(e.target.value), priceRange[1] - 100000);
@@ -252,13 +280,11 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                             onMouseDown={() => setActiveThumb('min')}
                             onTouchStart={() => setActiveThumb('min')}
                             className={`absolute w-full h-1 appearance-none bg-transparent pointer-events-none
-                                [&::-webkit-slider-thumb]:pointer-events-auto
-                                [&::-webkit-slider-thumb]:w-[20px] [&::-webkit-slider-thumb]:h-[20px]
-                                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none
-                                [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2
-                                [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md
-                                [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform
-                                [&::-webkit-slider-thumb]:hover:scale-110
+                                [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-[20px]
+                                [&::-webkit-slider-thumb]:h-[20px] [&::-webkit-slider-thumb]:rounded-full
+                                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-white
+                                [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black
+                                [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer
                                 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-[20px]
                                 [&::-moz-range-thumb]:h-[20px] [&::-moz-range-thumb]:rounded-full
                                 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2
@@ -266,10 +292,8 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                                 ${activeThumb === 'min' ? 'z-20' : 'z-10'}`}
                             aria-label="Giá tối thiểu"
                         />
-                        {/* Max thumb — mặc định z-20 để dễ kéo */}
                         <input
-                            type="range"
-                            min={0} max={MAX_PRICE} step={100000}
+                            type="range" min={0} max={MAX_PRICE} step={100000}
                             value={priceRange[1]}
                             onChange={e => {
                                 const val = Math.max(Number(e.target.value), priceRange[0] + 100000);
@@ -279,13 +303,11 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                             onMouseDown={() => setActiveThumb('max')}
                             onTouchStart={() => setActiveThumb('max')}
                             className={`absolute w-full h-1 appearance-none bg-transparent pointer-events-none
-                                [&::-webkit-slider-thumb]:pointer-events-auto
-                                [&::-webkit-slider-thumb]:w-[20px] [&::-webkit-slider-thumb]:h-[20px]
-                                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none
-                                [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2
-                                [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md
-                                [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform
-                                [&::-webkit-slider-thumb]:hover:scale-110
+                                [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-[20px]
+                                [&::-webkit-slider-thumb]:h-[20px] [&::-webkit-slider-thumb]:rounded-full
+                                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-white
+                                [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black
+                                [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer
                                 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-[20px]
                                 [&::-moz-range-thumb]:h-[20px] [&::-moz-range-thumb]:rounded-full
                                 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2
@@ -294,53 +316,46 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                             aria-label="Giá tối đa"
                         />
                     </div>
-                    {/* Track labels */}
-                    <div className="flex justify-between text-[10px] text-gray-400 font-light select-none mt-2">
-                        <span>0đ</span>
-                        <span>{formatPrice(MAX_PRICE)}</span>
+                    <div className="flex justify-between text-[10px] text-gray-400 mt-2">
+                        <span>0đ</span><span>{formatPrice(MAX_PRICE)}</span>
                     </div>
                 </div>
 
-                {/* ── Ô nhập giá trực tiếp ─────────────────── */}
-                <div className="flex items-center gap-2">
+                {/* Nhập triệu đồng trực tiếp */}
+                <div className="flex items-end gap-2">
                     <div className="flex-1">
-                        <label className="block text-[10px] text-gray-400 mb-1 font-medium">Từ</label>
+                        <label className="block text-[10px] text-gray-400 mb-1">Từ (triệu đ)</label>
                         <input
-                            type="number"
-                            min={0}
-                            max={MAX_PRICE}
-                            step={100000}
-                            value={priceRange[0]}
+                            type="number" min={0} max={100} step={0.5}
+                            value={Math.round(priceRange[0] / 100000) / 10}
                             onChange={e => {
-                                const val = Math.max(0, Math.min(Number(e.target.value), priceRange[1] - 100000));
+                                const trieuVal = Math.max(0, Number(e.target.value));
+                                const dongVal = Math.round(trieuVal * 1000000);
+                                const val = Math.min(dongVal, priceRange[1] - 100000);
                                 handlePriceChange([val, priceRange[1]]);
                             }}
                             className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-black transition-colors"
                             placeholder="0"
                         />
                     </div>
-                    <span className="text-gray-300 mt-4">—</span>
+                    <span className="text-gray-300 pb-2">—</span>
                     <div className="flex-1">
-                        <label className="block text-[10px] text-gray-400 mb-1 font-medium">Đến</label>
+                        <label className="block text-[10px] text-gray-400 mb-1">Đến (triệu đ)</label>
                         <input
-                            type="number"
-                            min={0}
-                            max={MAX_PRICE}
-                            step={100000}
-                            value={priceRange[1]}
+                            type="number" min={0} max={100} step={0.5}
+                            value={Math.round(priceRange[1] / 100000) / 10}
                             onChange={e => {
-                                const val = Math.min(MAX_PRICE, Math.max(Number(e.target.value), priceRange[0] + 100000));
+                                const trieuVal = Math.max(0, Number(e.target.value));
+                                const dongVal = Math.round(trieuVal * 1000000);
+                                const val = Math.min(MAX_PRICE, Math.max(dongVal, priceRange[0] + 100000));
                                 handlePriceChange([priceRange[0], val]);
                             }}
                             className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-black transition-colors"
-                            placeholder={String(MAX_PRICE)}
+                            placeholder="100"
                         />
                     </div>
                 </div>
-                {/* Hiện giá đã chọn */}
-                <p className="text-center text-xs font-semibold text-black mt-3">
-                    {formatPrice(priceRange[0])} — {formatPrice(priceRange[1])}
-                </p>
+                <p className="text-[10px] text-gray-400 mt-1 text-right">Nhập số triệu, ví dụ: 20 = 20 triệu đ</p>
             </section>
 
             {/* ── Nút xóa bộ lọc ───────────────────────── */}
