@@ -6,7 +6,7 @@ export default function LocationsPage() {
             <div className="container-torano">
                 <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
                     <h1 className="text-3xl md:text-4xl font-bold text-center mb-4">Hệ Thống Cửa Hàng</h1>
-                    <p className="text-gray-600 text-center mb-12">Khám phá các cửa hàng PH Store trên toàn quốc. Trải nghiệm không gian mua sắm hiện đại và đẳng cấp.</p>
+                    <p className="text-gray-600 text-center mb-12">Khám phá các cửa hàng HAVEN STORE trên toàn quốc. Trải nghiệm không gian mua sắm hiện đại và đẳng cấp.</p>
 
                     <div className="space-y-8">
                         {/* Store 1 */}
@@ -20,9 +20,9 @@ export default function LocationsPage() {
                                 />
                             </div>
                             <div className="w-full md:w-2/3 flex flex-col justify-center">
-                                <h3 className="text-xl font-bold mb-2">PH Store - Hà Nội</h3>
-                                <p className="text-gray-600 mb-1"><strong>Địa chỉ:</strong> 123 Phố Huế, Quận Hai Bà Trưng, Hà Nội</p>
-                                <p className="text-gray-600 mb-1"><strong>Điện thoại:</strong> 024 1234 5678</p>
+                                <h3 className="text-xl font-bold mb-2">HAVEN STORE - Tây Ninh</h3>
+                                <p className="text-gray-600 mb-1"><strong>Địa chỉ:</strong> Đường 30/4, Phường 3, Thành phố Tây Ninh, Tây Ninh</p>
+                                <p className="text-gray-600 mb-1"><strong>Điện thoại:</strong> 0276 1234 567</p>
                                 <p className="text-gray-600 mb-4"><strong>Giờ mở cửa:</strong> 09:00 - 22:00 (Tất cả các ngày trong tuần)</p>
                                 <div className="mt-4 w-full h-48 rounded-lg overflow-hidden border border-gray-200">
                                     <iframe 
@@ -32,8 +32,8 @@ export default function LocationsPage() {
                                         scrolling="no" 
                                         marginHeight={0} 
                                         marginWidth={0} 
-                                        src="https://maps.google.com/maps?q=123%20Ph%E1%BB%91%20Hu%E1%BA%BF,%20Qu%E1%BA%ADn%20Hai%20B%C3%A0%20Tr%C6%B0ng,%20H%C3%A0%20N%E1%BB%99i&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                                        title="Bản đồ Hà Nội"
+                                        src="https://maps.google.com/maps?q=Th%C3%A0nh%20ph%E1%BB%91%20T%C3%A2y%20Ninh,%20T%C3%A2y%20Ninh,%20Vi%E1%BB%87t%20Nam&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                        title="Bản đồ Tây Ninh"
                                     ></iframe>
                                 </div>
                             </div>
@@ -50,7 +50,7 @@ export default function LocationsPage() {
                                 />
                             </div>
                             <div className="w-full md:w-2/3 flex flex-col justify-center">
-                                <h3 className="text-xl font-bold mb-2">PH Store - TP. Hồ Chí Minh</h3>
+                                <h3 className="text-xl font-bold mb-2">HAVEN STORE - TP. Hồ Chí Minh</h3>
                                 <p className="text-gray-600 mb-1"><strong>Địa chỉ:</strong> 456 Nguyễn Trãi, Quận 1, TP. Hồ Chí Minh</p>
                                 <p className="text-gray-600 mb-1"><strong>Điện thoại:</strong> 028 8765 4321</p>
                                 <p className="text-gray-600 mb-4"><strong>Giờ mở cửa:</strong> 09:00 - 22:30 (Tất cả các ngày trong tuần)</p>
