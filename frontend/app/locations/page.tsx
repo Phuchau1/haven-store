@@ -15,14 +15,14 @@ export default function LocationsPage() {
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img 
                                     src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&h=600&fit=crop" 
-                                    alt="Cửa hàng Hà Nội" 
+                                    alt="Cửa hàng Long An" 
                                     className="w-full h-48 object-cover rounded-xl"
                                 />
                             </div>
                             <div className="w-full md:w-2/3 flex flex-col justify-center">
-                                <h3 className="text-xl font-bold mb-2">HAVEN STORE - Tây Ninh</h3>
-                                <p className="text-gray-600 mb-1"><strong>Địa chỉ:</strong> Đường 30/4, Phường 3, Thành phố Tây Ninh, Tây Ninh</p>
-                                <p className="text-gray-600 mb-1"><strong>Điện thoại:</strong> 0276 1234 567</p>
+                                <h3 className="text-xl font-bold mb-2">HAVEN STORE - Long An</h3>
+                                <p className="text-gray-600 mb-1"><strong>Địa chỉ:</strong> 256 ấp Long Khánh, Cần Giuộc, Long An, Việt Nam</p>
+                                <p className="text-gray-600 mb-1"><strong>Điện thoại:</strong> 0838 484 885</p>
                                 <p className="text-gray-600 mb-4"><strong>Giờ mở cửa:</strong> 09:00 - 22:00 (Tất cả các ngày trong tuần)</p>
                                 <div className="mt-4 w-full h-48 rounded-lg overflow-hidden border border-gray-200">
                                     <iframe 
@@ -32,8 +32,8 @@ export default function LocationsPage() {
                                         scrolling="no" 
                                         marginHeight={0} 
                                         marginWidth={0} 
-                                        src="https://maps.google.com/maps?q=Th%C3%A0nh%20ph%E1%BB%91%20T%C3%A2y%20Ninh,%20T%C3%A2y%20Ninh,%20Vi%E1%BB%87t%20Nam&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                                        title="Bản đồ Tây Ninh"
+                                        src="https://maps.google.com/maps?q=256%20%E1%BA%A5p%20Long%20Kh%C3%A1nh,%20C%E1%BA%A7n%20Gi%E1%BB%99c,%20Long%20An,%20Vi%E1%BB%87t%20Nam&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                        title="Bản đồ Cần Giuộc, Long An"
                                     ></iframe>
                                 </div>
                             </div>
