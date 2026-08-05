@@ -715,7 +715,7 @@ const CustomerReturnModal = ({
 
 export default function NguoiDungPage() {
     const { showToast, showConfirm } = useToast();
-    const { user, logout, updateProfile } = useAuth();
+    const { user, token, logout, updateProfile } = useAuth();
     const { addItem } = useCart();
     const clearCart = useCartStore(s => s.clearCart);
     const router = useRouter();
@@ -737,10 +737,10 @@ export default function NguoiDungPage() {
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
     const fetchMyCoupons = useCallback(async () => {
-        if (!user) return;
+        if (!user || !token) return;
         setLoadingCoupons(true);
         try {
-            const token = localStorage.getItem('token') || '';
+            // Dùng token đã được destructure từ hook useAuth()
             const res = await fetch('/api/coupons/my-coupons', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -753,7 +753,7 @@ export default function NguoiDungPage() {
         } finally {
             setLoadingCoupons(false);
         }
-    }, [user]);
+    }, [user, token]);
 
     useEffect(() => {
         if (activeMainTab === 'vouchers') {

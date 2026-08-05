@@ -67,7 +67,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const items = buyNowItem ? [buyNowItem] : cartItems;
     const totalAmount = buyNowItem ? (buyNowItem.product.price * buyNowItem.quantity) : cartTotalAmount;
     
-    const { user, updateProfile } = useAuth();
+    const { user, token, updateProfile } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [orderId] = useState(`LF-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
@@ -321,7 +321,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
                 // If user is logged in, fetch their personal won coupons
                 if (user) {
-                    const token = localStorage.getItem('token') || '';
+                    // Sử dụng token từ hook useAuth()
                     const resMy = await fetch('/api/coupons/my-coupons', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
