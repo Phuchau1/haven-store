@@ -638,7 +638,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 type="text"
                                 readOnly
                                 value={formData.address}
-                                className="w-full pl-12 pr-4 py-4 bg-indigo-50/40 border border-indigo-150 rounded-xl text-base focus:outline-none text-indigo-950 font-medium"
+                                className="w-full pl-12 pr-36 py-4 bg-indigo-50/40 border border-indigo-150 rounded-xl text-base focus:outline-none text-indigo-950 font-medium"
                             />
                             <button type="button" onClick={() => { setSelectedAddressId(''); setFormData(p => ({...p, address: ''})); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-600 font-semibold hover:underline bg-indigo-50/50 px-2.5 py-1.5 rounded-lg border border-indigo-200">Sửa / Nhập mới</button>
                         </div>
