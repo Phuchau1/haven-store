@@ -1,0 +1,313 @@
+/* ============================================================
+   HAVEN STORE - RESPONSIVE & LAYOUT OPTIMIZATION STYLESHEET
+   Description: Standardizes responsive breakpoints, typography,
+                spacing, grid layouts, form elements, tables, 
+                modals, and hover animations globally.
+   ============================================================ */
+
+/* ============================================================
+   1. GLOBAL CSS CUSTOM VARIABLES (Fluid Design Tokens)
+   ============================================================ */
+:root {
+  /* Fluid Typographies using clamp() */
+  --font-heading: clamp(28px, 4.5vw, 48px);
+  --font-title: clamp(20px, 2.5vw, 24px);
+  --font-body: clamp(14px, 1.5vw, 16px);
+  
+  /* Fluid Spacings (Padding / Margin) */
+  --section-padding: clamp(24px, 6vw, 80px);
+  --container-padding: clamp(12px, 3vw, 24px);
+
+  /* Element Heights */
+  --input-height: clamp(44px, 4.5vw, 52px);
+  --btn-height: clamp(44px, 4.5vw, 52px);
+  --btn-height-large: clamp(48px, 5vw, 56px);
+}
+
+/* ============================================================
+   2. UTILITIES & STRUCTURAL CORRECTIONS
+   ============================================================ */
+.fluid-heading {
+  font-size: var(--font-heading);
+  line-height: 1.2;
+}
+
+.fluid-title {
+  font-size: var(--font-title);
+  line-height: 1.3;
+}
+
+.fluid-body {
+  font-size: var(--font-body);
+  line-height: 1.6;
+}
+
+/* Container responsive adjustments */
+.container-torano {
+  width: 100%;
+  max-width: 1700px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+  box-sizing: border-box;
+}
+
+/* Standardized responsive image layout */
+.responsive-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  aspect-ratio: auto;
+}
+
+/* Product Card - Equal Height Flex Grid */
+.product-grid-container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.product-card-premium {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.product-card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.8em;
+  line-height: 1.4;
+}
+
+.product-card-price {
+  white-space: nowrap;
+}
+
+.product-card-button {
+  margin-top: auto;
+}
+
+/* Responsive Tables */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+/* Prevent horizontal scroll globally on body */
+html, body {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+}
+
+/* Modals global alignment */
+.modal-responsive {
+  width: 95%;
+  max-width: 600px;
+  margin: auto;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* ============================================================
+   3. BREAKPOINT MEDIA QUERIES (DESKTOP -> MOBILE)
+   ============================================================ */
+
+/* --- 1440px Breakpoint (Desktop Medium) --- */
+@media (max-width: 1440px) {
+  .product-grid-container {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* --- 1200px Breakpoint (Laptop / Desktop Small) --- */
+@media (max-width: 1200px) {
+  :root {
+    --section-padding: 64px;
+  }
+  
+  .product-grid-container {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* --- 1024px Breakpoint (Laptop / Small Desktop) --- */
+@media (max-width: 1024px) {
+  :root {
+    --section-padding: 48px;
+    --font-heading: 38px;
+    --font-title: 22px;
+    --font-body: 15px;
+    --input-height: 48px;
+    --btn-height: 46px;
+  }
+  
+  .product-grid-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  /* Header adjustments */
+  .header-search-bar {
+    max-width: 250px;
+  }
+}
+
+/* --- 992px Breakpoint (Tablet Landscape) --- */
+@media (max-width: 992px) {
+  .product-grid-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  .modal-responsive {
+    max-width: 90%;
+  }
+
+  /* Table styling scroll indicator */
+  .table-responsive-wrapper table {
+    min-width: 600px;
+  }
+}
+
+/* --- 768px Breakpoint (Tablet Portrait) --- */
+@media (max-width: 768px) {
+  :root {
+    --section-padding: 32px;
+    --font-heading: 32px;
+    --font-title: 20px;
+    --font-body: 14px;
+    --input-height: 44px;
+    --btn-height: 44px;
+  }
+
+  .product-grid-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  /* Sidebar display transition to drawer context */
+  .sidebar-filter-desktop {
+    display: none !important;
+  }
+  
+  .sidebar-filter-drawer {
+    display: block !important;
+  }
+  
+  /* Footer layout */
+  .footer-columns-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 32px !important;
+  }
+
+  /* Mobile banners */
+  .hero-banner-slider {
+    height: 500px !important;
+  }
+}
+
+/* --- 576px Breakpoint (Mobile Large) --- */
+@media (max-width: 576px) {
+  .product-grid-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  /* Hero banner slider height */
+  .hero-banner-slider {
+    height: 350px !important;
+  }
+
+  /* Table cards conversion */
+  .responsive-table-card-view {
+    display: block;
+  }
+  
+  .responsive-table-desktop-view {
+    display: none;
+  }
+  
+  /* Header items */
+  .header-actions-group {
+    gap: 12px !important;
+  }
+
+  .modal-responsive {
+    width: 95%;
+  }
+}
+
+/* --- 375px Breakpoint (Mobile Standard) --- */
+@media (max-width: 375px) {
+  :root {
+    --section-padding: 24px;
+    --container-padding: 12px;
+  }
+
+  .product-grid-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  /* Footer columns to single layout */
+  .footer-columns-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* --- 320px Breakpoint (Small Mobile) --- */
+@media (max-width: 320px) {
+  .product-grid-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .fluid-heading {
+    font-size: 24px;
+  }
+}
+
+/* ============================================================
+   4. TOUCH / HOVER INTERACTION OPTIMIZATIONS
+   ============================================================ */
+@media (hover: hover) {
+  /* Hover effects active only on desktop/devices supporting true hover */
+  .hover-scale-effect:hover {
+    transform: scale(1.02);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .hover-opacity-effect:hover {
+    opacity: 0.9;
+  }
+  
+  .hover-gold-effect:hover {
+    color: var(--accent);
+  }
+}
+
+@media (hover: none) {
+  /* Disable hovers on mobile/touch interfaces to prevent sticky tap triggers */
+  .hover-scale-effect:hover,
+  .hover-opacity-effect:hover,
+  .hover-gold-effect:hover {
+    transform: none !important;
+    opacity: 1 !important;
+    color: inherit !important;
+  }
+}
+
+/* Smooth micro-animations */
+.fade-in-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideInUp 0.6s forwards;
+}
