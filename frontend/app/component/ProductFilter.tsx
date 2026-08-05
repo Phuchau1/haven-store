@@ -298,7 +298,7 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                     {/* Labels */}
                     <div className="flex justify-between text-[10px] text-gray-400 font-light select-none">
                         <span>0đ</span>
-                        <span>5,000,000đ</span>
+                        <span>{formatPrice(MAX_PRICE)}</span>
                     </div>
                 </div>
             </section>
