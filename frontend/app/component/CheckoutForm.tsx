@@ -320,27 +320,30 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 }
 
                 // If user is logged in, fetch their personal won coupons
-                if (user) {
-                    // Sử dụng token từ hook useAuth()
-                    const resMy = await fetch('/api/coupons/my-coupons', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const dataMy = await resMy.json();
-                    if (dataMy.success && dataMy.coupons) {
-                        const now = new Date();
-                        const activeMyCoupons = dataMy.coupons
-                            .filter((c: any) => !c.is_used && new Date(c.expires_at) >= now)
-                            .map((c: any) => ({
-                                id: c._id,
-                                code: c.coupon_code,
-                                discount_type: c.type,
-                                discount_value: c.discount_value,
-                                start_date: new Date(c.createdAt).toISOString().slice(0, 10),
-                                end_date: new Date(c.expires_at).toISOString().slice(0, 10),
-                                name: c.reward_name,
-                                isPersonal: true
-                            }));
-                        combinedCoupons = [...activeMyCoupons, ...combinedCoupons];
+                if (user && token) {
+                    try {
+                        const resMy = await fetch('/api/coupons/my-coupons', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const dataMy = await resMy.json();
+                        if (dataMy.success && dataMy.coupons) {
+                            const now = new Date();
+                            const activeMyCoupons = dataMy.coupons
+                                .filter((c: any) => !c.is_used && new Date(c.expires_at) >= now)
+                                .map((c: any) => ({
+                                    id: c._id,
+                                    code: c.coupon_code,
+                                    discount_type: c.type,
+                                    discount_value: c.discount_value,
+                                    start_date: new Date(c.createdAt).toISOString().slice(0, 10),
+                                    end_date: new Date(c.expires_at).toISOString().slice(0, 10),
+                                    name: c.reward_name,
+                                    isPersonal: true
+                                }));
+                            combinedCoupons = [...activeMyCoupons, ...combinedCoupons];
+                        }
+                    } catch (err) {
+                        console.error('Error fetching personal coupons at checkout:', err);
                     }
                 }
 
