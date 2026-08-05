@@ -108,6 +108,7 @@
 }
 
   /* === Admin Light Mode (Inspired by Yuu Shop Admin) === */
+:root {
   --adm-bg: #F4F5F7;
   --adm-surface: #ffffff;
   --adm-surface-2: #F9FAFB;
