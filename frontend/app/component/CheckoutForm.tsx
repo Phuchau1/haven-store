@@ -597,7 +597,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                             value={formData.customerName}
                             onChange={handleChange}
                             placeholder="Họ và tên *"
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-base focus:bg-white focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
                             required
                         />
                     </div>
@@ -612,7 +612,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 value={formData.phone}
                                 onChange={handleChange}
                                 placeholder="Số điện thoại *"
-                                className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-base focus:bg-white focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
                                 required
                             />
                         </div>
@@ -624,7 +624,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="Email *"
-                                className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-base focus:bg-white focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
                                 required
                             />
                         </div>
@@ -638,23 +638,23 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 type="text"
                                 readOnly
                                 value={formData.address}
-                                className="w-full pl-11 pr-4 py-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl text-sm focus:outline-none text-indigo-900"
+                                className="w-full pl-12 pr-4 py-4 bg-indigo-50/40 border border-indigo-150 rounded-xl text-base focus:outline-none text-indigo-950 font-medium"
                             />
-                            <button type="button" onClick={() => { setSelectedAddressId(''); setFormData(p => ({...p, address: ''})); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-600 font-semibold hover:underline bg-indigo-50/50 px-2 py-1">Sửa / Nhập mới</button>
+                            <button type="button" onClick={() => { setSelectedAddressId(''); setFormData(p => ({...p, address: ''})); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-600 font-semibold hover:underline bg-indigo-50/50 px-2.5 py-1.5 rounded-lg border border-indigo-200">Sửa / Nhập mới</button>
                         </div>
                     ) : (
-                        <div className="space-y-4 p-4 border border-gray-100 rounded-xl bg-gray-50/30">
+                        <div className="space-y-4 p-4 border border-slate-100 rounded-xl bg-slate-50/30">
                             <p className="text-xs font-semibold uppercase text-gray-400 mb-2">Nhập địa chỉ mới</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <select required value={selectedProvinceCode || ''} onChange={handleProvinceChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all">
+                                <select required value={selectedProvinceCode || ''} onChange={handleProvinceChange} className="w-full px-4 py-4 bg-white border border-slate-200 rounded-xl text-base focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all font-medium text-slate-800 focus:outline-none">
                                     <option value="" disabled>Chọn Tỉnh/Thành phố *</option>
                                     {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
                                 </select>
-                                <select required disabled={!selectedProvinceCode} value={selectedDistrictCode || ''} onChange={handleDistrictChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all disabled:opacity-50">
+                                <select required disabled={!selectedProvinceCode} value={selectedDistrictCode || ''} onChange={handleDistrictChange} className="w-full px-4 py-4 bg-white border border-slate-200 rounded-xl text-base focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all disabled:opacity-50 font-medium text-slate-800 focus:outline-none">
                                     <option value="" disabled>Chọn Quận/Huyện *</option>
                                     {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
                                 </select>
-                                <select required disabled={!selectedDistrictCode} value={localAddress.ward ? wards.find(w=>w.name===localAddress.ward)?.code || '' : ''} onChange={handleWardChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all disabled:opacity-50 sm:col-span-2">
+                                <select required disabled={!selectedDistrictCode} value={localAddress.ward ? wards.find(w=>w.name===localAddress.ward)?.code || '' : ''} onChange={handleWardChange} className="w-full px-4 py-4 bg-white border border-slate-200 rounded-xl text-base focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all disabled:opacity-50 sm:col-span-2 font-medium text-slate-800 focus:outline-none">
                                     <option value="" disabled>Chọn Phường/Xã *</option>
                                     {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
                                 </select>
@@ -666,7 +666,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                     value={localAddress.street}
                                     onChange={e => setLocalAddress({...localAddress, street: e.target.value})}
                                     placeholder="Số nhà, Tên đường (Cụ thể) *"
-                                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                                    className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-xl text-base focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
                                     required={!selectedAddressId}
                                 />
                             </div>
@@ -682,7 +682,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                             onChange={handleChange}
                             placeholder="Ghi chú đơn hàng (tuỳ chọn)"
                             rows={3}
-                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/10 transition-all resize-none"
+                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-base focus:bg-white focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all resize-none h-28 font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
                         />
                     </div>
                 </div>
@@ -743,7 +743,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 onChange={e => { setVoucherInput(e.target.value); setVoucherError(''); }}
                                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyVoucher(voucherInput); } }}
                                 placeholder="Nhập mã voucher..."
-                                className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-0 rounded-xl text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-base uppercase tracking-wider focus:bg-white focus:border-[#C9A227] focus:ring-4 focus:ring-[#C9A227]/10 transition-all font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
                             />
                         </div>
                         <motion.button
@@ -752,7 +752,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                             whileTap={{ scale: 0.97 }}
                             disabled={voucherLoading}
                             onClick={() => applyVoucher(voucherInput)}
-                            className="px-5 py-3 bg-black text-white text-sm font-medium rounded-xl hover:bg-gray-900 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center gap-1.5"
+                            className="px-6 py-4 bg-black text-white text-base font-bold rounded-xl hover:bg-gray-900 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center gap-1.5"
                         >
                             {voucherLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                             Áp dụng
@@ -1097,7 +1097,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             </div>
 
             {/* Order Summary */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="block lg:hidden bg-white rounded-2xl p-6 border border-gray-100">
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-5">
                     Tóm tắt đơn hàng
                 </h3>
@@ -1178,7 +1178,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 disabled={isLoading || items.length === 0}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="w-full py-4 bg-black text-white rounded-xl text-sm font-medium tracking-wide uppercase hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-5 bg-black hover:bg-zinc-900 text-white rounded-xl text-base font-bold tracking-wide uppercase shadow-lg shadow-black/10 hover:shadow-black/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
                 {isLoading ? (
                     <>

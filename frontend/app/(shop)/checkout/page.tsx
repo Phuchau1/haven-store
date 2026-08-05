@@ -112,7 +112,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     {/* Checkout Form */}
                     <div className="lg:col-span-3">
@@ -120,7 +120,7 @@ export default function CheckoutPage() {
                     </div>
 
                     {/* Order Summary Sidebar */}
-                    <div className="lg:col-span-2">
+                    <div className="hidden lg:block lg:col-span-2">
                         <div className="sticky top-24">
                             <div className="bg-white rounded-2xl p-6 border border-gray-100">
                                 <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-5">
