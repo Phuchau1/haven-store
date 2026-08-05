@@ -327,14 +327,16 @@ export default function Header() {
                             >
                                 <ShoppingBag size={22} strokeWidth={2} />
                                 <AnimatePresence>
-                                    <motion.span
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        exit={{ scale: 0 }}
-                                        className="absolute -top-1 -right-1 bg-[#C9A227] text-white text-[11px] w-[18px] h-[18px] flex items-center justify-center rounded-full font-bold border-2 border-white box-content"
-                                    >
-                                        {totalItems}
-                                    </motion.span>
+                                    {totalItems > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            exit={{ scale: 0 }}
+                                            className="absolute -top-1 -right-1 bg-[#C9A227] text-white text-[10px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold border-2 border-white box-content shadow-sm leading-none"
+                                        >
+                                            {totalItems}
+                                        </motion.span>
+                                    )}
                                 </AnimatePresence>
                             </motion.button>
                         </div>
