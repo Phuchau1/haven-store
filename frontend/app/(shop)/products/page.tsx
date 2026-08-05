@@ -17,15 +17,20 @@ function parseCategoryFromUrl(searchParams: URLSearchParams, pathname: string) {
 
     if (pathname?.startsWith('/collections/')) {
         const slug = pathname.replace('/collections/', '');
-        subCategory = (slug === 'nam' || slug === 'do-nu') ? '' : slug;
+        if (slug === 'sale') {
+            category = '';
+            subCategory = '';
+        } else {
+            subCategory = (slug === 'nam' || slug === 'do-nu') ? '' : slug;
 
-        if (slug === 'nam' || slug.endsWith('-nam')) category = 'cat-clothing';
-        else if (
-            slug === 'do-nu' || slug.endsWith('-nu') ||
-            ['vay-dam', 'vay-lien-dam', 'chan-vay', 'tui-xach'].includes(slug)
-        ) category = 'cat-womens';
-        else if (['giay-the-thao', 'giay-da', 'dep'].includes(slug)) category = 'cat-shoes';
-        else if (['that-lung', 'vi-da', 'mu', 'tat'].includes(slug)) category = 'cat-accessories';
+            if (slug === 'nam' || slug.endsWith('-nam')) category = 'cat-clothing';
+            else if (
+                slug === 'do-nu' || slug.endsWith('-nu') ||
+                ['vay-dam', 'vay-lien-dam', 'chan-vay', 'tui-xach'].includes(slug)
+            ) category = 'cat-womens';
+            else if (['giay-the-thao', 'giay-da', 'dep'].includes(slug)) category = 'cat-shoes';
+            else if (['that-lung', 'vi-da', 'mu', 'tat'].includes(slug)) category = 'cat-accessories';
+        }
     }
     return { category, subCategory };
 }
@@ -88,7 +93,7 @@ function ProductsContent() {
             category,
             subCategory,
             search: searchParams.get('search') || '',
-            discount: searchParams.get('discount') || '',
+            discount: pathname === '/collections/sale' ? 'true' : (searchParams.get('discount') || ''),
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // chỉ chạy 1 lần khi mount
@@ -110,7 +115,7 @@ function ProductsContent() {
             category,
             subCategory,
             search: searchParams.get('search') || '',
-            discount: searchParams.get('discount') || '',
+            discount: pathname === '/collections/sale' ? 'true' : (searchParams.get('discount') || ''),
             // Reset client-side filters khi đổi danh mục từ URL
             sizes: [],
             colors: [],
