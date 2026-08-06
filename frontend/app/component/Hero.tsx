@@ -121,14 +121,14 @@ export default function Hero() {
             </div>
 
             {/* ── Main Content ── */}
-            <div className="relative z-10 flex flex-col justify-center h-full px-6 sm:px-12 lg:px-24 xl:px-32">
+            <div className="relative z-10 flex flex-col justify-center h-full px-6 sm:px-16 lg:px-28 xl:px-36">
 
                 {/* Badge */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className="mb-8 flex items-center gap-3"
+                    className="mb-6 flex items-center gap-3"
                 >
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/15"
                          style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(12px)' }}>
@@ -143,7 +143,7 @@ export default function Hero() {
                 </motion.div>
 
                 {/* ── Heading — cả 2 dòng cùng phông Inter 900 ── */}
-                <div className="overflow-visible">
+                <div className="overflow-visible space-y-1">
                     {headingLines.map((line, i) => (
                         <motion.div
                             key={i}
@@ -152,11 +152,11 @@ export default function Hero() {
                             transition={{ duration: 0.9, delay: 0.35 + i * 0.15, ease: [0.16, 1, 0.3, 1] }}
                         >
                             <h1
-                                className="font-black text-white leading-[1] tracking-[-0.02em] uppercase"
+                                className="font-black text-white leading-[1.15] tracking-[-0.02em] uppercase"
                                 style={{
                                     fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif",
                                     fontWeight: 800,
-                                    fontSize: 'clamp(2.8rem, 6vw, 6rem)',
+                                    fontSize: 'clamp(2.5rem, 5.5vw, 5.5rem)',
                                 }}
                             >
                                 {line}
@@ -170,7 +170,7 @@ export default function Hero() {
                     initial={{ scaleX: 0, opacity: 0 }}
                     animate={{ scaleX: 1, opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.75 }}
-                    className="mt-7 mb-5 flex items-center gap-4"
+                    className="mt-6 mb-4 flex items-center gap-4"
                     style={{ transformOrigin: 'left' }}
                 >
                     <div className="h-px w-16 bg-white/35" />
@@ -187,8 +187,8 @@ export default function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.85 }}
-                    className="text-white/85 max-w-md leading-[1.7] whitespace-pre-line mt-1"
-                    style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", fontSize: 'clamp(0.9rem, 1.1vw, 1.05rem)', fontWeight: 400 }}
+                    className="text-white/90 max-w-lg leading-[1.7] whitespace-pre-line mt-2"
+                    style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", fontSize: 'clamp(0.95rem, 1.2vw, 1.1rem)', fontWeight: 400 }}
                 >
                     {settings.heroSubtitle}
                 </motion.p>
@@ -242,7 +242,7 @@ export default function Hero() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 1.3 }}
-                    className="flex items-center gap-8 mt-12"
+                    className="flex items-center gap-8 mt-10"
                 >
                     {[
                         { value: '500+',  label: 'Mẫu độc quyền' },
@@ -270,7 +270,7 @@ export default function Hero() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.6 }}
-                className="absolute bottom-8 left-1/2 -translate-x-1/2"
+                className="absolute bottom-6 left-1/2 -translate-x-1/2"
             >
                 <motion.div
                     animate={{ y: [0, 8, 0] }}
@@ -284,16 +284,6 @@ export default function Hero() {
                     <div className="w-px h-8 bg-gradient-to-b from-white/40 to-transparent" />
                 </motion.div>
             </motion.div>
-
-            {/* ── Side label ── */}
-            <div className="absolute top-1/2 left-6 -translate-y-1/2 hidden lg:flex flex-col items-center gap-3">
-                <div className="w-px h-12 bg-white/15" />
-                <span className="text-white/25 uppercase rotate-[-90deg] whitespace-nowrap"
-                      style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.58rem', letterSpacing: '0.35em' }}>
-                    HAVEN STORE · Fashion 2027
-                </span>
-                <div className="w-px h-12 bg-white/15" />
-            </div>
 
             {/* ── Right accent line ── */}
             <div className="absolute top-1/2 right-20 -translate-y-1/2 hidden xl:flex flex-col items-center gap-2">
