@@ -203,6 +203,26 @@ export default function LuckyWheelAdminPage() {
     // Save Config to Backend
     const handleSave = async () => {
         if (!config) return;
+
+        let finalConfig = { ...config };
+        const totalProb = finalConfig.prizes.reduce((sum, p) => sum + Number(p.probability || 0), 0);
+
+        // Nếu tổng % chưa bằng 100 → Tự động cân bằng giúp admin không bị kẹt
+        if (Math.abs(totalProb - 100) >= 0.1 && finalConfig.prizes.length > 0) {
+            const count = finalConfig.prizes.length;
+            const equalShare = Number((100 / count).toFixed(1));
+            let remainder = Number((100 - (equalShare * count)).toFixed(1));
+
+            const balanced = finalConfig.prizes.map((p, i) => ({
+                ...p,
+                probability: i === 0 ? Number((equalShare + remainder).toFixed(1)) : equalShare
+            }));
+
+            finalConfig.prizes = balanced;
+            setConfig(finalConfig);
+            toast.success(`✨ Đã tự động điều chỉnh tổng xác suất các ô về 100%!`);
+        }
+
         setSaving(true);
         try {
             const res = await fetch('/api/lucky-wheel/config', {
@@ -211,11 +231,11 @@ export default function LuckyWheelAdminPage() {
                     'Authorization': `Bearer ${token || user?.id}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(config)
+                body: JSON.stringify(finalConfig)
             });
             const data = await res.json();
             if (data.success) {
-                toast.success('✨ Đã lưu toàn bộ Cấu hình Vòng quay thành công!');
+                toast.success('🎉 Đã lưu toàn bộ Cấu hình Vòng quay thành công!');
                 fetchConfig();
             } else {
                 throw new Error(data.message);
@@ -332,8 +352,8 @@ export default function LuckyWheelAdminPage() {
 
                             <button
                                 onClick={handleSave}
-                                disabled={saving || !probOk}
-                                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm disabled:opacity-40 transition-all"
+                                disabled={saving}
+                                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer transition-all"
                             >
                                 {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                                 Lưu Cấu Hình
@@ -396,6 +416,15 @@ export default function LuckyWheelAdminPage() {
                                     Thiết lập trạng thái hoạt động, thời gian diễn ra sự kiện, giới hạn chống spam IP/thiết bị, và hiển thị xác suất
                                 </p>
                             </div>
+
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer transition-all"
+                            >
+                                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                Lưu Cấu Hình Chung
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
