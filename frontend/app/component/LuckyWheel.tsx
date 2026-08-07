@@ -230,7 +230,10 @@ function WheelModal({ onClose }: { onClose: () => void }) {
         let isMounted = true;
         const fetchConfig = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/config`);
+                const apiEndpoint = process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== 'undefined'
+                    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/lucky-wheel/config`
+                    : '/api/lucky-wheel/config';
+                const res = await fetch(apiEndpoint);
                 const data = await res.json();
                 if (data.success && isMounted) {
                     const fullConfig = data.config || {};
@@ -279,7 +282,11 @@ function WheelModal({ onClose }: { onClose: () => void }) {
         setPrize(null);
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lucky-wheel/spin`, {
+            const apiEndpoint = process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== 'undefined'
+                ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/lucky-wheel/spin`
+                : '/api/lucky-wheel/spin';
+
+            const res = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
