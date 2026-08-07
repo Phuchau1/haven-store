@@ -9,8 +9,8 @@ const userCouponSchema = new mongoose.Schema({
     spin_history_id: { type: mongoose.Schema.Types.ObjectId, ref: 'SpinHistory', default: null },
     reward_name:     { type: String, default: '' },      // Tên phần thưởng vd: "Giảm 20.000đ"
     coupon_code:     { type: String, required: true, unique: true },
-    type:            { type: String, required: true, enum: ['fixed', 'percent', 'shipping'] },
-    discount_value:  { type: Number, required: true },
+    type:            { type: String, default: 'fixed' }, // 'fixed', 'percent', 'shipping'
+    discount_value:  { type: Number, default: 0 },
     expires_at:      { type: Date, required: true },
     is_used:         { type: Boolean, default: false },
     used_at:         { type: Date, default: null },      // Thời điểm sử dụng

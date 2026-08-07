@@ -44,11 +44,31 @@ const sanitizePrize = (p, i) => {
     if (type === 'retry') type = 'none';
 
     let reward = p.reward || p.label || '';
-    if (!reward || reward.trim() === '') {
+    let discount_value = Number(p.discount_value) || 0;
+
+    // Tự động giải mã discount_value từ tên nếu discount_value đang bằng 0
+    if (discount_value === 0 && reward) {
+        const matchK = reward.match(/(\d+)\s*k/i);
+        const matchVnd = reward.match(/(\d+[\d\.]*)\s*([đđ]|vnd)/i);
+        const matchPercent = reward.match(/(\d+)\s*%/);
+
+        if (matchPercent) {
+            type = 'percent';
+            discount_value = parseInt(matchPercent[1]);
+        } else if (matchK) {
+            type = 'fixed';
+            discount_value = parseInt(matchK[1]) * 1000;
+        } else if (matchVnd) {
+            type = 'fixed';
+            discount_value = parseInt(matchVnd[1].replace(/\./g, ''));
+        }
+    }
+
+    if (!reward || reward.trim() === '' || reward === 'Giảm 0k') {
         if (type === 'none') reward = 'Chúc bạn may mắn lần sau';
         else if (type === 'shipping') reward = 'Freeship';
-        else if (type === 'percent') reward = `Giảm ${p.discount_value || 10}%`;
-        else reward = `Giảm ${(p.discount_value || 20000) / 1000}k`;
+        else if (type === 'percent') reward = `Giảm ${discount_value || 10}%`;
+        else reward = `Giảm ${(discount_value || 20000) / 1000}k`;
     }
 
     return {
@@ -58,7 +78,7 @@ const sanitizePrize = (p, i) => {
         reward:         reward,
         type,
         coupon_code:    p.coupon_code || (type !== 'none' ? `SPIN${i + 1}` : ''),
-        discount_value: Number(p.discount_value) || 0,
+        discount_value,
         probability:    Number(p.probability) || (i === 0 ? 30 : 10),
         valid_hours:    Number(p.valid_hours) || 24,
         quantity:       Number(p.quantity) || 0,
@@ -372,15 +392,25 @@ exports.spin = async (req, res) => {
         // 10. Tạo UserCoupon nếu trúng thưởng voucher
         let createdCoupon = null;
         if (userId && winPrize.type !== 'none' && winPrize.valid_hours > 0) {
-            const uniqueCode = `${winPrize.coupon_code || 'LUCKY'}_${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-            createdCoupon = await UserCoupon.create({
-                user_id:        userId,
-                reward_name:    winPrize.reward || winPrize.label,
-                coupon_code:    uniqueCode,
-                type:           winPrize.type,
-                discount_value: winPrize.discount_value || 0,
-                expires_at:     new Date(Date.now() + (winPrize.valid_hours || 24) * 3_600_000),
-            });
+            let couponType = winPrize.type;
+            if (couponType === 'discount' || couponType === 'voucher') couponType = 'fixed';
+            if (couponType === 'freeship') couponType = 'shipping';
+
+            if (['fixed', 'percent', 'shipping'].includes(couponType)) {
+                const uniqueCode = `${winPrize.coupon_code || 'SPIN'}_${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                try {
+                    createdCoupon = await UserCoupon.create({
+                        user_id:        userId,
+                        reward_name:    winPrize.reward || winPrize.label,
+                        coupon_code:    uniqueCode,
+                        type:           couponType,
+                        discount_value: winPrize.discount_value || 0,
+                        expires_at:     new Date(Date.now() + (winPrize.valid_hours || 24) * 3_600_000),
+                    });
+                } catch (cErr) {
+                    logger.error('UserCoupon create error: ' + cErr.message);
+                }
+            }
         }
 
         // 11. Lưu SpinHistory

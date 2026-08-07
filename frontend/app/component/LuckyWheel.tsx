@@ -10,31 +10,34 @@ import { useToast } from '@/app/component/ToastProvider';
 const DEFAULT_COLORS = ['#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'];
 
 const mapPrize = (p: any, index: number): WheelPrize => {
-    let shortLabel = p.reward || p.label;
+    let rawLabel = p.reward || p.label || 'Quà tặng';
+    let shortLabel = rawLabel;
     let emoji = '🎁';
     let type: any = p.type;
     
     if (p.type === 'fixed') {
-        shortLabel = `Giảm ${p.discount_value/1000}k`;
+        const val = Number(p.discount_value) || 0;
+        shortLabel = val > 0 ? `Giảm ${val / 1000}k` : rawLabel;
         emoji = '💸';
         type = 'voucher';
     } else if (p.type === 'percent') {
-        shortLabel = `Giảm ${p.discount_value}%`;
+        const val = Number(p.discount_value) || 0;
+        shortLabel = val > 0 ? `Giảm ${val}%` : rawLabel;
         emoji = '🏷️';
         type = 'voucher';
     } else if (p.type === 'shipping') {
-        shortLabel = 'Freeship';
+        shortLabel = rawLabel.includes('Freeship') ? rawLabel : 'Freeship';
         emoji = '🚚';
         type = 'voucher';
     } else if (p.type === 'none') {
-        shortLabel = 'May mắn lần sau';
+        shortLabel = rawLabel.includes('May mắn') ? rawLabel : 'May mắn lần sau';
         emoji = '☘️';
         type = 'retry';
     }
 
     return {
         id: p._id || p.id,
-        label: p.reward || p.label,
+        label: rawLabel,
         shortLabel,
         type,
         value: Number(p.discount_value) || 0,
