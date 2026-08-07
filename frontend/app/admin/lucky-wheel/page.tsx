@@ -111,9 +111,43 @@ export default function LuckyWheelAdminPage() {
         try {
             const res = await fetch('/api/lucky-wheel/config');
             const data = await res.json();
+
+            const sanitizeAdminPrize = (p: any, i: number): Prize => {
+                let type: any = p.type || 'fixed';
+                if (type === 'discount' || type === 'voucher') type = 'fixed';
+                if (type === 'freeship') type = 'shipping';
+                if (type === 'retry') type = 'none';
+
+                let reward = p.reward || p.label || '';
+                if (!reward || reward.trim() === '') {
+                    if (type === 'none') reward = 'Chúc bạn may mắn lần sau';
+                    else if (type === 'shipping') reward = 'Freeship';
+                    else if (type === 'percent') reward = `Giảm ${p.discount_value || 10}%`;
+                    else reward = `Giảm ${(p.discount_value || 20000) / 1000}k`;
+                }
+
+                return {
+                    _id: p._id || p.id || `prize_${i + 1}`,
+                    id: p.id || p._id || `prize_${i + 1}`,
+                    reward,
+                    type,
+                    coupon_code: p.coupon_code || '',
+                    discount_value: Number(p.discount_value) || 0,
+                    probability: Number(p.probability) || 0,
+                    valid_hours: Number(p.valid_hours) || 24,
+                    active: p.active !== false,
+                    color: p.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+                };
+            };
+
             if (data.success && data.config) {
-                setConfig(data.config);
+                const prizes = (data.config.prizes || data.prizes || []).map((r: any, i: number) => sanitizeAdminPrize(r, i));
+                setConfig({
+                    ...data.config,
+                    prizes,
+                });
             } else if (data.success && data.prizes) {
+                const prizes = data.prizes.map((r: any, i: number) => sanitizeAdminPrize(r, i));
                 setConfig({
                     isActive: true,
                     startDate: null,
@@ -126,18 +160,7 @@ export default function LuckyWheelAdminPage() {
                     onlyNewMembers: false,
                     requireLogin: true,
                     showProbability: true,
-                    prizes: data.prizes.map((r: any, i: number) => ({
-                        _id: r._id || r.id,
-                        id: r._id || r.id,
-                        reward: r.reward,
-                        type: r.type,
-                        coupon_code: r.coupon_code || '',
-                        discount_value: r.discount_value || 0,
-                        probability: r.probability || 0,
-                        valid_hours: r.valid_hours || 24,
-                        active: r.active !== false,
-                        color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
-                    }))
+                    prizes,
                 });
             }
         } catch {

@@ -37,21 +37,52 @@ const getPeriodStartDate = (resetInterval = 'daily') => {
 };
 
 /** Khởi tạo hoặc lấy Cấu hình chung LuckyWheelConfig */
+const sanitizePrize = (p, i) => {
+    let type = p.type || 'fixed';
+    if (type === 'discount' || type === 'voucher') type = 'fixed';
+    if (type === 'freeship') type = 'shipping';
+    if (type === 'retry') type = 'none';
+
+    let reward = p.reward || p.label || '';
+    if (!reward || reward.trim() === '') {
+        if (type === 'none') reward = 'Chúc bạn may mắn lần sau';
+        else if (type === 'shipping') reward = 'Freeship';
+        else if (type === 'percent') reward = `Giảm ${p.discount_value || 10}%`;
+        else reward = `Giảm ${(p.discount_value || 20000) / 1000}k`;
+    }
+
+    return {
+        id:             p.id || p._id || `prize_${i + 1}`,
+        _id:            p._id || p.id || `prize_${i + 1}`,
+        label:          reward,
+        reward:         reward,
+        type,
+        coupon_code:    p.coupon_code || (type !== 'none' ? `SPIN${i + 1}` : ''),
+        discount_value: Number(p.discount_value) || 0,
+        probability:    Number(p.probability) || (i === 0 ? 30 : 10),
+        valid_hours:    Number(p.valid_hours) || 24,
+        quantity:       Number(p.quantity) || 0,
+        remaining:      Number(p.remaining) || 0,
+        color:          p.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+        active:         p.active !== false,
+    };
+};
+
+/** Khởi tạo hoặc lấy Cấu hình chung LuckyWheelConfig */
 const getOrCreateConfigDoc = async () => {
     let configDoc = await LuckyWheelConfigModel.findOne();
     if (!configDoc) {
-        // Kiểm tra SpinReward cũ nếu có
         let rewards = await SpinReward.find({ active: true });
         if (!rewards || rewards.length === 0) {
             rewards = await SpinReward.insertMany([
-                { reward: 'Chúc bạn may mắn lần sau', type: 'none',     coupon_code: '',         discount_value: 0,      probability: 60,  valid_hours: 0,  active: true, color: DEFAULT_COLORS[0] },
+                { reward: 'Chúc bạn may mắn lần sau', type: 'none',     coupon_code: '',         discount_value: 0,      probability: 30,  valid_hours: 0,  active: true, color: DEFAULT_COLORS[0] },
                 { reward: 'Giảm 20.000đ',              type: 'fixed',    coupon_code: 'SPIN20',   discount_value: 20000,  probability: 15,  valid_hours: 24, active: true, color: DEFAULT_COLORS[1] },
-                { reward: 'Giảm 30.000đ',              type: 'fixed',    coupon_code: 'SPIN30',   discount_value: 30000,  probability: 10,  valid_hours: 24, active: true, color: DEFAULT_COLORS[2] },
-                { reward: 'Giảm 50.000đ',              type: 'fixed',    coupon_code: 'SPIN50',   discount_value: 50000,  probability: 6,   valid_hours: 24, active: true, color: DEFAULT_COLORS[3] },
-                { reward: 'Freeship',                  type: 'shipping', coupon_code: 'FREESHIP', discount_value: 30000,  probability: 5,   valid_hours: 24, active: true, color: DEFAULT_COLORS[4] },
-                { reward: 'Giảm 100.000đ',             type: 'fixed',    coupon_code: 'SPIN100',  discount_value: 100000, probability: 2,   valid_hours: 24, active: true, color: DEFAULT_COLORS[5] },
-                { reward: 'Giảm 15%',                  type: 'percent',  coupon_code: 'SPIN15P',  discount_value: 15,     probability: 1.5, valid_hours: 24, active: true, color: DEFAULT_COLORS[6] },
-                { reward: 'Giảm 20%',                  type: 'percent',  coupon_code: 'SPIN20P',  discount_value: 20,     probability: 0.5, valid_hours: 24, active: true, color: DEFAULT_COLORS[7] },
+                { reward: 'Giảm 30.000đ',              type: 'fixed',    coupon_code: 'SPIN30',   discount_value: 30000,  probability: 12,  valid_hours: 24, active: true, color: DEFAULT_COLORS[2] },
+                { reward: 'Giảm 50.000đ',              type: 'fixed',    coupon_code: 'SPIN50',   discount_value: 50000,  probability: 8,   valid_hours: 24, active: true, color: DEFAULT_COLORS[3] },
+                { reward: 'Freeship',                  type: 'shipping', coupon_code: 'FREESHIP', discount_value: 30000,  probability: 15,  valid_hours: 24, active: true, color: DEFAULT_COLORS[4] },
+                { reward: 'Giảm 100.000đ',             type: 'fixed',    coupon_code: 'SPIN100',  discount_value: 100000, probability: 5,   valid_hours: 24, active: true, color: DEFAULT_COLORS[5] },
+                { reward: 'Giảm 15%',                  type: 'percent',  coupon_code: 'SPIN15P',  discount_value: 15,     probability: 10,  valid_hours: 24, active: true, color: DEFAULT_COLORS[6] },
+                { reward: 'Giảm 20%',                  type: 'percent',  coupon_code: 'SPIN20P',  discount_value: 20,     probability: 5,   valid_hours: 24, active: true, color: DEFAULT_COLORS[7] },
             ]);
         }
 
@@ -67,21 +98,21 @@ const getOrCreateConfigDoc = async () => {
             onlyNewMembers: false,
             requireLogin: true,
             showProbability: true,
-            prizes: rewards.map((r, i) => ({
-                id:             r._id.toString(),
-                label:          r.reward,
-                reward:         r.reward,
-                type:           r.type,
-                coupon_code:    r.coupon_code || '',
-                discount_value: r.discount_value || 0,
-                probability:    r.probability || 0,
-                valid_hours:    r.valid_hours || 24,
-                quantity:       r.quantity || 0,
-                remaining:      r.remaining || 0,
-                color:          r.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length],
-                active:         r.active !== false,
-            }))
+            prizes: rewards.map((r, i) => sanitizePrize(r, i))
         });
+    } else {
+        // Tự động kiểm tra và sửa lỗi nếu DB có phần thưởng rỗng tên/type sai
+        let needSave = false;
+        const sanitized = configDoc.prizes.map((p, i) => {
+            const clean = sanitizePrize(p, i);
+            if (clean.reward !== p.reward || clean.type !== p.type) needSave = true;
+            return clean;
+        });
+
+        if (needSave || !configDoc.prizes || configDoc.prizes.length === 0) {
+            configDoc.prizes = sanitized;
+            await configDoc.save();
+        }
     }
     return configDoc;
 };
@@ -92,11 +123,14 @@ const getOrCreateConfigDoc = async () => {
 exports.getConfig = async (req, res) => {
     try {
         const configDoc = await getOrCreateConfigDoc();
-        const prizes = (configDoc.prizes || []).filter(p => p.active !== false);
+        const prizes = (configDoc.prizes || []).filter(p => p.active !== false).map((p, i) => sanitizePrize(p, i));
 
         res.json({
             success: true,
-            config: configDoc,
+            config: {
+                ...configDoc.toObject(),
+                prizes,
+            },
             prizes,
         });
     } catch (error) {
