@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Save, Gift, Loader2, Plus, Trash2, AlertCircle, CheckCircle2,
     History, RefreshCw, X, ShieldAlert, Sparkles, Layers, Check, Calculator, AlertTriangle,
-    User, Mail, Phone, Ticket, ChevronLeft, ChevronRight, RotateCcw
+    User, Mail, Phone, Ticket, ChevronLeft, ChevronRight, RotateCcw, Settings
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -25,7 +25,16 @@ interface Prize {
 
 interface Config {
     isActive: boolean;
-    spinsPerDay: number;
+    startDate?: string | null;
+    endDate?: string | null;
+    resetInterval?: 'daily' | 'weekly' | 'monthly';
+    spinsPerPeriod?: number;
+    maxSpinsPerAccount?: number;
+    maxSpinsPerIP?: number;
+    maxSpinsPerDevice?: number;
+    onlyNewMembers?: boolean;
+    requireLogin?: boolean;
+    showProbability?: boolean;
     prizes: Prize[];
 }
 
@@ -107,7 +116,16 @@ export default function LuckyWheelAdminPage() {
             } else if (data.success && data.prizes) {
                 setConfig({
                     isActive: true,
-                    spinsPerDay: 1,
+                    startDate: null,
+                    endDate: null,
+                    resetInterval: 'daily',
+                    spinsPerPeriod: 1,
+                    maxSpinsPerAccount: 30,
+                    maxSpinsPerIP: 3,
+                    maxSpinsPerDevice: 3,
+                    onlyNewMembers: false,
+                    requireLogin: true,
+                    showProbability: true,
                     prizes: data.prizes.map((r: any, i: number) => ({
                         _id: r._id || r.id,
                         id: r._id || r.id,
@@ -193,11 +211,11 @@ export default function LuckyWheelAdminPage() {
                     'Authorization': `Bearer ${token || user?.id}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ prizes: config.prizes })
+                body: JSON.stringify(config)
             });
             const data = await res.json();
             if (data.success) {
-                toast.success('✨ Đã lưu cấu hình vòng quay!');
+                toast.success('✨ Đã lưu toàn bộ Cấu hình Vòng quay thành công!');
                 fetchConfig();
             } else {
                 throw new Error(data.message);
@@ -366,7 +384,185 @@ export default function LuckyWheelAdminPage() {
 
             {/* TAB 1: CONFIG */}
             {activeTab === 'config' && (
-                <div className="space-y-4">
+                <div className="space-y-6">
+                    {/* ── CẤU HÌNH CHUNG VÒNG QUAY ── */}
+                    <div className="p-6 rounded-2xl border space-y-6 shadow-sm" style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>
+                        <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'var(--adm-border)' }}>
+                            <div>
+                                <h2 className="text-sm font-black uppercase tracking-wider flex items-center gap-2" style={{ color: 'var(--adm-text)' }}>
+                                    <Settings size={16} className="text-blue-600" /> Cấu Hình Chung Vòng Quay May Mắn
+                                </h2>
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
+                                    Thiết lập trạng thái hoạt động, thời gian diễn ra sự kiện, giới hạn chống spam IP/thiết bị, và hiển thị xác suất
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                            {/* 1. Bật/Tắt vòng quay */}
+                            <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold" style={{ color: 'var(--adm-text)' }}>Bật/Tắt Vòng Quay</label>
+                                    <input
+                                        type="checkbox"
+                                        checked={config?.isActive ?? true}
+                                        onChange={e => setConfig(prev => prev ? { ...prev, isActive: e.target.checked } : null)}
+                                        className="w-4 h-4 rounded cursor-pointer accent-blue-600"
+                                    />
+                                </div>
+                                <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>
+                                    {config?.isActive ? '🟢 Đang hoạt động trên Website' : '🔴 Đang tạm ngưng (Bảo trì)'}
+                                </p>
+                            </div>
+
+                            {/* 2. Ngày bắt đầu */}
+                            <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <label className="text-xs font-bold block" style={{ color: 'var(--adm-text)' }}>Ngày Bắt Đầu Sự Kiện</label>
+                                <input
+                                    type="datetime-local"
+                                    value={config?.startDate ? new Date(config.startDate).toISOString().slice(0, 16) : ''}
+                                    onChange={e => setConfig(prev => prev ? { ...prev, startDate: e.target.value ? new Date(e.target.value).toISOString() : null } : null)}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
+                                    style={inputStyle}
+                                />
+                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>Để trống nếu không giới hạn bắt đầu</p>
+                            </div>
+
+                            {/* 3. Ngày kết thúc */}
+                            <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <label className="text-xs font-bold block" style={{ color: 'var(--adm-text)' }}>Ngày Kết Thúc Sự Kiện</label>
+                                <input
+                                    type="datetime-local"
+                                    value={config?.endDate ? new Date(config.endDate).toISOString().slice(0, 16) : ''}
+                                    onChange={e => setConfig(prev => prev ? { ...prev, endDate: e.target.value ? new Date(e.target.value).toISOString() : null } : null)}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
+                                    style={inputStyle}
+                                />
+                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>Để trống nếu chạy vô thời hạn</p>
+                            </div>
+
+                            {/* 4. Thời gian reset lượt quay */}
+                            <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <label className="text-xs font-bold block" style={{ color: 'var(--adm-text)' }}>Chu Kỳ Reset Lượt Quay</label>
+                                <select
+                                    value={config?.resetInterval || 'daily'}
+                                    onChange={e => setConfig(prev => prev ? { ...prev, resetInterval: e.target.value as any } : null)}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
+                                    style={inputStyle}
+                                >
+                                    <option value="daily">Theo ngày (Hàng ngày 00:00)</option>
+                                    <option value="weekly">Theo tuần (Thứ Hai hàng tuần)</option>
+                                    <option value="monthly">Theo tháng (Ngày 1 hàng tháng)</option>
+                                </select>
+                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>Thời điểm làm mới số lượt quay</p>
+                            </div>
+
+                            {/* 5. Tổng lượt quay mặc định */}
+                            <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <label className="text-xs font-bold block" style={{ color: 'var(--adm-text)' }}>Lượt Quay Mặc Định / Chu Kỳ</label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={config?.spinsPerPeriod ?? 1}
+                                    onChange={e => setConfig(prev => prev ? { ...prev, spinsPerPeriod: Math.max(1, Number(e.target.value)) } : null)}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
+                                    style={inputStyle}
+                                />
+                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>Ví dụ: 1 lượt / ngày (hoặc / tuần / tháng)</p>
+                            </div>
+
+                            {/* 6. Giới hạn mỗi tài khoản */}
+                            <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <label className="text-xs font-bold block" style={{ color: 'var(--adm-text)' }}>Tối Đa / Tài Khoản (Tháng)</label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={config?.maxSpinsPerAccount ?? 30}
+                                    onChange={e => setConfig(prev => prev ? { ...prev, maxSpinsPerAccount: Math.max(0, Number(e.target.value)) } : null)}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
+                                    style={inputStyle}
+                                />
+                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>0 = Không giới hạn tối đa tháng</p>
+                            </div>
+
+                            {/* 7. Giới hạn mỗi IP */}
+                            <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <label className="text-xs font-bold block" style={{ color: 'var(--adm-text)' }}>Giới Hạn Tối Đa / IP (Anti-Spam)</label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={config?.maxSpinsPerIP ?? 3}
+                                    onChange={e => setConfig(prev => prev ? { ...prev, maxSpinsPerIP: Math.max(0, Number(e.target.value)) } : null)}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
+                                    style={inputStyle}
+                                />
+                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>0 = Không giới hạn IP</p>
+                            </div>
+
+                            {/* 8. Giới hạn mỗi thiết bị */}
+                            <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <label className="text-xs font-bold block" style={{ color: 'var(--adm-text)' }}>Giới Hạn / Thiết Bị (Device ID)</label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={config?.maxSpinsPerDevice ?? 3}
+                                    onChange={e => setConfig(prev => prev ? { ...prev, maxSpinsPerDevice: Math.max(0, Number(e.target.value)) } : null)}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
+                                    style={inputStyle}
+                                />
+                                <p className="text-[10px]" style={{ color: 'var(--adm-text-muted)' }}>0 = Không giới hạn Thiết bị</p>
+                            </div>
+
+                            {/* 9. Yêu cầu đăng nhập */}
+                            <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold" style={{ color: 'var(--adm-text)' }}>Yêu Cầu Đăng Nhập</label>
+                                    <input
+                                        type="checkbox"
+                                        checked={config?.requireLogin ?? true}
+                                        onChange={e => setConfig(prev => prev ? { ...prev, requireLogin: e.target.checked } : null)}
+                                        className="w-4 h-4 rounded cursor-pointer accent-blue-600"
+                                    />
+                                </div>
+                                <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>
+                                    {config?.requireLogin ? 'Bắt buộc đăng nhập tài khoản' : 'Cho phép cả khách vãng lai'}
+                                </p>
+                            </div>
+
+                            {/* 10. Chỉ thành viên mới */}
+                            <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold" style={{ color: 'var(--adm-text)' }}>Chỉ Dành Cho Thành Viên Mới</label>
+                                    <input
+                                        type="checkbox"
+                                        checked={config?.onlyNewMembers ?? false}
+                                        onChange={e => setConfig(prev => prev ? { ...prev, onlyNewMembers: e.target.checked } : null)}
+                                        className="w-4 h-4 rounded cursor-pointer accent-blue-600"
+                                    />
+                                </div>
+                                <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>
+                                    {config?.onlyNewMembers ? 'Chỉ áp dụng tài khoản mới tạo (<= 30 ngày)' : 'Áp dụng tất cả thành viên'}
+                                </p>
+                            </div>
+
+                            {/* 11. Hiển thị xác suất */}
+                            <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--adm-surface-2)', borderColor: 'var(--adm-border)' }}>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold" style={{ color: 'var(--adm-text)' }}>Hiển Thị Xác Suất Trúng (%)</label>
+                                    <input
+                                        type="checkbox"
+                                        checked={config?.showProbability ?? true}
+                                        onChange={e => setConfig(prev => prev ? { ...prev, showProbability: e.target.checked } : null)}
+                                        className="w-4 h-4 rounded cursor-pointer accent-blue-600"
+                                    />
+                                </div>
+                                <p className="text-[11px]" style={{ color: 'var(--adm-text-muted)' }}>
+                                    {config?.showProbability ? 'Công khai tỷ lệ % trúng thưởng cho người dùng' : 'Ẩn tỷ lệ % với người dùng'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Probability Meter Card */}
                     <div className="p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
                         style={{ backgroundColor: 'var(--adm-surface)', borderColor: 'var(--adm-border)' }}>

@@ -2,20 +2,35 @@ import { create } from 'zustand';
 
 export interface WheelPrize {
     id: number | string;
+    _id?: string;
     label: string;
-    shortLabel: string;
-    type: 'voucher' | 'freeship' | 'retry';
-    value?: number;
+    reward?: string;
+    shortLabel?: string;
+    type: 'none' | 'fixed' | 'percent' | 'shipping' | 'voucher' | 'freeship' | 'retry';
+    discount_value?: number;
+    coupon_code?: string;
+    valid_hours?: number;
+    value?: number | string;
     code?: string;
     color: string;
-    textColor: string;
-    emoji: string;
+    textColor?: string;
+    emoji?: string;
     probability?: number;
+    active?: boolean;
 }
 
 export interface WheelConfig {
     isActive: boolean;
-    spinsPerDay: number;
+    startDate?: string | null;
+    endDate?: string | null;
+    resetInterval?: 'daily' | 'weekly' | 'monthly';
+    spinsPerPeriod?: number;
+    maxSpinsPerAccount?: number;
+    maxSpinsPerIP?: number;
+    maxSpinsPerDevice?: number;
+    onlyNewMembers?: boolean;
+    requireLogin?: boolean;
+    showProbability?: boolean;
     prizes: WheelPrize[];
 }
 
@@ -24,6 +39,8 @@ interface LuckyWheelStore {
     config: WheelConfig | null;
     canSpin: boolean;
     nextSpinAt: string | null;
+    statusReason: string | null;
+    statusMessage: string | null;
     wonPrize: WheelPrize | null;
     setConfig: (config: WheelConfig) => void;
     openWheel: () => void;
@@ -40,6 +57,8 @@ export const useLuckyWheelStore = create<LuckyWheelStore>()(
         config: null,
         canSpin: true,
         nextSpinAt: null,
+        statusReason: null,
+        statusMessage: null,
         wonPrize: null,
 
         setConfig: (config) => set({ config }),
@@ -53,15 +72,16 @@ export const useLuckyWheelStore = create<LuckyWheelStore>()(
 
         clearPrize: () => set({ wonPrize: null }),
 
-        // Kiểm tra từ DB thay vì localStorage
         checkCanSpin: async (userId) => {
             try {
                 const res = await fetch(`/api/lucky-wheel/can-spin?user_id=${userId}`);
                 const data = await res.json();
                 if (data.success !== undefined) {
                     set({
-                        canSpin: data.canSpin,
-                        nextSpinAt: data.nextSpinAt || null
+                        canSpin: !!data.canSpin,
+                        nextSpinAt: data.nextSpinAt || null,
+                        statusReason: data.reason || null,
+                        statusMessage: data.message || null,
                     });
                 }
             } catch (error) {
