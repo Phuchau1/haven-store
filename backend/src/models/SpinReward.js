@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
  */
 const spinRewardSchema = new mongoose.Schema({
     reward:         { type: String, required: true },
-    type:           { type: String, enum: ['none', 'fixed', 'percent', 'shipping'], required: true },
+    type:           { type: String, default: 'none' }, // 'none', 'fixed', 'percent', 'shipping', 'discount', 'voucher', v.v.
     coupon_code:    { type: String, default: '' },      // Prefix mã (vd: SPIN20)
     discount_value: { type: Number, default: 0 },
     probability:    { type: Number, required: true },   // Tỷ lệ phần trăm

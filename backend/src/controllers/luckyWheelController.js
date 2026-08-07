@@ -434,11 +434,19 @@ exports.updateConfig = async (req, res) => {
         if (typeof showProbability === 'boolean')     configDoc.showProbability = showProbability;
 
         if (Array.isArray(prizes)) {
+            const normalizeType = (t) => {
+                if (!t) return 'none';
+                if (t === 'discount' || t === 'voucher') return 'fixed';
+                if (t === 'freeship') return 'shipping';
+                if (t === 'retry') return 'none';
+                return t;
+            };
+
             configDoc.prizes = prizes.map((p, i) => ({
                 id:             p.id || p._id || `prize_${i + 1}`,
                 label:          p.label || p.reward,
                 reward:         p.reward || p.label,
-                type:           p.type || 'none',
+                type:           normalizeType(p.type),
                 coupon_code:    p.coupon_code || '',
                 discount_value: Number(p.discount_value) || 0,
                 probability:    Number(p.probability) || 0,
@@ -453,7 +461,7 @@ exports.updateConfig = async (req, res) => {
             await SpinReward.deleteMany({});
             await SpinReward.insertMany(configDoc.prizes.map(p => ({
                 reward:         p.reward,
-                type:           p.type,
+                type:           normalizeType(p.type),
                 coupon_code:    p.coupon_code,
                 discount_value: p.discount_value,
                 probability:    p.probability,

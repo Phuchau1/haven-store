@@ -26,7 +26,7 @@ const luckyWheelConfigSchema = new mongoose.Schema({
         id: String,
         label: String,
         reward: String,
-        type: { type: String, enum: ['none', 'fixed', 'percent', 'shipping'], default: 'none' },
+        type: { type: String, default: 'none' },
         coupon_code: String,
         discount_value: Number,
         probability: Number,
