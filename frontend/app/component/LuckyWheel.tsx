@@ -136,7 +136,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize; prizes: Whe
 
     return (
         <motion.div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100005] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -354,7 +354,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
     if (loadingConfig) {
         return (
-            <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
                 <Loader2 className="animate-spin text-red-500 w-12 h-12" />
             </div>
         );
@@ -362,37 +362,37 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
     return (
         <motion.div
-            className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
         >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={!spinning ? onClose : undefined} />
+            <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={!spinning ? onClose : undefined} />
 
             <motion.div
-                className="relative w-full max-w-[560px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 my-auto"
+                className="relative w-full max-w-[500px] max-h-[90vh] bg-white rounded-3xl overflow-y-auto shadow-2xl border border-slate-100 my-auto flex flex-col"
                 initial={{ scale: 0.85, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.85, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', bounce: 0.2 }}
             >
-                {/* Header Clean Red Theme */}
-                <div className="relative bg-red-600 px-8 pt-7 pb-7 text-center text-white">
+                {/* Header Clean Red Theme (Sticky Top) */}
+                <div className="relative bg-red-600 px-6 pt-5 pb-5 text-center text-white shrink-0 sticky top-0 z-30 shadow-sm">
                     <button
                         onClick={!spinning ? onClose : undefined}
-                        className="absolute right-5 top-5 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+                        className="absolute right-4 top-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer"
                     >
-                        <X size={22} />
+                        <X size={20} />
                     </button>
                     
-                    <h2 className="text-3xl font-black tracking-tight flex items-center justify-center gap-2">
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center justify-center gap-2">
                         <span>🎁</span> VÒNG QUAY MAY MẮN
                     </h2>
-                    <p className="text-red-100 text-sm font-medium mt-1">Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn</p>
+                    <p className="text-red-100 text-xs sm:text-sm font-medium mt-0.5">Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn</p>
 
                     {/* Banner ngày sự kiện nếu có */}
                     {(config?.startDate || config?.endDate) && (
-                        <div className="mt-2 text-[11px] bg-white/15 px-3 py-1 rounded-full inline-flex items-center gap-1.5 font-medium text-white/90">
+                        <div className="mt-1.5 text-[11px] bg-white/15 px-3 py-0.5 rounded-full inline-flex items-center gap-1.5 font-medium text-white/90">
                             <Clock size={12} />
                             <span>
                                 {config.startDate ? `Từ ${new Date(config.startDate).toLocaleDateString('vi-VN')}` : ''}
@@ -402,8 +402,8 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                     )}
                 </div>
 
-                {/* Wheel Area (SIÊU TO & RÕ NÉT) */}
-                <div className="relative px-6 py-6 flex flex-col items-center bg-slate-50/60">
+                {/* Wheel Area */}
+                <div className="relative px-5 py-5 flex flex-col items-center bg-slate-50/60 shrink-0">
 
                     {/* Vòng quay đang bảo trì */}
                     {config?.isActive === false ? (
@@ -414,17 +414,17 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                         </div>
                     ) : (
                         <>
-                            {/* Outer Frame (Size 420px) */}
-                            <div className="relative w-[380px] h-[380px] sm:w-[420px] sm:h-[420px] rounded-full p-3.5 bg-white shadow-xl border-[5px] border-amber-400 flex items-center justify-center">
+                            {/* Outer Frame (Size 320px ~ 360px responsive) */}
+                            <div className="relative w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] rounded-full p-3 bg-white shadow-xl border-[4px] border-amber-400 flex items-center justify-center shrink-0 my-1">
                                 
                                 {/* Bulbs / Dots */}
                                 {Array.from({ length: 16 }).map((_, i) => (
                                     <div
                                         key={i}
-                                        className={`absolute w-3.5 h-3.5 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
+                                        className={`absolute w-3 h-3 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
                                         style={{
                                             top: '50%', left: '50%',
-                                            transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-185px)`,
+                                            transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-144px)`,
                                         }}
                                     />
                                 ))}
@@ -435,26 +435,26 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                     animate={{ rotate: rotation }}
                                     transition={{ duration: spinning ? 5.2 : 0, ease: [0.15, 0.85, 0.15, 1] }}
                                 >
-                                    <canvas ref={canvasRef} width={390} height={390} className="w-full h-full block" />
+                                    <canvas ref={canvasRef} width={360} height={360} className="w-full h-full block" />
                                 </motion.div>
 
                                 {/* Red Pin Pointer Arrow */}
-                                <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-12 drop-shadow-md z-20 flex flex-col items-center pointer-events-none">
-                                    <div className="w-6 h-6 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
-                                    <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[28px] border-t-red-600 -mt-3 filter drop-shadow" />
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-11 drop-shadow-md z-20 flex flex-col items-center pointer-events-none">
+                                    <div className="w-5 h-5 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
+                                    <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[24px] border-t-red-600 -mt-2.5 filter drop-shadow" />
                                 </div>
                             </div>
 
                             {/* Hiển thị xác suất trúng thưởng công khai (%) */}
                             {config?.showProbability && prizes.length > 0 && (
-                                <div className="mt-4 w-full p-3 bg-amber-50/90 border border-amber-200 rounded-2xl text-xs text-amber-950 font-medium">
-                                    <div className="flex items-center gap-1.5 font-bold mb-1.5 text-amber-900">
-                                        <Sparkles size={14} className="text-amber-600" />
+                                <div className="mt-3 w-full p-2.5 bg-amber-50/90 border border-amber-200/80 rounded-2xl text-[11px] text-amber-950 font-medium">
+                                    <div className="flex items-center gap-1.5 font-bold mb-1 text-amber-900">
+                                        <Sparkles size={13} className="text-amber-600" />
                                         <span>Tỷ lệ trúng thưởng công khai (%):</span>
                                     </div>
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <div className="flex flex-wrap gap-1">
                                         {prizes.map((p, idx) => (
-                                            <span key={idx} className="px-2 py-0.5 rounded-lg bg-white border border-amber-200/80 text-[11px] font-semibold text-slate-700 shadow-2xs">
+                                            <span key={idx} className="px-2 py-0.5 rounded-lg bg-white border border-amber-200/80 text-[10px] font-semibold text-slate-700 shadow-2xs">
                                                 {p.shortLabel || p.label}: <strong className="text-amber-700">{p.probability}%</strong>
                                             </span>
                                         ))}
@@ -463,16 +463,16 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                             )}
 
                             {/* Action Button & Status */}
-                            <div className="mt-6 w-full">
+                            <div className="mt-4 w-full">
                                 {canSpin ? (
                                     <button
                                         onClick={spin}
                                         disabled={spinning}
-                                        className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-xl shadow-xl shadow-red-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="w-full py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-lg shadow-xl shadow-red-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         {spinning ? (
                                             <>
-                                                <Loader2 className="animate-spin text-white" size={24} />
+                                                <Loader2 className="animate-spin text-white" size={22} />
                                                 <span>ĐANG QUAY...</span>
                                             </>
                                         ) : (
@@ -483,14 +483,14 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                         )}
                                     </button>
                                 ) : (
-                                    <div className="w-full py-4 px-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-2">
+                                    <div className="w-full py-3 px-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-1.5">
                                         <div className="flex items-center justify-between">
-                                            <span className="font-bold text-sm text-slate-700 flex items-center gap-2">
-                                                <Clock size={18} className="text-orange-500" />
+                                            <span className="font-bold text-xs sm:text-sm text-slate-700 flex items-center gap-2">
+                                                <Clock size={16} className="text-orange-500" />
                                                 {statusMessage || 'Đã hết lượt quay trong lượt này'}
                                             </span>
                                             {timeLeft && (
-                                                <span className="text-xs font-mono font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-200">
+                                                <span className="text-[11px] font-mono font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-xl border border-orange-200">
                                                     {timeLeft}
                                                 </span>
                                             )}
