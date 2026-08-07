@@ -295,7 +295,7 @@ exports.spin = async (req, res) => {
     try {
         const userId = req.user ? String(req.user._id || req.user.id) : (req.body.user_id || req.query.user_id || '');
         const ip     = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
-        const device = req.headers['x-device-id'] || (req.headers['user-agent'] || '').substring(0, 200);
+        const device = req.headers['x-device-id'] || req.body?.device_id || (req.headers['user-agent'] || '').substring(0, 200);
 
         const configDoc = await getOrCreateConfigDoc();
         const now = new Date();

@@ -60,7 +60,7 @@ app.use(cors({
     origin: process.env.NEXT_PUBLIC_FRONTEND_URL || '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id', 'x-requested-with', 'Accept']
 }));
 
 // --- LOGGING ---

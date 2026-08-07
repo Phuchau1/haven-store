@@ -286,19 +286,29 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/lucky-wheel/spin`
                 : '/api/lucky-wheel/spin';
 
+            const deviceId = typeof window !== 'undefined' ? (localStorage.getItem('device_id') || 'web-client') : 'web-client';
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'x-device-id': deviceId
+            };
+
+            if (token) {
+                headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            }
+
             const res = await fetch(apiEndpoint, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token || user?.id}`,
-                    'x-device-id': typeof window !== 'undefined' ? (localStorage.getItem('device_id') || 'web-client') : 'web-client'
-                },
-                body: JSON.stringify({ user_id: user?.id })
+                headers,
+                body: JSON.stringify({ 
+                    user_id: user?.id,
+                    device_id: deviceId
+                })
             });
+
             const data = await res.json();
 
             if (!data.success) {
-                showToast(data.message || 'Không thể quay', 'error', 'Lỗi');
+                showToast(data.message || 'Không thể quay', 'error', 'Lỗi quay thưởng');
                 setSpinning(false);
                 return;
             }
@@ -334,8 +344,9 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 setSpinning(false);
             }, 5200);
 
-        } catch (err) {
-            showToast('Lỗi kết nối! Vui lòng thử lại.', 'error', 'Lỗi kết nối');
+        } catch (err: any) {
+            console.error('Spin execution error:', err);
+            showToast(err?.message || 'Lỗi kết nối! Vui lòng thử lại.', 'error', 'Lỗi kết nối');
             setSpinning(false);
         }
 
