@@ -69,7 +69,7 @@ export default function Newsletter() {
                     transition={{ duration: 0.6 }}
                 >
                     <span className="text-[11px] sm:text-xs tracking-[6px] uppercase text-amber-400/90 font-medium block">
-                        Đ Ă N G  K Ý  N H Ậ N  T I N
+                        Đăng Ký Nhận Tin
                     </span>
                     
                     <h2 className="mt-4 text-3xl sm:text-4xl lg:text-6xl font-black tracking-tight text-white">
