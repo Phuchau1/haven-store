@@ -64,9 +64,25 @@ export default function VirtualTryOnModal({
     const [viewMode, setViewMode] = useState<'tryon' | 'original'>('tryon');
     
     // Tinh chỉnh vị trí áo linh hoạt theo góc chụp của ảnh
-    const [shirtHeight, setShirtHeight] = useState(58); // Chiều cao áo (% khung)
-    const [shirtOffset, setShirtOffset] = useState(0);   // Độ cao dịch chuyển (% từ đáy)
-    const [shirtScale, setShirtScale] = useState(94);   // Độ rộng áo (% khung)
+    const [shirtHeight, setShirtHeight] = useState(45); // Chiều cao áo (% khung)
+    const [shirtOffset, setShirtOffset] = useState(-5);  // Độ cao dịch chuyển (% từ đáy)
+    const [shirtScale, setShirtScale] = useState(98);   // Độ rộng áo (% khung)
+
+    const setPresetView = (type: 'selfie' | 'half' | 'full') => {
+        if (type === 'selfie') {
+            setShirtHeight(45);
+            setShirtOffset(-6);
+            setShirtScale(104);
+        } else if (type === 'half') {
+            setShirtHeight(54);
+            setShirtOffset(2);
+            setShirtScale(95);
+        } else {
+            setShirtHeight(38);
+            setShirtOffset(26);
+            setShirtScale(65);
+        }
+    };
 
     const [result, setResult] = useState<{
         originalImage: string;
@@ -386,22 +402,19 @@ export default function VirtualTryOnModal({
                                                 className="absolute inset-0 pointer-events-none flex flex-col justify-end items-center"
                                             >
                                                 <div
-                                                    className="relative transition-all duration-200"
+                                                    className="relative transition-all duration-150"
                                                     style={{
                                                         width: `${shirtScale}%`,
                                                         height: `${shirtHeight}%`,
                                                         bottom: `${shirtOffset}%`,
-                                                        filter: 'drop-shadow(0 18px 24px rgba(0,0,0,0.65)) contrast(1.04)'
+                                                        mixBlendMode: 'multiply',
+                                                        filter: 'contrast(1.1) brightness(1.02)'
                                                     }}
                                                 >
                                                     <img
                                                         src={garmentImage}
                                                         alt="Fitted Garment"
                                                         className="w-full h-full object-contain"
-                                                        style={{
-                                                            maskImage: 'linear-gradient(to top, black 80%, transparent 100%)',
-                                                            WebkitMaskImage: 'linear-gradient(to top, black 80%, transparent 100%)'
-                                                        }}
                                                     />
                                                 </div>
                                             </motion.div>
@@ -436,17 +449,42 @@ export default function VirtualTryOnModal({
 
                                     {/* Thanh Tinh Chỉnh Vị Trí Áo (Nếu ảnh người chụp gần / xa khác nhau) */}
                                     {viewMode === 'tryon' && (
-                                        <div className="w-full max-w-[340px] p-3 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                                <Sliders size={12} className="text-purple-400" />
-                                                <span>Tinh chỉnh vị trí áo theo ảnh của bạn:</span>
+                                        <div className="w-full max-w-[340px] p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+                                            <div className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                                                <span className="flex items-center gap-1.5">
+                                                    <Sliders size={12} className="text-purple-400" />
+                                                    <span>Khớp áo theo dáng chụp:</span>
+                                                </span>
                                             </div>
-                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+
+                                            {/* 3 Nút Chọn Nhanh Góc Chụp */}
+                                            <div className="grid grid-cols-3 gap-1.5">
+                                                <button
+                                                    onClick={() => setPresetView('selfie')}
+                                                    className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-purple-900/40 border border-slate-700 text-[10px] font-semibold text-slate-300 transition-colors"
+                                                >
+                                                    📸 Chụp gần (Selfie)
+                                                </button>
+                                                <button
+                                                    onClick={() => setPresetView('half')}
+                                                    className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-purple-900/40 border border-slate-700 text-[10px] font-semibold text-slate-300 transition-colors"
+                                                >
+                                                    👔 Nửa người
+                                                </button>
+                                                <button
+                                                    onClick={() => setPresetView('full')}
+                                                    className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-purple-900/40 border border-slate-700 text-[10px] font-semibold text-slate-300 transition-colors"
+                                                >
+                                                    🧍 Toàn thân
+                                                </button>
+                                            </div>
+
+                                            <div className="flex items-center justify-between gap-3 text-[11px] pt-1">
                                                 <span className="text-slate-400">Vị trí cổ/vai:</span>
                                                 <input
                                                     type="range"
-                                                    min="-10"
-                                                    max="25"
+                                                    min="-25"
+                                                    max="30"
                                                     value={shirtOffset}
                                                     onChange={(e) => setShirtOffset(Number(e.target.value))}
                                                     className="w-36 accent-purple-500 cursor-pointer"
@@ -456,7 +494,7 @@ export default function VirtualTryOnModal({
                                                 <span className="text-slate-400">Kích cỡ áo:</span>
                                                 <input
                                                     type="range"
-                                                    min="45"
+                                                    min="35"
                                                     max="75"
                                                     value={shirtHeight}
                                                     onChange={(e) => setShirtHeight(Number(e.target.value))}
