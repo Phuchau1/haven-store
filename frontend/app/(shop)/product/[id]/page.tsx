@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2 } from 'lucide-react';
+import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2, Sparkles } from 'lucide-react';
 import ImageZoom from '@/app/component/ImageZoom';
 import { formatPrice, slugify, getProductSlug, cleanProductTitle } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
@@ -17,6 +17,7 @@ import RecentlyViewed from '@/app/component/RecentlyViewed';
 import { useAuth } from '@/app/component/AuthContext';
 import { useCartStore } from '@/app/store/useCartStore';
 import { useToast } from '@/app/component/ToastProvider';
+import VirtualTryOnModal from '@/app/component/VirtualTryOnModal';
 const COLOR_CLASS_MAP: Record<string, string> = {
     'Đen': 'bg-black',
     'Trắng': 'bg-white',
@@ -52,7 +53,7 @@ export default function ProductDetailPage() {
     const [quantity, setQuantity] = useState(1);
     const [isLiked, setIsLiked] = useState(false);
     const [showAddedNotification, setShowAddedNotification] = useState(false);
-
+    const [isTryOnOpen, setIsTryOnOpen] = useState(false);
 
     const { user } = useAuth();
     const { addProduct } = useRecentlyViewed(user?.id);
@@ -537,6 +538,29 @@ export default function ProductDetailPage() {
                                 </motion.button>
                             </div>
 
+                            {/* Nút Thử Đồ Ảo Bằng AI (Virtual Try-On) */}
+                            <motion.button
+                                onClick={() => setIsTryOnOpen(true)}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="w-full mt-1.5 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-950 via-slate-900 to-slate-950 border border-purple-500/40 hover:border-purple-400 text-white flex items-center justify-between shadow-lg shadow-purple-950/30 transition-all group cursor-pointer"
+                            >
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-amber-400 flex items-center justify-center shadow">
+                                        <Sparkles size={15} className="text-white animate-pulse" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                                            <span>Thử Đồ Ảo Bằng AI</span>
+                                            <span className="text-[9px] uppercase px-1.5 py-0.2 rounded bg-purple-500/30 text-purple-300 font-semibold">VTON 2.0</span>
+                                        </div>
+                                        <div className="text-[10px] text-slate-400">Xem bạn mặc trang phục này trước khi mua</div>
+                                    </div>
+                                </div>
+                                <span className="text-xs font-bold text-amber-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                                    Thử ngay →
+                                </span>
+                            </motion.button>
 
                         </div>
 
@@ -578,24 +602,22 @@ export default function ProductDetailPage() {
                     <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <Truck size={32} className="text-blue-500 mb-4" />
                         <h4 className="text-sm font-medium text-gray-900 mb-1">Miễn phí giao hàng</h4>
-                        <p className="text-xs text-gray-500">Cho đơn hàng từ 500K</p>
+                        <p className="text-xs text-gray-500">Cho đơn hàng từ 500.000đ</p>
                     </div>
                     <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <RefreshCw size={32} className="text-indigo-500 mb-4" />
-                        <h4 className="text-sm font-medium text-gray-900 mb-1">Đổi sản phẩm dễ dàng</h4>
-                        <p className="text-xs text-gray-500">Trong vòng 7 ngày</p>
+                        <RefreshCw size={32} className="text-green-500 mb-4" />
+                        <h4 className="text-sm font-medium text-gray-900 mb-1">Đổi trả dễ dàng</h4>
+                        <p className="text-xs text-gray-500">Trong vòng 30 ngày</p>
                     </div>
                     <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <Shield size={32} className="text-emerald-500 mb-4" />
-                        <h4 className="text-sm font-medium text-gray-900 mb-1">Hàng chính hãng 100%</h4>
-                        <p className="text-xs text-gray-500">Cam kết chất lượng</p>
+                        <Shield size={32} className="text-purple-500 mb-4" />
+                        <h4 className="text-sm font-medium text-gray-900 mb-1">Thanh toán an toàn</h4>
+                        <p className="text-xs text-gray-500">100% bảo mật thông tin</p>
                     </div>
                     <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-2 mb-4 text-orange-500">
-                            <span className="font-bold text-xl">COD</span>
-                        </div>
-                        <h4 className="text-sm font-medium text-gray-900 mb-1">Kiểm tra khi nhận hàng</h4>
-                        <p className="text-xs text-gray-500">Thanh toán an toàn</p>
+                        <Star size={32} className="text-amber-500 mb-4" />
+                        <h4 className="text-sm font-medium text-gray-900 mb-1">Hỗ trợ 24/7</h4>
+                        <p className="text-xs text-gray-500">Hotline: 1900 xxxx</p>
                     </div>
                 </div>
 
@@ -617,6 +639,16 @@ export default function ProductDetailPage() {
                 {/* Recently Viewed Products */}
                 <RecentlyViewed currentProductId={product.id} />
             </div>
+
+            {/* Modal Thử Đồ Ảo Bằng AI */}
+            <VirtualTryOnModal
+                isOpen={isTryOnOpen}
+                onClose={() => setIsTryOnOpen(false)}
+                product={product}
+                selectedColor={selectedColor}
+                selectedSize={selectedSize}
+                onAddToCart={handleAddToCart}
+            />
 
         </div>
     );
