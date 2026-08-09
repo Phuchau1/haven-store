@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Upload, Check, RefreshCw, ShoppingBag, Download, ArrowRight, ShieldCheck, Shirt, UserCheck, Star, Eye } from 'lucide-react';
+import { Sparkles, X, Upload, Check, RefreshCw, ShoppingBag, Download, ArrowRight, ShieldCheck, Shirt, UserCheck, Star, Eye, Sliders, MoveVertical } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/app/component/ToastProvider';
 
@@ -47,91 +47,6 @@ interface VirtualTryOnModalProps {
     onAddToCart?: () => void;
 }
 
-// Hàm AI Neural Compositor ghép áo chuẩn lên cơ thể người mẫu
-async function generateTryOnComposite(personSrc: string, garmentSrc: string): Promise<string> {
-    return new Promise((resolve) => {
-        const personImg = new window.Image();
-        personImg.crossOrigin = 'anonymous';
-        personImg.src = personSrc;
-
-        personImg.onload = () => {
-            const garmentImg = new window.Image();
-            garmentImg.crossOrigin = 'anonymous';
-            garmentImg.src = garmentSrc;
-
-            garmentImg.onload = () => {
-                const canvas = document.createElement('canvas');
-                const width = personImg.naturalWidth || 600;
-                const height = personImg.naturalHeight || 800;
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) {
-                    resolve(personSrc);
-                    return;
-                }
-
-                // 1. Vẽ ảnh người mẫu gốc
-                ctx.drawImage(personImg, 0, 0, width, height);
-
-                // 2. Tính toán vị trí thân người (Torso) dựa trên tỷ lệ ảnh
-                const garmentTopY = height * 0.48; // Ngay dưới cổ và ngực
-                const garmentHeight = height * 0.58;
-                const garmentWidth = width * 0.98;
-                const garmentLeftX = (width - garmentWidth) / 2;
-
-                // 3. Xử lý tách nền trắng của sản phẩm để hòa trộn tự nhiên
-                const gCanvas = document.createElement('canvas');
-                gCanvas.width = garmentWidth;
-                gCanvas.height = garmentHeight;
-                const gCtx = gCanvas.getContext('2d');
-                if (gCtx) {
-                    gCtx.drawImage(garmentImg, 0, 0, garmentWidth, garmentHeight);
-                    try {
-                        const imgData = gCtx.getImageData(0, 0, garmentWidth, garmentHeight);
-                        const data = imgData.data;
-
-                        for (let i = 0; i < data.length; i += 4) {
-                            const r = data[i];
-                            const g = data[i + 1];
-                            const b = data[i + 2];
-                            // Khử nền trắng hoặc sáng màu
-                            if (r > 242 && g > 242 && b > 242) {
-                                data[i + 3] = 0;
-                            } else if (r > 225 && g > 225 && b > 225) {
-                                data[i + 3] = Math.max(0, 255 - (r - 225) * 14);
-                            }
-                        }
-                        gCtx.putImageData(imgData, 0, 0);
-                    } catch (e) {
-                        console.warn('Canvas pixel processing ignored (CORS fallback)', e);
-                    }
-
-                    // Đổ bóng chân thực dưới nếp áo
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-                    ctx.shadowBlur = 22;
-                    ctx.shadowOffsetY = 8;
-                    ctx.drawImage(gCanvas, garmentLeftX, garmentTopY, garmentWidth, garmentHeight);
-                    ctx.restore();
-
-                    // Ghép nếp áo lên cơ thể
-                    ctx.save();
-                    ctx.globalAlpha = 0.96;
-                    ctx.drawImage(gCanvas, garmentLeftX, garmentTopY, garmentWidth, garmentHeight);
-                    ctx.restore();
-                }
-
-                resolve(canvas.toDataURL('image/jpeg', 0.92));
-            };
-
-            garmentImg.onerror = () => resolve(personSrc);
-        };
-
-        personImg.onerror = () => resolve(personSrc);
-    });
-}
-
 export default function VirtualTryOnModal({
     isOpen,
     onClose,
@@ -147,8 +62,13 @@ export default function VirtualTryOnModal({
     const [customImage, setCustomImage] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [viewMode, setViewMode] = useState<'tryon' | 'original'>('tryon');
+    
+    // Tinh chỉnh vị trí áo linh hoạt theo góc chụp của ảnh
+    const [shirtHeight, setShirtHeight] = useState(58); // Chiều cao áo (% khung)
+    const [shirtOffset, setShirtOffset] = useState(0);   // Độ cao dịch chuyển (% từ đáy)
+    const [shirtScale, setShirtScale] = useState(94);   // Độ rộng áo (% khung)
+
     const [result, setResult] = useState<{
-        resultImage: string;
         originalImage: string;
         stylistAdvice: string;
         fitScore: number;
@@ -186,10 +106,7 @@ export default function VirtualTryOnModal({
         setResult(null);
 
         try {
-            // 1. Tạo ảnh ghép mặc áo AI chân thực
-            const compositeResultImage = await generateTryOnComposite(activePersonImage, garmentImage);
-
-            // 2. Gửi sang Backend API nhận tư vấn từ Gemini Stylist
+            // Gửi sang Backend API nhận tư vấn từ Gemini Stylist
             const res = await fetch('/api/ai/virtual-try-on', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -204,7 +121,6 @@ export default function VirtualTryOnModal({
             const data = await res.json();
 
             setResult({
-                resultImage: compositeResultImage,
                 originalImage: activePersonImage,
                 stylistAdvice: data.stylistAdvice || `Sản phẩm ${product.name} khi mặc lên vóc dáng của bạn rất cân đối và tôn dáng!`,
                 fitScore: data.fitScore || 96,
@@ -225,14 +141,44 @@ export default function VirtualTryOnModal({
     };
 
     const handleDownloadImage = () => {
-        if (result?.resultImage) {
-            const a = document.createElement('a');
-            a.href = result.resultImage;
-            a.download = `haven_tryon_${product.slug || 'photo'}.jpg`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            showToast('Đã tải ảnh thử đồ về máy!', 'success');
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 800;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const pImg = new window.Image();
+            pImg.crossOrigin = 'anonymous';
+            pImg.src = activePersonImage;
+            pImg.onload = () => {
+                ctx.drawImage(pImg, 0, 0, 600, 800);
+                if (viewMode === 'tryon' && garmentImage) {
+                    const gImg = new window.Image();
+                    gImg.crossOrigin = 'anonymous';
+                    gImg.src = garmentImage;
+                    gImg.onload = () => {
+                        const gW = (600 * shirtScale) / 100;
+                        const gH = (800 * shirtHeight) / 100;
+                        const gX = (600 - gW) / 2;
+                        const gY = 800 - gH - (800 * shirtOffset) / 100;
+                        ctx.drawImage(gImg, gX, gY, gW, gH);
+                        
+                        const a = document.createElement('a');
+                        a.href = canvas.toDataURL('image/jpeg', 0.92);
+                        a.download = `haven_tryon_${product.slug || 'outfit'}.jpg`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        showToast('Đã tải ảnh thử đồ về máy!', 'success');
+                    };
+                    gImg.onerror = () => {
+                        showToast('Không thể tạo file tải trực tiếp, vui lòng chụp màn hình!', 'warning');
+                    };
+                }
+            };
+        } catch {
+            showToast('Đã lưu chế độ xem!', 'success');
         }
     };
 
@@ -420,19 +366,49 @@ export default function VirtualTryOnModal({
                             </div>
                         ) : (
                             /* Khu Vực Hiển Thị Kết Quả Sau Khi Thử Đồ */
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                                 {/* Cột Trái: Ảnh Đã Mặc Áo Mới */}
                                 <div className="lg:col-span-6 flex flex-col items-center space-y-3">
-                                    <div className="relative w-full max-w-[340px] aspect-[3/4] rounded-3xl overflow-hidden border-2 border-purple-500 shadow-2xl bg-slate-950">
-                                        {/* Hiển thị ảnh sau khi ghép áo hoặc ảnh gốc theo toggle */}
+                                    <div className="relative w-full max-w-[340px] aspect-[3/4] rounded-3xl overflow-hidden border-2 border-purple-500 shadow-2xl bg-slate-950 flex flex-col justify-end">
+                                        {/* 1. Ảnh người mẫu gốc */}
                                         <img
-                                            src={viewMode === 'tryon' ? result.resultImage : result.originalImage}
-                                            alt="AI Try-On Result"
-                                            className="w-full h-full object-cover"
+                                            src={result.originalImage}
+                                            alt="Original Photo"
+                                            className="absolute inset-0 w-full h-full object-cover"
                                         />
-                                        
+
+                                        {/* 2. Lớp áo mới ghép lên cơ thể khi ở chế độ 'tryon' */}
+                                        {viewMode === 'tryon' && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.96 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ duration: 0.35 }}
+                                                className="absolute inset-0 pointer-events-none flex flex-col justify-end items-center"
+                                            >
+                                                <div
+                                                    className="relative transition-all duration-200"
+                                                    style={{
+                                                        width: `${shirtScale}%`,
+                                                        height: `${shirtHeight}%`,
+                                                        bottom: `${shirtOffset}%`,
+                                                        filter: 'drop-shadow(0 18px 24px rgba(0,0,0,0.65)) contrast(1.04)'
+                                                    }}
+                                                >
+                                                    <img
+                                                        src={garmentImage}
+                                                        alt="Fitted Garment"
+                                                        className="w-full h-full object-contain"
+                                                        style={{
+                                                            maskImage: 'linear-gradient(to top, black 80%, transparent 100%)',
+                                                            WebkitMaskImage: 'linear-gradient(to top, black 80%, transparent 100%)'
+                                                        }}
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        )}
+
                                         {/* Huy hiệu AI Verified */}
-                                        <div className="absolute top-3 left-3 bg-slate-900/90 border border-purple-500/50 px-3 py-1 rounded-full text-[10px] font-bold text-purple-300 flex items-center gap-1.5 shadow">
+                                        <div className="absolute top-3 left-3 bg-slate-900/90 border border-purple-500/50 px-3 py-1 rounded-full text-[10px] font-bold text-purple-300 flex items-center gap-1.5 shadow z-20">
                                             <ShieldCheck size={14} className="text-purple-400" />
                                             <span>{viewMode === 'tryon' ? 'ĐÃ MẶC ÁO MỚI (AI VTON)' : 'ẢNH GỐC BAN ĐẦU'}</span>
                                         </div>
@@ -445,7 +421,7 @@ export default function VirtualTryOnModal({
                                             className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200 border border-slate-700 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                                         >
                                             <Eye size={14} className="text-purple-400" />
-                                            <span>{viewMode === 'tryon' ? 'Xem lại ảnh gốc' : 'Xem ảnh đã mặc áo'}</span>
+                                            <span>{viewMode === 'tryon' ? 'Xem ảnh gốc trước khi thử' : 'Xem ảnh đã mặc áo mới'}</span>
                                         </button>
 
                                         <button
@@ -457,6 +433,38 @@ export default function VirtualTryOnModal({
                                             <span>Lưu ảnh</span>
                                         </button>
                                     </div>
+
+                                    {/* Thanh Tinh Chỉnh Vị Trí Áo (Nếu ảnh người chụp gần / xa khác nhau) */}
+                                    {viewMode === 'tryon' && (
+                                        <div className="w-full max-w-[340px] p-3 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <Sliders size={12} className="text-purple-400" />
+                                                <span>Tinh chỉnh vị trí áo theo ảnh của bạn:</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                                <span className="text-slate-400">Vị trí cổ/vai:</span>
+                                                <input
+                                                    type="range"
+                                                    min="-10"
+                                                    max="25"
+                                                    value={shirtOffset}
+                                                    onChange={(e) => setShirtOffset(Number(e.target.value))}
+                                                    className="w-36 accent-purple-500 cursor-pointer"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                                                <span className="text-slate-400">Kích cỡ áo:</span>
+                                                <input
+                                                    type="range"
+                                                    min="45"
+                                                    max="75"
+                                                    value={shirtHeight}
+                                                    onChange={(e) => setShirtHeight(Number(e.target.value))}
+                                                    className="w-36 accent-purple-500 cursor-pointer"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Cột Phải: Lời Khuyên Thời Trang & Nút Mua */}
