@@ -1,5 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// ────────────────────────────────────────────────────────────
+// AI GENERATE CONTENT (MÔ TẢ SẢN PHẨM)
+// POST /api/ai/generate
+// ────────────────────────────────────────────────────────────
 exports.generateContent = async (req, res) => {
     try {
         const { productName, shortDescription, category } = req.body;
@@ -54,6 +58,12 @@ Yêu cầu: Viết hấp dẫn, nêu bật chất liệu, thiết kế, form dá
             await new Promise(r => setTimeout(r, 1500));
             return res.json({ success: true, data: mockHtml.trim() });
         }
+    } catch (error) {
+        console.error('[AI] Generation Error:', error);
+        return res.status(500).json({ success: false, message: 'Lỗi khi tạo nội dung bằng AI' });
+    }
+};
+
 // ────────────────────────────────────────────────────────────
 // AI VIRTUAL TRY-ON (PHÒNG THỬ ĐỒ ẢO BẰNG AI)
 // POST /api/ai/virtual-try-on
@@ -102,14 +112,13 @@ Viết bằng tiếng Việt với văn phong lịch thiệp, thời thượng, 
             stylistAdvice = `Sản phẩm **${productName}** ôm vừa vặn theo đường nét cơ thể, giúp tôn lên vẻ thanh lịch và hiện đại. Phom dáng chuẩn kết hợp hài hòa với tỷ lệ người mẫu, mang lại cảm giác thoải mái nhưng vẫn chỉn chu cho cả ngày dài.`;
         }
 
-        // 2. Mô phỏng xử lý VTON chất lượng cao (Hugging Face / Neural Fit Processing)
-        // Trong môi trường Web Client, ảnh sản phẩm đã được xử lý blend tương thích lên người mẫu
-        await new Promise(r => setTimeout(r, 2000)); // Thời gian xử lý AI
+        // 2. Thời gian mô phỏng xử lý VTON AI
+        await new Promise(r => setTimeout(r, 1500));
 
         // Trả về kết quả
         return res.json({
             success: true,
-            resultImage: garmentImage, // Link ảnh kết quả VTON
+            resultImage: garmentImage,
             stylistAdvice,
             fitScore: Math.floor(Math.random() * 6) + 93, // 93% - 98%
             matchingTips,
@@ -124,4 +133,3 @@ Viết bằng tiếng Việt với văn phong lịch thiệp, thời thượng, 
         });
     }
 };
-
