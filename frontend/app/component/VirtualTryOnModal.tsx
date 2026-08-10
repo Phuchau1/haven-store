@@ -63,24 +63,27 @@ export default function VirtualTryOnModal({
     const [isProcessing, setIsProcessing] = useState(false);
     const [viewMode, setViewMode] = useState<'tryon' | 'original'>('tryon');
     
-    // Tinh chỉnh vị trí áo linh hoạt theo góc chụp của ảnh
-    const [shirtHeight, setShirtHeight] = useState(45); // Chiều cao áo (% khung)
-    const [shirtOffset, setShirtOffset] = useState(-5);  // Độ cao dịch chuyển (% từ đáy)
-    const [shirtScale, setShirtScale] = useState(98);   // Độ rộng áo (% khung)
+    // Tinh chỉnh vị trí áo từ CỔ/VAI (TOP) để khớp chuẩn cho ảnh toàn thân & nửa người
+    const [shirtTop, setShirtTop] = useState(24);       // Vị trí cổ áo từ trên xuống (% từ đỉnh)
+    const [shirtHeight, setShirtHeight] = useState(40); // Chiều cao áo (% khung)
+    const [shirtScale, setShirtScale] = useState(62);   // Độ rộng áo (% khung)
+    const [activePreset, setActivePreset] = useState<'selfie' | 'half' | 'full'>('full');
 
     const setPresetView = (type: 'selfie' | 'half' | 'full') => {
+        setActivePreset(type);
         if (type === 'selfie') {
-            setShirtHeight(45);
-            setShirtOffset(-6);
-            setShirtScale(104);
+            setShirtTop(54);
+            setShirtHeight(50);
+            setShirtScale(100);
         } else if (type === 'half') {
-            setShirtHeight(54);
-            setShirtOffset(2);
-            setShirtScale(95);
+            setShirtTop(36);
+            setShirtHeight(50);
+            setShirtScale(84);
         } else {
-            setShirtHeight(38);
-            setShirtOffset(26);
-            setShirtScale(65);
+            // Toàn thân (Full Body)
+            setShirtTop(24);
+            setShirtHeight(40);
+            setShirtScale(60);
         }
     };
 
@@ -177,7 +180,7 @@ export default function VirtualTryOnModal({
                         const gW = (600 * shirtScale) / 100;
                         const gH = (800 * shirtHeight) / 100;
                         const gX = (600 - gW) / 2;
-                        const gY = 800 - gH - (800 * shirtOffset) / 100;
+                        const gY = (800 * shirtTop) / 100;
                         ctx.drawImage(gImg, gX, gY, gW, gH);
                         
                         const a = document.createElement('a');
@@ -417,16 +420,16 @@ export default function VirtualTryOnModal({
                                                 initial={{ opacity: 0, scale: 0.96 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 transition={{ duration: 0.35 }}
-                                                className="absolute inset-0 pointer-events-none flex flex-col justify-end items-center"
+                                                className="absolute inset-0 pointer-events-none flex flex-col justify-start items-center"
                                             >
                                                 <div
                                                     className="relative transition-all duration-150"
                                                     style={{
                                                         width: `${shirtScale}%`,
                                                         height: `${shirtHeight}%`,
-                                                        bottom: `${shirtOffset}%`,
+                                                        top: `${shirtTop}%`,
                                                         mixBlendMode: 'multiply',
-                                                        filter: 'contrast(1.1) brightness(1.02)'
+                                                        filter: 'contrast(1.08) brightness(1.02)'
                                                     }}
                                                 >
                                                     <img
@@ -479,19 +482,31 @@ export default function VirtualTryOnModal({
                                             <div className="grid grid-cols-3 gap-1.5">
                                                 <button
                                                     onClick={() => setPresetView('selfie')}
-                                                    className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-purple-900/40 border border-slate-700 text-[10px] font-semibold text-slate-300 transition-colors"
+                                                    className={`py-1.5 px-1.5 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                                                        activePreset === 'selfie'
+                                                            ? 'bg-purple-600 border-purple-400 text-white shadow'
+                                                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                                                    }`}
                                                 >
-                                                    📸 Chụp gần (Selfie)
+                                                    📸 Chụp gần
                                                 </button>
                                                 <button
                                                     onClick={() => setPresetView('half')}
-                                                    className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-purple-900/40 border border-slate-700 text-[10px] font-semibold text-slate-300 transition-colors"
+                                                    className={`py-1.5 px-1.5 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                                                        activePreset === 'half'
+                                                            ? 'bg-purple-600 border-purple-400 text-white shadow'
+                                                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                                                    }`}
                                                 >
                                                     👔 Nửa người
                                                 </button>
                                                 <button
                                                     onClick={() => setPresetView('full')}
-                                                    className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-purple-900/40 border border-slate-700 text-[10px] font-semibold text-slate-300 transition-colors"
+                                                    className={`py-1.5 px-1.5 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                                                        activePreset === 'full'
+                                                            ? 'bg-purple-600 border-purple-400 text-white shadow'
+                                                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                                                    }`}
                                                 >
                                                     🧍 Toàn thân
                                                 </button>
@@ -501,21 +516,25 @@ export default function VirtualTryOnModal({
                                                 <span className="text-slate-400">Vị trí cổ/vai:</span>
                                                 <input
                                                     type="range"
-                                                    min="-25"
-                                                    max="30"
-                                                    value={shirtOffset}
-                                                    onChange={(e) => setShirtOffset(Number(e.target.value))}
+                                                    min="10"
+                                                    max="65"
+                                                    value={shirtTop}
+                                                    onChange={(e) => setShirtTop(Number(e.target.value))}
                                                     className="w-36 accent-purple-500 cursor-pointer"
                                                 />
                                             </div>
                                             <div className="flex items-center justify-between gap-3 text-[11px]">
-                                                <span className="text-slate-400">Kích cỡ áo:</span>
+                                                <span className="text-slate-400">Độ rộng áo:</span>
                                                 <input
                                                     type="range"
-                                                    min="35"
-                                                    max="75"
-                                                    value={shirtHeight}
-                                                    onChange={(e) => setShirtHeight(Number(e.target.value))}
+                                                    min="40"
+                                                    max="110"
+                                                    value={shirtScale}
+                                                    onChange={(e) => {
+                                                        const val = Number(e.target.value);
+                                                        setShirtScale(val);
+                                                        setShirtHeight(Math.round(val * 0.65));
+                                                    }}
                                                     className="w-36 accent-purple-500 cursor-pointer"
                                                 />
                                             </div>
