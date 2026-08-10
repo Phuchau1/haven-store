@@ -97,6 +97,8 @@ export default function VirtualTryOnModal({
     if (!isOpen || !product) return null;
 
     const garmentImage = selectedColor?.image || product.images?.[0] || product.image || '';
+    const activePersonImage = customImage || PRESET_MODELS.find(m => m.id === selectedModelId)?.image || '';
+
     const autoFitToImage = (imageSrc: string) => {
         const img = new window.Image();
         img.crossOrigin = 'anonymous';
