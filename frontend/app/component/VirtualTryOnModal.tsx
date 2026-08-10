@@ -97,7 +97,37 @@ export default function VirtualTryOnModal({
     if (!isOpen || !product) return null;
 
     const garmentImage = selectedColor?.image || product.images?.[0] || product.image || '';
-    const activePersonImage = customImage || PRESET_MODELS.find(m => m.id === selectedModelId)?.image || '';
+    const autoFitToImage = (imageSrc: string) => {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        img.src = imageSrc;
+        img.onload = () => {
+            const w = img.naturalWidth || 600;
+            const h = img.naturalHeight || 800;
+            const ratio = h / w;
+
+            // Tự động nhận diện tư thế chụp: Toàn thân, Bán thân, hoặc Selfie
+            if (ratio >= 1.3) {
+                // Ảnh toàn thân (Full Body)
+                setShirtTop(23);
+                setShirtScale(58);
+                setShirtHeight(38);
+                setActivePreset('full');
+            } else if (ratio >= 1.06) {
+                // Ảnh nửa người (Half Body)
+                setShirtTop(36);
+                setShirtScale(82);
+                setShirtHeight(48);
+                setActivePreset('half');
+            } else {
+                // Ảnh chụp gần (Selfie)
+                setShirtTop(54);
+                setShirtScale(100);
+                setShirtHeight(50);
+                setActivePreset('selfie');
+            }
+        };
+    };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -108,8 +138,10 @@ export default function VirtualTryOnModal({
             }
             const reader = new FileReader();
             reader.onload = (event) => {
-                setCustomImage(event.target?.result as string);
+                const imgData = event.target?.result as string;
+                setCustomImage(imgData);
                 setSelectedModelId('custom');
+                autoFitToImage(imgData);
             };
             reader.readAsDataURL(file);
         }
@@ -123,6 +155,9 @@ export default function VirtualTryOnModal({
 
         setIsProcessing(true);
         setResult(null);
+
+        // Tự động quét và khớp vị trí áo lên ảnh người mẫu
+        autoFitToImage(activePersonImage);
 
         try {
             // Gửi sang Backend API nhận tư vấn từ Gemini Stylist
@@ -149,7 +184,7 @@ export default function VirtualTryOnModal({
                 ]
             });
             setViewMode('tryon');
-            showToast('✨ AI đã ghép bạn mặc áo mới thành công!', 'success');
+            showToast('✨ AI đã tự động bọc áo lên người bạn thành công!', 'success');
 
         } catch (err) {
             console.error('Try on error:', err);
