@@ -277,9 +277,27 @@ export default function VirtualTryOnModal({
                                         />
                                         <Upload size={22} className="text-purple-400" />
                                         <div className="text-xs font-semibold text-slate-300">
-                                            {customImage ? 'Đã tải ảnh của bạn lên (Bấm để đổi ảnh)' : 'Tải ảnh của bạn lên để AI ghép bạn mặc áo này'}
+                                            {customImage ? 'Đã tải ảnh của bạn lên (Bấm để đổi ảnh khác)' : 'Tải ảnh của bạn lên để AI ghép bạn mặc áo này'}
                                         </div>
-                                        <span className="text-[10px] text-slate-400">Hỗ trợ JPG, PNG (Ảnh rõ người và vai)</span>
+                                        <span className="text-[10px] text-slate-400">Hỗ trợ JPG, PNG (Dung lượng &lt; 10MB)</span>
+                                    </div>
+
+                                    {/* Hướng Dẫn Chụp Ảnh Chuẩn AI VTON */}
+                                    <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-1.5 text-left">
+                                        <div className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                                            <span>💡</span>
+                                            <span>MẸO ĐỂ AI THAY ÁO ĐẸP & CHUẨN NHẤT:</span>
+                                        </div>
+                                        <ul className="text-[10px] text-slate-300 space-y-1 leading-relaxed">
+                                            <li className="flex items-start gap-1.5">
+                                                <span className="text-emerald-400 font-bold">✔</span>
+                                                <span><strong>Góc chụp:</strong> Đứng thẳng, chụp từ thắt lưng trở lên (3/4 thân) hoặc toàn thân để AI thấy rõ <strong>cổ, hai vai và hai cánh tay</strong>.</span>
+                                            </li>
+                                            <li className="flex items-start gap-1.5">
+                                                <span className="text-rose-400 font-bold">✘</span>
+                                                <span><strong>Tránh:</strong> Không chụp ảnh selfie quá cận mặt (sẽ bị mất phần vai và thân áo).</span>
+                                            </li>
+                                        </ul>
                                     </div>
 
                                     {/* 4 Người Mẫu Mẫu */}
