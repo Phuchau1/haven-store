@@ -303,7 +303,7 @@ export default function Header() {
                         }}
                     >
                         {/* ── Left: Logo + Mobile button ─────────────────── */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2" style={{ gridColumn: 1 }}>
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                                 className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-all"
@@ -329,7 +329,7 @@ export default function Header() {
                         </nav>
 
                         {/* ── Right: Action Icons ───────────────────────── */}
-                        <div className="flex items-center justify-end gap-1 lg:gap-2">
+                        <div className="flex items-center justify-end gap-1 lg:gap-2 header-actions-group" style={{ gridColumn: 3 }}>
                             {/* Search */}
                             <button
                                 onClick={() => setIsSearchOpen(!isSearchOpen)}
