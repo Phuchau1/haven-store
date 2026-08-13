@@ -68,7 +68,7 @@ export default function Newsletter() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
                 >
-                    <span className="text-[11px] sm:text-xs tracking-[6px] uppercase text-amber-400/90 font-medium block">
+                    <span className="text-[11px] sm:text-xs tracking-[3px] uppercase text-amber-400/90 font-medium block">
                         Đăng Ký Nhận Tin
                     </span>
                     
