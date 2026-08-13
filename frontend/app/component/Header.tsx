@@ -191,6 +191,22 @@ export default function Header() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [navMenus, setNavMenus] = useState<MenuNode[]>([]);
 
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
+
+    // Close user menu on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     // ── Smart scroll state ──────────────────────────────────────────────────
     const [isScrolled, setIsScrolled] = useState(false);   // nền mờ khi cuộn
     const [isVisible, setIsVisible] = useState(true);       // ẩn/hiện header
@@ -317,14 +333,14 @@ export default function Header() {
                             {/* Search */}
                             <button
                                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                                className={`p-2 rounded-full transition-all duration-200 ${isSearchOpen ? 'bg-[#111111] text-white' : 'hover:bg-gray-100 text-black hover:text-[#C9A227]'}`}
+                                className={`flex items-center justify-center p-2 rounded-full transition-all duration-200 ${isSearchOpen ? 'bg-[#111111] text-white' : 'hover:bg-gray-100 text-black hover:text-[#C9A227]'}`}
                                 aria-label="Tìm kiếm"
                             >
-                                <Search size={21} strokeWidth={2} />
+                                <Search size={22} strokeWidth={2} />
                             </button>
 
                             {/* Wishlist */}
-                            <Link href="/yeu-thich" className="relative p-2 hover:bg-gray-100 rounded-full transition-all duration-200 text-black hover:text-[#C9A227]" aria-label="Yêu thích">
+                            <Link href="/yeu-thich" className="relative flex items-center justify-center p-2 hover:bg-gray-100 rounded-full transition-all duration-200 text-black hover:text-[#C9A227]" aria-label="Yêu thích">
                                 <Heart size={22} strokeWidth={2} />
                                 <AnimatePresence>
                                     {favorites.length > 0 && (
@@ -341,28 +357,49 @@ export default function Header() {
                             </Link>
 
                             {/* User */}
-                            <div className="relative group/user flex items-center">
+                            <div ref={userMenuRef} className="relative group/user flex items-center justify-center">
                                 {user ? (
                                     <>
-                                        <button aria-label="Tài khoản" className="p-2 hover:bg-gray-100 rounded-full transition-all text-black hover:text-[#C9A227]">
+                                        <button 
+                                            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                            aria-label="Tài khoản" 
+                                            className="flex items-center justify-center p-2 hover:bg-gray-100 rounded-full transition-all text-black hover:text-[#C9A227]"
+                                        >
                                             <User size={22} strokeWidth={2} />
                                         </button>
-                                        <div className="absolute right-0 top-full pt-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300 z-50">
+                                        <div 
+                                            className={`absolute right-0 top-full pt-2 transition-all duration-300 z-50 ${
+                                                isUserMenuOpen 
+                                                    ? 'opacity-100 translate-y-0 pointer-events-auto' 
+                                                    : 'opacity-0 translate-y-2 pointer-events-none lg:group-hover/user:opacity-100 lg:group-hover/user:translate-y-0 lg:group-hover/user:pointer-events-auto'
+                                            }`}
+                                        >
                                             <div className="w-56 bg-white rounded-2xl shadow-xl border border-gray-100 p-2">
                                                 <div className="px-4 py-2 border-b border-gray-100 mb-1">
                                                     <p className="text-xs text-gray-500">Xin chào,</p>
                                                     <p className="text-sm font-bold truncate">{user.name}</p>
                                                 </div>
                                                 {isAdmin && (
-                                                    <Link href="/admin" className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#C9A227] hover:bg-[#C9A227]/10 rounded-xl transition-all">
+                                                    <Link 
+                                                        href="/admin" 
+                                                        onClick={() => setIsUserMenuOpen(false)}
+                                                        className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#C9A227] hover:bg-[#C9A227]/10 rounded-xl transition-all"
+                                                    >
                                                         <LayoutDashboard size={18} /> Trang Quản Trị
                                                     </Link>
                                                 )}
-                                                <Link href="/nguoidung" className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-all">
+                                                <Link 
+                                                    href="/nguoidung" 
+                                                    onClick={() => setIsUserMenuOpen(false)}
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-all"
+                                                >
                                                     <User size={18} /> Tài khoản
                                                 </Link>
                                                 <button
-                                                    onClick={logout}
+                                                    onClick={() => {
+                                                        logout();
+                                                        setIsUserMenuOpen(false);
+                                                    }}
                                                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-500 hover:bg-rose-50 rounded-xl transition-all border-t border-gray-50 mt-1"
                                                 >
                                                     <LogOut size={18} /> Đăng xuất
@@ -371,7 +408,7 @@ export default function Header() {
                                         </div>
                                     </>
                                 ) : (
-                                    <Link href="/login" className="p-2 hover:bg-gray-100 rounded-full transition-all text-black hover:text-[#C9A227]" aria-label="Tài khoản">
+                                    <Link href="/login" className="flex items-center justify-center p-2 hover:bg-gray-100 rounded-full transition-all text-black hover:text-[#C9A227]" aria-label="Tài khoản">
                                         <User size={22} strokeWidth={2} />
                                     </Link>
                                 )}
@@ -380,7 +417,7 @@ export default function Header() {
                             {/* Cart */}
                             <motion.button
                                 onClick={toggleCart}
-                                className="relative p-2 hover:bg-gray-100 rounded-full transition-colors text-black hover:text-[#C9A227]"
+                                className="relative flex items-center justify-center p-2 hover:bg-gray-100 rounded-full transition-colors text-black hover:text-[#C9A227]"
                                 whileTap={{ scale: 0.9 }}
                                 aria-label="Giỏ hàng"
                             >
