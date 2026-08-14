@@ -41,6 +41,5 @@ start "Frontend Server" cmd /k "color 0B && cd frontend && echo [FRONTEND] Dang 
 echo Da mo 2 cua so cho Backend va Frontend.
 echo Vui long cho 10-15 giay de trang web tu dong mo len...
 echo.
-timeout /t 5 /nobreak >nul
+ping 127.0.0.1 -n 6 > nul
 start http://localhost:3000
-pause
