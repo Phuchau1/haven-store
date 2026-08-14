@@ -88,19 +88,53 @@ HƯỚNG DẪN PHONG CÁCH TRẢ LỜI:
             const result = await chat.sendMessage(message);
             reply = result.response.text().trim();
         } else {
-            // Fallback không cần API key
-            const keyword = message.toLowerCase();
-            const matched = products.filter(p =>
-                p.name.toLowerCase().includes(keyword) ||
-                (p.category && p.category.toLowerCase().includes(keyword))
-            ).slice(0, 4);
+            // ── Smart fallback (không cần API key) ────────────
+            const q = message.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            // Phát hiện ngưỡng giá từ câu hỏi
+            const underMatch = message.match(/dưới\s*([\d,.]+)\s*k?/i) || message.match(/under\s*([\d,.]+)/i);
+            const overMatch  = message.match(/trên\s*([\d,.]+)\s*k?/i);
+            const maxPrice = underMatch ? parseFloat(underMatch[1].replace(/\./g, '').replace(',', '.')) * (underMatch[0].includes('k') || parseInt(underMatch[1]) < 1000 ? 1000 : 1) : null;
+            const minPrice = overMatch  ? parseFloat(overMatch[1].replace(/\./g, '').replace(',', '.')) * (overMatch[0].includes('k') || parseInt(overMatch[1]) < 1000 ? 1000 : 1) : null;
+
+            // Flash Sale query
+            const isFlashSale = /flash|sale|khuy[eê]n m[aã]i|gi[aả]m gi[aá]/i.test(message);
+
+            let matched = products;
+
+            if (isFlashSale) {
+                matched = products.filter(p => p.flashSale && p.flashSalePrice);
+            } else if (maxPrice) {
+                matched = products.filter(p => {
+                    const effectivePrice = (p.flashSale && p.flashSalePrice) ? p.flashSalePrice : p.price;
+                    return effectivePrice <= maxPrice;
+                });
+            } else if (minPrice) {
+                matched = products.filter(p => p.price >= minPrice);
+            } else {
+                // Tìm theo từ khóa tên/danh mục
+                matched = products.filter(p =>
+                    p.name.toLowerCase().includes(q.split(' ').find((w: string) => w.length > 2) || q) ||
+                    (p.category && p.category.toLowerCase().replace(/[\u0300-\u036f]/g, '').normalize('NFD').includes(q))
+                );
+            }
+
+            matched = matched.sort((a: any, b: any) => a.price - b.price).slice(0, 6);
 
             if (matched.length > 0) {
-                reply = `HAVEN có ${matched.length} sản phẩm phù hợp:\n\n` +
-                    matched.map(p => `• ${p.name}: **${p.price.toLocaleString('vi-VN')}đ**`).join('\n') +
-                    '\n\nXem thêm tại https://havenstore.io.vn/products ạ! 😊';
+                const intro = isFlashSale
+                    ? `⚡ HAVEN đang có **${matched.length} sản phẩm Flash Sale**:\n\n`
+                    : maxPrice
+                        ? `💰 Sản phẩm dưới **${maxPrice.toLocaleString('vi-VN')}đ** tại HAVEN:\n\n`
+                        : `HAVEN có **${matched.length} sản phẩm** phù hợp:\n\n`;
+
+                reply = intro + matched.map((p: any) => {
+                    const salePrice = (p.flashSale && p.flashSalePrice) ? ` ⚡ Flash: ${p.flashSalePrice.toLocaleString('vi-VN')}đ` : '';
+                    const link = p.slug ? `https://havenstore.io.vn/product/${p.slug}` : '';
+                    return `• **${p.name}** — ${p.price.toLocaleString('vi-VN')}đ${salePrice}${link ? '\n  👉 ' + link : ''}`;
+                }).join('\n\n') + '\n\nXem thêm tại https://havenstore.io.vn/products ạ! 😊';
             } else {
-                reply = 'Xin chào! Mình là HAVEN AI 👋 Bạn có thể hỏi về giá sản phẩm, cách phối đồ hay các ưu đãi Flash Sale. Xem tất cả sản phẩm tại https://havenstore.io.vn/products nhé!';
+                reply = `Xin lỗi mình chưa tìm thấy sản phẩm phù hợp với yêu cầu đó. Bạn xem toàn bộ sản phẩm tại https://havenstore.io.vn/products để chọn nhé! 🛍️`;
             }
         }
 
