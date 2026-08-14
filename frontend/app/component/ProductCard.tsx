@@ -20,20 +20,6 @@ interface ProductCardProps {
     isFlashSaleCard?: boolean;
 }
 
-const getProductHighlight = (product: Product) => {
-    const cat = String(product.category || '').toLowerCase();
-    if (cat.includes('clothing') || cat.includes('clothing') || cat.includes('womens') || cat.includes('nam') || cat.includes('nu')) {
-        if (product.name.toLowerCase().includes('áo') || product.name.toLowerCase().includes('ao')) {
-            return "Cotton 100% cao cấp - Thoáng mát";
-        }
-        return "Đứng dáng sang trọng - Chống nhăn tốt";
-    }
-    if (cat.includes('shoes') || cat.includes('giay')) {
-        return "Đế cao su êm ái - Bền bỉ năng động";
-    }
-    return "Phụ kiện cao cấp - Thiết kế thời thượng";
-};
-
 export default function ProductCard({ 
     product, 
     index = 0, 
@@ -77,15 +63,6 @@ export default function ProductCard({
                 className="group block h-full flex flex-col transition-all duration-400 hover:-translate-y-[6px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] bg-white border border-[#EAEAEA] rounded-[16px] overflow-hidden"
                 onMouseLeave={() => setSelectedColor(null)}
             >
-                {/* Product Highlights at the very top (Flash Sale specific) */}
-                {isFlashSaleCard && (
-                    <div className="px-3.5 pt-3 pb-1.5 bg-gray-50 border-b border-gray-100/50">
-                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block truncate">
-                            ⚡ {getProductHighlight(product)}
-                        </span>
-                    </div>
-                )}
-
                 <div
                     className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-white transition-all duration-400"
                     onMouseEnter={() => setIsHovered(true)}
@@ -130,48 +107,44 @@ export default function ProductCard({
                         )}
                     </div>
 
-                    {/* Like Button (Standard Card only) */}
-                    {!isFlashSaleCard && (
-                        <motion.button
-                            onClick={async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                await toggleFavorite(product, user?.id);
-                                if (isLiked) {
-                                    toast.success(`Đã xóa khỏi danh sách yêu thích`);
-                                } else {
-                                    toast.success(`Đã thêm vào danh sách yêu thích`);
-                                }
-                            }}
-                            className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isLiked
-                                ? 'bg-[#D32F2F] text-white shadow-md'
-                                : 'bg-white/90 text-gray-500 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#C9A227]'
-                                }`}
-                            whileTap={{ scale: 0.85 }}
-                            aria-label={isLiked ? 'Bỏ thích sản phẩm' : 'Thích sản phẩm'}
-                        >
-                            <Heart size={13} fill={isLiked ? 'currentColor' : 'none'} />
-                        </motion.button>
-                    )}
+                    {/* Like Button */}
+                    <motion.button
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            await toggleFavorite(product, user?.id);
+                            if (isLiked) {
+                                toast.success(`Đã xóa khỏi danh sách yêu thích`);
+                            } else {
+                                toast.success(`Đã thêm vào danh sách yêu thích`);
+                            }
+                        }}
+                        className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isLiked
+                            ? 'bg-[#D32F2F] text-white shadow-md'
+                            : 'bg-white/90 text-gray-500 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#C9A227]'
+                            }`}
+                        whileTap={{ scale: 0.85 }}
+                        aria-label={isLiked ? 'Bỏ thích sản phẩm' : 'Thích sản phẩm'}
+                    >
+                        <Heart size={13} fill={isLiked ? 'currentColor' : 'none'} />
+                    </motion.button>
 
-                    {/* Quick Add to Cart (Standard Card only) */}
-                    {!isFlashSaleCard && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-                            transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
+                    {/* Quick Add to Cart */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
+                    >
+                        <button
+                            onClick={handleQuickAdd}
+                            className="w-full flex items-center justify-center gap-2 h-10 bg-[#111111] text-white text-[12px] font-semibold hover:bg-[#C9A227] transition-colors duration-300 rounded-lg shadow-md"
+                            style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", letterSpacing: '0.03em' }}
                         >
-                            <button
-                                onClick={handleQuickAdd}
-                                className="w-full flex items-center justify-center gap-2 h-10 bg-[#111111] text-white text-[12px] font-semibold hover:bg-[#C9A227] transition-colors duration-300 rounded-lg shadow-md"
-                                style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", letterSpacing: '0.03em' }}
-                            >
-                                <ShoppingBag size={13} />
-                                Thêm vào giỏ
-                            </button>
-                        </motion.div>
-                    )}
+                            <ShoppingBag size={13} />
+                            Thêm vào giỏ
+                        </button>
+                    </motion.div>
                 </div>
 
                 {/* Product Info */}
@@ -263,40 +236,6 @@ export default function ProductCard({
                                     </div>
                                 );
                             })()
-                        )}
-
-                        {/* Heart icon and Mua ngay buttons at bottom (Flash Sale Specific) */}
-                        {isFlashSaleCard && (
-                            <div className="mt-4 flex items-center gap-2 pt-3 border-t border-gray-100/60">
-                                <button
-                                    type="button"
-                                    onClick={handleQuickAdd}
-                                    className="flex-1 h-9 bg-transparent border border-[#D32F2F] text-[#D32F2F] text-[12px] font-bold uppercase tracking-wider rounded-lg hover:bg-[#D32F2F] hover:text-white transition-all flex items-center justify-center gap-1.5"
-                                    style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}
-                                >
-                                    Mua ngay
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={async (e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        await toggleFavorite(product, user?.id);
-                                        if (isLiked) {
-                                            toast.success(`Đã xóa khỏi danh sách yêu thích`);
-                                        } else {
-                                            toast.success(`Đã thêm vào danh sách yêu thích`);
-                                        }
-                                    }}
-                                    className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-all ${
-                                        isLiked 
-                                            ? 'bg-[#D32F2F]/10 border-[#D32F2F] text-[#D32F2F]' 
-                                            : 'border-gray-200 text-gray-400 hover:text-[#D32F2F] hover:border-[#D32F2F]'
-                                    }`}
-                                >
-                                    <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
-                                </button>
-                            </div>
                         )}
                     </div>
                 </div>
