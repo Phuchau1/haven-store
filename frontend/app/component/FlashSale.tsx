@@ -1,9 +1,9 @@
 'use client';
-// ===== FLASH SALE SECTION - With Shopee-style dynamic time slots and product slider =====
-import React, { useState, useEffect, useRef } from 'react';
+// ===== FLASH SALE SECTION - With Shopee-style dynamic time slots and 2-row product grid =====
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Flame, Percent, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Zap, Flame, Percent } from 'lucide-react';
 import { Product } from '@/types';
 import ProductCard from './ProductCard';
 
@@ -15,27 +15,28 @@ export default function FlashSale() {
     const [activeTab, setActiveTab] = useState('all');
     const [tabLoading, setTabLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
-    
-    const scrollRef = useRef<HTMLDivElement>(null);
 
     // Generate dynamic date slots for the header bar
     const getFlashSaleSlots = () => {
         const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
         const now = new Date();
         
+        const dayStr = String(now.getDate()).padStart(2, '0');
+        const monthStr = months[now.getMonth()];
+
         const slots = [
-            { label: "Hôm nay", subLabel: "ĐANG DIỄN RA", value: "all" }
+            { label: "Hôm nay", subLabel: `${dayStr}/${monthStr}`, value: "all" }
         ];
         
         const discountValues = ["all", "30", "40", "50"];
         for (let i = 1; i <= 3; i++) {
             const futureDate = new Date();
             futureDate.setDate(now.getDate() + i);
-            const dayStr = String(futureDate.getDate()).padStart(2, '0');
-            const monthStr = months[futureDate.getMonth()];
+            const fDayStr = String(futureDate.getDate()).padStart(2, '0');
+            const fMonthStr = months[futureDate.getMonth()];
             
             slots.push({
-                label: `${dayStr}/${monthStr}`,
+                label: `${fDayStr}/${fMonthStr}`,
                 subLabel: "SẮP MỞ",
                 value: discountValues[i]
             });
@@ -59,7 +60,7 @@ export default function FlashSale() {
                     
                     const products = flashSaleData.products || [];
                     setAllProducts(products);
-                    setDisplayProducts(products.slice(0, 12)); // Fetch more products to support sliding
+                    setDisplayProducts(products.slice(0, 8)); // Display 8 products to form exactly 2 rows of 4
 
                     if (flashSaleData.endTime) {
                         const targetDate = new Date(flashSaleData.endTime);
@@ -97,7 +98,7 @@ export default function FlashSale() {
 
         setTimeout(() => {
             if (tab === 'all') {
-                setDisplayProducts(allProducts.slice(0, 12));
+                setDisplayProducts(allProducts.slice(0, 8));
             } else {
                 const threshold = parseInt(tab, 10);
                 const filtered = allProducts.filter(p => {
@@ -107,21 +108,10 @@ export default function FlashSale() {
                     }
                     return false;
                 });
-                setDisplayProducts(filtered.slice(0, 12));
+                setDisplayProducts(filtered.slice(0, 8));
             }
             setTabLoading(false);
         }, 300);
-    };
-
-    const handleScroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const { scrollLeft, clientWidth } = scrollRef.current;
-            const scrollAmount = clientWidth * 0.75;
-            scrollRef.current.scrollTo({
-                left: direction === 'left' ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
-                behavior: 'smooth'
-            });
-        }
     };
 
     if (loading) {
@@ -141,7 +131,7 @@ export default function FlashSale() {
     if (!isActive || allProducts.length === 0) return null;
 
     return (
-        <section id="flash-sale" className="py-16 bg-white overflow-hidden">
+        <section id="flash-sale" className="py-16 bg-white">
             <div className="container-torano">
                 {/* Unified Premium Shopee-style Header Bar */}
                 <div className="bg-gradient-to-r from-[#D32F2F] to-[#b71c1c] rounded-2xl p-4 md:p-6 mb-8 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-lg border border-red-700/20">
@@ -215,17 +205,8 @@ export default function FlashSale() {
                     </div>
                 </div>
 
-                {/* Products Carousel Slider */}
-                <div className="relative group/slider px-2">
-                    {/* Left Navigation Arrow */}
-                    <button 
-                        onClick={() => handleScroll('left')}
-                        className="absolute left-[-15px] top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[#D32F2F] hover:text-white transition-all opacity-0 group-hover/slider:opacity-100"
-                        aria-label="Trước"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    
+                {/* Products Grid (Restored 2 rows of products) */}
+                <div className="px-2">
                     <AnimatePresence mode="wait">
                         {tabLoading ? (
                             <motion.div
@@ -233,9 +214,9 @@ export default function FlashSale() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                                className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
                             >
-                                {[1, 2, 3, 4].map(i => (
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                                     <div key={i} className="aspect-[3/4] rounded-2xl shimmer bg-red-100/40" />
                                 ))}
                             </motion.div>
@@ -256,31 +237,18 @@ export default function FlashSale() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.25 }}
-                                ref={scrollRef}
-                                className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth hide-scrollbar pb-6 snap-x snap-mandatory"
-                                style={{ scrollbarWidth: 'none' }}
+                                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
                             >
                                 {displayProducts.map((product: Product, index: number) => (
-                                    <div key={product.id} className="min-w-[250px] sm:min-w-[280px] md:min-w-[290px] snap-start flex-shrink-0">
-                                        <ProductCard product={product} index={index} isFlashSaleCard={true} />
-                                    </div>
+                                    <ProductCard key={product.id} product={product} index={index} isFlashSaleCard={true} />
                                 ))}
                             </motion.div>
                         )}
                     </AnimatePresence>
-
-                    {/* Right Navigation Arrow */}
-                    <button 
-                        onClick={() => handleScroll('right')}
-                        className="absolute right-[-15px] top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[#D32F2F] hover:text-white transition-all opacity-0 group-hover/slider:opacity-100"
-                        aria-label="Sau"
-                    >
-                        <ChevronRight size={20} />
-                    </button>
                 </div>
 
                 {/* View All Button */}
-                <div className="mt-8 flex flex-col items-center gap-4">
+                <div className="mt-10 flex flex-col items-center gap-4">
                     <Link
                         href="/khuyen-mai/giam-gia"
                         className="inline-flex items-center gap-2 px-10 py-3.5 bg-[#C9A227] text-white font-bold uppercase tracking-wider text-sm rounded-full hover:bg-[#111111] transition-all shadow-md"
