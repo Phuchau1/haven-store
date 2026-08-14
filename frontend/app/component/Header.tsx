@@ -254,11 +254,34 @@ export default function Header() {
 
     // ── Fetch menus ────────────────────────────────────────────────────────
     useEffect(() => {
+        const sanitizeMenuLink = (link: string) => {
+            if (!link) return '';
+            if (link.startsWith('/products?discount=')) {
+                const val = link.replace('/products?discount=', '');
+                if (val === 'true') return '/khuyen-mai/giam-gia';
+                return `/khuyen-mai/giam-gia-${val}`;
+            }
+            if (link === '/products?discounted=true' || link === '/collections/sale') {
+                return '/khuyen-mai/giam-gia';
+            }
+            return link;
+        };
+
+        const sanitizeNodes = (nodes: MenuNode[]): MenuNode[] => {
+            return nodes.map(node => ({
+                ...node,
+                link: sanitizeMenuLink(node.link),
+                children: node.children ? sanitizeNodes(node.children) : undefined
+            }));
+        };
+
         const fetchMenus = async () => {
             try {
                 const res = await fetch('/api/menus?active=true');
                 const data = await res.json();
-                if (data.success && data.menus) setNavMenus(data.menus);
+                if (data.success && data.menus) {
+                    setNavMenus(sanitizeNodes(data.menus));
+                }
             } catch {
                 // Fallback — nav still works
             }
