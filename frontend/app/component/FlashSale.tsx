@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Flame, Percent } from 'lucide-react';
+import { Zap, Flame, Percent, Package, Truck } from 'lucide-react';
 import { Product } from '@/types';
 import ProductCard from './ProductCard';
 
@@ -25,9 +25,15 @@ export default function FlashSale() {
         const monthStr = months[now.getMonth()];
 
         const slots = [
-            { label: "Hôm nay", subLabel: `${dayStr}/${monthStr}`, value: "all" }
+            { label: "HÔM NAY", subLabel: `${dayStr}/${monthStr}`, value: "all" }
         ];
         
+        const getVietnameseDayOfWeek = (date: Date) => {
+            const day = date.getDay();
+            if (day === 0) return "CHỦ NHẬT";
+            return `THỨ ${day + 1}`;
+        };
+
         const discountValues = ["all", "30", "40", "50"];
         for (let i = 1; i <= 3; i++) {
             const futureDate = new Date();
@@ -37,7 +43,7 @@ export default function FlashSale() {
             
             slots.push({
                 label: `${fDayStr}/${fMonthStr}`,
-                subLabel: "SẮP MỞ",
+                subLabel: getVietnameseDayOfWeek(futureDate),
                 value: discountValues[i]
             });
         }
@@ -99,14 +105,11 @@ export default function FlashSale() {
         setTimeout(() => {
             // Distribute products dynamically to all 4 tabs so they are never empty and have different products!
             if (tab === 'all') {
-                // Today: show first 8 products
                 setDisplayProducts(allProducts.slice(0, 8));
             } else if (tab === '30') {
-                // Tomorrow: show products starting from index 2, or reversed, so it looks like a different set
                 const shifted = [...allProducts].reverse();
                 setDisplayProducts(shifted.slice(0, 8));
             } else if (tab === '40') {
-                // Next day: shift by 3 items
                 const shifted = [...allProducts];
                 if (shifted.length > 3) {
                     const chunk = shifted.splice(0, 3);
@@ -114,7 +117,6 @@ export default function FlashSale() {
                 }
                 setDisplayProducts(shifted.slice(0, 8));
             } else {
-                // Next next day: sort by price low to high
                 const sorted = [...allProducts].sort((a, b) => a.price - b.price);
                 setDisplayProducts(sorted.slice(0, 8));
             }
@@ -138,78 +140,131 @@ export default function FlashSale() {
 
     if (!isActive || allProducts.length === 0) return null;
 
+    // Calculate overall stats for the sub-bar
+    const totalSoldItems = allProducts.reduce((sum, p) => sum + (p.flashSaleSold || p.soldQuantity || 0), 0);
+    const totalStockItems = allProducts.reduce((sum, p) => sum + (p.flashSaleStock || 20), 0);
+    const percentOverall = totalSoldItems + totalStockItems > 0 
+        ? Math.round((totalSoldItems / (totalSoldItems + totalStockItems)) * 100) 
+        : 45;
+
     return (
         <section id="flash-sale" className="py-16 bg-white">
             <div className="container-torano">
-                {/* Unified Premium Shopee-style Header Bar */}
-                <div className="bg-gradient-to-r from-[#D32F2F] to-[#b71c1c] rounded-2xl p-4 md:p-6 mb-8 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-lg border border-red-700/20">
+                {/* Unified Premium Shopee-style Header Container */}
+                <div className="bg-gradient-to-r from-[#D32F2F] to-[#b71c1c] rounded-2xl p-4 md:p-6 mb-8 flex flex-col shadow-lg border border-red-700/20">
                     
-                    {/* Left: Brand / Title */}
-                    <div className="flex items-center gap-3 w-full lg:w-auto">
-                        <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white text-[#D32F2F] shadow-md animate-bounce">
-                            <Zap size={26} fill="currentColor" />
+                    {/* Top Row: Title, Slots, Timer */}
+                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-2">
+                        {/* Left: Brand / Title */}
+                        <div className="flex items-center gap-3 w-full lg:w-auto">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#D32F2F] shadow-md shrink-0 animate-bounce">
+                                <Zap size={26} fill="currentColor" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl lg:text-3xl font-extrabold uppercase text-white tracking-tight leading-none" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
+                                    Flash Sale
+                                </h2>
+                                <p className="text-[10px] font-bold text-red-100 mt-1 uppercase tracking-wider">
+                                    Giá sốc hôm nay - săn ngay kẻo lỡ!
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-2xl lg:text-3xl font-extrabold uppercase text-white tracking-tight leading-none">
-                                Flash Sale
-                            </h2>
-                            <p className="text-[11px] font-bold text-red-100 mt-1 uppercase tracking-wider">
-                                Giá sốc mỗi ngày
-                            </p>
+
+                        {/* Middle: Date/Time Slots */}
+                        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 hide-scrollbar justify-start lg:justify-center">
+                            {slots.map((slot, index) => {
+                                const isActiveTab = activeTab === slot.value;
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => handleTabChange(slot.value)}
+                                        className={`flex flex-col items-center justify-center min-w-[90px] sm:min-w-[100px] py-1.5 px-3 rounded-xl transition-all ${
+                                            isActiveTab 
+                                                ? 'bg-white text-[#D32F2F] font-bold shadow-md scale-105 border-2 border-white' 
+                                                : 'bg-[#9C1C1C] text-red-100 hover:bg-[#8A1616] border-2 border-transparent'
+                                        }`}
+                                    >
+                                        <span className="text-sm font-extrabold">{slot.label}</span>
+                                        <span className={`text-[9px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#D32F2F]/80' : 'text-red-200'}`}>
+                                            {slot.subLabel}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
-                    </div>
 
-                    {/* Middle: Date/Time Slots */}
-                    <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 hide-scrollbar justify-start lg:justify-center">
-                        {slots.map((slot, index) => {
-                            const isActiveTab = activeTab === slot.value;
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => handleTabChange(slot.value)}
-                                    className={`flex flex-col items-center justify-center min-w-[90px] sm:min-w-[100px] py-1.5 px-3 rounded-xl transition-all ${
-                                        isActiveTab 
-                                            ? 'bg-white text-[#D32F2F] font-bold shadow-md scale-105 border-2 border-white' 
-                                            : 'bg-red-800/40 text-red-100 hover:bg-red-800/60 border-2 border-transparent'
-                                    }`}
-                                >
-                                    <span className="text-sm font-extrabold">{slot.label}</span>
-                                    <span className={`text-[9px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#D32F2F]/80' : 'text-red-200'}`}>
-                                        {slot.subLabel}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Right: Countdown & Link */}
-                    <div className="flex items-center justify-between lg:justify-end w-full lg:w-auto gap-6 border-t lg:border-t-0 border-red-800/50 pt-4 lg:pt-0">
-                        <div className="flex items-center gap-3">
-                            {[
-                                { value: timeLeft.hours, label: 'Giờ' },
-                                { value: timeLeft.minutes, label: 'Phút' },
-                                { value: timeLeft.seconds, label: 'Giây' }
-                            ].map((unit, i) => (
-                                <React.Fragment key={i}>
-                                    <div className="flex flex-col items-center">
-                                        <div className="w-11 h-11 flex items-center justify-center bg-[#111111] text-white rounded-xl shadow-md border border-neutral-800">
-                                            <span className="text-lg font-bold font-mono">
-                                                {String(unit.value).padStart(2, '0')}
-                                            </span>
+                        {/* Right: Countdown */}
+                        <div className="flex flex-col items-end w-full lg:w-auto border-t lg:border-t-0 border-red-800/50 pt-4 lg:pt-0">
+                            <span className="text-[9px] text-red-200 font-extrabold uppercase tracking-widest mb-1.5 pr-1 self-start lg:self-end">
+                                Kết thúc sau
+                            </span>
+                            <div className="flex items-center gap-2">
+                                {[
+                                    { value: timeLeft.hours, label: 'Giờ' },
+                                    { value: timeLeft.minutes, label: 'Phút' },
+                                    { value: timeLeft.seconds, label: 'Giây' }
+                                ].map((unit, i) => (
+                                    <React.Fragment key={i}>
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-11 h-11 flex items-center justify-center bg-[#111111] text-white rounded-xl shadow-md border border-neutral-800">
+                                                <span className="text-lg font-bold font-mono">
+                                                    {String(unit.value).padStart(2, '0')}
+                                                </span>
+                                            </div>
+                                            <span className="text-[9px] text-red-100 font-bold mt-1 uppercase tracking-wider">{unit.label}</span>
                                         </div>
-                                        <span className="text-[9px] text-red-100 font-bold mt-1 uppercase tracking-wider">{unit.label}</span>
-                                    </div>
-                                    {i < 2 && <span className="text-lg font-bold text-white mb-4">:</span>}
-                                </React.Fragment>
-                            ))}
+                                        {i < 2 && <span className="text-lg font-bold text-white mb-4">:</span>}
+                                    </React.Fragment>
+                                ))}
+                            </div>
                         </div>
-                        
-                        <Link
-                            href="/khuyen-mai/giam-gia"
-                            className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-white bg-red-800/60 hover:bg-white hover:text-[#D32F2F] px-4 py-2.5 rounded-xl transition-all shadow-sm"
-                        >
-                            Xem tất cả &gt;
-                        </Link>
+                    </div>
+
+                    {/* Bottom Row: Dark Red Info Sub-Bar */}
+                    <div className="mt-5 bg-[#8A1616]/60 rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-center text-white border border-red-800/30">
+                        {/* Column 1: Fire icon + Sold orders */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                <Flame size={18} className="text-amber-400" fill="currentColor" />
+                            </div>
+                            <div>
+                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Đã bán</div>
+                                <div className="text-sm font-extrabold">{totalSoldItems} đơn</div>
+                            </div>
+                        </div>
+                        {/* Column 2: Box icon + Stock items */}
+                        <div className="flex items-center gap-3 border-t md:border-t-0 md:border-l border-red-800/40 pt-3 md:pt-0 md:pl-4">
+                            <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                <Package size={18} className="text-amber-400" />
+                            </div>
+                            <div>
+                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Còn lại</div>
+                                <div className="text-sm font-extrabold">{totalStockItems} sản phẩm</div>
+                            </div>
+                        </div>
+                        {/* Column 3: Truck icon + Free shipping */}
+                        <div className="flex items-center gap-3 border-t md:border-t-0 md:border-l border-red-800/40 pt-3 md:pt-0 md:pl-4">
+                            <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                <Truck size={18} className="text-amber-400" />
+                            </div>
+                            <div>
+                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Miễn phí vận chuyển</div>
+                                <div className="text-[11px] font-bold leading-tight">Cho đơn từ 500.000đ</div>
+                            </div>
+                        </div>
+                        {/* Column 4: Divider + Program Progress */}
+                        <div className="flex flex-col gap-1.5 border-t md:border-t-0 md:border-l border-red-800/40 pt-3 md:pt-0 md:pl-4">
+                            <div className="flex justify-between items-center text-[9px] text-red-200 font-bold uppercase tracking-wider">
+                                <span>Tiến trình chương trình</span>
+                                <span className="font-extrabold text-white">{percentOverall}%</span>
+                            </div>
+                            <div className="relative w-full h-2.5 bg-red-950/60 rounded-full overflow-hidden border border-red-900/30">
+                                <div 
+                                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full transition-all duration-500" 
+                                    style={{ width: `${percentOverall}%` }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
