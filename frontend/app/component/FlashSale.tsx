@@ -181,7 +181,7 @@ export default function FlashSale() {
                         </button>
                     ))}
                     <Link
-                        href={`/products?discount=${activeTab === 'all' ? 'true' : activeTab}`}
+                        href={activeTab === 'all' ? '/khuyen-mai/giam-gia' : `/khuyen-mai/giam-gia-${activeTab}`}
                         className="ml-auto text-xs font-semibold text-[#111111] underline underline-offset-2 hover:text-[#C9A227] transition-colors"
                     >
                         Xem tất cả →
@@ -231,22 +231,22 @@ export default function FlashSale() {
                 {/* View All Button */}
                 <div className="mt-10 flex flex-col items-center gap-4">
                     <Link
-                        href="/products?discounted=true"
+                        href="/khuyen-mai/giam-gia"
                         className="inline-flex items-center gap-2 px-10 py-3.5 bg-[#C9A227] text-white font-bold uppercase tracking-wider text-sm rounded-full hover:bg-[#111111] transition-all shadow-md"
                     >
                         Xem tất cả Flash Sale
                     </Link>
                     <div className="flex flex-wrap items-center justify-center gap-2">
-                        <Link href="/products?discount=20" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
+                        <Link href="/khuyen-mai/giam-gia-20" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
                             <Percent size={12} /> Sale 20%+
                         </Link>
-                        <Link href="/products?discount=30" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
+                        <Link href="/khuyen-mai/giam-gia-30" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
                             <Percent size={12} /> Sale 30%+
                         </Link>
-                        <Link href="/products?discount=40" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
+                        <Link href="/khuyen-mai/giam-gia-40" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
                             <Percent size={12} /> Sale 40%+
                         </Link>
-                        <Link href="/products?discount=50" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
+                        <Link href="/khuyen-mai/giam-gia-50" className="inline-flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold text-xs rounded-full hover:border-[#111111] hover:text-[#111111] transition-all">
                             <Percent size={12} /> Sale 50%+
                         </Link>
                     </div>

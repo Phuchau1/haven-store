@@ -15,9 +15,11 @@ function parseCategoryFromUrl(searchParams: URLSearchParams, pathname: string) {
     let category = searchParams.get('category') || '';
     let subCategory = searchParams.get('subCategory') || '';
 
-    if (pathname?.startsWith('/collections/')) {
-        const slug = pathname.replace('/collections/', '');
-        if (slug === 'sale') {
+    const isCollection = pathname?.startsWith('/collections/');
+    const isPromo = pathname?.startsWith('/khuyen-mai/');
+    if (isCollection || isPromo) {
+        const slug = isCollection ? pathname.replace('/collections/', '') : pathname.replace('/khuyen-mai/', '');
+        if (slug === 'sale' || slug === 'giam-gia' || slug.startsWith('giam-gia-')) {
             category = '';
             subCategory = '';
         } else {
@@ -37,8 +39,17 @@ function parseCategoryFromUrl(searchParams: URLSearchParams, pathname: string) {
 
 // ── Tiêu đề trang dựa trên bộ lọc ───────────────────────────────────────────
 function getCategoryTitle(filters: FilterState, pathname: string) {
-    if (pathname?.startsWith('/collections/')) {
-        const slug = pathname.replace('/collections/', '');
+    const isCollection = pathname?.startsWith('/collections/');
+    const isPromo = pathname?.startsWith('/khuyen-mai/');
+    if (isCollection || isPromo) {
+        const slug = isCollection ? pathname.replace('/collections/', '') : pathname.replace('/khuyen-mai/', '');
+        if (slug === 'sale' || slug === 'giam-gia') {
+            return 'Danh Mục Sale';
+        }
+        if (slug.startsWith('giam-gia-')) {
+            const pct = slug.split('-').pop();
+            return `Ưu đãi giảm ${pct}%+`;
+        }
         const slugMap: Record<string, string> = {
             'nam': 'Thời trang Nam', 'ao-nam': 'Áo Nam', 'ao-so-mi-nam': 'Áo Sơ Mi Nam',
             'ao-polo-nam': 'Áo Polo Nam', 'ao-thun-nam': 'Áo Thun / T-Shirt Nam',
@@ -53,8 +64,7 @@ function getCategoryTitle(filters: FilterState, pathname: string) {
             'ao-khoac-nu': 'Áo Khoác Nữ', 'quan-nu': 'Quần Nữ', 'quan-au-nu': 'Quần Âu Nữ',
             'quan-jean-nu': 'Quần Jean Nữ', 'quan-short-nu': 'Quần Short Nữ',
             'vay-dam': 'Váy / Đầm', 'vay-lien-dam': 'Váy Liền Đầm', 'chan-vay': 'Chân Váy',
-            'phu-kien-nu': 'Phụ Kiện Nữ', 'giay-dep-nu': 'Giày Dép Nữ', 'tui-xach': 'Túi Xách',
-            'sale': 'Danh Mục Sale'
+            'phu-kien-nu': 'Phụ Kiện Nữ', 'giay-dep-nu': 'Giày Dép Nữ', 'tui-xach': 'Túi Xách'
         };
         if (slugMap[slug]) return slugMap[slug];
     }
@@ -93,7 +103,9 @@ function ProductsContent() {
             category,
             subCategory,
             search: searchParams.get('search') || '',
-            discount: pathname === '/collections/sale' ? 'true' : (searchParams.get('discount') || ''),
+            discount: (pathname === '/collections/sale' || pathname === '/khuyen-mai/giam-gia' || pathname.startsWith('/khuyen-mai/giam-gia-'))
+                ? (pathname.includes('giam-gia-') ? pathname.split('giam-gia-')[1] : 'true')
+                : (searchParams.get('discount') || ''),
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // chỉ chạy 1 lần khi mount
@@ -115,7 +127,9 @@ function ProductsContent() {
             category,
             subCategory,
             search: searchParams.get('search') || '',
-            discount: pathname === '/collections/sale' ? 'true' : (searchParams.get('discount') || ''),
+            discount: (pathname === '/collections/sale' || pathname === '/khuyen-mai/giam-gia' || pathname.startsWith('/khuyen-mai/giam-gia-'))
+                ? (pathname.includes('giam-gia-') ? pathname.split('giam-gia-')[1] : 'true')
+                : (searchParams.get('discount') || ''),
             // Reset client-side filters khi đổi danh mục từ URL
             sizes: [],
             colors: [],

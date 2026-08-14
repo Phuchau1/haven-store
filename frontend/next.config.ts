@@ -37,6 +37,12 @@ const nextConfig: NextConfig = {
       { source: '/collections/dep-nam', destination: '/products?category=cat-clothing&subCategory=dep-nam' },
       // Sale
       { source: '/collections/sale', destination: '/products?discount=true' },
+      // Khuyen mai / Giam gia (Vietnamese URLs)
+      { source: '/khuyen-mai/giam-gia', destination: '/products?discount=true' },
+      { source: '/khuyen-mai/giam-gia-20', destination: '/products?discount=20' },
+      { source: '/khuyen-mai/giam-gia-30', destination: '/products?discount=30' },
+      { source: '/khuyen-mai/giam-gia-40', destination: '/products?discount=40' },
+      { source: '/khuyen-mai/giam-gia-50', destination: '/products?discount=50' },
       // Nữ
       { source: '/collections/do-nu', destination: '/products?category=cat-womens' },
       { source: '/collections/ao-nu', destination: '/products?category=cat-womens&subCategory=ao-nu' },
