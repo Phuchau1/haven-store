@@ -1,84 +1,116 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // ────────────────────────────────────────────────────────────
-// AI CHAT - HỎI GIÁ SẢN PHẨM
+// AI CHAT HOÀN CHỈNH - Trợ lý HAVEN
 // POST /api/ai/chat
-// Body: { message: "áo polo giá bao nhiêu?" }
+// Body: { message: "...", history: [{role, text}] }
 // ────────────────────────────────────────────────────────────
 exports.chatPriceQuery = async (req, res) => {
     try {
-        const { message } = req.body;
+        const { message, history = [] } = req.body;
 
-        if (!message) {
+        if (!message || !message.trim()) {
             return res.status(400).json({ success: false, message: 'Thiếu nội dung câu hỏi' });
         }
 
-        // Lấy danh sách sản phẩm kèm giá từ DB
-        let { ProductModel } = require('../models/Product');
+        // ── 1. Tải dữ liệu sản phẩm từ DB ──────────────────
+        const { ProductModel } = require('../models/Product');
         const products = await ProductModel.find(
             { status: { $ne: 'draft' }, inStock: { $ne: false } }
-        ).select('id name price originalPrice category subCategory flashSale flashSalePrice images slug').lean();
+        ).select('name price originalPrice category subCategory flashSale flashSalePrice slug description').lean();
 
-        // Tạo bảng giá ngắn gọn để nhúng vào prompt
-        const priceList = products.map(p => {
+        // ── 2. Build context sản phẩm chi tiết ─────────────
+        const productContext = products.map(p => {
             const discount = p.originalPrice > p.price
                 ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
                 : 0;
-            const flashNote = p.flashSale && p.flashSalePrice
-                ? ` | ⚡ Flash Sale: ${p.flashSalePrice.toLocaleString('vi-VN')}đ`
+            const flash = p.flashSale && p.flashSalePrice
+                ? `| ⚡ Flash Sale: ${p.flashSalePrice.toLocaleString('vi-VN')}đ`
                 : '';
-            return `- ${p.name}: ${p.price.toLocaleString('vi-VN')}đ${discount > 0 ? ` (giảm ${discount}%, gốc ${p.originalPrice.toLocaleString('vi-VN')}đ)` : ''}${flashNote} [${p.category}]`;
-        }).join('\n');
+            const link = p.slug ? `https://havenstore.io.vn/product/${p.slug}` : 'https://havenstore.io.vn/products';
+            return [
+                `• Tên: ${p.name}`,
+                `  Giá: ${p.price.toLocaleString('vi-VN')}đ ${discount > 0 ? `(giảm ${discount}%, giá gốc: ${p.originalPrice.toLocaleString('vi-VN')}đ)` : ''}${flash}`,
+                `  Danh mục: ${p.category || ''}${p.subCategory ? ' > ' + p.subCategory : ''}`,
+                `  Link: ${link}`
+            ].join('\n');
+        }).join('\n\n');
+
+        // ── 3. Build lịch sử chat (multi-turn) ─────────────
+        const chatHistory = history.slice(-8).map(m => ({
+            role: m.role === 'ai' ? 'model' : 'user',
+            parts: [{ text: m.text }]
+        }));
+
+        // ── 4. System prompt đầy đủ ─────────────────────────
+        const SYSTEM_PROMPT = `Bạn là HAVEN AI — trợ lý thời trang thông minh của cửa hàng thời trang nam cao cấp HAVEN.
+
+MỤC TIÊU:
+- Tư vấn sản phẩm, giá cả, phong cách thời trang một cách chuyên nghiệp và thân thiện.
+- Trả lời mọi câu hỏi liên quan đến sản phẩm, size, cách phối đồ, khuyến mãi, Flash Sale.
+- Hướng dẫn khách hàng đến trang sản phẩm phù hợp.
+
+THÔNG TIN STORE:
+- Tên: HAVEN — Thời Trang Nam Cao Cấp
+- Website: https://havenstore.io.vn
+- Xem tất cả sản phẩm: https://havenstore.io.vn/products
+- Liên hệ/Đặt hàng: Trực tiếp qua website
+
+DANH SÁCH SẢN PHẨM & GIÁ THỰC TẾ HIỆN TẠI:
+${productContext}
+
+HƯỚNG DẪN PHONG CÁCH TRẢ LỜI:
+- Xưng hô: "mình" và gọi khách là "bạn" — thân thiện, gần gũi.
+- Câu trả lời ngắn gọn, rõ ràng, dễ đọc (dùng bullet point, emoji hợp lý).
+- Nếu khách hỏi về size: gợi ý chọn size M/L/XL và hướng dẫn xem bảng size trên trang sản phẩm.
+- Nếu hỏi về phối đồ: gợi ý cụ thể dựa trên sản phẩm đang có trong store.
+- Nếu hỏi giá: luôn nêu giá chính xác + % giảm nếu có + link sản phẩm.
+- Nếu Flash Sale: nhấn mạnh với emoji ⚡ và giá Flash Sale.
+- KHÔNG bịa đặt sản phẩm không có trong danh sách.
+- Luôn kết thúc bằng lời mời xem thêm hoặc câu hỏi follow-up nếu phù hợp.
+- Viết bằng tiếng Việt. Tối đa 150 từ mỗi câu trả lời.`;
 
         const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-
         let reply = '';
 
         if (apiKey) {
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            const model = genAI.getGenerativeModel({
+                model: 'gemini-1.5-flash',
+                systemInstruction: SYSTEM_PROMPT,
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 400,
+                }
+            });
 
-            const prompt = `Bạn là trợ lý tư vấn bán hàng thân thiện của cửa hàng thời trang nam cao cấp HAVEN.
-Nhiệm vụ: Trả lời câu hỏi của khách hàng về GIÁ SẢN PHẨM một cách ngắn gọn, lịch thiệp và chuyên nghiệp.
-
-DANH SÁCH SẢN PHẨM & GIÁ HIỆN TẠI CỦA HAVEN:
-${priceList}
-
-LINK WEB: https://havenstore.io.vn
-
-CÂU HỎI KHÁCH HÀNG: "${message}"
-
-Hướng dẫn:
-- Chỉ trả lời dựa trên danh sách giá trên, không bịa đặt.
-- Nếu tìm thấy sản phẩm phù hợp, liệt kê tên + giá + link (https://havenstore.io.vn/product/[slug nếu có]).
-- Nếu sản phẩm đang Flash Sale, hãy nhấn mạnh.
-- Nếu không tìm thấy sản phẩm phù hợp, hãy gợi ý khách xem toàn bộ sản phẩm tại https://havenstore.io.vn/products.
-- Viết bằng tiếng Việt, thân thiện, ngắn gọn (tối đa 5 dòng).`;
-
-            const result = await model.generateContent(prompt);
+            const chat = model.startChat({ history: chatHistory });
+            const result = await chat.sendMessage(message);
             reply = result.response.text().trim();
         } else {
-            // Fallback: tìm sản phẩm theo từ khóa đơn giản
+            // Fallback không cần API key
             const keyword = message.toLowerCase();
             const matched = products.filter(p =>
                 p.name.toLowerCase().includes(keyword) ||
-                (p.category && p.category.toLowerCase().includes(keyword)) ||
-                (p.subCategory && p.subCategory.toLowerCase().includes(keyword))
-            ).slice(0, 5);
+                (p.category && p.category.toLowerCase().includes(keyword))
+            ).slice(0, 4);
 
             if (matched.length > 0) {
-                reply = 'Dạ, HAVEN có các sản phẩm phù hợp:\n' + matched.map(p =>
-                    `• ${p.name}: ${p.price.toLocaleString('vi-VN')}đ`
-                ).join('\n') + '\nBạn có thể xem thêm tại havenstore.io.vn ạ!';
+                reply = `HAVEN có ${matched.length} sản phẩm phù hợp:\n\n` +
+                    matched.map(p => `• ${p.name}: **${p.price.toLocaleString('vi-VN')}đ**`).join('\n') +
+                    '\n\nXem thêm tại https://havenstore.io.vn/products ạ! 😊';
             } else {
-                reply = 'Xin chào! Bạn có thể xem toàn bộ sản phẩm và giá tại https://havenstore.io.vn/products ạ. HAVEN luôn có nhiều ưu đãi hấp dẫn!';
+                reply = 'Xin chào! Mình là HAVEN AI 👋 Bạn có thể hỏi về giá sản phẩm, cách phối đồ hay các ưu đãi Flash Sale. Xem tất cả sản phẩm tại https://havenstore.io.vn/products nhé!';
             }
         }
 
         return res.json({ success: true, reply });
 
     } catch (error) {
-        console.error('[AI Chat] Error:', error);
-        return res.status(500).json({ success: false, message: 'Lỗi xử lý câu hỏi' });
+        console.error('[HAVEN AI Chat] Error:', error);
+        return res.status(500).json({
+            success: false,
+            reply: 'Xin lỗi, mình đang gặp sự cố nhỏ. Bạn thử lại sau hoặc liên hệ trực tiếp tại havenstore.io.vn nhé!'
+        });
     }
 };
