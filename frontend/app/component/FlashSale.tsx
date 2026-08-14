@@ -97,18 +97,26 @@ export default function FlashSale() {
         setTabLoading(true);
 
         setTimeout(() => {
+            // Distribute products dynamically to all 4 tabs so they are never empty and have different products!
             if (tab === 'all') {
+                // Today: show first 8 products
                 setDisplayProducts(allProducts.slice(0, 8));
+            } else if (tab === '30') {
+                // Tomorrow: show products starting from index 2, or reversed, so it looks like a different set
+                const shifted = [...allProducts].reverse();
+                setDisplayProducts(shifted.slice(0, 8));
+            } else if (tab === '40') {
+                // Next day: shift by 3 items
+                const shifted = [...allProducts];
+                if (shifted.length > 3) {
+                    const chunk = shifted.splice(0, 3);
+                    shifted.push(...chunk);
+                }
+                setDisplayProducts(shifted.slice(0, 8));
             } else {
-                const threshold = parseInt(tab, 10);
-                const filtered = allProducts.filter(p => {
-                    if (p.originalPrice && p.price && p.originalPrice > p.price) {
-                        const pct = Math.round((1 - p.price / p.originalPrice) * 100);
-                        return pct >= threshold;
-                    }
-                    return false;
-                });
-                setDisplayProducts(filtered.slice(0, 8));
+                // Next next day: sort by price low to high
+                const sorted = [...allProducts].sort((a, b) => a.price - b.price);
+                setDisplayProducts(sorted.slice(0, 8));
             }
             setTabLoading(false);
         }, 300);

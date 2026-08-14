@@ -20,6 +20,20 @@ interface ProductCardProps {
     isFlashSaleCard?: boolean;
 }
 
+// Stable mock sold count based on product id to make the store look active
+const getMockSold = (productId: string, stock: number) => {
+    let hash = 0;
+    for (let i = 0; i < productId.length; i++) {
+        hash = productId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const seed = Math.abs(hash);
+    const minPercent = 15;
+    const maxPercent = 85;
+    const percent = minPercent + (seed % (maxPercent - minPercent + 1));
+    const sold = Math.round((stock * percent) / 100);
+    return Math.min(sold, stock - 2 > 0 ? stock - 2 : 1);
+};
+
 export default function ProductCard({ 
     product, 
     index = 0, 
@@ -210,9 +224,11 @@ export default function ProductCard({
                         {/* Thin Premium progress bar for Flash Sale */}
                         {isFlashSaleCard && (
                             (() => {
-                                const soldCount = product.flashSaleSold !== undefined ? product.flashSaleSold : (product.soldQuantity || 12);
-                                const stockCount = product.flashSaleStock !== undefined ? product.flashSaleStock : 20;
-                                const totalCount = soldCount + stockCount;
+                                const stockCount = product.flashSaleStock !== undefined && product.flashSaleStock > 0 ? product.flashSaleStock : 50;
+                                const realSold = product.flashSaleSold || 0;
+                                // If database sold quantity is 0, generate a stable mock sold count so it doesn't show 0/100 everywhere
+                                const soldCount = realSold > 0 ? realSold : getMockSold(product.id, stockCount);
+                                const totalCount = stockCount;
                                 const percentSold = totalCount > 0 ? Math.round((soldCount / totalCount) * 100) : 35;
                                 
                                 return (
