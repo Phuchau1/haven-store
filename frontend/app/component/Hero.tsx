@@ -136,7 +136,7 @@ export default function Hero() {
                         <Sparkles size={12} style={{ color: t.accent, transition: 'color 0.7s' }} />
                         <span className="text-white/75 text-[10px] uppercase"
                               style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.3em' }}>
-                            Bộ Sưu Tập Mới · 2027
+                            Bộ Sưu Tập Mới · 2026
                         </span>
                     </div>
                     <div className="h-px w-12 bg-white/20" />
