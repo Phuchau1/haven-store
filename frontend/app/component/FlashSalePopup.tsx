@@ -58,7 +58,7 @@ export default function FlashSalePopup() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 30 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                        className="relative w-full max-w-[400px] aspect-[3/4] rounded-[24px] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] z-10 select-none bg-transparent cursor-pointer"
+                        className="relative w-full max-w-[420px] aspect-square rounded-[24px] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] z-10 select-none bg-transparent cursor-pointer"
                     >
                         {/* Close button with circular background blur */}
                         <button
