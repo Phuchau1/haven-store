@@ -58,7 +58,7 @@ export default function FlashSalePopup() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 30 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                        className="relative w-full max-w-[420px] aspect-square rounded-[24px] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] z-10 select-none bg-transparent cursor-pointer"
+                        className="relative w-full max-w-[420px] aspect-square z-10 select-none bg-transparent cursor-pointer filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.55)]"
                     >
                         {/* Close button with circular background blur */}
                         <button
@@ -66,7 +66,7 @@ export default function FlashSalePopup() {
                                 e.stopPropagation();
                                 handleClose();
                             }}
-                            className="absolute top-4 right-4 z-20 flex items-center justify-center w-8 h-8 rounded-full bg-black/35 hover:bg-black/60 text-white transition-all border border-white/10 backdrop-blur-sm shadow-md"
+                            className="absolute top-0 right-0 z-20 flex items-center justify-center w-8 h-8 rounded-full bg-black/45 hover:bg-black/70 text-white transition-all border border-white/10 backdrop-blur-sm shadow-md"
                             aria-label="Đóng quảng cáo"
                         >
                             <X size={16} />
@@ -75,14 +75,12 @@ export default function FlashSalePopup() {
                         {/* Clickable Banner Image */}
                         <div onClick={handleRedirect} className="relative w-full h-full group">
                             <Image
-                                src="/flash-sale-popup.jpg"
+                                src="/flash-sale-popup.png"
                                 alt="Flash Sale Deal Hot Giờ Vàng"
                                 fill
-                                className="object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+                                className="object-contain group-hover:scale-[1.04] transition-transform duration-500 ease-out"
                                 priority
                             />
-                            {/* Shiny overlay effect on hover */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         </div>
                     </motion.div>
                 </div>
