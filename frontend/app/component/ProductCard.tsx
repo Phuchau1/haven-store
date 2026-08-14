@@ -20,6 +20,20 @@ interface ProductCardProps {
     isFlashSaleCard?: boolean;
 }
 
+const getProductHighlight = (product: Product) => {
+    const cat = String(product.category || '').toLowerCase();
+    if (cat.includes('clothing') || cat.includes('clothing') || cat.includes('womens') || cat.includes('nam') || cat.includes('nu')) {
+        if (product.name.toLowerCase().includes('áo') || product.name.toLowerCase().includes('ao')) {
+            return "Cotton 100% cao cấp - Thoáng mát";
+        }
+        return "Đứng dáng sang trọng - Chống nhăn tốt";
+    }
+    if (cat.includes('shoes') || cat.includes('giay')) {
+        return "Đế cao su êm ái - Bền bỉ năng động";
+    }
+    return "Phụ kiện cao cấp - Thiết kế thời thượng";
+};
+
 export default function ProductCard({ 
     product, 
     index = 0, 
@@ -33,15 +47,13 @@ export default function ProductCard({
     const { isFavorite, toggleFavorite } = useFavoritesStore();
     const { user } = useAuth();
     
-    // Check local hydration to avoid mismatch, but since we rely on zustand persist, we might need a small trick or just use it directly.
-    // However, simplest way is direct usage.
     const isLiked = isFavorite(product.id);
-
 
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        addItem(product, product.sizes[0], selectedColor || product.colors[0]);
+        addItem(product, product.sizes[0] || 'M', selectedColor || product.colors[0]);
+        toast.success(`Đã thêm ${cleanProductTitle(product.name)} vào giỏ hàng`);
     };
 
     const origPrice = Number(product.originalPrice) || 0;
@@ -65,6 +77,15 @@ export default function ProductCard({
                 className="group block h-full flex flex-col transition-all duration-400 hover:-translate-y-[6px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] bg-white border border-[#EAEAEA] rounded-[16px] overflow-hidden"
                 onMouseLeave={() => setSelectedColor(null)}
             >
+                {/* Product Highlights at the very top (Flash Sale specific) */}
+                {isFlashSaleCard && (
+                    <div className="px-3.5 pt-3 pb-1.5 bg-gray-50 border-b border-gray-100/50">
+                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block truncate">
+                            ⚡ {getProductHighlight(product)}
+                        </span>
+                    </div>
+                )}
+
                 <div
                     className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-white transition-all duration-400"
                     onMouseEnter={() => setIsHovered(true)}
@@ -89,7 +110,6 @@ export default function ProductCard({
 
                     {/* Badges */}
                     <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-                        {/* Không hiện badge có chữ Sale nếu hệ thống đã tự tính % giảm giá */}
                         {product.badge && !(showDiscount && discount > 0 && product.badge.toUpperCase().includes('SALE')) && (
                             <span
                                 className={`inline-block px-2 py-1 text-[10px] uppercase font-bold rounded-md tracking-wider ${
@@ -104,60 +124,64 @@ export default function ProductCard({
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2 py-1 text-[10px] font-bold rounded-md bg-[#D32F2F] text-white">
+                            <span className="inline-block px-2 py-1 text-[10px] font-bold rounded-md bg-[#D32F2F] text-white shadow-sm">
                                 -{discount}%
                             </span>
                         )}
                     </div>
 
-                    {/* Like Button */}
-                    <motion.button
-                        onClick={async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            await toggleFavorite(product, user?.id);
-                            if (isLiked) {
-                                toast.success(`Đã xóa khỏi danh sách yêu thích`);
-                            } else {
-                                toast.success(`Đã thêm vào danh sách yêu thích`);
-                            }
-                        }}
-                        className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isLiked
-                            ? 'bg-[#D32F2F] text-white shadow-md'
-                            : 'bg-white/90 text-gray-500 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#C9A227]'
-                            }`}
-                        whileTap={{ scale: 0.85 }}
-                        aria-label={isLiked ? 'Bỏ thích sản phẩm' : 'Thích sản phẩm'}
-                    >
-                        <Heart size={13} fill={isLiked ? 'currentColor' : 'none'} />
-                    </motion.button>
-
-                    {/* Quick Add to Cart */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
-                        className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
-                    >
-                        <button
-                            onClick={handleQuickAdd}
-                            className="w-full flex items-center justify-center gap-2 h-10 bg-[#111111] text-white text-[12px] font-semibold hover:bg-[#C9A227] transition-colors duration-300 rounded-lg shadow-md"
-                            style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", letterSpacing: '0.03em' }}
+                    {/* Like Button (Standard Card only) */}
+                    {!isFlashSaleCard && (
+                        <motion.button
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                await toggleFavorite(product, user?.id);
+                                if (isLiked) {
+                                    toast.success(`Đã xóa khỏi danh sách yêu thích`);
+                                } else {
+                                    toast.success(`Đã thêm vào danh sách yêu thích`);
+                                }
+                            }}
+                            className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isLiked
+                                ? 'bg-[#D32F2F] text-white shadow-md'
+                                : 'bg-white/90 text-gray-500 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#C9A227]'
+                                }`}
+                            whileTap={{ scale: 0.85 }}
+                            aria-label={isLiked ? 'Bỏ thích sản phẩm' : 'Thích sản phẩm'}
                         >
-                            <ShoppingBag size={13} />
-                            Thêm vào giỏ
-                        </button>
-                    </motion.div>
+                            <Heart size={13} fill={isLiked ? 'currentColor' : 'none'} />
+                        </motion.button>
+                    )}
+
+                    {/* Quick Add to Cart (Standard Card only) */}
+                    {!isFlashSaleCard && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
+                        >
+                            <button
+                                onClick={handleQuickAdd}
+                                className="w-full flex items-center justify-center gap-2 h-10 bg-[#111111] text-white text-[12px] font-semibold hover:bg-[#C9A227] transition-colors duration-300 rounded-lg shadow-md"
+                                style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", letterSpacing: '0.03em' }}
+                            >
+                                <ShoppingBag size={13} />
+                                Thêm vào giỏ
+                            </button>
+                        </motion.div>
+                    )}
                 </div>
 
                 {/* Product Info */}
-                <div className="p-4 space-y-1 flex-1 flex flex-col bg-white">
+                <div className="p-4 space-y-1.5 flex-1 flex flex-col bg-white">
                     {/* Category */}
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.12em]">{product.categoryLabel}</p>
 
                     {/* Colors Swatches */}
                     {product.colors && product.colors.length > 1 ? (
-                        <div className="flex items-center gap-1.5 py-1 z-20 min-h-[22px]">
+                        <div className="flex items-center gap-1.5 py-0.5 z-20 min-h-[22px]">
                             {product.colors.map((color, idx) => {
                                 const isActive = selectedColor ? selectedColor.name === color.name : idx === 0;
                                 return (
@@ -190,7 +214,7 @@ export default function ProductCard({
                         {cleanProductTitle(product.name)}
                     </h3>
 
-                    {/* Price & Sold */}
+                    {/* Price & Sold section */}
                     <div className="flex flex-col mt-auto pt-1 w-full">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -210,7 +234,7 @@ export default function ProductCard({
                             )}
                         </div>
 
-                        {/* Shopee-style Flash Sale progress bar */}
+                        {/* Thin Premium progress bar for Flash Sale */}
                         {isFlashSaleCard && (
                             (() => {
                                 const soldCount = product.flashSaleSold !== undefined ? product.flashSaleSold : (product.soldQuantity || 12);
@@ -219,27 +243,60 @@ export default function ProductCard({
                                 const percentSold = totalCount > 0 ? Math.round((soldCount / totalCount) * 100) : 35;
                                 
                                 return (
-                                    <div className="mt-2.5 relative w-full h-[18px] bg-[#ffdbcd] rounded-full overflow-hidden flex items-center justify-center">
-                                        {/* Progress bar filled part */}
-                                        <div 
-                                            className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#ff5722] to-[#ff7a59] rounded-full transition-all duration-500" 
-                                            style={{ width: `${percentSold}%` }}
-                                        />
-                                        {/* Hot fire emoji indicator for hot items */}
-                                        {percentSold >= 70 && (
-                                            <span className="absolute left-2 z-10 text-[10px] animate-pulse">🔥</span>
-                                        )}
-                                        {/* Status Text overlay */}
-                                        <span className="relative z-10 text-[9px] font-bold text-[#ffffff] uppercase tracking-wider leading-none">
-                                            {percentSold === 0 
-                                                ? "Vừa mở bán" 
-                                                : percentSold >= 90 
-                                                    ? "Sắp cháy hàng" 
-                                                    : `Đã bán ${soldCount}`}
-                                        </span>
+                                    <div className="space-y-1.5 mt-3.5">
+                                        {/* Thin red progress line */}
+                                        <div className="relative w-full h-[6px] bg-[#F5F5F5] rounded-full overflow-hidden">
+                                            <div 
+                                                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#D32F2F] to-[#FF6B35] rounded-full transition-all duration-500" 
+                                                style={{ width: `${percentSold}%` }}
+                                            />
+                                        </div>
+                                        {/* Progress Text below */}
+                                        <div className="flex justify-between items-center text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                                            <span>Đã bán {soldCount}/{totalCount} sản phẩm</span>
+                                            {percentSold >= 80 && (
+                                                <span className="text-[#D32F2F] flex items-center gap-0.5 animate-pulse">
+                                                    🔥 Sắp cháy hàng
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })()
+                        )}
+
+                        {/* Heart icon and Mua ngay buttons at bottom (Flash Sale Specific) */}
+                        {isFlashSaleCard && (
+                            <div className="mt-4 flex items-center gap-2 pt-3 border-t border-gray-100/60">
+                                <button
+                                    type="button"
+                                    onClick={handleQuickAdd}
+                                    className="flex-1 h-9 bg-transparent border border-[#D32F2F] text-[#D32F2F] text-[12px] font-bold uppercase tracking-wider rounded-lg hover:bg-[#D32F2F] hover:text-white transition-all flex items-center justify-center gap-1.5"
+                                    style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}
+                                >
+                                    Mua ngay
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        await toggleFavorite(product, user?.id);
+                                        if (isLiked) {
+                                            toast.success(`Đã xóa khỏi danh sách yêu thích`);
+                                        } else {
+                                            toast.success(`Đã thêm vào danh sách yêu thích`);
+                                        }
+                                    }}
+                                    className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-all ${
+                                        isLiked 
+                                            ? 'bg-[#D32F2F]/10 border-[#D32F2F] text-[#D32F2F]' 
+                                            : 'border-gray-200 text-gray-400 hover:text-[#D32F2F] hover:border-[#D32F2F]'
+                                    }`}
+                                >
+                                    <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
