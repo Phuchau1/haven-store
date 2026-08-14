@@ -8,6 +8,7 @@ import FlashSale from '@/app/component/FlashSale';
 import FeaturesBanner from '@/app/component/FeaturesBanner';
 import CustomerReviews from '@/app/component/CustomerReviews';
 import Newsletter from '@/app/component/Newsletter';
+import FlashSalePopup from '@/app/component/FlashSalePopup';
 
 export default function HomePage() {
   return (
@@ -21,6 +22,7 @@ export default function HomePage() {
       <FeaturesBanner />
       <CustomerReviews />
       <Newsletter />
+      <FlashSalePopup />
     </>
   );
 }
