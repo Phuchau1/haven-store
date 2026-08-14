@@ -113,13 +113,14 @@ HƯỚNG DẪN PHONG CÁCH TRẢ LỜI:
                 matched = products.filter(p => p.price >= minPrice);
             } else {
                 // Tìm theo từ khóa tên/danh mục
+                const keyword = q.split(' ').find(w => w.length > 2) || q;
                 matched = products.filter(p =>
-                    p.name.toLowerCase().includes(q.split(' ').find((w: string) => w.length > 2) || q) ||
-                    (p.category && p.category.toLowerCase().replace(/[\u0300-\u036f]/g, '').normalize('NFD').includes(q))
+                    p.name.toLowerCase().includes(keyword) ||
+                    (p.category && p.category.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(keyword))
                 );
             }
 
-            matched = matched.sort((a: any, b: any) => a.price - b.price).slice(0, 6);
+            matched = matched.sort((a, b) => a.price - b.price).slice(0, 6);
 
             if (matched.length > 0) {
                 const intro = isFlashSale
@@ -128,7 +129,7 @@ HƯỚNG DẪN PHONG CÁCH TRẢ LỜI:
                         ? `💰 Sản phẩm dưới **${maxPrice.toLocaleString('vi-VN')}đ** tại HAVEN:\n\n`
                         : `HAVEN có **${matched.length} sản phẩm** phù hợp:\n\n`;
 
-                reply = intro + matched.map((p: any) => {
+                reply = intro + matched.map(p => {
                     const salePrice = (p.flashSale && p.flashSalePrice) ? ` ⚡ Flash: ${p.flashSalePrice.toLocaleString('vi-VN')}đ` : '';
                     const link = p.slug ? `https://havenstore.io.vn/product/${p.slug}` : '';
                     return `• **${p.name}** — ${p.price.toLocaleString('vi-VN')}đ${salePrice}${link ? '\n  👉 ' + link : ''}`;
