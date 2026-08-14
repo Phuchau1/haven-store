@@ -17,9 +17,16 @@ interface ProductCardProps {
     index?: number;
     showSold?: boolean;
     showDiscount?: boolean;
+    isFlashSaleCard?: boolean;
 }
 
-export default function ProductCard({ product, index = 0, showSold = false, showDiscount = true }: ProductCardProps) {
+export default function ProductCard({ 
+    product, 
+    index = 0, 
+    showSold = false, 
+    showDiscount = true,
+    isFlashSaleCard = false 
+}: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [selectedColor, setSelectedColor] = useState<typeof product.colors[0] | null>(null);
     const { addItem } = useCart();
@@ -184,21 +191,55 @@ export default function ProductCard({ product, index = 0, showSold = false, show
                     </h3>
 
                     {/* Price & Sold */}
-                    <div className="flex items-center justify-between mt-auto pt-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[16px] font-bold text-[#111111]">
-                                {formatPrice(product.price)}
-                            </span>
-                            {(product.originalPrice || 0) > product.price && (
-                                <span className="text-[13px] font-normal text-[#999999] line-through">
-                                    {formatPrice(product.originalPrice || 0)}
+                    <div className="flex flex-col mt-auto pt-1 w-full">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`text-[16px] font-bold ${isFlashSaleCard ? 'text-[#D32F2F]' : 'text-[#111111]'}`}>
+                                    {formatPrice(product.price)}
+                                </span>
+                                {(product.originalPrice || 0) > product.price && (
+                                    <span className="text-[13px] font-normal text-[#999999] line-through">
+                                        {formatPrice(product.originalPrice || 0)}
+                                    </span>
+                                )}
+                            </div>
+                            {!isFlashSaleCard && showSold && product.soldQuantity !== undefined && (
+                                <span className="text-[11px] text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded">
+                                    Đã bán: {product.soldQuantity}
                                 </span>
                             )}
                         </div>
-                        {showSold && product.soldQuantity !== undefined && (
-                            <span className="text-[11px] text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded">
-                                Đã bán: {product.soldQuantity}
-                            </span>
+
+                        {/* Shopee-style Flash Sale progress bar */}
+                        {isFlashSaleCard && (
+                            (() => {
+                                const soldCount = product.flashSaleSold !== undefined ? product.flashSaleSold : (product.soldQuantity || 12);
+                                const stockCount = product.flashSaleStock !== undefined ? product.flashSaleStock : 20;
+                                const totalCount = soldCount + stockCount;
+                                const percentSold = totalCount > 0 ? Math.round((soldCount / totalCount) * 100) : 35;
+                                
+                                return (
+                                    <div className="mt-2.5 relative w-full h-[18px] bg-[#ffdbcd] rounded-full overflow-hidden flex items-center justify-center">
+                                        {/* Progress bar filled part */}
+                                        <div 
+                                            className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#ff5722] to-[#ff7a59] rounded-full transition-all duration-500" 
+                                            style={{ width: `${percentSold}%` }}
+                                        />
+                                        {/* Hot fire emoji indicator for hot items */}
+                                        {percentSold >= 70 && (
+                                            <span className="absolute left-2 z-10 text-[10px] animate-pulse">🔥</span>
+                                        )}
+                                        {/* Status Text overlay */}
+                                        <span className="relative z-10 text-[9px] font-bold text-[#ffffff] uppercase tracking-wider leading-none">
+                                            {percentSold === 0 
+                                                ? "Vừa mở bán" 
+                                                : percentSold >= 90 
+                                                    ? "Sắp cháy hàng" 
+                                                    : `Đã bán ${soldCount}`}
+                                        </span>
+                                    </div>
+                                );
+                            })()
                         )}
                     </div>
                 </div>

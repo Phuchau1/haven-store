@@ -60,6 +60,7 @@ export interface Product {
     isFlashSale?: boolean;
     flashSaleVariants?: any[];
     flashSaleStock?: number;
+    flashSaleSold?: number;
     variants?: ProductVariantStock[];
 }
 
