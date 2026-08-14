@@ -89,6 +89,8 @@ export default function VirtualTryOnModal({
 
     const [result, setResult] = useState<{
         originalImage: string;
+        resultImage: string;
+        vtonFallback: boolean;
         stylistAdvice: string;
         fitScore: number;
         matchingTips: string[];
@@ -178,6 +180,8 @@ export default function VirtualTryOnModal({
 
             setResult({
                 originalImage: activePersonImage,
+                resultImage: data.resultImage || '',
+                vtonFallback: data.vtonFallback !== false,
                 stylistAdvice: data.stylistAdvice || `Sản phẩm ${product.name} khi mặc lên vóc dáng của bạn rất cân đối và tôn dáng!`,
                 fitScore: data.fitScore || 96,
                 matchingTips: data.matchingTips || [
@@ -186,7 +190,13 @@ export default function VirtualTryOnModal({
                 ]
             });
             setViewMode('tryon');
-            showToast('✨ AI đã tự động bọc áo lên người bạn thành công!', 'success');
+            const isRealVton = !data.vtonFallback;
+            showToast(
+                isRealVton
+                    ? '🎉 AI thật đã ghép áo hoàn hảo lên ảnh của bạn!'
+                    : '✨ AI đã tự động bọc áo lên người bạn thành công!',
+                'success'
+            );
 
         } catch (err) {
             console.error('Try on error:', err);
@@ -444,44 +454,64 @@ export default function VirtualTryOnModal({
                                 {/* Cột Trái: Ảnh Đã Mặc Áo Mới */}
                                 <div className="lg:col-span-6 flex flex-col items-center space-y-3">
                                     <div className="relative w-full max-w-[340px] aspect-[3/4] rounded-3xl overflow-hidden border-2 border-purple-500 shadow-2xl bg-slate-950 flex flex-col justify-end">
-                                        {/* 1. Ảnh người mẫu gốc */}
-                                        <img
-                                            src={result.originalImage}
-                                            alt="Original Photo"
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
 
-                                        {/* 2. Lớp áo mới ghép lên cơ thể khi ở chế độ 'tryon' */}
-                                        {viewMode === 'tryon' && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.96 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ duration: 0.35 }}
-                                                className="absolute inset-0 pointer-events-none flex flex-col justify-start items-center"
-                                            >
-                                                <div
-                                                    className="relative transition-all duration-150"
-                                                    style={{
-                                                        width: `${shirtScale}%`,
-                                                        height: `${shirtHeight}%`,
-                                                        top: `${shirtTop}%`,
-                                                        mixBlendMode: 'multiply',
-                                                        filter: 'contrast(1.08) brightness(1.02)'
-                                                    }}
-                                                >
-                                                    <img
-                                                        src={garmentImage}
-                                                        alt="Fitted Garment"
-                                                        className="w-full h-full object-contain"
-                                                    />
-                                                </div>
-                                            </motion.div>
+                                        {/* --- Chế độ 1: AI Thật (Replicate IDM-VTON) --- */}
+                                        {!result.vtonFallback && viewMode === 'tryon' ? (
+                                            <motion.img
+                                                key="real-vton"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                transition={{ duration: 0.5 }}
+                                                src={result.resultImage}
+                                                alt="AI Try-On Result"
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <>
+                                                {/* --- Chế độ 2: Overlay thủ công (fallback) --- */}
+                                                <img
+                                                    src={result.originalImage}
+                                                    alt="Original Photo"
+                                                    className="absolute inset-0 w-full h-full object-cover"
+                                                />
+                                                {viewMode === 'tryon' && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.96 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        transition={{ duration: 0.35 }}
+                                                        className="absolute inset-0 pointer-events-none flex flex-col justify-start items-center"
+                                                    >
+                                                        <div
+                                                            className="relative transition-all duration-150"
+                                                            style={{
+                                                                width: `${shirtScale}%`,
+                                                                height: `${shirtHeight}%`,
+                                                                top: `${shirtTop}%`,
+                                                                mixBlendMode: 'multiply',
+                                                                filter: 'contrast(1.08) brightness(1.02)'
+                                                            }}
+                                                        >
+                                                            <img
+                                                                src={garmentImage}
+                                                                alt="Fitted Garment"
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </>
                                         )}
 
-                                        {/* Huy hiệu AI Verified */}
+                                        {/* Huy hiệu AI */}
                                         <div className="absolute top-3 left-3 bg-slate-900/90 border border-purple-500/50 px-3 py-1 rounded-full text-[10px] font-bold text-purple-300 flex items-center gap-1.5 shadow z-20">
                                             <ShieldCheck size={14} className="text-purple-400" />
-                                            <span>{viewMode === 'tryon' ? 'ĐÃ MẶC ÁO MỚI (AI VTON)' : 'ẢNH GỐC BAN ĐẦU'}</span>
+                                            <span>
+                                                {viewMode !== 'tryon'
+                                                    ? 'ẢNH GỐC BAN ĐẦU'
+                                                    : result.vtonFallback
+                                                        ? 'ĐÃ MẶC ÁO MỚI (OVERLAY)'
+                                                        : '🎉 ĐÃ MẶC ÁO THẬT (AI IDM-VTON)'}
+                                            </span>
                                         </div>
                                     </div>
 

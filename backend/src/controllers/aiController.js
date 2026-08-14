@@ -112,17 +112,85 @@ Viết bằng tiếng Việt với văn phong lịch thiệp, thời thượng, 
             stylistAdvice = `Sản phẩm **${productName}** ôm vừa vặn theo đường nét cơ thể, giúp tôn lên vẻ thanh lịch và hiện đại. Phom dáng chuẩn kết hợp hài hòa với tỷ lệ người mẫu, mang lại cảm giác thoải mái nhưng vẫn chỉn chu cho cả ngày dài.`;
         }
 
-        // 2. Thời gian mô phỏng xử lý VTON AI
-        await new Promise(r => setTimeout(r, 1500));
+        // 2. Gọi Replicate IDM-VTON (miễn phí với token hiện có)
+        let resultImage = garmentImage;
+        let vtonFallback = true;
+
+        if (process.env.REPLICATE_API_TOKEN) {
+            try {
+                console.log('[AI VTON] Calling Replicate IDM-VTON...');
+
+                // Bước 1: Tạo prediction
+                const createRes = await fetch(
+                    'https://api.replicate.com/v1/models/cuuupid/idm-vton/predictions',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'wait=60'
+                        },
+                        body: JSON.stringify({
+                            input: {
+                                human_img: personImage,
+                                garm_img: garmentImage,
+                                garment_des: productName,
+                                steps: 30,
+                                seed: 42
+                            }
+                        })
+                    }
+                );
+
+                const prediction = await createRes.json();
+                console.log('[AI VTON] Replicate prediction status:', prediction.status);
+
+                if (prediction.status === 'succeeded' && prediction.output) {
+                    resultImage = prediction.output;
+                    vtonFallback = false;
+                    console.log('[AI VTON] Real VTON image:', resultImage);
+                } else if (prediction.id && prediction.status !== 'failed') {
+                    // Polling nếu chưa xong (tối đa 90 giây)
+                    const pollUrl = `https://api.replicate.com/v1/predictions/${prediction.id}`;
+                    const maxAttempts = 18;
+                    for (let i = 0; i < maxAttempts; i++) {
+                        await new Promise(r => setTimeout(r, 5000));
+                        const pollRes = await fetch(pollUrl, {
+                            headers: { 'Authorization': `Bearer ${process.env.REPLICATE_API_TOKEN}` }
+                        });
+                        const pollData = await pollRes.json();
+                        console.log(`[AI VTON] Poll ${i + 1}/${maxAttempts}:`, pollData.status);
+                        if (pollData.status === 'succeeded' && pollData.output) {
+                            resultImage = pollData.output;
+                            vtonFallback = false;
+                            console.log('[AI VTON] Real VTON image:', resultImage);
+                            break;
+                        } else if (pollData.status === 'failed') {
+                            console.warn('[AI VTON] Replicate prediction failed:', pollData.error);
+                            break;
+                        }
+                    }
+                } else {
+                    console.warn('[AI VTON] Replicate error:', prediction.error || prediction.detail);
+                }
+            } catch (repErr) {
+                console.error('[AI VTON] Error calling Replicate:', repErr.message);
+            }
+        }
+
+        if (vtonFallback) {
+            await new Promise(r => setTimeout(r, 1500));
+        }
 
         // Trả về kết quả
         return res.json({
             success: true,
-            resultImage: garmentImage,
+            resultImage,
+            vtonFallback,
             stylistAdvice,
             fitScore: Math.floor(Math.random() * 6) + 93, // 93% - 98%
             matchingTips,
-            message: 'Thử đồ thành công bằng AI!'
+            message: vtonFallback ? 'Thử đồ bằng chế độ mô phỏng thành công!' : 'Thử đồ thành công bằng AI!'
         });
 
     } catch (error) {
