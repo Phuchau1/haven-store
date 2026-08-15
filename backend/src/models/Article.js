@@ -68,7 +68,7 @@ const articleSchema = new mongoose.Schema({
 });
 
 // ─── Tự sinh id và slug trước khi lưu ───────────────────────
-articleSchema.pre('save', function (next) {
+articleSchema.pre('save', function () {
     // Sinh id tùy chỉnh nếu chưa có
     if (!this.id) {
         this.id = 'article-' + Date.now().toString(36);
@@ -84,8 +84,6 @@ articleSchema.pre('save', function (next) {
         const plain = this.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
         this.excerpt = plain.slice(0, 160) + (plain.length > 160 ? '...' : '');
     }
-
-    next();
 });
 
 // ─── Hàm tạo slug chuẩn tiếng Việt ─────────────────────────
