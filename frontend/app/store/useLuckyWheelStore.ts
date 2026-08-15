@@ -38,6 +38,8 @@ interface LuckyWheelStore {
     isOpen: boolean;
     config: WheelConfig | null;
     canSpin: boolean;
+    remainingSpins: number;
+    maxSpins: number;
     nextSpinAt: string | null;
     statusReason: string | null;
     statusMessage: string | null;
@@ -56,18 +58,27 @@ export const useLuckyWheelStore = create<LuckyWheelStore>()(
         isOpen: false,
         config: null,
         canSpin: true,
+        remainingSpins: 1,
+        maxSpins: 1,
         nextSpinAt: null,
         statusReason: null,
         statusMessage: null,
         wonPrize: null,
 
-        setConfig: (config) => set({ config }),
+        setConfig: (config) => set({ 
+            config,
+            maxSpins: config.spinsPerPeriod || 1
+        }),
 
         openWheel: () => set({ isOpen: true }),
         closeWheel: () => set({ isOpen: false }),
 
         recordSpin: (prize) => {
-            set({ wonPrize: prize, canSpin: false });
+            set((state) => ({ 
+                wonPrize: prize, 
+                canSpin: false,
+                remainingSpins: Math.max(0, state.remainingSpins - 1)
+            }));
         },
 
         clearPrize: () => set({ wonPrize: null }),
@@ -89,8 +100,12 @@ export const useLuckyWheelStore = create<LuckyWheelStore>()(
                 const res = await fetch(`/api/lucky-wheel/can-spin?${params.toString()}`, { headers });
                 const data = await res.json();
                 if (data.success !== undefined) {
+                    const max = get().config?.spinsPerPeriod || data.maxSpins || 1;
+                    const rem = data.canSpin ? (data.remainingSpins ?? 1) : 0;
                     set({
                         canSpin: !!data.canSpin,
+                        remainingSpins: rem,
+                        maxSpins: max,
                         nextSpinAt: data.nextSpinAt || null,
                         statusReason: data.reason || null,
                         statusMessage: data.message || null,

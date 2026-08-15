@@ -222,7 +222,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
     const [loadingConfig, setLoadingConfig] = useState(true);
     const [prizes, setPrizes] = useState<WheelPrize[]>([]);
     
-    const { config, setConfig, canSpin, statusMessage, checkCanSpin, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
+    const { config, setConfig, canSpin, remainingSpins, maxSpins, statusMessage, checkCanSpin, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
     const { showToast } = useToast();
     const timeLeft = !canSpin ? getTimeUntilNextSpin() : '';
 
@@ -259,14 +259,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 if (isMounted) setLoadingConfig(false);
             }
         };
-
-        if (!config || !config.prizes || config.prizes.length === 0 || !(config.prizes[0] as any).shortLabel) {
-            fetchConfig();
-        } else {
-            setPrizes(config.prizes);
-            setLoadingConfig(false);
-            if (canvasRef.current) drawWheel(canvasRef.current, config.prizes);
-        }
+        fetchConfig();
         
         return () => { isMounted = false; };
     }, [config, setConfig]);
@@ -317,7 +310,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 showToast(data.message || 'Không thể quay', 'error', 'Lỗi quay thưởng');
                 setSpinning(false);
                 if (data.message && data.message.includes('hết lượt')) {
-                    useLuckyWheelStore.setState({ canSpin: false, statusMessage: data.message });
+                    useLuckyWheelStore.setState({ canSpin: false, remainingSpins: 0, statusMessage: data.message });
                     checkCanSpin(user?.id, token);
                 }
                 return;
@@ -352,21 +345,31 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 setPrize(won);
                 recordSpin(won);
                 setSpinning(false);
-            }, 5200);
+                if (won.type !== 'none' && won.type !== 'retry') {
+                    showToast(`Chúc mừng! Bạn đã trúng ${won.label}`, 'success', 'Trúng thưởng');
+                }
+            }, 6200);
 
         } catch (err: any) {
             console.error('Spin execution error:', err);
-            showToast(err?.message || 'Lỗi kết nối! Vui lòng thử lại.', 'error', 'Lỗi kết nối');
+            showToast('Lỗi quay thưởng, vui lòng thử lại!', 'error', 'Lỗi kết nối');
             setSpinning(false);
         }
-
-    }, [spinning, canSpin, rotation, recordSpin, token, user?.id, loadingConfig, prizes, config]);
+    }, [spinning, canSpin, loadingConfig, prizes, config, token, user?.id, rotation, checkCanSpin, recordSpin, showToast]);
 
     if (loadingConfig) {
         return (
-            <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                <Loader2 className="animate-spin text-red-500 w-12 h-12" />
-            </div>
+            <motion.div
+                className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+            >
+                <div className="bg-white rounded-3xl p-8 flex flex-col items-center gap-3 shadow-2xl">
+                    <Loader2 size={36} className="text-red-500 animate-spin" />
+                    <p className="text-sm font-bold text-slate-700">Đang chuẩn bị vòng quay...</p>
+                </div>
+            </motion.div>
         );
     }
 
@@ -403,28 +406,28 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                         Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn
                     </p>
 
-                    {/* Status Notification Box inside the RED HEADER */}
+                    {/* Status Notification Box inside the RED HEADER: Shows remaining spins and limit */}
                     {config?.isActive !== false && (
                         <div className="mt-3.5">
                             {canSpin ? (
                                 <div className="w-full py-2 px-3.5 rounded-2xl bg-white/20 border border-white/40 text-white flex items-center justify-between text-xs sm:text-[12.5px] font-bold backdrop-blur-md shadow-inner">
-                                    <span className="flex items-center gap-1.5">
-                                        <Sparkles size={15} className="text-amber-300" />
-                                        <span>Bạn đang có lượt quay may mắn miễn phí!</span>
+                                    <span className="flex items-center gap-1.5 truncate">
+                                        <Sparkles size={15} className="text-amber-300 shrink-0" />
+                                        <span>Bạn có <strong>{remainingSpins}/{maxSpins}</strong> lượt quay miễn phí hôm nay</span>
                                     </span>
-                                    <span className="text-[10px] bg-white text-red-600 px-2.5 py-0.5 rounded-full font-black uppercase shadow-xs">
-                                        SẴN SÀNG
+                                    <span className="text-[10px] bg-white text-red-600 px-2.5 py-0.5 rounded-full font-black uppercase shadow-xs shrink-0 ml-2">
+                                        CÒN {remainingSpins} LƯỢT
                                     </span>
                                 </div>
                             ) : (
                                 <div className="w-full py-2 px-3.5 rounded-2xl bg-black/30 border border-white/25 text-white flex items-center justify-between text-xs sm:text-[12.5px] font-bold backdrop-blur-md shadow-inner">
-                                    <span className="flex items-center gap-1.5">
-                                        <Clock size={15} className="text-amber-300" />
-                                        <span>{statusMessage || 'Đã hết lượt quay hôm nay'}</span>
+                                    <span className="flex items-center gap-1.5 truncate">
+                                        <Clock size={15} className="text-amber-300 shrink-0" />
+                                        <span>Đã dùng hết <strong>{maxSpins}/{maxSpins}</strong> lượt quay hôm nay</span>
                                     </span>
                                     {timeLeft && (
-                                        <span className="text-[11px] font-mono font-black text-white bg-red-600 px-2.5 py-0.5 rounded-md shadow-xs">
-                                            {timeLeft}
+                                        <span className="text-[10.5px] font-mono font-black text-white bg-red-600 px-2.5 py-0.5 rounded-md shadow-xs shrink-0 ml-2">
+                                            HỒI SAU: {timeLeft}
                                         </span>
                                     )}
                                 </div>
