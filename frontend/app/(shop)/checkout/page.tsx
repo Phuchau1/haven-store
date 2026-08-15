@@ -1,43 +1,33 @@
 'use client';
-// ===== CHECKOUT PAGE - Trang thanh toán =====
-import React, { useState } from 'react';
+// ===== CHECKOUT PAGE - TRANG THANH TOÁN DOANH NGHIỆP =====
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ShoppingBag, Lock } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, Lock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useCart } from '@/app/component/CartContext';
-import { formatPrice } from '@/lib/format';
 import CheckoutForm from '@/app/component/CheckoutForm';
 import OrderSuccessModal from '@/app/component/OrderSuccessModal';
-import { useAuthStore } from '@/app/store/useAuthStore';
 import { useVoucherStore } from '@/app/store/useVoucherStore';
-import { useCheckoutStore } from '@/app/store/useCheckoutStore';
 import { useCartStore } from '@/app/store/useCartStore';
-import { Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
     const router = useRouter();
-    const { items: cartItems, totalAmount: cartTotalAmount, clearCart, closeCart } = useCart();
+    const { items: cartItems, clearCart, closeCart } = useCart();
     
     // Ưu tiên hiển thị Buy Now Item nếu có
     const buyNowItem = useCartStore(s => s.buyNowItem);
     const items = buyNowItem ? [buyNowItem] : cartItems;
-    const totalAmount = buyNowItem ? (buyNowItem.product.price * buyNowItem.quantity) : cartTotalAmount;
     
-    const { user } = useAuthStore();
-    const { appliedVoucher, removeVoucher } = useVoucherStore();
-    const { shippingFee } = useCheckoutStore();
-    const finalTotal = (appliedVoucher ? appliedVoucher.finalAmount : totalAmount) + shippingFee;
+    const { removeVoucher } = useVoucherStore();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [orderInfo, setOrderInfo] = useState({ orderId: '', email: '' });
     const [isMounted, setIsMounted] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setIsMounted(true);
         closeCart();
         
-        // Cleanup: Nếu user rời khỏi trang checkout (không mua nữa), xoá state buyNowItem
         return () => {
             useCartStore.getState().clearBuyNowItem();
         };
@@ -53,7 +43,7 @@ export default function CheckoutPage() {
         } else {
             clearCart();
         }
-        removeVoucher(); // reset voucher sau khi đặt hàng xong
+        removeVoucher();
     };
 
     const handleCloseModal = () => {
@@ -61,23 +51,23 @@ export default function CheckoutPage() {
         router.push('/');
     };
 
-    // Hydration check
     if (!isMounted) return null;
 
-    // Login check removed - handled in CheckoutForm.tsx
-    // Redirect if cart is empty
+    // Giỏ hàng trống
     if (items.length === 0 && !showSuccessModal) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                        <ShoppingBag size={32} className="text-gray-300" />
+            <div className="min-h-[70vh] flex items-center justify-center px-4 bg-[#f8fafc]">
+                <div className="text-center max-w-md bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm">
+                    <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
+                        <ShoppingBag size={36} />
                     </div>
-                    <h2 className="text-2xl font-medium text-gray-800">Giỏ hàng trống</h2>
-                    <p className="text-sm text-gray-500 mt-2">Hãy thêm sản phẩm vào giỏ hàng trước khi thanh toán</p>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900">Giỏ hàng của bạn đang trống</h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
+                        Hãy dạo qua cửa hàng và chọn những sản phẩm thời trang ưng ý trước khi thanh toán.
+                    </p>
                     <Link href="/products">
-                        <button className="mt-6 px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:bg-gray-900 transition-colors">
-                            Mua sắm ngay
+                        <button className="mt-6 w-full py-3.5 px-6 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-2xl text-sm font-bold uppercase tracking-wider transition-all shadow-md cursor-pointer">
+                            Khám phá sản phẩm ngay
                         </button>
                     </Link>
                 </div>
@@ -86,142 +76,65 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/30">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-100">
-                <div className="container-torano py-6">
+        <div className="min-h-screen bg-[#f8fafc] pb-24 lg:pb-16">
+            {/* ── HEADER DOANH NGHIỆP & TIẾN TRÌNH THANH TOÁN ── */}
+            <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-2xs backdrop-blur-md bg-white/95">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors"
+                        className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-950 transition-colors cursor-pointer py-1.5 px-2.5 -ml-2.5 rounded-xl hover:bg-slate-100"
                     >
-                        <ChevronLeft size={16} />
-                        Quay lại
+                        <ChevronLeft size={18} />
+                        <span>Quay lại</span>
                     </button>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center mt-6"
-                    >
-                        <h1 className="text-2xl lg:text-3xl font-light text-black tracking-tight">Thanh toán</h1>
-                        <p className="text-sm text-gray-500 mt-2 font-light">
-                            Hoàn tất đơn hàng của bạn
-                        </p>
-                    </motion.div>
-                </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                    {/* Checkout Form */}
-                    <div className="lg:col-span-3">
-                        <CheckoutForm onSuccess={handleOrderSuccess} />
+                    {/* Progress Steps (Desktop) */}
+                    <div className="hidden md:flex items-center gap-3 text-xs font-bold">
+                        <span className="flex items-center gap-1.5 text-slate-400">
+                            <CheckCircle2 size={15} className="text-emerald-600" />
+                            1. Giỏ hàng
+                        </span>
+                        <span className="text-slate-300">/</span>
+                        <span className="flex items-center gap-1.5 text-[#1e40af] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                            <span className="w-4 h-4 rounded-full bg-[#1e40af] text-white text-[10px] flex items-center justify-center">2</span>
+                            2. Thông tin & Thanh toán
+                        </span>
+                        <span className="text-slate-300">/</span>
+                        <span className="text-slate-400">
+                            3. Hoàn tất đơn
+                        </span>
                     </div>
 
-                    {/* Order Summary Sidebar */}
-                    <div className="hidden lg:block lg:col-span-2">
-                        <div className="sticky top-24">
-                            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-                                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-5">
-                                    Đơn hàng của bạn
-                                </h3>
-
-                                {/* Items */}
-                                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                                    {items.map((item) => (
-                                        <div
-                                            key={`${item.product.id}-${item.selectedSize}-${item.selectedColor.name}`}
-                                            className="flex gap-3"
-                                        >
-                                            {/* Image */}
-                                            <div className="relative w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-50">
-                                                <Image
-                                                    src={item.product.images[0]}
-                                                    alt={item.product.name}
-                                                    fill
-                                                    className="object-cover"
-                                                    sizes="64px"
-                                                />
-                                                <div className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 bg-black text-white text-[9px] rounded-full flex items-center justify-center font-bold border border-white shadow-sm z-10">
-                                                    {item.quantity}
-                                                </div>
-                                            </div>
-
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="text-sm font-medium text-gray-800 line-clamp-1">
-                                                    {item.product.name}
-                                                </h4>
-                                                <p className="text-xs text-gray-400 mt-0.5">
-                                                    {item.selectedSize} • {item.selectedColor.name}
-                                                </p>
-                                                <p className="text-sm font-semibold text-black mt-1">
-                                                    {formatPrice(item.product.price * item.quantity)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Divider */}
-                                <div className="border-t border-gray-100 my-5" />
-
-                                {/* Totals */}
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm text-gray-600">
-                                        <span>Tạm tính</span>
-                                        <span>{formatPrice(totalAmount)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm text-emerald-600">
-                                        <span>Phí vận chuyển</span>
-                                        <span className="font-medium">
-                                            {shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}
-                                        </span>
-                                    </div>
-
-                                    {/* Voucher discount row */}
-                                    {appliedVoucher && (
-                                        <div className="flex justify-between text-sm text-rose-500">
-                                            <span className="flex items-center gap-1">
-                                                <Tag size={12} />
-                                                Voucher ({appliedVoucher.code})
-                                            </span>
-                                            <span>-{formatPrice(appliedVoucher.discountAmount)}</span>
-                                        </div>
-                                    )}
-
-                                    <div className="border-t border-gray-100 pt-3 mt-3">
-                                        <div className="flex justify-between items-baseline">
-                                            <span className="text-sm text-gray-500">Tổng cộng</span>
-                                            <div className="text-right">
-                                                {appliedVoucher && (
-                                                    <p className="text-xs text-gray-400 line-through">{formatPrice(totalAmount)}</p>
-                                                )}
-                                                <span className={`text-2xl font-semibold ${appliedVoucher ? 'text-rose-600' : 'text-black'}`}>
-                                                    {formatPrice(finalTotal)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Trust Badges */}
-                                <div className="mt-6 pt-6 border-t border-gray-100">
-                                    <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                                        </svg>
-                                        <span>Thanh toán an toàn & bảo mật</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    {/* Secure Badge */}
+                    <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+                        <Lock size={12} />
+                        <span>BẢO MẬT SSL</span>
                     </div>
                 </div>
+            </header>
+
+            {/* ── TIÊU ĐỀ TRANG ── */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                >
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                        Thanh toán đơn hàng
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+                        Vui lòng kiểm tra thông tin giao hàng và chọn phương thức thanh toán thuận tiện nhất.
+                    </p>
+                </motion.div>
             </div>
 
-            {/* Success Modal */}
+            {/* ── NỘI DUNG CHÍNH (2 CỘT CHUẨN DOANH NGHIỆP) ── */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
+                <CheckoutForm onSuccess={handleOrderSuccess} />
+            </main>
+
+            {/* Modal hoàn tất thành công */}
             <OrderSuccessModal
                 isOpen={showSuccessModal}
                 orderId={orderInfo.orderId}
@@ -231,4 +144,3 @@ export default function CheckoutPage() {
         </div>
     );
 }
-
