@@ -194,22 +194,22 @@ function ProductsContent() {
 
     return (
         <div className="min-h-screen bg-gray-50/30">
-            {/* Page Header */}
-            <div className="bg-white border-b border-gray-100">
-                <div className="container-torano py-6 lg:py-8">
+            {/* Page Header (Compact & Bold) */}
+            <div className="bg-white border-b border-slate-150">
+                <div className="container-torano py-4 lg:py-5">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
+                        transition={{ duration: 0.4 }}
                         className="text-center"
                     >
-                        <span className="text-xs tracking-[4px] uppercase text-gray-400 font-light">
+                        <span className="text-[11px] tracking-[3px] uppercase text-slate-400 font-bold">
                             {isSearchPage ? 'Kết quả tìm kiếm' : 'Khám phá'}
                         </span>
-                        <h1 className="mt-3 text-[20px] lg:text-[28px] font-bold uppercase text-center w-full text-black tracking-tight">
+                        <h1 className="mt-1.5 text-2xl lg:text-3xl font-black uppercase text-center w-full text-slate-950 tracking-tight">
                             {title}
                         </h1>
-                        <p className="mt-3 text-gray-500 text-sm font-light max-w-2xl mx-auto">
+                        <p className="mt-1 text-slate-500 text-xs font-medium max-w-2xl mx-auto">
                             {loading ? 'Đang tải...' : `${filteredProducts.length} sản phẩm ${isSearchPage ? 'phù hợp' : 'được tìm thấy'}`}
                         </p>
                     </motion.div>
@@ -217,11 +217,11 @@ function ProductsContent() {
             </div>
 
             {/* Main Content */}
-            <div className="container-torano py-8 lg:py-12">
-                <div className="flex gap-8 lg:gap-14">
+            <div className="container-torano py-5 lg:py-7">
+                <div className="flex gap-6 lg:gap-8">
 
                     {/* Sidebar Filter — Desktop */}
-                    <aside className="hidden lg:block w-64 lg:w-72 flex-shrink-0">
+                    <aside className="hidden lg:block w-60 lg:w-64 flex-shrink-0">
                         <ProductFilter
                             filters={filters}
                             setFilters={setFilters}
@@ -233,15 +233,15 @@ function ProductsContent() {
                     {/* Products Grid */}
                     <div className="flex-1 min-w-0">
                         {/* Mobile Filter Button */}
-                        <div className="lg:hidden mb-6">
+                        <div className="lg:hidden mb-4">
                             <button
                                 onClick={() => setIsFilterOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs"
                             >
-                                <SlidersHorizontal size={16} />
+                                <SlidersHorizontal size={15} />
                                 Bộ lọc
                                 {(filters.sizes.length + filters.colors.length + (filters.category ? 1 : 0)) > 0 && (
-                                    <span className="px-2 py-0.5 bg-black text-white text-xs rounded-full">
+                                    <span className="px-2 py-0.5 bg-black text-white text-[10px] rounded-full font-black">
                                         {filters.sizes.length + filters.colors.length + (filters.category ? 1 : 0)}
                                     </span>
                                 )}
@@ -250,13 +250,13 @@ function ProductsContent() {
 
                         {/* Loading Skeleton */}
                         {loading ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-4.5">
                                 {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} className="bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse">
-                                        <div className="aspect-[3/4] bg-gray-100" />
-                                        <div className="p-4 space-y-2">
-                                            <div className="h-3 bg-gray-100 rounded w-3/4" />
-                                            <div className="h-3 bg-gray-100 rounded w-1/2" />
+                                    <div key={i} className="bg-white rounded-2xl overflow-hidden border border-slate-150 animate-pulse">
+                                        <div className="aspect-square bg-slate-100" />
+                                        <div className="p-3 space-y-2">
+                                            <div className="h-3 bg-slate-100 rounded w-3/4" />
+                                            <div className="h-3 bg-slate-100 rounded w-1/2" />
                                         </div>
                                     </div>
                                 ))}
@@ -265,13 +265,13 @@ function ProductsContent() {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="text-center py-20"
+                                className="text-center py-16"
                             >
-                                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <SlidersHorizontal size={28} className="text-gray-300" />
+                                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
+                                    <SlidersHorizontal size={24} className="text-slate-400" />
                                 </div>
-                                <h3 className="text-lg font-medium text-gray-800">Không tìm thấy sản phẩm</h3>
-                                <p className="text-sm text-gray-400 mt-2">
+                                <h3 className="text-base font-bold text-slate-800">Không tìm thấy sản phẩm</h3>
+                                <p className="text-xs text-slate-400 mt-1">
                                     Thử điều chỉnh bộ lọc hoặc tìm kiếm từ khóa khác
                                 </p>
                                 <button
@@ -279,16 +279,16 @@ function ProductsContent() {
                                         ...prev,
                                         sizes: [],
                                         colors: [],
-                                                priceRange: [0, 10000000],
+                                        priceRange: [0, 10000000],
                                     }))}
-                                    className="mt-6 px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-900 transition-colors"
+                                    className="mt-4 px-5 py-2 bg-black text-white rounded-full text-xs font-bold hover:bg-slate-900 transition-colors cursor-pointer"
                                 >
                                     Xóa bộ lọc
                                 </button>
                             </motion.div>
                         ) : (
                             <>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+                                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-4.5">
                                     {currentProducts.map((product, index) => (
                                         <ProductCard key={product.id} product={product} index={index} />
                                     ))}

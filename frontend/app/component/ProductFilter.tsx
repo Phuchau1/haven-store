@@ -118,13 +118,13 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
         (filters.sortBy !== 'newest' ? 1 : 0);
 
     const renderContent = () => (
-        <div className="space-y-7">
+        <div className="space-y-4.5 bg-white p-4.5 rounded-2xl border border-slate-200/90 shadow-2xs">
             {/* ── Danh mục ─────────────────────────────── */}
             <section>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400 mb-3">
+                <h4 className="text-[11.5px] font-black tracking-wider uppercase text-slate-900 mb-2">
                     Danh mục
                 </h4>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                     {categories.map(cat => (
                         <button
                             key={cat.value}
@@ -135,10 +135,10 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                                     subCategory: '', // reset subCategory khi đổi category
                                 }))
                             }
-                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                                 filters.category === cat.value
-                                    ? 'bg-black text-white border-black'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                    ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
                             }`}
                         >
                             {cat.label}
@@ -149,18 +149,18 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
             {/* ── Sắp xếp ──────────────────────────────── */}
             <section>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400 mb-3">
+                <h4 className="text-[11.5px] font-black tracking-wider uppercase text-slate-900 mb-2">
                     Sắp xếp
                 </h4>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1.5">
                     {sortOptions.map(opt => (
                         <button
                             key={opt.value}
                             onClick={() => setFilters(prev => ({ ...prev, sortBy: opt.value }))}
-                            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                                 filters.sortBy === opt.value
-                                    ? 'bg-black text-white border-black'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                    ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
                             }`}
                         >
                             {opt.label}
@@ -171,18 +171,18 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
             {/* ── Kích cỡ ──────────────────────────────── */}
             <section>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400 mb-3">
+                <h4 className="text-[11.5px] font-black tracking-wider uppercase text-slate-900 mb-2">
                     Kích cỡ
                 </h4>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1">
                     {allSizes.map(size => (
                         <button
                             key={size}
                             onClick={() => toggleSize(size)}
-                            className={`min-w-[38px] h-9 px-2 rounded-lg text-xs font-semibold transition-all border ${
+                            className={`min-w-[32px] h-7.5 px-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
                                 filters.sizes.includes(size)
-                                    ? 'bg-black text-white border-black'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                    ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
                             }`}
                         >
                             {size}
@@ -193,27 +193,27 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
             {/* ── Màu sắc ──────────────────────────────── */}
             <section>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400 mb-3">
+                <h4 className="text-[11.5px] font-black tracking-wider uppercase text-slate-900 mb-2">
                     Màu sắc
                 </h4>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 gap-1.5">
                     {allColors.map(color => {
                         const isSelected = filters.colors.includes(color.name);
                         return (
                             <button
                                 key={color.name}
                                 onClick={() => toggleColor(color.name)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
+                                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                                     isSelected
-                                        ? 'bg-black text-white border-black'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                        ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
                                 }`}
                             >
                                 <span
-                                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 border border-gray-300"
+                                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 border border-gray-300 shadow-2xs"
                                     style={{ backgroundColor: color.hex }}
                                 />
-                                {color.name}
+                                <span className="truncate">{color.name}</span>
                             </button>
                         );
                     })}
@@ -222,17 +222,17 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
             {/* ── Khoảng giá ───────────────────────────── */}
             <section>
-                <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400">
+                <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-[11.5px] font-black tracking-wider uppercase text-slate-900">
                         Khoảng giá
                     </h4>
-                    <span className="text-xs font-bold text-black bg-gray-100 px-2 py-0.5 rounded-lg">
+                    <span className="text-xs font-black text-[#0f172a] bg-slate-100 px-2 py-0.5 rounded-lg">
                         {formatPrice(priceRange[0])} — {formatPrice(priceRange[1])}
                     </span>
                 </div>
 
                 {/* Nút preset nhanh */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
+                <div className="flex flex-wrap gap-1 mb-3">
                     {[
                         { label: 'Dưới 300k', max: 300000 },
                         { label: 'Dưới 500k', max: 500000 },
@@ -246,10 +246,10 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                             <button
                                 key={label}
                                 onClick={() => handlePriceChange([0, max])}
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border ${
+                                className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all border cursor-pointer ${
                                     active
-                                        ? 'bg-black text-white border-black'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                        ? 'bg-[#0f172a] text-white border-[#0f172a]'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
                                 }`}
                             >
                                 {label}
