@@ -676,41 +676,42 @@ export default function ChatSupport() {
         )}
       </AnimatePresence>
 
-      {/* ── NÚT BẤM NỔI NỀN TRẮNG (CHỈ HIỆN KHI ĐANG ĐÓNG) ── */}
+      {/* ── NÚT BẤM NỔI ĐỒNG BỘ ĐẸP MẮT (CHỈ HIỆN KHI ĐANG ĐÓNG) ── */}
       {!isOpen && (
         <motion.button
           onClick={() => {
             setIsOpen(true);
             setHasUnread(false);
           }}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-3 p-2.5 sm:px-4 sm:py-3 rounded-full shadow-xl transition-all duration-300 border border-slate-200 bg-white text-slate-900 hover:border-slate-400 hover:shadow-2xl cursor-pointer"
-          aria-label="Mở chat HAVEN AI"
+          className="fixed bottom-3 sm:bottom-4 right-4 sm:right-6 z-40 flex flex-col items-center gap-1 group cursor-pointer"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0 }}
+          transition={{ type: 'spring', bounce: 0.5, delay: 1 }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          title="HAVEN AI - Trợ lý thời trang"
         >
-          {/* Logo Avatar */}
-          <div className="relative w-11 h-11 rounded-full bg-black border border-slate-900 p-1 flex items-center justify-center flex-shrink-0 shadow-sm">
+          {/* Logo Avatar Circle */}
+          <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-black border-2 border-slate-900 shadow-lg flex items-center justify-center p-1.5 flex-shrink-0">
             <Image
               src="/haven-logo.png"
               alt="HAVEN Logo"
-              width={32}
-              height={32}
+              width={30}
+              height={30}
               className="object-contain"
             />
             <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white animate-pulse" />
           </div>
 
-          {/* Text Button Label */}
-          <div className="hidden sm:flex flex-col text-left pr-2">
-            <span className="text-xs font-black tracking-wider text-slate-900 uppercase">
-              HAVEN AI
-            </span>
-            <span className="text-[11px] text-slate-500 font-medium">Tư vấn thời trang</span>
-          </div>
+          {/* Label Badge below */}
+          <span className="text-[9.5px] font-bold text-slate-800 bg-white px-2 py-0.5 rounded-full shadow-xs border border-slate-200/90 whitespace-nowrap">
+            HAVEN AI
+          </span>
 
           {/* Unread badge */}
           {hasUnread && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white"></span>
             </span>

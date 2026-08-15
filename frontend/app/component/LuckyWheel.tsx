@@ -534,26 +534,26 @@ export default function LuckyWheel() {
                 {!isOpen && (
                     <motion.button
                         onClick={openWheel}
-                        className="fixed bottom-[100px] right-6 z-40 flex flex-col items-center gap-1 group w-14"
+                        className="fixed bottom-[88px] sm:bottom-[96px] right-4 sm:right-6 z-40 flex flex-col items-center gap-1 group cursor-pointer"
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0 }}
                         transition={{ type: 'spring', bounce: 0.5, delay: 1 }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.92 }}
                         title="Vòng quay may mắn"
                     >
                         <motion.div
-                            className="relative w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+                            className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center shadow-lg border-2 border-amber-300"
                             style={{ background: 'linear-gradient(135deg, #C9A227 0%, #F59E0B 50%, #C9A227 100%)' }}
                             animate={{ rotate: 360 }}
-                            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
                         >
-                            <Gift size={24} className="text-white" style={{ transform: 'rotate(-90deg)' }} />
+                            <Gift size={22} className="text-white" style={{ transform: 'rotate(-90deg)' }} />
                             {/* Glow */}
                             <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ backgroundColor: '#C9A227' }} />
                         </motion.div>
-                        <span className="text-[10px] font-bold text-gray-600 bg-white/90 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                        <span className="text-[9.5px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded-full shadow-xs border border-slate-200/90 whitespace-nowrap">
                             May mắn
                         </span>
                     </motion.button>
