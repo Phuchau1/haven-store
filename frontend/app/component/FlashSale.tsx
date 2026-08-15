@@ -224,45 +224,45 @@ export default function FlashSale() {
                         </div>
                     </div>
 
-                    {/* Bottom Row: Dark Red Info Sub-Bar */}
-                    <div className="mt-5 bg-[#8A1616]/60 rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-center text-white border border-red-800/30">
+                    {/* Bottom Row: Dark Red Info Sub-Bar (Responsive 2x2 on mobile, 4x1 on desktop) */}
+                    <div className="mt-4 sm:mt-5 bg-[#8A1616]/60 rounded-xl p-3 sm:p-4 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-center text-white border border-red-800/30">
                         {/* Column 1: Fire icon + Sold orders */}
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Flame size={18} className="text-amber-400" fill="currentColor" />
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                <Flame size={16} className="text-amber-400" fill="currentColor" />
                             </div>
                             <div>
                                 <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Đã bán</div>
-                                <div className="text-sm font-extrabold">{totalSoldItems} đơn</div>
+                                <div className="text-xs sm:text-sm font-extrabold">{totalSoldItems} đơn</div>
                             </div>
                         </div>
                         {/* Column 2: Box icon + Stock items */}
-                        <div className="flex items-center gap-3 border-t md:border-t-0 md:border-l border-red-800/40 pt-3 md:pt-0 md:pl-4">
-                            <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Package size={18} className="text-amber-400" />
+                        <div className="flex items-center gap-2.5 pl-1 sm:pl-2 border-l border-red-800/40">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                <Package size={16} className="text-amber-400" />
                             </div>
                             <div>
                                 <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Còn lại</div>
-                                <div className="text-sm font-extrabold">{totalStockItems} sản phẩm</div>
+                                <div className="text-xs sm:text-sm font-extrabold">{totalStockItems} món</div>
                             </div>
                         </div>
                         {/* Column 3: Truck icon + Free shipping */}
-                        <div className="flex items-center gap-3 border-t md:border-t-0 md:border-l border-red-800/40 pt-3 md:pt-0 md:pl-4">
-                            <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Truck size={18} className="text-amber-400" />
+                        <div className="flex items-center gap-2.5 border-t lg:border-t-0 lg:border-l border-red-800/40 pt-2.5 lg:pt-0 lg:pl-4">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                <Truck size={16} className="text-amber-400" />
                             </div>
                             <div>
-                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Miễn phí vận chuyển</div>
-                                <div className="text-[11px] font-bold leading-tight">Cho đơn từ 500.000đ</div>
+                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Freeship</div>
+                                <div className="text-[10.5px] sm:text-[11px] font-bold leading-tight">Từ 500.000đ</div>
                             </div>
                         </div>
                         {/* Column 4: Divider + Program Progress */}
-                        <div className="flex flex-col gap-1.5 border-t md:border-t-0 md:border-l border-red-800/40 pt-3 md:pt-0 md:pl-4">
+                        <div className="flex flex-col gap-1 border-t lg:border-t-0 lg:border-l border-red-800/40 pt-2.5 lg:pt-0 lg:pl-4">
                             <div className="flex justify-between items-center text-[9px] text-red-200 font-bold uppercase tracking-wider">
-                                <span>Tiến trình chương trình</span>
+                                <span>Tiến trình</span>
                                 <span className="font-extrabold text-white">{percentOverall}%</span>
                             </div>
-                            <div className="relative w-full h-2.5 bg-red-950/60 rounded-full overflow-hidden border border-red-900/30">
+                            <div className="relative w-full h-2 bg-red-950/60 rounded-full overflow-hidden border border-red-900/30">
                                 <div 
                                     className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full transition-all duration-500" 
                                     style={{ width: `${percentOverall}%` }}

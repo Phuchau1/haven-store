@@ -198,22 +198,16 @@ export default function Hero() {
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 1.05 }}
-                    className="flex flex-col sm:flex-row items-start gap-3 mt-8"
+                    className="flex flex-row flex-wrap items-center gap-3 mt-6 sm:mt-8"
                 >
                     {/* Primary CTA: HÀNG MỚI VỀ */}
                     <Link href={(settings as any).heroBtn1Link || "#new-arrivals"}>
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="group relative flex items-center justify-center gap-2.5 px-8 py-4 bg-[#C9A227] text-white rounded-full overflow-hidden transition-all duration-300 shadow-md hover:shadow-lg"
-                            style={{
-                                fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif",
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                letterSpacing: '0.05em',
-                            }}
+                            className="group relative flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-[#C9A227] text-white rounded-full overflow-hidden transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm font-semibold tracking-wider uppercase cursor-pointer"
                         >
-                            <span className="uppercase relative z-10">{(settings as any).heroBtn1Text || "Hàng Mới Về"}</span>
+                            <span className="relative z-10">{(settings as any).heroBtn1Text || "Hàng Mới Về"}</span>
                             <ArrowRight size={16} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
                             <div className="absolute inset-0 bg-black/10 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
                         </motion.button>
@@ -224,15 +218,9 @@ export default function Hero() {
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="group flex items-center justify-center gap-2.5 px-8 py-4 rounded-full border border-white text-white hover:bg-white hover:text-black transition-all duration-300"
-                            style={{
-                                fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif",
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                letterSpacing: '0.05em',
-                            }}
+                            className="group flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full border border-white text-white hover:bg-white hover:text-black transition-all duration-300 text-xs sm:text-sm font-semibold tracking-wider uppercase cursor-pointer"
                         >
-                            <span className="uppercase">{(settings as any).heroBtn2Text || "Săn Sale Hot"}</span>
+                            <span>{(settings as any).heroBtn2Text || "Săn Sale Hot"}</span>
                         </motion.button>
                     </Link>
                 </motion.div>
@@ -242,7 +230,7 @@ export default function Hero() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 1.3 }}
-                    className="flex items-center gap-8 mt-10"
+                    className="flex flex-wrap items-center gap-5 sm:gap-8 mt-7 sm:mt-10"
                 >
                     {[
                         { value: '500+',  label: 'Mẫu độc quyền' },
@@ -250,13 +238,13 @@ export default function Hero() {
                         { value: '4.9★',  label: 'Đánh giá trung bình' },
                     ].map((stat, i) => (
                         <div key={i} className="flex flex-col">
-                            <span className="text-white font-bold transition-colors duration-700"
-                                  style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(1rem, 1.6vw, 1.3rem)',
+                            <span className="text-white font-bold transition-colors duration-700 text-sm sm:text-base lg:text-lg"
+                                  style={{ fontFamily: 'Inter, sans-serif',
                                            color: i === 0 ? t.accent : 'white' }}>
                                 {stat.value}
                             </span>
-                            <span className="text-white/40 uppercase"
-                                  style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em' }}>
+                            <span className="text-white/60 uppercase text-[9.5px] sm:text-[10px] tracking-wider"
+                                  style={{ fontFamily: 'Inter, sans-serif' }}>
                                 {stat.label}
                             </span>
                         </div>
