@@ -1,17 +1,17 @@
 'use client';
 // ===== BEST SELLING SECTION =====
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-// ArrowRight removed
+import { Flame, ArrowRight } from 'lucide-react';
 import { Product } from '@/types';
 import ProductCard from './ProductCard';
 
 export default function BestSelling() {
-    const [products, setProducts] = React.useState<Product[]>([]);
-    const [loading, setLoading] = React.useState(true);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const res = await fetch('/api/products?sort=best-selling&limit=8');
@@ -30,11 +30,11 @@ export default function BestSelling() {
 
     if (loading) {
         return (
-            <section className="py-[30px] lg:py-[50px] bg-white">
+            <section className="py-16 bg-white">
                 <div className="container-torano">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[10px] lg:gap-[15px]">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
                         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                            <div key={i} className="aspect-[3/4] rounded-2xl shimmer" />
+                            <div key={i} className="aspect-[3/4] rounded-2xl shimmer bg-gray-100" />
                         ))}
                     </div>
                 </div>
@@ -45,29 +45,31 @@ export default function BestSelling() {
     if (products.length === 0) return null;
 
     return (
-        <section className="py-16 bg-white">
+        <section className="py-16 md:py-20 bg-white">
             <div className="container-torano">
                 {/* Section Header */}
-                <div className="flex flex-col items-center justify-center mb-12">
+                <div className="flex flex-col items-center justify-center mb-12 text-center">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 16 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center"
+                        transition={{ duration: 0.5 }}
+                        className="flex flex-col items-center"
                     >
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold uppercase text-center w-full text-black tracking-tight mb-5">
-                            Sản phẩm bán chạy
-                        </h2>
-                        <div className="flex flex-col items-center gap-1">
-                            <Link
-                                href="/products?sort=popular"
-                                className="text-xs tracking-[0.18em] uppercase text-black font-bold hover:text-gray-600 transition-colors"
-                            >
-                                Sản phẩm hot nhất
-                            </Link>
-                            <span className="block w-full h-[2px] bg-black rounded-full" />
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200/80 mb-3.5 shadow-sm">
+                            <Flame size={13} className="text-red-600 fill-red-500" />
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-red-700">
+                                XU HƯỚNG MUA SẮM
+                            </span>
                         </div>
+
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-900 tracking-tight">
+                            Sản Phẩm Bán Chạy
+                        </h2>
+
+                        <p className="mt-3 text-sm sm:text-base text-gray-500 max-w-xl font-normal leading-relaxed">
+                            Top những thiết kế được yêu thích và săn đón nhiều nhất trong tuần
+                        </p>
                     </motion.div>
                 </div>
 
@@ -76,6 +78,17 @@ export default function BestSelling() {
                     {products.map((product: Product, index: number) => (
                         <ProductCard key={product.id} product={product} index={index} showSold={true} />
                     ))}
+                </div>
+
+                {/* View All Button */}
+                <div className="mt-12 text-center">
+                    <Link
+                        href="/products?sort=best-selling"
+                        className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-white hover:bg-slate-950 text-slate-900 hover:text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 border border-slate-300 hover:border-slate-950 shadow-sm hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
+                    >
+                        <span>Khám Phá Toàn Bộ Bán Chạy</span>
+                        <ArrowRight size={14} />
+                    </Link>
                 </div>
             </div>
         </section>

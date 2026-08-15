@@ -45,7 +45,7 @@
 /* Container responsive adjustments */
 .container-torano {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1360px;
   margin-left: auto;
   margin-right: auto;
   padding-left: clamp(16px, 3vw, 32px);

@@ -1,5 +1,5 @@
 'use client';
-// ===== PRODUCT CARD COMPONENT =====
+// ===== UNIFIED PREMIUM PRODUCT CARD COMPONENT =====
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,7 +40,7 @@ export default function ProductCard({
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        addItem(product, product.sizes[0] || 'M', selectedColor || product.colors[0]);
+        addItem(product, product.sizes?.[0] || 'M', selectedColor || product.colors?.[0]);
         toast.success(`Đã thêm ${cleanProductTitle(product.name)} vào giỏ hàng`);
     };
 
@@ -50,113 +50,117 @@ export default function ProductCard({
         ? Math.round(((origPrice - currPrice) / origPrice) * 100)
         : 0;
 
-    const displayedImage = selectedColor?.image || product.images[0];
-    const hoverImage = selectedColor?.image ? selectedColor.image : (product.images[1] || product.images[0]);
+    const displayedImage = selectedColor?.image || product.images?.[0] || '/haven-logo.png';
+    const hoverImage = selectedColor?.image ? selectedColor.image : (product.images?.[1] || product.images?.[0] || '/haven-logo.png');
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.08 }}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
+            className="h-full"
         >
             <Link 
                 href={`/product/${getProductSlug(product)}`} 
-                className="group block h-full flex flex-col transition-all duration-400 hover:-translate-y-[6px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] bg-white border border-[#EAEAEA] rounded-[16px] overflow-hidden"
+                className="group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.09)] bg-white border border-gray-200/80 hover:border-amber-500/50 rounded-2xl overflow-hidden"
                 onMouseLeave={() => setSelectedColor(null)}
             >
+                {/* ── PRODUCT IMAGE CONTAINER ── */}
                 <div
-                    className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-white transition-all duration-400"
+                    className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-[#fafafa] transition-all duration-300"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
-                    {/* Image 1 (Default) */}
+                    {/* Default Image */}
                     <Image
                         src={displayedImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-700 ${isHovered ? 'opacity-0 scale-[1.08]' : 'opacity-100 scale-100'}`}
+                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-0 scale-[1.06]' : 'opacity-100 scale-100'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
-                    {/* Image 2 (Hover) */}
+                    {/* Hover Image */}
                     <Image
                         src={hoverImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-700 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.04]'}`}
+                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
-                    {/* Badges */}
-                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+                    {/* Badges Overlay */}
+                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {product.badge && !(showDiscount && discount > 0 && product.badge.toUpperCase().includes('SALE')) && (
                             <span
-                                className={`inline-block px-2 py-1 text-[10px] uppercase font-bold rounded-md tracking-wider ${
+                                className={`inline-block px-2.5 py-1 text-[11px] uppercase font-black rounded-lg tracking-wider shadow-sm ${
                                     product.badge.toUpperCase() === 'MỚI' || product.badge.toUpperCase() === 'NEW'
-                                        ? 'bg-[#2E7D32] text-white'
+                                        ? 'bg-[#16a34a] text-white'
                                         : product.badge.toUpperCase() === 'HOT'
-                                            ? 'bg-[#FF6B35] text-white'
-                                            : 'bg-[#111111] text-white'
+                                            ? 'bg-[#ea580c] text-white'
+                                            : 'bg-[#0f172a] text-white'
                                 }`}
                             >
                                 {product.badge}
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2 py-1 text-[10px] font-bold rounded-md bg-[#D32F2F] text-white shadow-sm">
+                            <span className="inline-block px-2.5 py-1 text-[11px] font-black rounded-lg bg-[#dc2626] text-white shadow-sm">
                                 -{discount}%
                             </span>
                         )}
                     </div>
 
-                    {/* Like Button */}
+                    {/* Wishlist Like Button */}
                     <motion.button
                         onClick={async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             await toggleFavorite(product, user?.id);
                             if (isLiked) {
-                                toast.success(`Đã xóa khỏi danh sách yêu thích`);
+                                toast.success(`Đã xóa khỏi yêu thích`);
                             } else {
-                                toast.success(`Đã thêm vào danh sách yêu thích`);
+                                toast.success(`Đã thêm vào yêu thích`);
                             }
                         }}
-                        className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isLiked
-                            ? 'bg-[#D32F2F] text-white shadow-md'
-                            : 'bg-white/90 text-gray-500 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#C9A227]'
-                            }`}
+                        className={`absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
+                            isLiked
+                                ? 'bg-[#dc2626] text-white shadow-md'
+                                : 'bg-white/90 text-gray-600 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#d97706] hover:bg-white'
+                        }`}
                         whileTap={{ scale: 0.85 }}
-                        aria-label={isLiked ? 'Bỏ thích sản phẩm' : 'Thích sản phẩm'}
+                        aria-label={isLiked ? 'Bỏ thích' : 'Thích sản phẩm'}
                     >
-                        <Heart size={13} fill={isLiked ? 'currentColor' : 'none'} />
+                        <Heart size={15} fill={isLiked ? 'currentColor' : 'none'} />
                     </motion.button>
 
-                    {/* Quick Add to Cart */}
+                    {/* Quick Add Button */}
                     <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
                         className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
                     >
                         <button
                             onClick={handleQuickAdd}
-                            className="w-full flex items-center justify-center gap-2 h-10 bg-[#111111] text-white text-[12px] font-semibold hover:bg-[#C9A227] transition-colors duration-300 rounded-lg shadow-md"
-                            style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", letterSpacing: '0.03em' }}
+                            className="w-full flex items-center justify-center gap-2 h-10 bg-slate-950 hover:bg-[#d97706] text-white text-[13px] font-bold transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
                         >
-                            <ShoppingBag size={13} />
+                            <ShoppingBag size={14} />
                             Thêm vào giỏ
                         </button>
                     </motion.div>
                 </div>
 
-                {/* Product Info */}
-                <div className="p-4 space-y-1.5 flex-1 flex flex-col bg-white">
-                    {/* Category */}
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.12em]">{product.categoryLabel}</p>
+                {/* ── PRODUCT DETAILS (LARGE & CLEAR) ── */}
+                <div className="p-4 sm:p-5 flex-1 flex flex-col bg-white">
+                    {/* Category Label */}
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                        {product.categoryLabel || product.category || 'THỜI TRANG'}
+                    </p>
 
                     {/* Colors Swatches */}
                     {product.colors && product.colors.length > 1 ? (
-                        <div className="flex items-center gap-1.5 py-0.5 z-20 min-h-[22px]">
+                        <div className="flex items-center gap-1.5 py-1 z-20 min-h-[24px]">
                             {product.colors.map((color, idx) => {
                                 const isActive = selectedColor ? selectedColor.name === color.name : idx === 0;
                                 return (
@@ -169,9 +173,9 @@ export default function ProductCard({
                                             setSelectedColor(color);
                                         }}
                                         onMouseEnter={() => setSelectedColor(color)}
-                                        className={`w-3.5 h-3.5 rounded-full border border-gray-200 transition-all duration-200 ${
+                                        className={`w-4 h-4 rounded-full border border-gray-200 transition-all duration-200 ${
                                             isActive
-                                                ? 'ring-1 ring-offset-1 ring-slate-800 scale-110 shadow-sm'
+                                                ? 'ring-2 ring-offset-1 ring-slate-800 scale-110 shadow-sm'
                                                 : 'hover:scale-110'
                                         }`}
                                         style={{ backgroundColor: color.hex }}
@@ -181,19 +185,19 @@ export default function ProductCard({
                             })}
                         </div>
                     ) : (
-                        <div className="h-[22px]" />
+                        <div className="h-[24px]" />
                     )}
 
-                    {/* Name */}
-                    <h3 className="text-[14px] leading-[1.5] font-semibold text-gray-900 line-clamp-2 min-h-[42px]" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
+                    {/* Product Name (Bold & Easy to Read) */}
+                    <h3 className="text-[15px] sm:text-[15.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[44px] mt-0.5 group-hover:text-amber-600 transition-colors">
                         {cleanProductTitle(product.name)}
                     </h3>
 
-                    {/* Price & Sold section */}
-                    <div className="flex flex-col mt-auto pt-1 w-full">
+                    {/* Price Section */}
+                    <div className="flex flex-col mt-auto pt-2 w-full">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`text-[16px] font-bold ${isFlashSaleCard ? 'text-[#D32F2F]' : 'text-[#111111]'}`}>
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                                <span className={`text-[17px] sm:text-[18px] font-extrabold tracking-tight ${isFlashSaleCard ? 'text-[#dc2626]' : 'text-slate-900'}`}>
                                     {isUpcomingFlashSale ? (
                                         (() => {
                                             const str = Math.round(product.price).toString();
@@ -205,25 +209,25 @@ export default function ProductCard({
                                     )}
                                 </span>
                                 {(product.originalPrice || 0) > product.price && (
-                                    <span className="text-[13px] font-normal text-[#999999] line-through">
+                                    <span className="text-[13px] sm:text-[13.5px] font-normal text-gray-400 line-through">
                                         {formatPrice(product.originalPrice || 0)}
                                     </span>
                                 )}
                             </div>
                             {!isFlashSaleCard && showSold && product.soldQuantity !== undefined && (
-                                <span className="text-[11px] text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded">
-                                    Đã bán: {product.soldQuantity}
+                                <span className="text-[11px] text-gray-600 font-semibold bg-gray-100 px-2 py-0.5 rounded-md">
+                                    Đã bán {product.soldQuantity}
                                 </span>
                             )}
                         </div>
 
-                        {/* Shopee-style Flash Sale Progress Pill */}
+                        {/* Flash Sale Progress Pill */}
                         {isFlashSaleCard && (
                             (() => {
                                 if (isUpcomingFlashSale) {
                                     return (
                                         <div className="mt-3 w-full">
-                                            <div className="relative w-full h-[22px] bg-[#fff2ec] border border-[#ff8b66]/60 rounded-full overflow-hidden flex items-center justify-center shadow-sm">
+                                            <div className="relative w-full h-[23px] bg-[#fff2ec] border border-[#ff8b66]/60 rounded-full overflow-hidden flex items-center justify-center shadow-sm">
                                                 <span className="relative z-10 text-[11px] font-black uppercase text-[#ee4d2d] tracking-wider flex items-center gap-1">
                                                     ⏰ SẮP MỞ BÁN
                                                 </span>
@@ -243,7 +247,7 @@ export default function ProductCard({
 
                                 return (
                                     <div className="mt-3 w-full">
-                                        <div className="relative w-full h-[22px] bg-[#ffc5b2] rounded-full overflow-hidden flex items-center justify-center shadow-inner">
+                                        <div className="relative w-full h-[23px] bg-[#ffc5b2] rounded-full overflow-hidden flex items-center justify-center shadow-inner">
                                             {/* Orange / Red gradient fill */}
                                             <div 
                                                 className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#ff424e] via-[#ff5b36] to-[#ff7832] rounded-full transition-all duration-700" 
