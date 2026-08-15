@@ -62,7 +62,7 @@ export default function ProductCard({
             className="h-full"
         >
             <Link 
-                href={`/product/${getProductSlug(product)}`} 
+                href={isUpcomingFlashSale ? `/product/${getProductSlug(product)}?slot=upcoming` : `/product/${getProductSlug(product)}`} 
                 className="group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.09)] bg-white border border-gray-200/80 hover:border-amber-500/50 rounded-2xl overflow-hidden"
                 onMouseLeave={() => setSelectedColor(null)}
             >

@@ -1,11 +1,11 @@
 'use client';
 // ===== PRODUCT DETAIL PAGE =====
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2, Sparkles, Zap, Clock, Tag } from 'lucide-react';
+import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2, Sparkles, Zap, Clock, Tag, Bell } from 'lucide-react';
 import ImageZoom from '@/app/component/ImageZoom';
 import { formatPrice, slugify, getProductSlug, cleanProductTitle } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
@@ -40,6 +40,9 @@ const getColorSwatchClass = (colorName: string) => COLOR_CLASS_MAP[colorName] ??
 export default function ProductDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isUpcomingSlot = searchParams?.get('slot') === 'upcoming';
+
     const { addItem, closeCart } = useCart();
     const { showToast } = useToast();
 
@@ -55,9 +58,17 @@ export default function ProductDetailPage() {
     const [showAddedNotification, setShowAddedNotification] = useState(false);
     const [isTryOnOpen, setIsTryOnOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 22, seconds: 10 });
+    const [isReminded, setIsReminded] = useState(false);
 
     const { user } = useAuth();
     const { addProduct } = useRecentlyViewed(user?.id);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && product?.id) {
+            const saved = localStorage.getItem(`haven_flash_sale_reminder_${product.id}`);
+            if (saved) setIsReminded(true);
+        }
+    }, [product?.id]);
 
     useEffect(() => {
         const fetchProductData = async () => {
@@ -371,16 +382,20 @@ export default function ProductDetailPage() {
                         </div>
 
                         {/* Price & Flash Sale Shopee Banner */}
-                        {(product.isFlashSale || product.flashSale) ? (
+                        {(product.isFlashSale || product.flashSale || isUpcomingSlot) ? (
                             <div className="rounded-xl overflow-hidden border border-orange-400/40 shadow-md">
                                 {/* Shopee Flash Sale Top Bar */}
                                 <div className="bg-gradient-to-r from-[#ee4d2d] via-[#f25833] to-[#ff5722] px-3.5 py-2 flex items-center justify-between text-white shadow-sm">
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center">
-                                            <Zap size={13} className="fill-white text-white" />
+                                            {isUpcomingSlot ? (
+                                                <Clock size={13} className="text-white" />
+                                            ) : (
+                                                <Zap size={13} className="fill-white text-white" />
+                                            )}
                                         </div>
                                         <span className="text-xs sm:text-sm font-black tracking-wider uppercase drop-shadow-sm">
-                                            FLASH SALE
+                                            {isUpcomingSlot ? 'FLASH SALE · SẮP MỞ BÁN' : 'FLASH SALE'}
                                         </span>
                                     </div>
 
@@ -388,7 +403,9 @@ export default function ProductDetailPage() {
                                     <div className="flex items-center gap-1 text-xs font-bold">
                                         <div className="flex items-center gap-1 text-orange-100 text-[11px] font-bold uppercase tracking-wider">
                                             <Clock size={12} className="text-orange-200" />
-                                            <span className="hidden sm:inline">KẾT THÚC TRONG</span>
+                                            <span className="hidden sm:inline">
+                                                {isUpcomingSlot ? 'MỞ BÁN TRONG' : 'KẾT THÚC TRONG'}
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-0.5 ml-1">
                                             <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-[11px] rounded">
@@ -410,7 +427,15 @@ export default function ProductDetailPage() {
                                 <div className="bg-[#fff7f4] p-3.5 sm:p-4 flex flex-col gap-2">
                                     <div className="flex items-baseline gap-3 flex-wrap">
                                         <span className="text-2xl sm:text-3xl font-black text-[#ee4d2d] tracking-tight">
-                                            {formatPrice(currentPrice)}
+                                            {isUpcomingSlot ? (
+                                                (() => {
+                                                    const str = Math.round(currentPrice).toString();
+                                                    const firstDigit = str[0] || '2';
+                                                    return `₫${firstDigit}??.000`;
+                                                })()
+                                            ) : (
+                                                formatPrice(currentPrice)
+                                            )}
                                         </span>
                                         {currentOriginalPrice > currentPrice && (
                                             <>
@@ -428,10 +453,12 @@ export default function ProductDetailPage() {
                                     <div className="flex items-center gap-2 text-xs font-medium text-[#ee4d2d] flex-wrap">
                                         <span className="px-2 py-0.5 bg-red-500/10 border border-[#ee4d2d]/30 rounded text-[11px] font-bold flex items-center gap-1">
                                             <Tag size={11} className="text-[#ee4d2d]" />
-                                            Giá Sau Voucher & Flash Sale
+                                            {isUpcomingSlot ? 'Giá Độc Quyền Sắp Mở Bán Vào Ngày Mai' : 'Giá Sau Voucher & Flash Sale'}
                                         </span>
                                         <span className="text-gray-500 text-[11px]">
-                                            Ưu đãi có hạn theo khung giờ hôm nay
+                                            {isUpcomingSlot 
+                                                ? 'Sản phẩm sẽ chính thức mở bán giá sốc vào lúc 00:00 ngày mai'
+                                                : 'Ưu đãi có hạn theo khung giờ hôm nay'}
                                         </span>
                                     </div>
                                 </div>
@@ -565,72 +592,120 @@ export default function ProductDetailPage() {
 
                         {/* Actions */}
                         <div className="flex flex-col gap-2 pt-3 pb-3 lg:pb-0">
-                            {/* Hàng số lượng */}
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center border border-gray-300 h-[42px] overflow-hidden shrink-0">
-                                    <button aria-label="Giảm số lượng" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">−</button>
-                                    <input 
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        value={quantity === 0 ? '' : quantity} 
-                                        onChange={(e) => {
-                                            const rawVal = e.target.value.replace(/[^0-9]/g, '');
-                                            if (rawVal === '') {
-                                                setQuantity(0);
-                                                return;
-                                            }
-                                            let val = parseInt(rawVal, 10);
-                                            if (isNaN(val) || val < 1) val = 1;
-                                            
-                                            const maxStock = getVariantStock();
-                                            if (maxStock !== null && val > maxStock) {
-                                                setQuantity(maxStock <= 0 ? 1 : maxStock);
-                                                showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning', 'Vượt tồn kho');
+                            {isUpcomingSlot ? (
+                                <div className="space-y-3 pt-1">
+                                    <div className="p-3.5 bg-orange-50 border border-orange-200/80 rounded-2xl flex items-start gap-3">
+                                        <div className="p-2 bg-orange-100 rounded-xl text-orange-600 shrink-0">
+                                            <Bell size={18} />
+                                        </div>
+                                        <div className="text-xs text-gray-700">
+                                            <p className="font-bold text-orange-950 text-[13px]">
+                                                Sản phẩm mở bán giá sốc vào ngày mai!
+                                            </p>
+                                            <p className="mt-0.5 text-gray-600 leading-relaxed">
+                                                Đăng ký để nhận thông báo ngay khi đợt sale chính thức kích hoạt lúc 00:00.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <motion.button
+                                        onClick={() => {
+                                            const nextState = !isReminded;
+                                            setIsReminded(nextState);
+                                            if (nextState) {
+                                                if (typeof window !== 'undefined') {
+                                                    localStorage.setItem(`haven_flash_sale_reminder_${product.id}`, 'true');
+                                                }
+                                                showToast('Đã lưu thông báo nhắc nhở! Bạn sẽ nhận thông báo khi mở bán ngày mai.', 'success', '🔔 Đã đặt nhắc nhở');
                                             } else {
-                                                setQuantity(val);
+                                                if (typeof window !== 'undefined') {
+                                                    localStorage.removeItem(`haven_flash_sale_reminder_${product.id}`);
+                                                }
+                                                showToast('Đã hủy nhắc nhở mở bán.', 'info', 'Đã hủy');
                                             }
                                         }}
-                                        onBlur={() => {
-                                            const maxStock = getVariantStock();
-                                            if (!quantity || quantity < 1) {
-                                                setQuantity(1);
-                                            } else if (maxStock !== null && quantity > maxStock) {
-                                                setQuantity(maxStock <= 0 ? 1 : maxStock);
-                                            }
-                                        }}
-                                        className="w-12 h-full text-center text-sm font-semibold border-x border-gray-300 focus:outline-none appearance-none"
-                                    />
-                                    <button aria-label="Tăng số lượng" onClick={() => {
-                                        const maxStock = getVariantStock();
-                                        if (maxStock !== null && quantity >= maxStock) { showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning'); return; }
-                                        setQuantity(quantity + 1);
-                                    }} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">+</button>
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full py-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-lg cursor-pointer ${
+                                            isReminded 
+                                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20' 
+                                                : 'bg-gradient-to-r from-[#ee4d2d] to-[#ff5722] hover:brightness-110 text-white shadow-orange-500/25'
+                                        }`}
+                                    >
+                                        <Bell size={18} className={isReminded ? '' : 'animate-bounce'} />
+                                        <span>{isReminded ? '✅ ĐÃ ĐẶT NHẮC NHỞ MỞ BÁN' : '🔔 NHẮC TÔI KHI MỞ BÁN (NGÀY MAI)'}</span>
+                                    </motion.button>
                                 </div>
-                            </div>
-                            {/* Hàng 2 nút: Thêm vào giỏ + Mua Ngay cùng 1 hàng */}
-                            <div className="flex items-center gap-2">
-                                <motion.button
-                                    onClick={handleAddToCart}
-                                    disabled={getVariantStock() === 0}
-                                    whileTap={getVariantStock() !== 0 ? { scale: 0.98 } : {}}
-                                    className={`flex-1 h-[42px] rounded-none text-[14px] font-semibold tracking-wide uppercase flex items-center justify-center gap-2 transition-all border ${
-                                        getVariantStock() === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-white text-black border-black hover:bg-black hover:text-white'
-                                    }`}
-                                >
-                                    Thêm vào giỏ
-                                </motion.button>
-                                <motion.button
-                                    onClick={handleBuyNow}
-                                    disabled={getVariantStock() === 0}
-                                    whileTap={getVariantStock() !== 0 ? { scale: 0.98 } : {}}
-                                    className={`flex-1 h-[42px] rounded-none text-[14px] font-semibold tracking-wide uppercase flex items-center justify-center transition-all ${
-                                        getVariantStock() === 0 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-[#222]'
-                                    }`}
-                                >
-                                    {getVariantStock() === 0 ? 'Hết hàng' : 'Mua Ngay'}
-                                </motion.button>
-                            </div>
+                            ) : (
+                                <>
+                                    {/* Hàng số lượng */}
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center border border-gray-300 h-[42px] overflow-hidden shrink-0">
+                                            <button aria-label="Giảm số lượng" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">−</button>
+                                            <input 
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                value={quantity === 0 ? '' : quantity} 
+                                                onChange={(e) => {
+                                                    const rawVal = e.target.value.replace(/[^0-9]/g, '');
+                                                    if (rawVal === '') {
+                                                        setQuantity(0);
+                                                        return;
+                                                    }
+                                                    let val = parseInt(rawVal, 10);
+                                                    if (isNaN(val) || val < 1) val = 1;
+                                                    
+                                                    const maxStock = getVariantStock();
+                                                    if (maxStock !== null && val > maxStock) {
+                                                        setQuantity(maxStock <= 0 ? 1 : maxStock);
+                                                        showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning', 'Vượt tồn kho');
+                                                    } else {
+                                                        setQuantity(val);
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    const maxStock = getVariantStock();
+                                                    if (!quantity || quantity < 1) {
+                                                        setQuantity(1);
+                                                    } else if (maxStock !== null && quantity > maxStock) {
+                                                        setQuantity(maxStock <= 0 ? 1 : maxStock);
+                                                    }
+                                                }}
+                                                className="w-12 h-full text-center text-sm font-semibold border-x border-gray-300 focus:outline-none appearance-none"
+                                            />
+                                            <button aria-label="Tăng số lượng" onClick={() => {
+                                                const maxStock = getVariantStock();
+                                                if (maxStock !== null && quantity >= maxStock) { showToast(`Chỉ còn ${maxStock} sản phẩm trong kho!`, 'warning'); return; }
+                                                setQuantity(quantity + 1);
+                                            }} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">+</button>
+                                        </div>
+                                    </div>
+                                    {/* Hàng 2 nút: Thêm vào giỏ + Mua Ngay cùng 1 hàng */}
+                                    <div className="flex items-center gap-2">
+                                        <motion.button
+                                            onClick={handleAddToCart}
+                                            disabled={getVariantStock() === 0}
+                                            whileTap={getVariantStock() !== 0 ? { scale: 0.98 } : {}}
+                                            className={`flex-1 h-[42px] rounded-none text-[14px] font-semibold tracking-wide uppercase flex items-center justify-center gap-2 transition-all border ${
+                                                getVariantStock() === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-white text-black border-black hover:bg-black hover:text-white'
+                                            }`}
+                                        >
+                                            Thêm vào giỏ
+                                        </motion.button>
+                                        <motion.button
+                                            onClick={handleBuyNow}
+                                            disabled={getVariantStock() === 0}
+                                            whileTap={getVariantStock() !== 0 ? { scale: 0.98 } : {}}
+                                            className={`flex-1 h-[42px] rounded-none text-[14px] font-semibold tracking-wide uppercase flex items-center justify-center transition-all ${
+                                                getVariantStock() === 0 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-[#222]'
+                                            }`}
+                                        >
+                                            {getVariantStock() === 0 ? 'Hết hàng' : 'Mua Ngay'}
+                                        </motion.button>
+                                    </div>
+                                </>
+                            )}
 
                             {/* Nút Thử Đồ Ảo Bằng AI (Virtual Try-On) */}
                             <motion.button
