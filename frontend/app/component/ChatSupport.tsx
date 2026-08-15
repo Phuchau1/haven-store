@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, User, Bot, Loader2, Sparkles, ChevronRight } from 'lucide-react';
+import { X, Send, User, Loader2, Sparkles, ChevronRight, RotateCcw, ArrowDownCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
@@ -12,26 +12,32 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-
 
 interface Product {
   id: string;
+  _id?: string;
   name: string;
   price: number;
   originalPrice?: number;
   category: string;
-  categoryLabel: string;
+  categoryLabel?: string;
   images: string[];
-  rating: number;
-  reviews: number;
-  inStock: boolean;
-  soldQuantity: number;
+  rating?: number;
+  reviews?: number;
+  inStock?: boolean;
+  soldQuantity?: number;
   badge?: string;
-  description: string;
+  description?: string;
+  flashSale?: boolean;
+  flashSalePrice?: number;
 }
 
 interface SuggestedProduct {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
   image: string;
   category: string;
+  flashSale?: boolean;
+  flashSalePrice?: number;
 }
 
 interface Message {
@@ -48,11 +54,51 @@ interface ChatTurn {
 }
 
 const DEFAULT_SUGGESTION_CHIPS = [
-  'Sản phẩm mới nhất?',
-  'Sản phẩm rẻ nhất?',
-  'Đánh giá cao nhất?',
-  'Hàng đang sale?',
+  '🔥 Flash Sale hôm nay?',
+  '💰 Sản phẩm dưới 300k',
+  '👕 Áo Polo hot nhất',
+  '👔 Gợi ý phối đồ đi làm',
+  '⭐ Đánh giá cao nhất',
 ];
+
+// Helper render text with simple markdown (bold + links)
+function FormattedText({ text }: { text: string }) {
+  const parts = text.split('\n');
+  return (
+    <div className="space-y-1.5 leading-relaxed text-[14px]">
+      {parts.map((line, lIdx) => {
+        if (!line.trim()) return <div key={lIdx} className="h-1" />;
+
+        // Bold formatting **text**
+        const formattedTokens = line.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s]+)/g).map((token, tIdx) => {
+          if (token.startsWith('**') && token.endsWith('**')) {
+            return (
+              <strong key={tIdx} className="font-bold text-amber-500">
+                {token.slice(2, -2)}
+              </strong>
+            );
+          }
+          if (token.startsWith('http://') || token.startsWith('https://')) {
+            return (
+              <a
+                key={tIdx}
+                href={token}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-400 underline font-medium hover:text-amber-300 transition-colors break-all"
+              >
+                {token.replace(/^https?:\/\/(www\.)?/, '')}
+              </a>
+            );
+          }
+          return token;
+        });
+
+        return <p key={lIdx}>{formattedTokens}</p>;
+      })}
+    </div>
+  );
+}
 
 export default function ChatSupport() {
   const { user } = useAuth();
@@ -62,7 +108,7 @@ export default function ChatSupport() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Xin chào! Tôi là trợ lý AI của PH Store 🛍️\nTôi có thể tư vấn sản phẩm, tìm hàng giảm giá, hoặc trả lời bất kỳ câu hỏi nào về cửa hàng. Bạn cần giúp gì?',
+      text: 'Xin chào bạn! Mình là **HAVEN AI** — Trợ lý thời trang thông minh 👋\n\nMình có thể hỗ trợ bạn tra cứu giá, tìm đồ theo ngân sách, gợi ý cách phối đồ hoặc các ưu đãi **Flash Sale** hot nhất hôm nay. Bạn đang quan tâm sản phẩm nào?',
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -91,8 +137,11 @@ export default function ChatSupport() {
         id: p.id || (p as any)._id?.toString() || '',
         name: p.name,
         price: p.price,
+        originalPrice: p.originalPrice,
         image: p.images?.[0] || '',
         category: p.category,
+        flashSale: p.flashSale,
+        flashSalePrice: p.flashSalePrice,
       }));
 
     return { cleanReply, suggested };
@@ -110,14 +159,13 @@ export default function ChatSupport() {
         }
       } catch (err) {
         console.error('Không thể tải sản phẩm:', err);
-        // Vẫn cho chat dù không load được sản phẩm
         setIsReady(true);
       }
     };
     loadProducts();
   }, []);
 
-  // ── Load chat session from local storage or user on mount ──
+  // ── Load chat session from local storage on mount ──
   useEffect(() => {
     if (!isReady) return;
 
@@ -146,7 +194,6 @@ export default function ChatSupport() {
     };
 
     const restoreSession = async () => {
-      // Nếu user đã đăng nhập, yêu cầu backend trả về session của user đó
       if (user?.id) {
         try {
           const res = await fetch(`${BACKEND_URL}/api/chats/session`, {
@@ -170,7 +217,6 @@ export default function ChatSupport() {
         }
       }
 
-      // Khách vãng lai: Khôi phục bằng localStorage
       if (!user?.id && storedSessionId) {
         setSessionId(storedSessionId);
         fetchHistory(storedSessionId);
@@ -216,7 +262,7 @@ export default function ChatSupport() {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isLoading]);
 
   // ── Focus input khi mở ──
   useEffect(() => {
@@ -226,60 +272,8 @@ export default function ChatSupport() {
     }
   }, [isOpen]);
 
-  // ── Dynamic Suggestion Chips ──
-  const dynamicChips = React.useMemo(() => {
-    if (!products || products.length === 0) return DEFAULT_SUGGESTION_CHIPS;
-    
-    const categories = Array.from(new Set(products.map(p => p.categoryLabel))).filter(Boolean);
-    const categoryChips = categories.slice(0, 3).map(c => `Bạn có ${c.toLowerCase()} không?`);
-    
-    return [
-      ...categoryChips,
-      'Đánh giá cao nhất?',
-      'Hàng đang sale?'
-    ];
-  }, [products]);
-
-  // ── Build prompt cho Gemini ──
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const buildPrompt = (userMessage: string): string => {
-    const productList = products
-      .slice(0, 80) // giới hạn context
-      .map(
-        (p) =>
-          `ID:${p.id} | ${p.name} | ${p.categoryLabel} | ${p.price.toLocaleString('vi-VN')}đ${
-            p.originalPrice && p.originalPrice > p.price
-              ? ` (gốc: ${p.originalPrice.toLocaleString('vi-VN')}đ)`
-              : ''
-          } | ★${p.rating} (${p.reviews} đánh giá) | Đã bán:${p.soldQuantity}${
-            !p.inStock ? ' | HẾT HÀNG' : ''
-          }${p.badge ? ` | ${p.badge}` : ''}`
-      )
-      .join('\n');
-
-    const systemCtx = `Bạn là trợ lý tư vấn bán hàng thân thiện của PH Store - cửa hàng thời trang cao cấp.
-Danh sách sản phẩm hiện có:
-${productList || 'Chưa tải được dữ liệu sản phẩm.'}
-
-QUY TẮC:
-- Trả lời bằng TIẾNG VIỆT, thân thiện và ngắn gọn (tối đa 3-4 câu).
-- Hiển thị giá bằng định dạng "đ" (ví dụ: 250.000đ).
-- Nếu tư vấn sản phẩm, hãy liệt kê TỐI ĐA 3 sản phẩm phù hợp nhất kèm ID.
-- Với câu hỏi không liên quan đến cửa hàng, hãy lịch sự từ chối và hướng dẫn về sản phẩm.
-- Khi đề xuất sản phẩm, kết thúc bằng dòng: SUGGEST_IDS: id1,id2,id3`;
-
-    let historyText = '';
-    for (const turn of chatHistory) {
-      const role = turn.role === 'user' ? 'Khách' : 'Trợ lý';
-      historyText += `${role}: ${turn.parts[0].text}\n`;
-    }
-
-    return `${systemCtx}\n\n${historyText ? 'Lịch sử hội thoại:\n' + historyText + '\n' : ''}Khách: ${userMessage}\nTrợ lý:`;
-  };
-
-  // ── Call AI via Backend (secure) ──
+  // ── Call AI via Backend (Gemini RAG) ──
   const callGemini = async (userMessage: string): Promise<string> => {
-    // 1. Try Backend AI API (uses server-side Gemini 3.7 Flash & real-time DB RAG)
     try {
       const res = await fetch(`${BACKEND_URL}/api/ai/chat`, {
         method: 'POST',
@@ -298,63 +292,45 @@ QUY TẮC:
       console.error('Backend AI error, using fallback:', err);
     }
 
-    // 2. Fallback Logic cục bộ (nếu API lỗi hoặc hết hạn ngạch)
+    // 2. Fallback Logic cục bộ
     const msg = userMessage.toLowerCase();
     
-    // Nếu hỏi về danh mục
     if (msg.includes('danh mục') || msg.includes('loại')) {
-      const categories = Array.from(new Set(products.map(p => p.categoryLabel)));
-      return `Hiện tại shop đang có các danh mục: ${categories.join(', ')}. Bạn đang tìm sản phẩm nào ạ?`;
+      const categories = Array.from(new Set(products.map(p => p.categoryLabel || p.category)));
+      return `Hiện tại HAVEN đang có các danh mục: **${categories.join(', ')}**. Bạn đang quan tâm mẫu nào ạ?`;
     }
 
-    // Nếu hỏi về giá rẻ / rẻ nhất
-    if (msg.includes('rẻ') || msg.includes('sale') || msg.includes('giảm giá')) {
-      const cheapProducts = [...products].sort((a, b) => a.price - b.price).filter(p => p.inStock).slice(0, 3);
+    if (msg.includes('rẻ') || msg.includes('sale') || msg.includes('giảm giá') || msg.includes('flash')) {
+      const cheapProducts = [...products].sort((a, b) => a.price - b.price).filter(p => p.inStock !== false).slice(0, 3);
       if (cheapProducts.length > 0) {
-        const ids = cheapProducts.map(p => p.id).join(',');
-        return `Dạ đây là các sản phẩm đang có giá tốt nhất tại shop ạ:\nSUGGEST_IDS: ${ids}`;
+        const ids = cheapProducts.map(p => p.id || (p as any)._id).join(',');
+        return `Dưới đây là các mẫu đang có mức giá ưu đãi tốt nhất tại HAVEN bạn nhé:\n\nSUGGEST_IDS: ${ids}`;
       }
     }
 
-    // Nếu hỏi đánh giá cao
-    if (msg.includes('đánh giá') || msg.includes('tốt nhất') || msg.includes('hot')) {
-      const topProducts = [...products].sort((a, b) => b.rating - a.rating).filter(p => p.inStock).slice(0, 3);
-      if (topProducts.length > 0) {
-        const ids = topProducts.map(p => p.id).join(',');
-        return `Dạ đây là những mẫu đang được khách hàng yêu thích và đánh giá cao nhất ạ:\nSUGGEST_IDS: ${ids}`;
-      }
-    }
-
-    // Tìm kiếm sản phẩm theo từ khóa (tính điểm mức độ phù hợp)
     const keywords = msg.replace(/[?.,!]/g, '').split(/\s+/).filter(w => w.length > 0 && !['tìm', 'cho', 'mình', 'tôi', 'bạn', 'có', 'không', 'ạ', 'nhé', 'xem'].includes(w));
     
-    const scoredMatches = products.filter(p => p.inStock).map(p => {
+    const scoredMatches = products.filter(p => p.inStock !== false).map(p => {
       const pName = p.name.toLowerCase();
-      const cLabel = p.categoryLabel.toLowerCase();
+      const cLabel = (p.categoryLabel || p.category || '').toLowerCase();
       let score = 0;
-      
-      // Nếu cụm từ tìm kiếm xuất hiện nguyên vẹn trong tên thì điểm rất cao
       const searchPhrase = keywords.join(' ');
       if (pName.includes(searchPhrase)) score += 10;
       if (cLabel.includes(searchPhrase)) score += 10;
 
-      // Tính điểm theo từng từ khóa
       keywords.forEach(k => {
-        if (pName.includes(k) || cLabel.includes(k)) {
-          score += 1;
-        }
+        if (pName.includes(k) || cLabel.includes(k)) score += 1;
       });
       return { product: p, score };
     }).filter(p => p.score > 0).sort((a, b) => b.score - a.score);
 
     if (scoredMatches.length > 0) {
       const top3 = scoredMatches.slice(0, 3);
-      const ids = top3.map(p => p.product.id).join(',');
-      return `Dạ mình tìm thấy một số sản phẩm phù hợp với yêu cầu của bạn đây ạ:\nSUGGEST_IDS: ${ids}`;
+      const ids = top3.map(p => p.product.id || (p.product as any)._id).join(',');
+      return `Gợi ý cho bạn các mẫu phù hợp nhất tại HAVEN đây ạ:\n\nSUGGEST_IDS: ${ids}`;
     }
 
-    // Trả lời chung chung nếu không tìm thấy
-    return 'Dạ xin lỗi bạn, mình chưa tìm thấy sản phẩm phù hợp với từ khóa này. Bạn có thể nói rõ hơn bạn đang tìm áo, quần hay phụ kiện không ạ?';
+    return 'Dạ xin lỗi bạn, mình chưa tìm thấy sản phẩm phù hợp. Bạn có thể xem toàn bộ bộ sưu tập tại https://havenstore.io.vn/products nhé!';
   };
 
   // ── Xử lý gửi tin nhắn ──
@@ -377,13 +353,12 @@ QUY TẮC:
     let activeSessionId = sessionId;
 
     try {
-      // 1. Tạo hoặc lấy session từ DB
       if (!activeSessionId) {
         const sessionRes = await fetch(`${BACKEND_URL}/api/chats/session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            customer_name: user?.name || 'Khách vãng lai',
+            customer_name: user?.name || 'Khách hàng HAVEN',
             phone: user?.phone || '0900000000',
             userId: user?.id || null
           })
@@ -393,43 +368,41 @@ QUY TẮC:
           activeSessionId = sessionData.session.id;
           setSessionId(activeSessionId);
           localStorage.setItem('phstore-chat-session-id', activeSessionId!);
-        } else {
-          throw new Error(sessionData.message || 'Không thể tạo phiên chat');
         }
       }
 
-      // 2. Lưu tin nhắn user lên DB
-      await fetch(`${BACKEND_URL}/api/chats/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: activeSessionId,
-          sender_type: 'user',
-          message: userMessage
-        })
-      });
+      if (activeSessionId) {
+        fetch(`${BACKEND_URL}/api/chats/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: activeSessionId,
+            sender_type: 'user',
+            message: userMessage
+          })
+        }).catch(() => {});
+      }
 
-      // 3. Gọi Gemini AI
       const rawReply = await callGemini(userMessage);
       const { cleanReply, suggested } = parseSuggestedProducts(rawReply);
 
-      // Cập nhật history cho Gemini
       setChatHistory((prev) => [
         ...prev,
         { role: 'user', parts: [{ text: userMessage }] },
         { role: 'model', parts: [{ text: cleanReply }] },
       ]);
 
-      // 4. Lưu tin nhắn bot lên DB
-      await fetch(`${BACKEND_URL}/api/chats/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: activeSessionId,
-          sender_type: 'bot',
-          message: rawReply // lưu raw để sau này parse được gợi ý sản phẩm
-        })
-      });
+      if (activeSessionId) {
+        fetch(`${BACKEND_URL}/api/chats/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: activeSessionId,
+            sender_type: 'bot',
+            message: rawReply
+          })
+        }).catch(() => {});
+      }
 
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -440,27 +413,25 @@ QUY TẮC:
       };
 
       setMessages((prev) => [...prev, botMsg]);
-
-      // Hiện badge nếu panel đang đóng
       if (!isOpen) setHasUnread(true);
     } catch (err: unknown) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const errorMessage = err instanceof Error ? err.message : 'Lỗi không xác định';
-      
-      // Fallback message if API fails (e.g., project denied, invalid key)
-      const friendlyError = "Xin lỗi, hiện tại trợ lý AI đang được bảo trì hoặc kết nối API chưa ổn định. Vui lòng thử lại sau hoặc liên hệ trực tiếp qua số điện thoại cửa hàng nhé!";
-      
-      const errMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        text: friendlyError,
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errMsg]);
+      console.error('Lỗi gửi tin nhắn:', err);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
     }
+  };
+
+  const handleResetChat = () => {
+    setMessages([
+      {
+        id: Date.now().toString(),
+        text: 'Cuộc trò chuyện đã được làm mới ✨ Bạn cần HAVEN AI tư vấn sản phẩm hay mức giá nào ạ?',
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+    ]);
+    setChatHistory([]);
   };
 
   return (
@@ -468,97 +439,127 @@ QUY TẮC:
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 30, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.22 }}
-            className="mb-4 w-[350px] sm:w-[400px] h-[560px] bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden"
+            exit={{ opacity: 0, y: 30, scale: 0.92 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="mb-4 w-[92vw] sm:w-[440px] md:w-[460px] h-[640px] max-h-[85vh] bg-[#0f141c] text-slate-100 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-slate-700/60 flex flex-col overflow-hidden backdrop-blur-xl"
           >
-            {/* ── Header ── */}
-            <div className="bg-slate-900 p-5 flex items-center justify-between text-white flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                  <Bot size={22} className="text-white" />
+            {/* ── HEADER TO RÕ, ĐẸP MẮT ── */}
+            <div className="bg-gradient-to-r from-[#141b26] via-[#1a2332] to-[#141b26] p-4 sm:p-5 flex items-center justify-between border-b border-slate-700/80 flex-shrink-0 shadow-lg">
+              <div className="flex items-center gap-3.5">
+                {/* Logo Store Avatar */}
+                <div className="relative w-12 h-12 rounded-2xl bg-black border-2 border-amber-500/40 p-1 flex items-center justify-center shadow-lg shadow-amber-500/10 overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/haven-logo.png"
+                    alt="HAVEN Logo"
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                    priority
+                  />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full" />
                 </div>
+
                 <div>
-                  <p className="text-sm font-bold tracking-wide">PH Assistant</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        isReady ? 'bg-emerald-400 animate-pulse' : 'bg-yellow-400'
-                      }`}
-                    />
-                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">
-                      {isReady ? 'AI Agent Online' : 'Đang tải...'}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-extrabold tracking-wide text-white">
+                      HAVEN AI
+                    </h3>
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md tracking-wider flex items-center gap-1">
+                      <Sparkles size={10} className="text-amber-400" />
+                      GEMINI
+                    </span>
                   </div>
+                  <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Trực tuyến · Tư vấn phong cách & giá cả
+                  </p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
-                aria-label="Đóng chat"
-              >
-                <X size={20} />
-              </button>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1.5 text-slate-400">
+                <button
+                  onClick={handleResetChat}
+                  title="Làm mới đoạn chat"
+                  className="p-2 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
+                  aria-label="Làm mới"
+                >
+                  <RotateCcw size={18} />
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  title="Đóng chat"
+                  className="p-2 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
+                  aria-label="Đóng"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
-            {/* ── Messages ── */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+            {/* ── KHUNG TIN NHẮN (TO RÕ, DỄ ĐỌC) ── */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 bg-[#0b0f17]/90 scrollbar-thin scrollbar-thumb-slate-700">
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
-                  initial={{ opacity: 0, x: msg.sender === 'user' ? 10 : -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.18 }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
-                  <div className={`flex gap-2 max-w-[88%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                    {/* Avatar */}
-                    <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-1 ${
-                        msg.sender === 'user'
-                          ? 'bg-indigo-100 text-indigo-600'
-                          : msg.sender === 'admin'
-                            ? 'bg-amber-100 text-amber-600 border border-amber-200'
-                            : 'bg-white border border-slate-100 shadow-sm text-slate-400'
-                      }`}
-                    >
-                      {msg.sender === 'user' ? <User size={14} /> : msg.sender === 'admin' ? <Sparkles size={14} className="text-amber-500" /> : <Bot size={14} />}
+                  <div className={`flex gap-3 max-w-[90%] sm:max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                    {/* Avatar Bubble */}
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-md">
+                      {msg.sender === 'user' ? (
+                        <div className="w-full h-full bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center">
+                          <User size={16} />
+                        </div>
+                      ) : (
+                        <div className="w-full h-full bg-black border border-amber-500/40 p-0.5 flex items-center justify-center">
+                          <Image
+                            src="/haven-logo.png"
+                            alt="HAVEN"
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                          />
+                        </div>
+                      )}
                     </div>
 
-                    {/* Bubble */}
+                    {/* Bubble Content */}
                     <div
-                      className={`p-3 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap ${
+                      className={`p-3.5 sm:p-4 rounded-2xl shadow-md ${
                         msg.sender === 'user'
-                          ? 'bg-slate-900 text-white rounded-tr-none'
-                          : msg.sender === 'admin'
-                            ? 'bg-indigo-50 text-indigo-900 border border-indigo-100 rounded-tl-none'
-                            : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+                          ? 'bg-[#f5ebd7] text-slate-900 font-medium rounded-tr-none'
+                          : 'bg-[#18202f] text-slate-100 border border-slate-700/70 rounded-tl-none'
                       }`}
                     >
-                      {msg.text}
-                      <p className="text-[9px] mt-1.5 text-slate-400">
+                      <FormattedText text={msg.text} />
+                      <p className={`text-[10px] mt-2 font-mono ${msg.sender === 'user' ? 'text-slate-500 text-right' : 'text-slate-400'}`}>
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
 
-                  {/* ── Suggested Products ── */}
+                  {/* ── THẺ GỢI Ý SẢN PHẨM TO & ĐẸP MẮT ── */}
                   {msg.sender === 'bot' && msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                    <div className="ml-9 mt-2 flex flex-col gap-2 w-full max-w-[300px]">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        Gợi ý dành cho bạn:
+                    <div className="ml-11 mt-3 flex flex-col gap-2.5 w-full max-w-[340px]">
+                      <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles size={12} />
+                        Gợi ý sản phẩm phù hợp:
                       </p>
                       {msg.suggestedProducts.map((p) => (
                         <Link
                           key={p.id}
                           href={`/product/${getProductSlug(p)}`}
-                          className="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 hover:border-indigo-400 hover:shadow-md transition-all group"
+                          className="flex items-center gap-3.5 p-2.5 bg-[#151c28] hover:bg-[#1c2638] rounded-2xl border border-slate-700 hover:border-amber-500/60 shadow-lg transition-all group"
                           onClick={() => setIsOpen(false)}
                         >
-                          {p.image && (
-                            <div className="relative w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100">
+                          {p.image ? (
+                            <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-black border border-slate-700">
                               <Image
                                 src={p.image}
                                 alt={p.name}
@@ -566,14 +567,34 @@ QUY TẮC:
                                 className="object-cover group-hover:scale-110 transition-transform duration-500"
                               />
                             </div>
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500 text-xs">
+                              Ảnh
+                            </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-slate-800 truncate">{p.name}</p>
-                            <p className="text-[11px] font-semibold text-indigo-600">
-                              {p.price.toLocaleString('vi-VN')}đ
+                            <p className="text-xs sm:text-sm font-bold text-slate-100 truncate group-hover:text-amber-400 transition-colors">
+                              {p.name}
                             </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs sm:text-sm font-extrabold text-amber-400">
+                                {p.price.toLocaleString('vi-VN')}đ
+                              </span>
+                              {p.originalPrice && p.originalPrice > p.price && (
+                                <span className="text-[10px] text-slate-400 line-through">
+                                  {p.originalPrice.toLocaleString('vi-VN')}đ
+                                </span>
+                              )}
+                            </div>
+                            {p.flashSale && (
+                              <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">
+                                ⚡ FLASH SALE
+                              </span>
+                            )}
                           </div>
-                          <ChevronRight size={14} className="text-slate-300 group-hover:text-indigo-500 flex-shrink-0" />
+                          <div className="w-8 h-8 rounded-xl bg-slate-800 group-hover:bg-amber-500 group-hover:text-black text-slate-300 flex items-center justify-center transition-all flex-shrink-0">
+                            <ChevronRight size={16} />
+                          </div>
                         </Link>
                       ))}
                     </div>
@@ -583,18 +604,21 @@ QUY TẮC:
 
               {/* Typing indicator */}
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="flex gap-2">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white border border-slate-100 shadow-sm text-slate-400 flex-shrink-0 mt-1">
-                      <Bot size={14} />
-                    </div>
-                    <div className="bg-white border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-sm">
-                      <div className="flex gap-1 items-center h-4">
-                        <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                        <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                        <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:300ms]" />
-                      </div>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-black border border-amber-500/40 p-0.5 flex items-center justify-center flex-shrink-0">
+                    <Image
+                      src="/haven-logo.png"
+                      alt="HAVEN"
+                      width={24}
+                      height={24}
+                      className="object-contain"
+                    />
+                  </div>
+                  <div className="bg-[#18202f] border border-slate-700/70 px-4 py-3 rounded-2xl rounded-tl-none shadow-md flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                    <span className="text-xs text-slate-400 ml-2 font-medium">HAVEN AI đang soạn câu trả lời...</span>
                   </div>
                 </div>
               )}
@@ -602,22 +626,22 @@ QUY TẮC:
               <div ref={messagesEndRef} />
             </div>
 
-            {/* ── Suggestion Chips ── */}
-            <div className="px-4 py-2 bg-white border-t border-slate-50 flex gap-2 overflow-x-auto flex-shrink-0 scrollbar-hide">
-              {dynamicChips.map((chip) => (
+            {/* ── GỢI Ý CÂU HỎI NHANH ── */}
+            <div className="px-4 py-2.5 bg-[#121822] border-t border-slate-800 flex gap-2 overflow-x-auto flex-shrink-0 scrollbar-none">
+              {DEFAULT_SUGGESTION_CHIPS.map((chip) => (
                 <button
                   key={chip}
                   onClick={() => handleSend(chip)}
                   disabled={isLoading}
-                  className="flex-shrink-0 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[11px] font-medium rounded-full transition-colors disabled:opacity-50"
+                  className="flex-shrink-0 px-3.5 py-1.5 bg-[#1a2332] hover:bg-amber-500 hover:text-black text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 hover:border-amber-400 transition-all disabled:opacity-50"
                 >
                   {chip}
                 </button>
               ))}
             </div>
 
-            {/* ── Input ── */}
-            <div className="p-4 bg-white border-t border-slate-100 flex-shrink-0">
+            {/* ── KHUNG NHẬP TIN NHẮN ── */}
+            <div className="p-3.5 sm:p-4 bg-[#141b26] border-t border-slate-700/80 flex-shrink-0">
               <div className="relative flex items-center gap-2">
                 <input
                   ref={inputRef}
@@ -630,55 +654,78 @@ QUY TẮC:
                       handleSend();
                     }
                   }}
-                  placeholder="Hỏi về sản phẩm, size, giá..."
+                  placeholder="Hỏi về giá, kích thước, phối đồ..."
                   disabled={isLoading}
-                  className="flex-1 pl-4 pr-4 py-3 bg-slate-50 border-0 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all placeholder:text-slate-400 disabled:opacity-60"
+                  className="flex-1 pl-4 pr-4 py-3.5 bg-[#0b0f17] border border-slate-700 rounded-2xl text-sm sm:text-base text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-slate-500 disabled:opacity-60"
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={!inputValue.trim() || isLoading}
-                  className="p-2.5 bg-slate-900 text-white rounded-xl hover:bg-indigo-600 transition-all disabled:opacity-40 disabled:bg-slate-300 disabled:cursor-not-allowed flex-shrink-0"
-                  aria-label="Gửi"
+                  className="p-3.5 bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-bold rounded-2xl hover:from-amber-300 hover:to-amber-500 active:scale-95 transition-all disabled:opacity-40 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed flex-shrink-0 shadow-lg shadow-amber-500/20"
+                  aria-label="Gửi tin nhắn"
                 >
-                  {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                 </button>
               </div>
-              <p className="text-[10px] text-center text-slate-400 mt-2.5 font-medium uppercase tracking-widest flex items-center justify-center gap-1.5">
-                <Sparkles size={10} className="text-indigo-400" />
-                Powered by Gemini AI · PH Store
-              </p>
+
+              <div className="flex items-center justify-between mt-2.5 px-1 text-[11px] text-slate-400 font-medium">
+                <span className="flex items-center gap-1 text-amber-400">
+                  <Sparkles size={11} /> Powered by Gemini AI
+                </span>
+                <span>HAVEN Fashion</span>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Float Toggle Button ── */}
+      {/* ── NÚT BẤM NỔI (TO RÕ, LOGO CHÍNH HÃNG) ── */}
       <motion.button
         onClick={() => {
           setIsOpen(!isOpen);
           setHasUnread(false);
         }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-500 ${
-          isOpen ? 'bg-slate-900 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.94 }}
+        className={`group relative flex items-center gap-3 p-2.5 sm:px-4 sm:py-3 rounded-2xl sm:rounded-full shadow-2xl transition-all duration-300 border ${
+          isOpen
+            ? 'bg-slate-900 border-slate-700 text-white'
+            : 'bg-gradient-to-r from-[#0f141c] via-[#1a2332] to-[#0f141c] border-amber-500/40 text-white hover:border-amber-400 hover:shadow-[0_0_25px_rgba(245,158,11,0.3)]'
         }`}
-        aria-label={isOpen ? 'Đóng chat' : 'Mở chat'}
+        aria-label={isOpen ? 'Đóng chat' : 'Mở chat HAVEN AI'}
       >
-        <motion.div
-          animate={{ rotate: isOpen ? 90 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
-        </motion.div>
+        {/* Logo Avatar */}
+        <div className="relative w-11 h-11 rounded-xl bg-black border border-amber-500/50 p-1 flex items-center justify-center flex-shrink-0 shadow-md">
+          <Image
+            src="/haven-logo.png"
+            alt="HAVEN Logo"
+            width={32}
+            height={32}
+            className="object-contain"
+          />
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-950 animate-pulse" />
+        </div>
+
+        {/* Text Button Label (Hiện trên màn hình sm trở lên) */}
+        {!isOpen && (
+          <div className="hidden sm:flex flex-col text-left pr-2">
+            <span className="text-xs font-black tracking-wider text-amber-400 uppercase flex items-center gap-1">
+              HAVEN AI <Sparkles size={10} />
+            </span>
+            <span className="text-[11px] text-slate-300 font-medium">Tư vấn thời trang</span>
+          </div>
+        )}
+
+        {isOpen && (
+          <span className="hidden sm:inline text-xs font-bold text-slate-300 pr-2">Đóng</span>
+        )}
 
         {/* Unread badge */}
         {hasUnread && !isOpen && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"
-          />
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white"></span>
+          </span>
         )}
       </motion.button>
     </div>
