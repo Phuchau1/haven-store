@@ -56,18 +56,18 @@ export default function BestSelling() {
                         transition={{ duration: 0.5 }}
                         className="flex flex-col items-center"
                     >
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200/80 mb-3.5 shadow-sm">
-                            <Flame size={13} className="text-red-600 fill-red-500" />
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-red-700">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0f172a] text-white border border-slate-800 mb-3.5 shadow-sm">
+                            <Flame size={13} className="text-[#dc2626] fill-[#dc2626]" />
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">
                                 XU HƯỚNG MUA SẮM
                             </span>
                         </div>
 
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-900 tracking-tight">
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-950 tracking-tight">
                             Sản Phẩm Bán Chạy
                         </h2>
 
-                        <p className="mt-3 text-sm sm:text-base text-gray-500 max-w-xl font-normal leading-relaxed">
+                        <p className="mt-3 text-sm sm:text-base text-slate-500 max-w-xl font-normal leading-relaxed">
                             Top những thiết kế được yêu thích và săn đón nhiều nhất trong tuần
                         </p>
                     </motion.div>
@@ -84,7 +84,7 @@ export default function BestSelling() {
                 <div className="mt-12 text-center">
                     <Link
                         href="/products?sort=best-selling"
-                        className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-white hover:bg-slate-950 text-slate-900 hover:text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 border border-slate-300 hover:border-slate-950 shadow-sm hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
+                        className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-white hover:bg-[#09090b] text-[#09090b] hover:text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 border-2 border-[#09090b] shadow-sm hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
                     >
                         <span>Khám Phá Toàn Bộ Bán Chạy</span>
                         <ArrowRight size={14} />

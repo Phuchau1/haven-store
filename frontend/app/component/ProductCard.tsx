@@ -89,15 +89,15 @@ export default function ProductCard({
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
-                    {/* Badges Overlay */}
+                    {/* Badges Overlay (Strict 4-Color Brand Palette: Navy, Black, Red, Gold) */}
                     <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {product.badge && !(showDiscount && discount > 0 && product.badge.toUpperCase().includes('SALE')) && (
                             <span
                                 className={`inline-block px-2.5 py-1 text-[11px] uppercase font-black rounded-lg tracking-wider shadow-sm ${
-                                    product.badge.toUpperCase() === 'MỚI' || product.badge.toUpperCase() === 'NEW'
-                                        ? 'bg-[#16a34a] text-white'
-                                        : product.badge.toUpperCase() === 'HOT'
-                                            ? 'bg-[#ea580c] text-white'
+                                    product.badge.toUpperCase() === 'MỚI' || product.badge.toUpperCase() === 'NEW' || product.badge.toUpperCase().includes('FREESHIP')
+                                        ? 'bg-[#0f172a] text-white border border-slate-700/40'
+                                        : product.badge.toUpperCase() === 'HOT' || product.badge.toUpperCase().includes('CHẠY')
+                                            ? 'bg-[#d97706] text-white shadow-amber-500/20'
                                             : 'bg-[#0f172a] text-white'
                                 }`}
                             >
@@ -105,7 +105,7 @@ export default function ProductCard({
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2.5 py-1 text-[11px] font-black rounded-lg bg-[#dc2626] text-white shadow-sm">
+                            <span className="inline-block px-2.5 py-1 text-[11px] font-black rounded-lg bg-[#dc2626] text-white shadow-sm shadow-red-500/20">
                                 -{discount}%
                             </span>
                         )}

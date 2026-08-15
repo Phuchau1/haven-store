@@ -73,18 +73,20 @@
   --header-logo-height: 68px;     /* logo max height */
   --header-total-height: 120px;   /* topbar + nav combined */
 
-  /* === Shop/Public Site (Premium Fashion) === */
-  --foreground: #222222;
+  /* === Shop/Public Site (Strict 4-Color Brand Palette: Navy, Black, Red, Gold) === */
+  --foreground: #09090b;
   --background: #ffffff;
-  --primary: #111111;
-  --accent: #C9A227;
-  --section-bg: #F8F8F8;
-  --text-primary: #222222;
-  --text-secondary: #666666;
-  --border-light: #EAEAEA;
-  --sale-red: #D32F2F;
-  --hot-orange: #FF6B35;
-  --new-green: #2E7D32;
+  --color-navy: #0f172a;
+  --color-black: #09090b;
+  --color-red: #dc2626;
+  --color-gold: #d97706;
+  --primary: #09090b;
+  --accent: #d97706;
+  --section-bg: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --border-light: #e2e8f0;
+  --sale-red: #dc2626;
   --font-display: 'Be Vietnam Pro', 'Inter', sans-serif;
   --font-body: 'Be Vietnam Pro', 'Inter', sans-serif;
 }

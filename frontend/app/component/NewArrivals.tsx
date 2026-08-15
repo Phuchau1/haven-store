@@ -54,18 +54,18 @@ export default function NewArrivals() {
                         transition={{ duration: 0.5 }}
                         className="flex flex-col items-center"
                     >
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200/80 mb-3.5 shadow-sm">
-                            <Sparkles size={13} className="text-amber-600" />
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-700">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0f172a] text-white border border-slate-800 mb-3.5 shadow-sm">
+                            <Sparkles size={13} className="text-amber-400 fill-amber-400/30" />
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">
                                 BỘ SƯU TẬP MỚI NHẤT
                             </span>
                         </div>
 
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-900 tracking-tight">
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-950 tracking-tight">
                             Sản Phẩm Mới Về
                         </h2>
 
-                        <p className="mt-3 text-sm sm:text-base text-gray-500 max-w-xl font-normal leading-relaxed">
+                        <p className="mt-3 text-sm sm:text-base text-slate-500 max-w-xl font-normal leading-relaxed">
                             Cập nhật những thiết kế mới nhất với phong cách hiện đại và chất liệu cao cấp
                         </p>
                     </motion.div>
@@ -82,7 +82,7 @@ export default function NewArrivals() {
                 <div className="mt-12 text-center">
                     <Link
                         href="/products"
-                        className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-slate-950 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
+                        className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#09090b] hover:bg-[#d97706] text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
                     >
                         <span>Xem Tất Cả Sản Phẩm Mới</span>
                         <ArrowRight size={14} />
