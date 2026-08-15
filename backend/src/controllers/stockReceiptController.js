@@ -177,37 +177,33 @@ exports.getById = async (req, res) => {
 };
 
 /**
- * @desc Cập nhật phiếu kho (Chỉ khi đang ở trạng thái DRAFT/Nháp)
+ * @desc Cập nhật phiếu kho
  */
 exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         const { type, warehouse_id, dest_warehouse_id, supplier_id, reason, note, items } = req.body;
 
-        const receipt = await StockReceiptModel.findOne({ id });
+        const receipt = await StockReceiptModel.findOne({ id }) || await StockReceiptModel.findById(id);
         if (!receipt) return res.status(404).json({ success: false, message: 'Không tìm thấy phiếu kho' });
-        
-        if (receipt.status !== 'DRAFT') {
-            return res.status(400).json({ success: false, message: 'Chỉ có thể sửa phiếu ở trạng thái Nháp' });
+
+        if (items && items.length > 0) {
+            const total_quantity = items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
+            const total_amount = items.reduce((sum, item) => sum + (Math.abs(item.quantity) * (item.price || 0)), 0);
+            receipt.items = items;
+            receipt.total_quantity = total_quantity;
+            receipt.total_amount = total_amount;
         }
 
-        if (!items || items.length === 0) return res.status(400).json({ success: false, message: 'Danh sách sản phẩm trống' });
-
-        const total_quantity = items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
-        const total_amount = items.reduce((sum, item) => sum + (Math.abs(item.quantity) * (item.price || 0)), 0);
-
-        receipt.type = type || receipt.type;
-        receipt.warehouse_id = warehouse_id || receipt.warehouse_id;
-        receipt.dest_warehouse_id = dest_warehouse_id || receipt.dest_warehouse_id;
-        receipt.supplier_id = supplier_id || receipt.supplier_id;
-        receipt.reason = reason;
-        receipt.note = note;
-        receipt.items = items;
-        receipt.total_quantity = total_quantity;
-        receipt.total_amount = total_amount;
+        if (type) receipt.type = type;
+        if (warehouse_id) receipt.warehouse_id = warehouse_id;
+        if (dest_warehouse_id !== undefined) receipt.dest_warehouse_id = dest_warehouse_id;
+        if (supplier_id !== undefined) receipt.supplier_id = supplier_id;
+        if (reason !== undefined) receipt.reason = reason;
+        if (note !== undefined) receipt.note = note;
 
         await receipt.save();
-        res.json({ success: true, data: receipt });
+        res.json({ success: true, message: 'Cập nhật phiếu kho thành công', data: receipt });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
@@ -219,7 +215,7 @@ exports.update = async (req, res) => {
 exports.approve = async (req, res) => {
     try {
         const { id } = req.params;
-        const receipt = await StockReceiptModel.findOne({ id });
+        const receipt = await StockReceiptModel.findOne({ id }) || await StockReceiptModel.findById(id);
         
         if (!receipt) return res.status(404).json({ success: false, message: 'Không tìm thấy phiếu kho' });
         
@@ -243,5 +239,24 @@ exports.approve = async (req, res) => {
         res.json({ success: true, message: 'Duyệt phiếu thành công', data: receipt });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @desc Xóa phiếu kho
+ */
+exports.delete = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const receipt = await StockReceiptModel.findOneAndDelete({ id })
+                      || await StockReceiptModel.findByIdAndDelete(id);
+        
+        if (!receipt) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy phiếu kho' });
+        }
+
+        res.json({ success: true, message: 'Đã xóa phiếu kho thành công' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
