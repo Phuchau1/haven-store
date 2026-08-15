@@ -63,7 +63,11 @@ export default function ProductCard({
         >
             <Link 
                 href={isUpcomingFlashSale ? `/product/${getProductSlug(product)}?slot=upcoming` : `/product/${getProductSlug(product)}`} 
-                className="group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.09)] bg-white border border-gray-200/80 hover:border-amber-500/50 rounded-2xl overflow-hidden"
+                className={`group block h-full flex flex-col transition-all duration-300 hover:-translate-y-2 bg-white border rounded-2xl overflow-hidden ${
+                    isFlashSaleCard || (showDiscount && discount > 0)
+                        ? 'border-slate-200/90 hover:border-[#dc2626] hover:shadow-[0_22px_45px_rgba(220,38,38,0.18)] hover:ring-1 hover:ring-[#dc2626]/20'
+                        : 'border-slate-200/90 hover:border-[#0f172a] hover:shadow-[0_22px_45px_rgba(15,23,42,0.18)] hover:ring-1 hover:ring-[#0f172a]/20'
+                }`}
                 onMouseLeave={() => setSelectedColor(null)}
             >
                 {/* ── PRODUCT IMAGE CONTAINER ── */}
@@ -189,7 +193,11 @@ export default function ProductCard({
                     )}
 
                     {/* Product Name (Bold & Easy to Read) */}
-                    <h3 className="text-[15px] sm:text-[15.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[44px] mt-0.5 group-hover:text-amber-600 transition-colors">
+                    <h3 className={`text-[15px] sm:text-[15.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[44px] mt-0.5 transition-colors ${
+                        isFlashSaleCard || (showDiscount && discount > 0)
+                            ? 'group-hover:text-[#dc2626]'
+                            : 'group-hover:text-[#0f172a]'
+                    }`}>
                         {cleanProductTitle(product.name)}
                     </h3>
 
