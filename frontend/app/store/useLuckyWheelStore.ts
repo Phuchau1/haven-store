@@ -47,7 +47,7 @@ interface LuckyWheelStore {
     closeWheel: () => void;
     recordSpin: (prize: WheelPrize) => void;
     clearPrize: () => void;
-    checkCanSpin: (userId: string) => Promise<void>;
+    checkCanSpin: (userId?: string, token?: string | null) => Promise<void>;
     getTimeUntilNextSpin: () => string;
 }
 
@@ -72,9 +72,21 @@ export const useLuckyWheelStore = create<LuckyWheelStore>()(
 
         clearPrize: () => set({ wonPrize: null }),
 
-        checkCanSpin: async (userId) => {
+        checkCanSpin: async (userId?: string, token?: string | null) => {
             try {
-                const res = await fetch(`/api/lucky-wheel/can-spin?user_id=${userId}`);
+                const deviceId = typeof window !== 'undefined' ? (localStorage.getItem('device_id') || 'web-client') : 'web-client';
+                const headers: Record<string, string> = {
+                    'x-device-id': deviceId
+                };
+                if (token) {
+                    headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                }
+
+                const params = new URLSearchParams();
+                if (userId) params.append('user_id', userId);
+                params.append('device_id', deviceId);
+
+                const res = await fetch(`/api/lucky-wheel/can-spin?${params.toString()}`, { headers });
                 const data = await res.json();
                 if (data.success !== undefined) {
                     set({

@@ -165,7 +165,10 @@ exports.getConfig = async (req, res) => {
 // ────────────────────────────────────────────────────────────
 exports.canSpin = async (req, res) => {
     try {
-        const { user_id } = req.query;
+        const user_id = req.user ? String(req.user._id || req.user.id) : (req.query.user_id || req.body?.user_id || '');
+        const ip     = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
+        const device = req.headers['x-device-id'] || req.query.device_id || req.body?.device_id || '';
+
         const configDoc = await getOrCreateConfigDoc();
         const now = new Date();
 
@@ -228,6 +231,46 @@ exports.canSpin = async (req, res) => {
 
         // 6. Kiểm tra giới hạn chu kỳ (daily / weekly / monthly)
         const periodStart = getPeriodStartDate(configDoc.resetInterval);
+        const nextReset = new Date(periodStart);
+        if (configDoc.resetInterval === 'weekly') nextReset.setDate(nextReset.getDate() + 7);
+        else if (configDoc.resetInterval === 'monthly') nextReset.setMonth(nextReset.getMonth() + 1);
+        else nextReset.setDate(nextReset.getDate() + 1);
+        nextReset.setHours(0, 0, 0, 0);
+
+        // 6.1. Kiểm tra IP Anti-Spam
+        if (configDoc.maxSpinsPerIP > 0 && ip) {
+            const ipCount = await SpinHistory.countDocuments({
+                ip,
+                spin_date: { $gte: periodStart }
+            });
+            if (ipCount >= configDoc.maxSpinsPerIP) {
+                return res.json({
+                    success: true,
+                    canSpin: false,
+                    reason: 'ip_limit',
+                    message: 'Bạn đã hết lượt quay trong chu kỳ này. Hãy quay lại sau!',
+                    nextSpinAt: nextReset.toISOString(),
+                });
+            }
+        }
+
+        // 6.2. Kiểm tra Device Anti-Spam
+        if (configDoc.maxSpinsPerDevice > 0 && device) {
+            const deviceCount = await SpinHistory.countDocuments({
+                device,
+                spin_date: { $gte: periodStart }
+            });
+            if (deviceCount >= configDoc.maxSpinsPerDevice) {
+                return res.json({
+                    success: true,
+                    canSpin: false,
+                    reason: 'device_limit',
+                    message: 'Bạn đã hết lượt quay trong chu kỳ này. Hãy quay lại sau!',
+                    nextSpinAt: nextReset.toISOString(),
+                });
+            }
+        }
+
         let userSpinsInPeriod = 0;
         let userSpinsTotalMonth = 0;
 

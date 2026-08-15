@@ -228,8 +228,8 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
     // Check spin availability from DB on mount
     useEffect(() => {
-        if (user?.id) checkCanSpin(user.id);
-    }, [user?.id, checkCanSpin]);
+        checkCanSpin(user?.id, token);
+    }, [user?.id, token, checkCanSpin]);
 
     // Fetch config on open if not fetched
     useEffect(() => {
@@ -316,6 +316,10 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             if (!data.success) {
                 showToast(data.message || 'Không thể quay', 'error', 'Lỗi quay thưởng');
                 setSpinning(false);
+                if (data.message && data.message.includes('hết lượt')) {
+                    useLuckyWheelStore.setState({ canSpin: false, statusMessage: data.message });
+                    checkCanSpin(user?.id, token);
+                }
                 return;
             }
 
