@@ -50,6 +50,14 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
   verification: {
     google: ['google5e31d691b45f169a', '5e31d691b45f169a', 'google5769b7fee58b2a81'],
   },
