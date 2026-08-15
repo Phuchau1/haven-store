@@ -443,13 +443,13 @@ export default function ChatSupport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.92 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-[calc(100vw-32px)] sm:w-[440px] md:w-[460px] h-[580px] max-h-[calc(100dvh-100px)] bg-[#0b1120] text-slate-100 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.9)] border border-slate-700/80 flex flex-col overflow-hidden backdrop-blur-2xl"
+            className="w-[calc(100vw-32px)] sm:w-[440px] md:w-[460px] h-[580px] max-h-[calc(100dvh-100px)] bg-white text-slate-900 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-slate-200/90 flex flex-col overflow-hidden backdrop-blur-xl"
           >
-            {/* ── HEADER SANG TRỌNG (NAVY & GOLD) ── */}
-            <div className="bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] p-4 sm:p-5 flex items-center justify-between border-b border-slate-700/80 flex-shrink-0 shadow-lg">
+            {/* ── HEADER NỀN TRẮNG SANG TRỌNG ── */}
+            <div className="bg-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-100 flex-shrink-0 shadow-2xs">
               <div className="flex items-center gap-3.5">
                 {/* Logo Store Avatar */}
-                <div className="relative w-12 h-12 rounded-2xl bg-black border-2 border-amber-400/60 p-1 flex items-center justify-center shadow-lg shadow-amber-500/10 overflow-hidden flex-shrink-0">
+                <div className="relative w-12 h-12 rounded-2xl bg-black border border-slate-900 p-1 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
                   <Image
                     src="/haven-logo.png"
                     alt="HAVEN Logo"
@@ -458,32 +458,26 @@ export default function ChatSupport() {
                     className="object-contain"
                     priority
                   />
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full" />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-extrabold tracking-wide text-white">
-                      HAVEN AI
-                    </h3>
-                    <span className="px-2 py-0.5 text-[10px] font-extrabold bg-amber-400/20 text-amber-300 border border-amber-400/40 rounded-md tracking-wider flex items-center gap-1">
-                      <Sparkles size={10} className="text-amber-400" />
-                      GEMINI
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-0.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <h3 className="text-base sm:text-lg font-black tracking-tight text-slate-950">
+                    HAVEN AI
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Trực tuyến · Trợ lý thời trang cao cấp
                   </p>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-1.5 text-slate-400">
+              <div className="flex items-center gap-1.5 text-slate-500">
                 <button
                   onClick={handleResetChat}
                   title="Làm mới đoạn chat"
-                  className="p-2 hover:bg-white/10 hover:text-white rounded-xl transition-colors cursor-pointer"
+                  className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer"
                   aria-label="Làm mới"
                 >
                   <RotateCcw size={18} />
@@ -491,7 +485,7 @@ export default function ChatSupport() {
                 <button
                   onClick={() => setIsOpen(false)}
                   title="Đóng chat"
-                  className="p-2 hover:bg-white/10 hover:text-white rounded-xl transition-colors cursor-pointer"
+                  className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer"
                   aria-label="Đóng"
                 >
                   <X size={20} />
@@ -499,9 +493,9 @@ export default function ChatSupport() {
               </div>
             </div>
 
-            {/* ── KHUNG TIN NHẮN (ẨN THANH CUỘN, DỄ ĐỌC) ── */}
+            {/* ── KHUNG TIN NHẮN NỀN TRẮNG / OFF-WHITE ── */}
             <div 
-              className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 bg-[#070b14]/95 hide-scrollbar"
+              className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 bg-[#f8fafc] hide-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {messages.map((msg) => (
@@ -514,13 +508,13 @@ export default function ChatSupport() {
                 >
                   <div className={`flex gap-3 max-w-[90%] sm:max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                     {/* Avatar Bubble */}
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-md">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-xs">
                       {msg.sender === 'user' ? (
-                        <div className="w-full h-full bg-gradient-to-br from-amber-500 to-amber-600 text-black font-bold flex items-center justify-center">
+                        <div className="w-full h-full bg-[#0f172a] text-white font-bold flex items-center justify-center">
                           <User size={16} />
                         </div>
                       ) : (
-                        <div className="w-full h-full bg-black border border-amber-500/40 p-0.5 flex items-center justify-center">
+                        <div className="w-full h-full bg-black p-0.5 flex items-center justify-center">
                           <Image
                             src="/haven-logo.png"
                             alt="HAVEN"
@@ -534,53 +528,52 @@ export default function ChatSupport() {
 
                     {/* Bubble Content */}
                     <div
-                      className={`p-3.5 sm:p-4 rounded-2xl shadow-md ${
+                      className={`p-3.5 sm:p-4 rounded-2xl shadow-xs ${
                         msg.sender === 'user'
-                          ? 'bg-[#C9A227] text-black font-semibold rounded-tr-none'
-                          : 'bg-[#1e293b] text-slate-100 border border-slate-700/80 rounded-tl-none'
+                          ? 'bg-[#0f172a] text-white font-medium rounded-tr-none'
+                          : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
                       }`}
                     >
                       <FormattedText text={msg.text} />
-                      <p className={`text-[10px] mt-2 font-mono ${msg.sender === 'user' ? 'text-black/60 text-right' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] mt-2 font-mono ${msg.sender === 'user' ? 'text-white/60 text-right' : 'text-slate-400'}`}>
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
 
-                  {/* ── THẺ GỢI Ý SẢN PHẨM SANG TRỌNG ── */}
+                  {/* ── THẺ GỢI Ý SẢN PHẨM NỀN TRẮNG ── */}
                   {msg.sender === 'bot' && msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
                     <div className="ml-11 mt-3 flex flex-col gap-2.5 w-full max-w-[340px]">
-                      <p className="text-[11px] font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles size={12} />
+                      <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                         Gợi ý sản phẩm phù hợp:
                       </p>
                       {msg.suggestedProducts.map((p) => (
                         <Link
                           key={p.id}
                           href={`/product/${getProductSlug(p)}`}
-                          className="flex items-center gap-3.5 p-2.5 bg-[#141d2e] hover:bg-[#1e2a42] rounded-2xl border border-slate-700/90 hover:border-amber-400 shadow-md transition-all group"
+                          className="flex items-center gap-3.5 p-2.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 hover:border-slate-400 shadow-2xs transition-all group"
                           onClick={() => setIsOpen(false)}
                         >
                           {p.image ? (
-                            <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-black border border-slate-700">
+                            <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
                               <Image
                                 src={p.image}
                                 alt={p.name}
                                 fill
-                                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                             </div>
                           ) : (
-                            <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500 text-xs">
+                            <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
                               Ảnh
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs sm:text-sm font-bold text-slate-100 truncate group-hover:text-amber-400 transition-colors">
+                            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#1e40af] transition-colors">
                               {p.name}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs sm:text-sm font-black text-amber-400">
+                              <span className="text-xs sm:text-sm font-black text-[#1e40af]">
                                 {p.price.toLocaleString('vi-VN')}đ
                               </span>
                               {Boolean(p.originalPrice && p.originalPrice > p.price) && (
@@ -590,12 +583,12 @@ export default function ChatSupport() {
                               )}
                             </div>
                             {p.flashSale && (
-                              <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">
+                              <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 bg-red-100 text-red-600 border border-red-200 rounded font-bold">
                                 ⚡ FLASH SALE
                               </span>
                             )}
                           </div>
-                          <div className="w-8 h-8 rounded-xl bg-slate-800 group-hover:bg-amber-400 group-hover:text-black text-slate-300 flex items-center justify-center transition-all flex-shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-[#0f172a] group-hover:text-white text-slate-500 flex items-center justify-center transition-all flex-shrink-0">
                             <ChevronRight size={16} />
                           </div>
                         </Link>
@@ -608,7 +601,7 @@ export default function ChatSupport() {
               {/* Typing indicator */}
               {isLoading && (
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-black border border-amber-500/40 p-0.5 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-black p-0.5 flex items-center justify-center flex-shrink-0">
                     <Image
                       src="/haven-logo.png"
                       alt="HAVEN"
@@ -617,11 +610,11 @@ export default function ChatSupport() {
                       className="object-contain"
                     />
                   </div>
-                  <div className="bg-[#1e293b] border border-slate-700/80 px-4 py-3 rounded-2xl rounded-tl-none shadow-md flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:300ms]" />
-                    <span className="text-xs text-slate-400 ml-2 font-medium">HAVEN AI đang soạn câu trả lời...</span>
+                  <div className="bg-white border border-slate-200 px-4 py-3 rounded-2xl rounded-tl-none shadow-xs flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-slate-800 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-2 h-2 bg-slate-800 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-2 h-2 bg-slate-800 rounded-full animate-bounce [animation-delay:300ms]" />
+                    <span className="text-xs text-slate-500 ml-2 font-medium">HAVEN AI đang soạn câu trả lời...</span>
                   </div>
                 </div>
               )}
@@ -631,7 +624,7 @@ export default function ChatSupport() {
 
             {/* ── GỢI Ý CÂU HỎI NHANH ── */}
             <div 
-              className="px-4 py-2.5 bg-[#0f172a] border-t border-slate-800 flex gap-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
+              className="px-4 py-2.5 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {DEFAULT_SUGGESTION_CHIPS.map((chip) => (
@@ -639,15 +632,15 @@ export default function ChatSupport() {
                   key={chip}
                   onClick={() => handleSend(chip)}
                   disabled={isLoading}
-                  className="flex-shrink-0 px-3.5 py-1.5 bg-[#1e293b] hover:bg-[#C9A227] hover:text-black text-slate-300 text-xs font-semibold rounded-full border border-slate-700/80 transition-all disabled:opacity-50 cursor-pointer"
+                  className="flex-shrink-0 px-3.5 py-1.5 bg-slate-100 hover:bg-[#0f172a] hover:text-white text-slate-700 text-xs font-semibold rounded-full border border-slate-200 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
                 >
                   {chip}
                 </button>
               ))}
             </div>
 
-            {/* ── KHUNG NHẬP TIN NHẮN ── */}
-            <div className="p-3.5 sm:p-4 bg-[#0d131f] border-t border-slate-800 flex-shrink-0">
+            {/* ── KHUNG NHẬP TIN NHẮN NỀN TRẮNG ── */}
+            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex-shrink-0">
               <div className="relative flex items-center gap-2">
                 <input
                   ref={inputRef}
@@ -662,12 +655,12 @@ export default function ChatSupport() {
                   }}
                   placeholder="Hỏi về giá, kích thước, phối đồ..."
                   disabled={isLoading}
-                  className="flex-1 pl-4 pr-4 py-3.5 bg-[#070b14] border border-slate-700 rounded-2xl text-sm sm:text-base text-white focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-slate-500 disabled:opacity-60"
+                  className="flex-1 pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm sm:text-base text-slate-900 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all placeholder:text-slate-400 disabled:opacity-60"
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={!inputValue.trim() || isLoading}
-                  className="p-3.5 bg-gradient-to-r from-amber-400 to-amber-500 text-black font-extrabold rounded-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-40 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed flex-shrink-0 shadow-lg shadow-amber-500/20 cursor-pointer"
+                  className="p-3.5 bg-[#0f172a] hover:bg-[#1e40af] text-white font-bold rounded-2xl active:scale-95 transition-all disabled:opacity-40 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex-shrink-0 shadow-md cursor-pointer"
                   aria-label="Gửi tin nhắn"
                 >
                   {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
@@ -675,17 +668,15 @@ export default function ChatSupport() {
               </div>
 
               <div className="flex items-center justify-between mt-2.5 px-1 text-[11px] text-slate-400 font-medium">
-                <span className="flex items-center gap-1 text-amber-400">
-                  <Sparkles size={11} /> Powered by Gemini AI
-                </span>
                 <span>HAVEN Fashion</span>
+                <span>Trợ lý thời trang trực tuyến</span>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── NÚT BẤM NỔI (CHỈ HIỆN KHI ĐANG ĐÓNG) ── */}
+      {/* ── NÚT BẤM NỔI NỀN TRẮNG (CHỈ HIỆN KHI ĐANG ĐÓNG) ── */}
       {!isOpen && (
         <motion.button
           onClick={() => {
@@ -694,11 +685,11 @@ export default function ChatSupport() {
           }}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-3 p-2.5 sm:px-4 sm:py-3 rounded-full shadow-2xl transition-all duration-300 border bg-gradient-to-r from-[#090d16] via-[#111827] to-[#090d16] border-amber-500/50 text-white hover:border-amber-400 hover:shadow-[0_0_25px_rgba(201,162,39,0.4)] cursor-pointer"
+          className="group relative flex items-center gap-3 p-2.5 sm:px-4 sm:py-3 rounded-full shadow-xl transition-all duration-300 border border-slate-200 bg-white text-slate-900 hover:border-slate-400 hover:shadow-2xl cursor-pointer"
           aria-label="Mở chat HAVEN AI"
         >
           {/* Logo Avatar */}
-          <div className="relative w-11 h-11 rounded-full bg-black border border-amber-500/60 p-1 flex items-center justify-center flex-shrink-0 shadow-md">
+          <div className="relative w-11 h-11 rounded-full bg-black border border-slate-900 p-1 flex items-center justify-center flex-shrink-0 shadow-sm">
             <Image
               src="/haven-logo.png"
               alt="HAVEN Logo"
@@ -706,15 +697,15 @@ export default function ChatSupport() {
               height={32}
               className="object-contain"
             />
-            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-slate-950 animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white animate-pulse" />
           </div>
 
           {/* Text Button Label */}
           <div className="hidden sm:flex flex-col text-left pr-2">
-            <span className="text-xs font-black tracking-wider text-amber-400 uppercase flex items-center gap-1">
-              HAVEN AI <Sparkles size={10} />
+            <span className="text-xs font-black tracking-wider text-slate-900 uppercase">
+              HAVEN AI
             </span>
-            <span className="text-[11px] text-slate-300 font-medium">Tư vấn thời trang</span>
+            <span className="text-[11px] text-slate-500 font-medium">Tư vấn thời trang</span>
           </div>
 
           {/* Unread badge */}
