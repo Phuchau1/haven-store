@@ -29,22 +29,22 @@ const TRUST_ITEMS = [
 
 export default function TrustBar() {
     return (
-        <div className="bg-white border-y border-slate-150">
+        <div className="bg-white border-y border-gray-100">
             <div className="container-torano">
-                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100">
+                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
                     {TRUST_ITEMS.map(({ icon: Icon, title, subtitle }) => (
                         <div
                             key={title}
-                            className="group flex items-center justify-center gap-3 px-4 py-4 md:py-5 hover:bg-slate-50/80 transition-all duration-200"
+                            className="flex items-center justify-center gap-3 px-4 py-4 md:py-5 hover:bg-gray-50 transition-colors duration-200"
                         >
-                            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#1e40af] group-hover:bg-[#d97706] flex items-center justify-center transition-colors duration-300 shadow-xs">
-                                <Icon size={18} className="text-amber-400 group-hover:text-white transition-colors" strokeWidth={2} />
+                            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-black flex items-center justify-center">
+                                <Icon size={16} className="text-white" strokeWidth={2} />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[13.5px] font-bold text-slate-900 leading-tight truncate group-hover:text-amber-700 transition-colors">
+                                <p className="text-[13px] font-semibold text-gray-900 leading-tight truncate">
                                     {title}
                                 </p>
-                                <p className="text-[11px] text-slate-500 mt-0.5 truncate hidden sm:block font-medium">
+                                <p className="text-[11px] text-gray-500 mt-0.5 truncate hidden sm:block">
                                     {subtitle}
                                 </p>
                             </div>
