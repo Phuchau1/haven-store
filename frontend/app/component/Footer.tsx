@@ -8,16 +8,16 @@ import { Instagram, Facebook, MapPin, Phone, Mail, Clock } from 'lucide-react';
 
 export default function Footer() {
     return (
-        <footer className="bg-[#111111] border-t border-[#222222]">
-            <div className="container-torano py-20 lg:py-24">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
-                    {/* Brand Info */}
-                    <div className="lg:col-span-1">
-                        <Link href="/" className="inline-block bg-white px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors mb-4">
+        <footer className="bg-white border-t border-slate-200 text-slate-900">
+            <div className="container-torano py-16 lg:py-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12">
+                    {/* Col 1: Brand Info (Cols 4) */}
+                    <div className="lg:col-span-4">
+                        <Link href="/" className="inline-block mb-3">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/logo-new.png" alt="HAVEN" className="h-[64px] w-auto object-contain drop-shadow-sm" />
+                            <img src="/logo-new.png" alt="HAVEN" className="h-[56px] w-auto object-contain drop-shadow-xs" />
                         </Link>
-                        <p className="mt-6 text-sm text-[#BDBDBD] leading-relaxed font-normal">
+                        <p className="text-sm text-slate-600 leading-relaxed font-normal max-w-sm">
                             Thương hiệu thời trang hàng đầu Việt Nam. Chúng tôi mang đến những sản phẩm
                             chất lượng cao với giá cả hợp lý nhất.
                         </p>
@@ -26,24 +26,24 @@ export default function Footer() {
                             <motion.a
                                 href="#"
                                 whileHover={{ scale: 1.1, y: -2 }}
-                                className="w-9 h-9 rounded-full bg-[#222222] flex items-center justify-center text-[#BDBDBD] hover:bg-[#C9A227] hover:text-[#111111] transition-all duration-300"
+                                className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 hover:bg-slate-950 hover:text-white transition-all duration-300 shadow-2xs"
                                 aria-label="Instagram"
                             >
-                                <Instagram size={15} />
+                                <Instagram size={16} />
                             </motion.a>
                             <motion.a
                                 href="#"
                                 whileHover={{ scale: 1.1, y: -2 }}
-                                className="w-9 h-9 rounded-full bg-[#222222] flex items-center justify-center text-[#BDBDBD] hover:bg-[#C9A227] hover:text-[#111111] transition-all duration-300"
+                                className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 hover:bg-slate-950 hover:text-white transition-all duration-300 shadow-2xs"
                                 aria-label="Facebook"
                             >
-                                <Facebook size={15} />
+                                <Facebook size={16} />
                             </motion.a>
                             {/* TikTok */}
                             <motion.a
                                 href="#"
                                 whileHover={{ scale: 1.1, y: -2 }}
-                                className="w-9 h-9 rounded-full bg-[#222222] flex items-center justify-center text-[#BDBDBD] hover:bg-[#C9A227] hover:text-[#111111] transition-all duration-300"
+                                className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 hover:bg-slate-950 hover:text-white transition-all duration-300 shadow-2xs"
                                 aria-label="TikTok"
                             >
                                 <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
@@ -53,10 +53,12 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {/* Quick Links */}
-                    <div>
-                        <h3 className="text-sm font-semibold text-white tracking-wide uppercase mb-4">Liên kết nhanh</h3>
-                        <ul className="space-y-3">
+                    {/* Col 2: Quick Links (Cols 2.5) */}
+                    <div className="lg:col-span-2.5">
+                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4">
+                            LIÊN KẾT NHANH
+                        </h3>
+                        <ul className="space-y-2.5">
                             {[
                                 { href: '/products', label: 'Tất cả sản phẩm' },
                                 { href: '/products?category=quan-ao', label: 'Quần áo' },
@@ -68,19 +70,22 @@ export default function Footer() {
                                 <li key={link.label}>
                                     <Link
                                         href={link.href}
-                                        className="text-sm text-[#BDBDBD] hover:text-[#C9A227] transition-colors font-normal"
+                                        className="group inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors"
                                     >
-                                        {link.label}
+                                        <span className="text-slate-400 group-hover:text-slate-950 text-xs transition-colors">›</span>
+                                        <span>{link.label}</span>
                                     </Link>
                                 </li>
                             ))}
                         </ul>
                     </div>
 
-                    {/* Policies */}
-                    <div>
-                        <h3 className="text-sm font-semibold text-white tracking-wide uppercase mb-4">Chính sách</h3>
-                        <ul className="space-y-3">
+                    {/* Col 3: Policies (Cols 2.5) */}
+                    <div className="lg:col-span-2.5">
+                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4">
+                            CHÍNH SÁCH
+                        </h3>
+                        <ul className="space-y-2.5">
                             {[
                                 'Chính sách đổi trả',
                                 'Chính sách bảo mật',
@@ -89,33 +94,47 @@ export default function Footer() {
                                 'Câu hỏi thường gặp',
                             ].map((item) => (
                                 <li key={item}>
-                                    <Link href="#" className="text-sm text-[#BDBDBD] hover:text-[#C9A227] transition-colors font-normal">
-                                        {item}
+                                    <Link 
+                                        href="#" 
+                                        className="group inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors"
+                                    >
+                                        <span className="text-slate-400 group-hover:text-slate-950 text-xs transition-colors">›</span>
+                                        <span>{item}</span>
                                     </Link>
                                 </li>
                             ))}
                         </ul>
                     </div>
 
-                    {/* Contact Info */}
-                    <div>
-                        <h3 className="text-sm font-semibold text-white tracking-wide uppercase mb-4">Liên hệ</h3>
+                    {/* Col 4: Contact Info (Cols 3) */}
+                    <div className="lg:col-span-3">
+                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4">
+                            LIÊN HỆ
+                        </h3>
                         <ul className="space-y-3">
                             <li className="flex items-start gap-3">
-                                <MapPin size={15} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm text-[#BDBDBD] font-normal">123 Nguyễn Huệ, Quận 1, TP. HCM</span>
+                                <MapPin size={16} className="text-slate-500 mt-0.5 shrink-0" />
+                                <span className="text-sm text-slate-600 font-medium leading-tight">
+                                    123 Nguyễn Huệ, Quận 1, TP. HCM
+                                </span>
                             </li>
                             <li className="flex items-center gap-3">
-                                <Phone size={15} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm text-[#BDBDBD] font-normal">1900 8888</span>
+                                <Phone size={16} className="text-slate-500 shrink-0" />
+                                <span className="text-sm text-slate-600 font-medium">
+                                    1900 8888
+                                </span>
                             </li>
                             <li className="flex items-center gap-3">
-                                <Mail size={15} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm text-[#BDBDBD] font-normal">support@phstore.vn</span>
+                                <Mail size={16} className="text-slate-500 shrink-0" />
+                                <span className="text-sm text-slate-600 font-medium">
+                                    support@phstore.vn
+                                </span>
                             </li>
                             <li className="flex items-center gap-3">
-                                <Clock size={15} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm text-[#BDBDBD] font-normal">8:00 - 22:00 hàng ngày</span>
+                                <Clock size={16} className="text-slate-500 shrink-0" />
+                                <span className="text-sm text-slate-600 font-medium">
+                                    8:00 - 22:00 hàng ngày
+                                </span>
                             </li>
                         </ul>
                     </div>
@@ -123,19 +142,26 @@ export default function Footer() {
             </div>
 
             {/* Bottom bar */}
-            <div className="border-t border-[#222222] py-6">
+            <div className="border-t border-slate-150 py-5 bg-slate-50/60">
                 <div className="container-torano flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="text-xs text-gray-400 font-light">
+                    <p className="text-xs text-slate-500 font-medium">
                         © 2026 HAVEN STORE. All rights reserved. Designed by Hậu.
                     </p>
-                    <div className="flex items-center gap-4">
-                        <span className="text-xs text-gray-400 font-light">Chấp nhận:</span>
-                        <div className="flex items-center gap-2">
-                            {['VISA', 'MC', 'MOMO', 'COD'].map((method) => (
-                                <span key={method} className="px-2 py-1 bg-[#222222] text-[10px] font-medium text-[#BDBDBD] rounded">
-                                    {method}
-                                </span>
-                            ))}
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500 font-medium">Chấp nhận:</span>
+                        <div className="flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 bg-white border border-slate-200 text-[#1a1f71] font-black text-[11px] rounded shadow-2xs">
+                                VISA
+                            </span>
+                            <span className="px-2.5 py-1 bg-white border border-slate-200 text-[#eb001b] font-black text-[11px] rounded shadow-2xs">
+                                <span className="text-[#eb001b]">●</span><span className="text-[#f79e1b]">●</span>
+                            </span>
+                            <span className="px-2.5 py-1 bg-[#a50064] text-white font-bold text-[10px] rounded shadow-2xs">
+                                momo
+                            </span>
+                            <span className="px-2.5 py-1 bg-[#008fe5] text-white font-bold text-[10px] rounded shadow-2xs">
+                                ZaloPay
+                            </span>
                         </div>
                     </div>
                 </div>

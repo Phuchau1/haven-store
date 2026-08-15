@@ -54,64 +54,56 @@ export default function Newsletter() {
     };
 
     return (
-        <section className="py-20 lg:py-28 bg-black text-white relative overflow-hidden">
-            {/* Background luxury glow */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-amber-500/10 rounded-full blur-[140px]" />
-                <div className="absolute -bottom-20 left-1/4 w-80 h-80 bg-white/5 rounded-full blur-[100px]" />
-            </div>
+        <section className="py-10 lg:py-14 bg-white">
+            <div className="container-torano">
+                <div className="relative rounded-3xl bg-gradient-to-r from-slate-100 via-[#f8fafc] to-slate-100/90 border border-slate-200/90 p-8 sm:p-12 lg:p-14 overflow-hidden shadow-xs">
+                    {/* Background subtle luxury accent */}
+                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-slate-200/40 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <span className="text-[11px] sm:text-xs tracking-[3px] uppercase text-amber-400/90 font-medium block">
-                        Đăng Ký Nhận Tin
-                    </span>
-                    
-                    <h2 className="mt-4 text-3xl sm:text-4xl lg:text-6xl font-black tracking-tight text-white">
-                        Không bỏ lỡ ưu đãi
-                    </h2>
+                    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        {/* Left Column: Heading & Description in crisp black */}
+                        <div className="lg:col-span-6 text-left">
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-950 uppercase">
+                                Đăng ký nhận tin
+                            </h2>
+                            <p className="mt-2.5 text-sm sm:text-base text-slate-600 font-normal leading-relaxed max-w-lg">
+                                Nhận ngay ưu đãi độc quyền và cập nhật những bộ sưu tập mới nhất từ HAVEN.
+                            </p>
+                        </div>
 
-                    <p className="mt-5 text-gray-300 font-normal text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-                        Đăng ký để nhận thông tin về sản phẩm mới, khuyến mãi độc quyền và <br className="hidden sm:inline" />
-                        giảm ngay <strong>10%</strong> cho đơn hàng đầu tiên.
-                    </p>
-                </motion.div>
+                        {/* Right Column: Pill Form */}
+                        <div className="lg:col-span-6">
+                            <form
+                                onSubmit={handleSubmit}
+                                className="flex flex-col sm:flex-row items-center gap-2 bg-white p-2 rounded-2xl sm:rounded-full border border-slate-300 shadow-sm focus-within:border-slate-900 transition-all"
+                            >
+                                <div className="flex items-center gap-2.5 flex-1 px-4 py-2 w-full">
+                                    <Send size={16} className="text-slate-400 shrink-0 rotate-[-10deg]" />
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Nhập email của bạn..."
+                                        className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none font-medium"
+                                        required
+                                        disabled={loading}
+                                    />
+                                </div>
 
-                {/* Form Pill Design */}
-                <motion.form
-                    onSubmit={handleSubmit}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-xl mx-auto"
-                >
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Nhập email của bạn..."
-                        className="w-full sm:w-[360px] px-7 py-4 bg-white rounded-full text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all font-medium shadow-lg"
-                        required
-                        disabled={loading}
-                    />
-
-                    <motion.button
-                        type="submit"
-                        disabled={loading}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-gray-100 text-black rounded-full text-xs font-bold tracking-[2px] uppercase whitespace-nowrap transition-all shadow-lg flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
-                    >
-                        <Send size={15} className="rotate-[-15deg] text-black" />
-                        <span>{loading ? 'ĐANG GỬI...' : 'ĐĂNG KÝ NGAY'}</span>
-                    </motion.button>
-                </motion.form>
+                                <motion.button
+                                    type="submit"
+                                    disabled={loading}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="w-full sm:w-auto px-7 py-3.5 bg-[#0f172a] hover:bg-[#1e40af] text-white rounded-xl sm:rounded-full text-xs font-black tracking-wider uppercase whitespace-nowrap transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                >
+                                    <Send size={13} className="text-white" />
+                                    <span>{loading ? 'ĐANG GỬI...' : 'ĐĂNG KÝ NGAY'}</span>
+                                </motion.button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Modal hiển thị Mã Ưu Đãi sau khi đăng ký thành công */}
