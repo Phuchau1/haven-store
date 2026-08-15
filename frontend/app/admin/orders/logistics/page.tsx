@@ -37,29 +37,39 @@ interface OrderData {
     trackingNumber?: string;
     items: OrderItem[];
     createdAt?: string;
+    returnRequest?: {
+        status: string;
+        reason: string;
+        images?: string[];
+        requestedAt?: string;
+        reviewedAt?: string;
+        reviewedBy?: string;
+        rejectReason?: string;
+    };
+    shippingTimeline?: any[];
 }
 
 // ─── Status display map ───────────────────────────────────────────────────────
 const STATUS_LABEL: Record<string, string> = {
-    pending:              'Chờ xác nhận',
-    confirmed:            'Đã xác nhận',
-    processing:           'Đang đóng gói',
-    waiting_pickup:       'Chờ lấy hàng',
-    picked_up:            'Đã lấy hàng',
-    in_transit:           'Đang vận chuyển',
-    out_for_delivery:     'Đang giao đến khách',
-    shipped:              'Đang vận chuyển',
+    pending:              '⏳ Chờ xác nhận',
+    confirmed:            '🔵 Đã xác nhận',
+    processing:           '📦 Đang đóng gói',
+    waiting_pickup:       '🚚 Chờ lấy hàng',
+    picked_up:            '🚚 Đã lấy hàng',
+    in_transit:           '🚚 Đang vận chuyển',
+    out_for_delivery:     '🛵 Đang giao đến khách',
+    shipped:              '🚚 Đang vận chuyển',
     delivered:            '✅ Giao thành công',
     completed:            '✅ Hoàn tất',
-    awaiting_review:      'Chờ đánh giá',
-    reviewed:             'Đã đánh giá',
+    awaiting_review:      '⭐ Chờ đánh giá',
+    reviewed:             '⭐ Đã đánh giá',
     return_requested:     '⏳ Chờ duyệt hoàn',
-    returning:            '↩️ Đang hoàn hàng',
-    return_received:      'Shop nhận hàng trả',
-    refunded:             '💚 Đã hoàn tiền',
+    returning:            '🚚 Đang hoàn hàng',
+    return_received:      '📦 Shop nhận hàng trả',
+    refunded:             '💰 Đã hoàn tiền',
     cancelled:            '❌ Đã hủy',
-    delivery_failed:      'Giao hàng thất bại',
-    returned_to_seller:   'Hoàn về shop',
+    delivery_failed:      '⚠️ Giao hàng thất bại',
+    returned_to_seller:   '↩️ Hoàn về shop',
 };
 
 const STATUS_BADGE: Record<string, string> = {
@@ -75,10 +85,10 @@ const STATUS_BADGE: Record<string, string> = {
     completed:            'bg-emerald-50 text-emerald-700 border-emerald-200',
     awaiting_review:      'bg-teal-50 text-teal-700 border-teal-200',
     reviewed:             'bg-teal-50 text-teal-700 border-teal-200',
-    return_requested:     'bg-amber-50 text-amber-800 border-amber-300',
-    returning:            'bg-orange-50 text-orange-700 border-orange-200',
-    return_received:      'bg-lime-50 text-lime-700 border-lime-200',
-    refunded:             'bg-rose-50 text-rose-700 border-rose-200',
+    return_requested:     'bg-amber-100 text-amber-900 border-amber-300 font-bold',
+    returning:            'bg-blue-50 text-blue-800 border-blue-200',
+    return_received:      'bg-teal-50 text-teal-800 border-teal-200',
+    refunded:             'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold',
     cancelled:            'bg-slate-100 text-slate-600 border-slate-200',
     delivery_failed:      'bg-rose-50 text-rose-700 border-rose-200',
     returned_to_seller:   'bg-orange-50 text-orange-700 border-orange-200',
@@ -91,6 +101,7 @@ const FILTER_TABS = [
     { id: 'in_transit',       label: '🚚 Đang vận chuyển' },
     { id: 'delivered',        label: '✅ Đã giao thành công' },
     { id: 'return_requested', label: '⏳ Chờ duyệt hoàn' },
+    { id: 'returns',          label: '↩️ Đang hoàn / Đã hoàn' },
     { id: 'cancelled',        label: '❌ Đã hủy' },
 ];
 
@@ -239,6 +250,90 @@ export default function LogisticsManagementPage() {
         }
     };
 
+    const handleReviewReturn = async (orderId: string, action: 'approve' | 'reject') => {
+        let rejectReason = '';
+        if (action === 'reject') {
+            const input = window.prompt('Nhập lý do từ chối yêu cầu hoàn hàng (tối thiểu 5 ký tự):');
+            if (!input || input.trim().length < 5) {
+                toast.error('Cần nhập lý do từ chối hợp lệ');
+                return;
+            }
+            rejectReason = input.trim();
+        }
+
+        setUpdatingStatus(true);
+        try {
+            const res = await fetch(`/api/orders/return-request/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action,
+                    rejectReason,
+                    adminName: 'Admin WMS'
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const newStatus = action === 'approve' ? 'returning' : 'delivered';
+                toast.success(action === 'approve' ? '✅ Đã chấp thuận yêu cầu hoàn hàng! (Chờ khách gửi về)' : '❌ Đã từ chối yêu cầu hoàn hàng');
+                setOrders(prev => prev.map(o => o.id === orderId ? {
+                    ...o,
+                    status: newStatus,
+                    returnRequest: o.returnRequest ? {
+                        ...o.returnRequest,
+                        status: action === 'approve' ? 'approved' : 'rejected',
+                        reviewedAt: new Date().toISOString(),
+                        rejectReason
+                    } : undefined
+                } : o));
+                if (viewingOrderDetail && viewingOrderDetail.id === orderId) {
+                    setViewingOrderDetail(prev => prev ? {
+                        ...prev,
+                        status: newStatus,
+                        returnRequest: prev.returnRequest ? {
+                            ...prev.returnRequest,
+                            status: action === 'approve' ? 'approved' : 'rejected',
+                            reviewedAt: new Date().toISOString(),
+                            rejectReason
+                        } : undefined
+                    } : null);
+                }
+            } else {
+                toast.error(data.message || 'Lỗi xử lý yêu cầu hoàn');
+            }
+        } catch {
+            toast.error('Lỗi kết nối máy chủ');
+        } finally {
+            setUpdatingStatus(false);
+        }
+    };
+
+    const handleConfirmRefund = async (orderId: string) => {
+        if (!window.confirm('Xác nhận đã nhận đủ hàng và đã hoàn tiền thành công cho khách hàng?')) return;
+        setUpdatingStatus(true);
+        try {
+            const res = await fetch(`/api/orders/return-received/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminName: 'Admin WMS' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success('💰 Đã xác nhận nhận hàng & hoàn tiền thành công!');
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'refunded' } : o));
+                if (viewingOrderDetail && viewingOrderDetail.id === orderId) {
+                    setViewingOrderDetail(prev => prev ? { ...prev, status: 'refunded' } : null);
+                }
+            } else {
+                toast.error(data.message || 'Lỗi xác nhận hoàn tiền');
+            }
+        } catch {
+            toast.error('Lỗi kết nối máy chủ');
+        } finally {
+            setUpdatingStatus(false);
+        }
+    };
+
     // Filter orders
     const filteredOrders = orders.filter(o => {
         const s = search.toLowerCase();
@@ -262,6 +357,9 @@ export default function LogisticsManagementPage() {
         }
         if (filterTab === 'return_requested') {
             return o.status === 'return_requested';
+        }
+        if (filterTab === 'returns') {
+            return ['returning', 'return_received', 'refunded', 'returned_to_seller'].includes(o.status);
         }
         if (filterTab === 'cancelled') {
             return o.status === 'cancelled';
@@ -504,36 +602,167 @@ export default function LogisticsManagementPage() {
 
                             {/* Body Modal (Scrollable) */}
                             <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-                                {/* Thao tác cập nhật trạng thái nhanh */}
-                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
-                                    <label className="block font-bold text-slate-900 uppercase tracking-wider text-[11px]">
-                                        Cập Nhật Trạng Thái Đơn Hàng:
-                                    </label>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        {[
-                                            { val: 'pending',    label: 'Chờ xác nhận' },
-                                            { val: 'confirmed',  label: 'Đã xác nhận' },
-                                            { val: 'processing', label: 'Đang đóng gói' },
-                                            { val: 'shipped',    label: 'Đang vận chuyển' },
-                                            { val: 'delivered',  label: 'Giao thành công' },
-                                            { val: 'cancelled',  label: 'Hủy đơn hàng' },
-                                        ].map(st => (
-                                            <button
-                                                key={st.val}
-                                                type="button"
-                                                disabled={updatingStatus}
-                                                onClick={() => handleUpdateStatus(viewingOrderDetail.id, st.val)}
-                                                className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                                                    viewingOrderDetail.status === st.val
-                                                        ? 'bg-slate-900 text-white shadow-xs'
-                                                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                                                }`}
-                                            >
-                                                {st.label}
-                                            </button>
-                                        ))}
+                                {/* Thao tác cập nhật trạng thái nhanh & chuẩn Doanh Nghiệp */}
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                                            <Layers size={13} className="text-indigo-600" />
+                                            Cập Nhật Trạng Thái Đơn Hàng:
+                                        </label>
+                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase ${STATUS_BADGE[viewingOrderDetail.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                                            {STATUS_LABEL[viewingOrderDetail.status] || viewingOrderDetail.status}
+                                        </span>
+                                    </div>
+
+                                    {/* Nhóm 1: Tiến trình giao hàng */}
+                                    <div className="space-y-1.5">
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tiến Trình Giao Hàng:</p>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {[
+                                                { val: 'pending',    label: '⏳ Chờ xác nhận' },
+                                                { val: 'confirmed',  label: '🔵 Đã xác nhận' },
+                                                { val: 'processing', label: '📦 Đang đóng gói' },
+                                                { val: 'shipped',    label: '🚚 Đang vận chuyển' },
+                                                { val: 'delivered',  label: '✅ Giao thành công' },
+                                                { val: 'cancelled',  label: '❌ Hủy đơn hàng' },
+                                            ].map(st => (
+                                                <button
+                                                    key={st.val}
+                                                    type="button"
+                                                    disabled={updatingStatus}
+                                                    onClick={() => handleUpdateStatus(viewingOrderDetail.id, st.val)}
+                                                    className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                                                        viewingOrderDetail.status === st.val
+                                                            ? 'bg-slate-900 text-white shadow-xs'
+                                                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                                    }`}
+                                                >
+                                                    {st.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Nhóm 2: Tiến trình hoàn tiền / đổi trả */}
+                                    <div className="pt-2.5 border-t border-slate-200/60 space-y-1.5">
+                                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                                            <RotateCcw size={11} /> Tiến Trình Trả Hàng & Hoàn Tiền:
+                                        </p>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {[
+                                                { val: 'return_requested', label: '⏳ Chờ duyệt hoàn' },
+                                                { val: 'returning',        label: '🚚 Đang gửi trả' },
+                                                { val: 'return_received',  label: '📦 Shop đã nhận hàng trả' },
+                                                { val: 'refunded',         label: '💰 Đã hoàn tiền' },
+                                            ].map(st => (
+                                                <button
+                                                    key={st.val}
+                                                    type="button"
+                                                    disabled={updatingStatus}
+                                                    onClick={() => handleUpdateStatus(viewingOrderDetail.id, st.val)}
+                                                    className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                                                        viewingOrderDetail.status === st.val
+                                                            ? 'bg-amber-600 text-white shadow-xs'
+                                                            : 'bg-white border border-amber-200 text-amber-800 hover:bg-amber-50'
+                                                    }`}
+                                                >
+                                                    {st.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* Hồ Sơ Yêu Cầu Trả Hàng / Hoàn Tiền nếu có */}
+                                {(viewingOrderDetail.returnRequest || ['return_requested', 'returning', 'return_received', 'refunded'].includes(viewingOrderDetail.status)) && (
+                                    <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-3">
+                                        <div className="flex items-center justify-between border-b border-amber-200/60 pb-2">
+                                            <h4 className="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                                                <ShieldAlert size={15} className="text-amber-600" />
+                                                Hồ Sơ Yêu Cầu Trả Hàng / Hoàn Tiền
+                                            </h4>
+                                            <span className="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full bg-amber-200/70 text-amber-900">
+                                                {viewingOrderDetail.returnRequest?.status === 'pending' ? '⏳ Chờ Admin xét duyệt' :
+                                                 viewingOrderDetail.returnRequest?.status === 'approved' ? '✅ Đã chấp thuận' :
+                                                 viewingOrderDetail.returnRequest?.status === 'rejected' ? '❌ Đã từ chối' : 'Yêu cầu hoàn'}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-1 text-xs text-amber-950">
+                                            <p><span className="font-bold text-amber-800">Lý do khách gửi:</span> {viewingOrderDetail.returnRequest?.reason || 'Khách yêu cầu hoàn hàng'}</p>
+                                            {viewingOrderDetail.returnRequest?.requestedAt && (
+                                                <p className="text-[11px] text-amber-700">Thời gian yêu cầu: {formatDate(viewingOrderDetail.returnRequest.requestedAt)}</p>
+                                            )}
+                                            {viewingOrderDetail.returnRequest?.rejectReason && (
+                                                <p className="text-[11px] text-rose-700 font-semibold">Lý do từ chối: {viewingOrderDetail.returnRequest.rejectReason}</p>
+                                            )}
+                                        </div>
+
+                                        {/* Ảnh bằng chứng khách gửi */}
+                                        {viewingOrderDetail.returnRequest?.images && viewingOrderDetail.returnRequest.images.length > 0 && (
+                                            <div className="space-y-1">
+                                                <p className="text-[11px] font-bold text-amber-900">Ảnh bằng chứng khách gửi ({viewingOrderDetail.returnRequest.images.length}):</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {viewingOrderDetail.returnRequest.images.map((img, i) => (
+                                                        <a key={i} href={img} target="_blank" rel="noreferrer" className="w-16 h-16 rounded-xl overflow-hidden border border-amber-200 hover:scale-105 transition-transform block bg-white">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img src={img} alt="Evidence" className="w-full h-full object-cover" />
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Nút hành động nhanh theo quy trình */}
+                                        <div className="pt-2 border-t border-amber-200/60 flex flex-wrap items-center gap-2">
+                                            {viewingOrderDetail.status === 'return_requested' && (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        disabled={updatingStatus}
+                                                        onClick={() => handleReviewReturn(viewingOrderDetail.id, 'approve')}
+                                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                                    >
+                                                        <Check size={14} /> Chấp Thuận Hoàn Hàng (Cho phép gửi về)
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={updatingStatus}
+                                                        onClick={() => handleReviewReturn(viewingOrderDetail.id, 'reject')}
+                                                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                                    >
+                                                        <X size={14} /> Từ Chối Yêu Cầu
+                                                    </button>
+                                                </>
+                                            )}
+                                            {viewingOrderDetail.status === 'returning' && (
+                                                <button
+                                                    type="button"
+                                                    disabled={updatingStatus}
+                                                    onClick={() => handleUpdateStatus(viewingOrderDetail.id, 'return_received')}
+                                                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                                >
+                                                    <Package size={14} /> Xác Nhận Đã Nhận Hàng Trả Về Kho
+                                                </button>
+                                            )}
+                                            {viewingOrderDetail.status === 'return_received' && (
+                                                <button
+                                                    type="button"
+                                                    disabled={updatingStatus}
+                                                    onClick={() => handleConfirmRefund(viewingOrderDetail.id)}
+                                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                                >
+                                                    <DollarSign size={14} /> Xác Nhận Đã Hoàn Tiền Thành Công
+                                                </button>
+                                            )}
+                                            {viewingOrderDetail.status === 'refunded' && (
+                                                <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                                                    <CheckCircle2 size={15} /> Đã hoàn tất hoàn tiền & xử lý đơn hàng.
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Thông tin khách hàng & Vận chuyển */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
