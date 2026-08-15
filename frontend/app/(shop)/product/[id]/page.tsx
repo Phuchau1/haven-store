@@ -54,6 +54,7 @@ export default function ProductDetailPage() {
     const [isLiked, setIsLiked] = useState(false);
     const [showAddedNotification, setShowAddedNotification] = useState(false);
     const [isTryOnOpen, setIsTryOnOpen] = useState(false);
+    const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 22, seconds: 10 });
 
     const { user } = useAuth();
     const { addProduct } = useRecentlyViewed(user?.id);
@@ -341,19 +342,83 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
 
-                        {/* Price */}
-                        <div className="flex items-baseline gap-3">
-                            <span className="text-3xl font-semibold text-black">{formatPrice(currentPrice)}</span>
-                            {currentOriginalPrice > 0 && (
-                                <>
-                                    <span className="text-lg text-gray-400 line-through">{formatPrice(currentOriginalPrice)}</span>
-                                    <span className="px-2 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded">-{discount}%</span>
-                                </>
-                            )}
-                            {product.isFlashSale && (
-                                <span className="px-2 py-1 bg-black text-white text-xs font-bold uppercase rounded animate-pulse ml-2">Flash Sale</span>
-                            )}
-                        </div>
+                        {/* Price & Flash Sale Shopee Banner */}
+                        {(product.isFlashSale || product.flashSale) ? (
+                            <div className="rounded-2xl overflow-hidden border border-orange-400/40 shadow-lg">
+                                {/* Shopee Flash Sale Top Bar */}
+                                <div className="bg-gradient-to-r from-[#ee4d2d] via-[#f25833] to-[#ff5722] px-4 py-2.5 flex items-center justify-between text-white shadow-sm">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-base select-none">⏰</span>
+                                        <span className="text-sm sm:text-base font-black tracking-wider uppercase drop-shadow-sm">
+                                            FLASH SALE
+                                        </span>
+                                    </div>
+
+                                    {/* Countdown Box */}
+                                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                                        <span className="hidden sm:inline text-orange-100 font-bold text-[11px] uppercase tracking-wider mr-1">
+                                            🕒 KẾT THÚC TRONG
+                                        </span>
+                                        <span className="sm:hidden text-orange-100 text-[11px] mr-0.5">
+                                            🕒
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-xs rounded shadow">
+                                                {String(timeLeft.hours).padStart(2, '0')}
+                                            </span>
+                                            <span className="font-bold">:</span>
+                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-xs rounded shadow">
+                                                {String(timeLeft.minutes).padStart(2, '0')}
+                                            </span>
+                                            <span className="font-bold">:</span>
+                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-xs rounded shadow">
+                                                {String(timeLeft.seconds).padStart(2, '0')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Shopee Price Box */}
+                                <div className="bg-[#fff7f4] p-4 sm:p-5 flex flex-col gap-2.5">
+                                    <div className="flex items-baseline gap-3 flex-wrap">
+                                        <span className="text-3xl sm:text-4xl font-black text-[#ee4d2d] tracking-tight">
+                                            {formatPrice(currentPrice)}
+                                        </span>
+                                        {currentOriginalPrice > currentPrice && (
+                                            <>
+                                                <span className="text-base sm:text-lg text-gray-400 line-through font-normal">
+                                                    {formatPrice(currentOriginalPrice)}
+                                                </span>
+                                                <span className="px-2 py-0.5 bg-red-100 text-[#ee4d2d] text-xs font-extrabold rounded-md uppercase border border-red-200">
+                                                    -{discount}%
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Voucher / Exclusive Flash Sale Tag */}
+                                    <div className="flex items-center gap-2 text-xs font-medium text-[#ee4d2d] flex-wrap">
+                                        <span className="px-2.5 py-1 bg-red-500/10 border border-[#ee4d2d]/30 rounded-md text-[11px] font-bold flex items-center gap-1">
+                                            ⚡ Giá Sau Voucher & Flash Sale
+                                        </span>
+                                        <span className="text-gray-500 text-[11px]">
+                                            Ưu đãi có hạn theo khung giờ hôm nay
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Standard Price for Normal Products */
+                            <div className="flex items-baseline gap-3">
+                                <span className="text-3xl font-semibold text-black">{formatPrice(currentPrice)}</span>
+                                {currentOriginalPrice > 0 && (
+                                    <>
+                                        <span className="text-lg text-gray-400 line-through">{formatPrice(currentOriginalPrice)}</span>
+                                        <span className="px-2 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded">-{discount}%</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                         {/* Description */}
                         <p className="text-sm text-gray-600 leading-relaxed font-light">{product.shortDescription || product.description}</p>
