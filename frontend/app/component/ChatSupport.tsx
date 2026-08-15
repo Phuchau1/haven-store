@@ -84,11 +84,11 @@ export default function ChatSupport() {
     const cleanReply = reply.replace(/SUGGEST_IDS:[\w\-,\s]+/i, '').trim();
 
     const suggested: SuggestedProduct[] = ids
-      .map((id) => products.find((p) => p.id === id))
-      .filter((p): p is Product => !!p && p.inStock)
+      .map((id) => products.find((p) => (p.id === id || (p as any)._id === id || (p as any)._id?.toString() === id)))
+      .filter((p): p is Product => !!p && (p.inStock !== false))
       .slice(0, 3)
       .map((p) => ({
-        id: p.id,
+        id: p.id || (p as any)._id?.toString() || '',
         name: p.name,
         price: p.price,
         image: p.images?.[0] || '',
@@ -279,24 +279,21 @@ QUY TẮC:
 
   // ── Call AI via Backend (secure) ──
   const callGemini = async (userMessage: string): Promise<string> => {
-    // 1. Try Backend AI API (uses server-side API Key & system prompt)
+    // 1. Try Backend AI API (uses server-side Gemini 3.7 Flash & real-time DB RAG)
     try {
-      const productList = products
-        .filter(p => p.inStock)
-        .map(p => `ID:${p.id} | ${p.name} | ${p.categoryLabel} | ${p.price.toLocaleString('vi-VN')}đ${p.originalPrice ? ` (gốc: ${p.originalPrice.toLocaleString('vi-VN')}đ)` : ''}${p.badge ? ` | ${p.badge}` : ''}`)
-        .join('\n');
-
-      const res = await fetch(`${BACKEND_URL}/api/ai/generate`, {
+      const res = await fetch(`${BACKEND_URL}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'chat',
-          messages: [...chatHistory, { role: 'user', parts: [{ text: userMessage }] }],
-          productContext: productList || null
+          message: userMessage,
+          history: chatHistory.map(turn => ({
+            role: turn.role === 'user' ? 'user' : 'ai',
+            text: turn.parts?.[0]?.text || ''
+          }))
         })
       });
       const data = await res.json();
-      if (data.success && data.text) return data.text;
+      if (data.success && data.reply) return data.reply;
     } catch (err) {
       console.error('Backend AI error, using fallback:', err);
     }
