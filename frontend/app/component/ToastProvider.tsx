@@ -102,8 +102,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         <ToastContext.Provider value={{ showToast, showConfirm }}>
             {children}
 
-            {/* ── Toast Stack ── */}
-            <div className="fixed top-5 right-5 z-[99999] flex flex-col gap-3 w-80 max-w-[calc(100vw-2.5rem)]">
+            {/* ── Toast Stack (Topmost above all modals) ── */}
+            <div className="fixed top-5 right-5 z-[9999999] flex flex-col gap-3 w-80 max-w-[calc(100vw-2.5rem)] pointer-events-auto">
                 <AnimatePresence initial={false}>
                     {toasts.map(toast => (
                         <ToastItem
@@ -206,7 +206,7 @@ function ConfirmDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
         >
             <motion.div

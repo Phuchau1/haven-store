@@ -58,25 +58,29 @@ export default function RootLayout({
               <LayoutShell>{children}</LayoutShell>
             </AuthProvider>
             <Toaster
-            position="bottom-right"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#111',
-                color: '#fff',
-                borderRadius: '12px',
-                padding: '12px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-              },
-              success: {
-                iconTheme: { primary: '#4ade80', secondary: '#111' },
-              },
-              error: {
-                iconTheme: { primary: '#f87171', secondary: '#111' },
-              },
-            }}
-          />
+              position="top-right"
+              containerStyle={{
+                zIndex: 9999999,
+              }}
+              toastOptions={{
+                duration: 3500,
+                style: {
+                  background: '#0f172a',
+                  color: '#fff',
+                  borderRadius: '16px',
+                  padding: '14px 20px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+                },
+                success: {
+                  iconTheme: { primary: '#10b981', secondary: '#fff' },
+                },
+                error: {
+                  iconTheme: { primary: '#ef4444', secondary: '#fff' },
+                },
+              }}
+            />
           </ToastProvider>
         </GoogleOAuthProvider>
       </body>
