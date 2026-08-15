@@ -61,19 +61,19 @@ const DEFAULT_SUGGESTION_CHIPS = [
   '⭐ Đánh giá cao nhất',
 ];
 
-// Helper render text with simple markdown (bold + links)
+// Helper render text with simple markdown (bold + links + high contrast)
 function FormattedText({ text }: { text: string }) {
   const parts = text.split('\n');
   return (
-    <div className="space-y-1.5 leading-relaxed text-[14px]">
+    <div className="space-y-2 text-[14.5px] leading-relaxed text-slate-900 font-normal">
       {parts.map((line, lIdx) => {
-        if (!line.trim()) return <div key={lIdx} className="h-1" />;
+        if (!line.trim()) return <div key={lIdx} className="h-1.5" />;
 
         // Bold formatting **text**
         const formattedTokens = line.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s]+)/g).map((token, tIdx) => {
           if (token.startsWith('**') && token.endsWith('**')) {
             return (
-              <strong key={tIdx} className="font-bold text-amber-500">
+              <strong key={tIdx} className="font-black text-slate-950">
                 {token.slice(2, -2)}
               </strong>
             );
@@ -85,7 +85,7 @@ function FormattedText({ text }: { text: string }) {
                 href={token}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-amber-400 underline font-medium hover:text-amber-300 transition-colors break-all"
+                className="text-[#1e40af] underline font-bold hover:text-blue-800 transition-colors break-all"
               >
                 {token.replace(/^https?:\/\/(www\.)?/, '')}
               </a>
@@ -94,7 +94,7 @@ function FormattedText({ text }: { text: string }) {
           return token;
         });
 
-        return <p key={lIdx}>{formattedTokens}</p>;
+        return <p key={lIdx} className="leading-relaxed">{formattedTokens}</p>;
       })}
     </div>
   );
@@ -506,12 +506,12 @@ export default function ChatSupport() {
                   transition={{ duration: 0.2 }}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
-                  <div className={`flex gap-3 max-w-[90%] sm:max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex gap-2.5 max-w-[92%] sm:max-w-[88%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                     {/* Avatar Bubble */}
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-xs">
+                    <div className="w-8.5 h-8.5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-xs border border-slate-200">
                       {msg.sender === 'user' ? (
                         <div className="w-full h-full bg-[#0f172a] text-white font-bold flex items-center justify-center">
-                          <User size={16} />
+                          <User size={15} />
                         </div>
                       ) : (
                         <div className="w-full h-full bg-black p-0.5 flex items-center justify-center">
@@ -528,14 +528,14 @@ export default function ChatSupport() {
 
                     {/* Bubble Content */}
                     <div
-                      className={`p-3.5 sm:p-4 rounded-2xl shadow-xs ${
+                      className={`p-4 rounded-2xl shadow-xs leading-relaxed ${
                         msg.sender === 'user'
                           ? 'bg-[#0f172a] text-white font-medium rounded-tr-none'
-                          : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
+                          : 'bg-white text-slate-900 border border-slate-200/90 rounded-tl-none'
                       }`}
                     >
                       <FormattedText text={msg.text} />
-                      <p className={`text-[10px] mt-2 font-mono ${msg.sender === 'user' ? 'text-white/60 text-right' : 'text-slate-400'}`}>
+                      <p className={`text-[10.5px] mt-2.5 font-mono font-medium ${msg.sender === 'user' ? 'text-white/60 text-right' : 'text-slate-400'}`}>
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
