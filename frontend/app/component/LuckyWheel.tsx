@@ -56,8 +56,8 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
     const size = canvas.width;
     const cx = size / 2;
     const cy = size / 2;
-    const radius = cx - 14;
-    const numSegments = prizes.length;
+    const radius = cx - 18;
+    const numSegments = prizes.length || 8;
     const segmentAngle = 360 / numSegments;
 
     ctx.clearRect(0, 0, size, size);
@@ -83,7 +83,7 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
 
         // Thick Crisp White dividers
         ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 5;
         ctx.stroke();
 
         // Render Text & Icon
@@ -94,30 +94,36 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
         ctx.textAlign = 'right';
         ctx.fillStyle = '#FFFFFF';
 
-        ctx.font = `bold 15px Arial, Helvetica, sans-serif`;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 1;
+        ctx.font = `bold 24px "Be Vietnam Pro", Arial, sans-serif`;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
 
         const textToRender = `${prize.emoji} ${prize.shortLabel}`;
-        ctx.fillText(textToRender, radius - 24, 5);
+        ctx.fillText(textToRender, radius - 36, 8);
         ctx.restore();
     });
 
     // Center Gold Knob
     ctx.beginPath();
-    ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 54, 0, Math.PI * 2);
     ctx.fillStyle = '#F59E0B';
     ctx.fill();
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 7;
     ctx.strokeStyle = '#FFFFFF';
     ctx.stroke();
 
+    // Center Inner Ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, 42, 0, Math.PI * 2);
+    ctx.fillStyle = '#D97706';
+    ctx.fill();
+
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 20px sans-serif';
+    ctx.font = 'bold 34px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🎁', cx, cy);
+    ctx.fillText('🎁', cx, cy + 2);
 }
 
 // Modal kết quả trúng thưởng
@@ -367,17 +373,17 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
         >
-            <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={!spinning ? onClose : undefined} />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={!spinning ? onClose : undefined} />
 
             <motion.div
-                className="relative w-full max-w-[500px] max-h-[90vh] bg-white rounded-3xl overflow-y-auto shadow-2xl border border-slate-100 my-auto flex flex-col"
+                className="relative w-full max-w-[530px] max-h-[92vh] bg-white rounded-3xl overflow-y-auto shadow-2xl border border-slate-100 my-auto flex flex-col"
                 initial={{ scale: 0.85, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.85, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', bounce: 0.2 }}
             >
                 {/* Header Clean Red Theme (Sticky Top) */}
-                <div className="relative bg-red-600 px-6 pt-5 pb-5 text-center text-white shrink-0 sticky top-0 z-30 shadow-sm">
+                <div className="relative bg-gradient-to-r from-red-600 via-red-600 to-red-700 px-6 pt-5 pb-4 text-center text-white shrink-0 sticky top-0 z-30 shadow-md">
                     <button
                         onClick={!spinning ? onClose : undefined}
                         className="absolute right-4 top-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer"
@@ -386,9 +392,12 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                     </button>
                     
                     <h2 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center justify-center gap-2">
-                        <span>🎁</span> VÒNG QUAY MAY MẮN
+                        <Gift size={26} className="text-amber-300 fill-amber-300/30" />
+                        <span>VÒNG QUAY MAY MẮN</span>
                     </h2>
-                    <p className="text-red-100 text-xs sm:text-sm font-medium mt-0.5">Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn</p>
+                    <p className="text-red-100 text-xs sm:text-sm font-medium mt-1">
+                        Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn
+                    </p>
 
                     {/* Banner ngày sự kiện nếu có */}
                     {(config?.startDate || config?.endDate) && (
@@ -403,7 +412,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 </div>
 
                 {/* Wheel Area */}
-                <div className="relative px-5 py-5 flex flex-col items-center bg-slate-50/60 shrink-0">
+                <div className="relative px-5 py-4 flex flex-col items-center bg-slate-50/70 shrink-0">
 
                     {/* Vòng quay đang bảo trì */}
                     {config?.isActive === false ? (
@@ -414,17 +423,42 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                         </div>
                     ) : (
                         <>
-                            {/* Outer Frame (Size 320px ~ 360px responsive) */}
-                            <div className="relative w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] rounded-full p-3 bg-white shadow-xl border-[4px] border-amber-400 flex items-center justify-center shrink-0 my-1">
+                            {/* Status Notification Box at the TOP */}
+                            {canSpin ? (
+                                <div className="w-full mb-3 py-2 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between text-xs font-bold shadow-xs">
+                                    <span className="flex items-center gap-1.5">
+                                        <Sparkles size={14} className="text-emerald-600" />
+                                        <span>Bạn đang có lượt quay may mắn miễn phí!</span>
+                                    </span>
+                                    <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black uppercase shadow-xs">
+                                        SẴN SÀNG
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="w-full mb-3 py-2.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 flex items-center justify-between text-xs font-bold shadow-xs">
+                                    <span className="flex items-center gap-2">
+                                        <Clock size={15} className="text-amber-600" />
+                                        <span>{statusMessage || 'Đã hết lượt quay hôm nay'}</span>
+                                    </span>
+                                    {timeLeft && (
+                                        <span className="text-xs font-mono font-black text-amber-800 bg-white px-2.5 py-0.5 rounded-lg border border-amber-300 shadow-xs">
+                                            {timeLeft}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Outer Frame (Larger & Crisp Canvas) */}
+                            <div className="relative w-[320px] h-[320px] sm:w-[390px] sm:h-[390px] rounded-full p-3.5 bg-white shadow-2xl border-[5px] border-amber-400 flex items-center justify-center shrink-0 my-2">
                                 
                                 {/* Bulbs / Dots */}
                                 {Array.from({ length: 16 }).map((_, i) => (
                                     <div
                                         key={i}
-                                        className={`absolute w-3 h-3 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
+                                        className={`absolute w-3.5 h-3.5 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
                                         style={{
                                             top: '50%', left: '50%',
-                                            transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-144px)`,
+                                            transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-156px)`,
                                         }}
                                     />
                                 ))}
@@ -435,67 +469,44 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                     animate={{ rotate: rotation }}
                                     transition={{ duration: spinning ? 5.2 : 0, ease: [0.15, 0.85, 0.15, 1] }}
                                 >
-                                    <canvas ref={canvasRef} width={360} height={360} className="w-full h-full block" />
+                                    <canvas ref={canvasRef} width={800} height={800} className="w-full h-full block" />
                                 </motion.div>
 
                                 {/* Red Pin Pointer Arrow */}
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-11 drop-shadow-md z-20 flex flex-col items-center pointer-events-none">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-12 drop-shadow-lg z-20 flex flex-col items-center pointer-events-none">
                                     <div className="w-5 h-5 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
-                                    <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[24px] border-t-red-600 -mt-2.5 filter drop-shadow" />
+                                    <div className="w-0 h-0 border-l-[13px] border-l-transparent border-r-[13px] border-r-transparent border-t-[26px] border-t-red-600 -mt-2.5 filter drop-shadow" />
                                 </div>
                             </div>
 
-                            {/* Hiển thị xác suất trúng thưởng công khai (%) */}
-                            {config?.showProbability && prizes.length > 0 && (
-                                <div className="mt-3 w-full p-2.5 bg-amber-50/90 border border-amber-200/80 rounded-2xl text-[11px] text-amber-950 font-medium">
-                                    <div className="flex items-center gap-1.5 font-bold mb-1 text-amber-900">
-                                        <Sparkles size={13} className="text-amber-600" />
-                                        <span>Tỷ lệ trúng thưởng công khai (%):</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {prizes.map((p, idx) => (
-                                            <span key={idx} className="px-2 py-0.5 rounded-lg bg-white border border-amber-200/80 text-[10px] font-semibold text-slate-700 shadow-2xs">
-                                                {p.shortLabel || p.label}: <strong className="text-amber-700">{p.probability}%</strong>
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Action Button & Status */}
+                            {/* Prominent Action Button at the Bottom */}
                             <div className="mt-4 w-full">
                                 {canSpin ? (
                                     <button
                                         onClick={spin}
                                         disabled={spinning}
-                                        className="w-full py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-lg shadow-xl shadow-red-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black text-lg sm:text-xl shadow-xl shadow-red-600/35 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 cursor-pointer"
                                     >
                                         {spinning ? (
                                             <>
-                                                <Loader2 className="animate-spin text-white" size={22} />
+                                                <Loader2 className="animate-spin text-white" size={24} />
                                                 <span>ĐANG QUAY...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <span>✨</span>
+                                                <Sparkles size={22} className="text-amber-300" />
                                                 <span>QUAY NGAY!</span>
                                             </>
                                         )}
                                     </button>
                                 ) : (
-                                    <div className="w-full py-3 px-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-1.5">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-bold text-xs sm:text-sm text-slate-700 flex items-center gap-2">
-                                                <Clock size={16} className="text-orange-500" />
-                                                {statusMessage || 'Đã hết lượt quay trong lượt này'}
-                                            </span>
-                                            {timeLeft && (
-                                                <span className="text-[11px] font-mono font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-xl border border-orange-200">
-                                                    {timeLeft}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <button
+                                        disabled
+                                        className="w-full py-3.5 rounded-2xl bg-gray-100 border border-gray-200 text-gray-400 font-bold text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                                    >
+                                        <Clock size={16} />
+                                        <span>ĐÃ HẾT LƯỢT QUAY · HẸN GẶP LẠI VÀO NGÀY MAI</span>
+                                    </button>
                                 )}
                             </div>
                         </>
