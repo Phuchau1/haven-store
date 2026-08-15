@@ -373,17 +373,17 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
         >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={!spinning ? onClose : undefined} />
+            <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={!spinning ? onClose : undefined} />
 
             <motion.div
-                className="relative w-full max-w-[530px] max-h-[92vh] bg-white rounded-3xl overflow-y-auto shadow-2xl border border-slate-100 my-auto flex flex-col"
+                className="relative w-full max-w-[480px] bg-white rounded-3xl shadow-2xl border border-slate-100 my-auto flex flex-col overflow-hidden"
                 initial={{ scale: 0.85, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.85, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', bounce: 0.2 }}
             >
                 {/* Header Clean Red Theme (Sticky Top) */}
-                <div className="relative bg-gradient-to-r from-red-600 via-red-600 to-red-700 px-6 pt-5 pb-4 text-center text-white shrink-0 sticky top-0 z-30 shadow-md">
+                <div className="relative bg-gradient-to-r from-[#D32F2F] via-[#E53935] to-[#C62828] px-6 pt-5 pb-4 text-center text-white shrink-0 shadow-md">
                     <button
                         onClick={!spinning ? onClose : undefined}
                         className="absolute right-4 top-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer"
@@ -392,10 +392,10 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                     </button>
                     
                     <h2 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center justify-center gap-2">
-                        <Gift size={26} className="text-amber-300 fill-amber-300/30" />
+                        <Gift size={26} className="text-amber-300 fill-amber-300/40" />
                         <span>VÒNG QUAY MAY MẮN</span>
                     </h2>
-                    <p className="text-red-100 text-xs sm:text-sm font-medium mt-1">
+                    <p className="text-red-100 text-xs sm:text-sm font-semibold mt-1">
                         Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn
                     </p>
 
@@ -412,7 +412,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 </div>
 
                 {/* Wheel Area */}
-                <div className="relative px-5 py-4 flex flex-col items-center bg-slate-50/70 shrink-0">
+                <div className="relative px-5 py-4 pb-6 flex flex-col items-center bg-slate-50/90 shrink-0">
 
                     {/* Vòng quay đang bảo trì */}
                     {config?.isActive === false ? (
@@ -423,42 +423,42 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                         </div>
                     ) : (
                         <>
-                            {/* Status Notification Box at the TOP */}
+                            {/* Status Notification Box at the TOP (High Contrast & Clear) */}
                             {canSpin ? (
-                                <div className="w-full mb-3 py-2 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between text-xs font-bold shadow-xs">
-                                    <span className="flex items-center gap-1.5">
-                                        <Sparkles size={14} className="text-emerald-600" />
+                                <div className="w-full mb-2.5 py-2.5 px-4 rounded-2xl bg-emerald-100/90 border border-emerald-300 text-emerald-950 flex items-center justify-between text-xs sm:text-[13px] font-bold shadow-xs">
+                                    <span className="flex items-center gap-2">
+                                        <Sparkles size={16} className="text-emerald-700" />
                                         <span>Bạn đang có lượt quay may mắn miễn phí!</span>
                                     </span>
-                                    <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black uppercase shadow-xs">
+                                    <span className="text-[10.5px] bg-emerald-700 text-white px-2.5 py-0.5 rounded-full font-black uppercase shadow-xs">
                                         SẴN SÀNG
                                     </span>
                                 </div>
                             ) : (
-                                <div className="w-full mb-3 py-2.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 flex items-center justify-between text-xs font-bold shadow-xs">
+                                <div className="w-full mb-2.5 py-2.5 px-4 rounded-2xl bg-amber-100/90 border border-amber-300 text-amber-950 flex items-center justify-between text-xs sm:text-[13px] font-bold shadow-xs">
                                     <span className="flex items-center gap-2">
-                                        <Clock size={15} className="text-amber-600" />
+                                        <Clock size={16} className="text-amber-700" />
                                         <span>{statusMessage || 'Đã hết lượt quay hôm nay'}</span>
                                     </span>
                                     {timeLeft && (
-                                        <span className="text-xs font-mono font-black text-amber-800 bg-white px-2.5 py-0.5 rounded-lg border border-amber-300 shadow-xs">
+                                        <span className="text-xs font-mono font-black text-white bg-amber-700 px-2.5 py-0.5 rounded-lg shadow-xs">
                                             {timeLeft}
                                         </span>
                                     )}
                                 </div>
                             )}
 
-                            {/* Outer Frame (Larger & Crisp Canvas) */}
-                            <div className="relative w-[320px] h-[320px] sm:w-[390px] sm:h-[390px] rounded-full p-3.5 bg-white shadow-2xl border-[5px] border-amber-400 flex items-center justify-center shrink-0 my-2">
+                            {/* Outer Frame (Perfect Fit Canvas) */}
+                            <div className="relative w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] rounded-full p-3 bg-white shadow-xl border-[5px] border-amber-400 flex items-center justify-center shrink-0 my-1">
                                 
                                 {/* Bulbs / Dots */}
                                 {Array.from({ length: 16 }).map((_, i) => (
                                     <div
                                         key={i}
-                                        className={`absolute w-3.5 h-3.5 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
+                                        className={`absolute w-3 h-3 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
                                         style={{
                                             top: '50%', left: '50%',
-                                            transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-156px)`,
+                                            transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-144px)`,
                                         }}
                                     />
                                 ))}
@@ -473,28 +473,28 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                 </motion.div>
 
                                 {/* Red Pin Pointer Arrow */}
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-12 drop-shadow-lg z-20 flex flex-col items-center pointer-events-none">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-11 drop-shadow-lg z-20 flex flex-col items-center pointer-events-none">
                                     <div className="w-5 h-5 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
-                                    <div className="w-0 h-0 border-l-[13px] border-l-transparent border-r-[13px] border-r-transparent border-t-[26px] border-t-red-600 -mt-2.5 filter drop-shadow" />
+                                    <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[24px] border-t-red-600 -mt-2.5 filter drop-shadow" />
                                 </div>
                             </div>
 
-                            {/* Prominent Action Button at the Bottom */}
-                            <div className="mt-4 w-full">
+                            {/* Prominent Action Button at the Bottom (Fully Visible) */}
+                            <div className="mt-3 w-full">
                                 {canSpin ? (
                                     <button
                                         onClick={spin}
                                         disabled={spinning}
-                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black text-lg sm:text-xl shadow-xl shadow-red-600/35 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 cursor-pointer"
+                                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 via-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black text-lg shadow-xl shadow-red-600/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         {spinning ? (
                                             <>
-                                                <Loader2 className="animate-spin text-white" size={24} />
+                                                <Loader2 className="animate-spin text-white" size={22} />
                                                 <span>ĐANG QUAY...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <Sparkles size={22} className="text-amber-300" />
+                                                <Sparkles size={20} className="text-amber-300" />
                                                 <span>QUAY NGAY!</span>
                                             </>
                                         )}
@@ -502,7 +502,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                 ) : (
                                     <button
                                         disabled
-                                        className="w-full py-3.5 rounded-2xl bg-gray-100 border border-gray-200 text-gray-400 font-bold text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                                        className="w-full py-3 rounded-2xl bg-gray-100 border border-gray-200 text-gray-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed"
                                     >
                                         <Clock size={16} />
                                         <span>ĐÃ HẾT LƯỢT QUAY · HẸN GẶP LẠI VÀO NGÀY MAI</span>
