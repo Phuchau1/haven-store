@@ -1164,11 +1164,11 @@ export default function NguoiDungPage() {
                                                                         shipped: 'Đang giao',
                                                                         delivered: 'Hoàn thành ✓',
                                                                         cancelled: 'Đã hủy',
-                                                                        return_requested: '⏳ Chờ duyệt hoàn',
-                                                                        returning: '🚚 Đang hoàn hàng',
+                                                                        return_requested: '⏳ Chờ Shop xét duyệt',
+                                                                        returning: '🚚 Shop đã duyệt (Gửi hàng về)',
                                                                         return_received: '📦 Shop đã nhận hàng',
                                                                         refund_requested: 'Yêu cầu hoàn tiền',
-                                                                        refunded: 'Đã hoàn hàng',
+                                                                        refunded: '✅ Đã hoàn tiền',
                                                                     } as Record<string,string>)[order.status] || order.status}
                                                                 </div>
                                                             </div>
@@ -1205,18 +1205,18 @@ export default function NguoiDungPage() {
                                                                         </button>
                                                                     )}
                                                                     {order.status === 'return_requested' && (
-                                                                        <span className="px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-pulse">
-                                                                            ⏳ Chờ Admin duyệt hoàn
+                                                                        <span className="px-3.5 py-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-pulse">
+                                                                            ⏳ Đang chờ Shop xét duyệt yêu cầu hoàn
                                                                         </span>
                                                                     )}
                                                                     {order.status === 'returning' && (
-                                                                        <span className="px-3.5 py-2 bg-orange-50 border border-orange-200 text-orange-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                                                                            🚚 Đang hoàn hàng (Gửi về shop)
+                                                                        <span className="px-3.5 py-2 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                                                            🚚 Shop đã duyệt — Vui lòng gửi hàng về shop
                                                                         </span>
                                                                     )}
                                                                     {order.status === 'return_received' && (
                                                                         <span className="px-3.5 py-2 bg-teal-50 border border-teal-200 text-teal-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                                                                            📦 Shop đã nhận hàng trả
+                                                                            📦 Shop đã nhận hàng trả — Đang xử lý hoàn tiền
                                                                         </span>
                                                                     )}
                                                                     {order.status === 'refunded' && (
