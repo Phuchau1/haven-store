@@ -86,6 +86,10 @@ app.get('/google5e31d691b45f169a.html', (req, res) => {
     res.setHeader('Content-Type', 'text/html');
     res.send('google-site-verification: google5e31d691b45f169a.html');
 });
+app.get('/sitemap.xml', (req, res) => {
+    res.setHeader('Content-Type', 'application/xml');
+    res.sendFile(path.join(__dirname, '../public/sitemap.xml'));
+});
 
 // --- ROUTES ---
 app.use('/api', globalLimiter);       // Rate limiting toàn cục — Chống DDoS
