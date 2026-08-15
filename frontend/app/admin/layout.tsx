@@ -24,15 +24,14 @@ const MENU_ITEMS = [
     { icon: RotateCcw,       label: 'Hoàn hàng',     href: '/admin/returns',           group: 'main' },
     { icon: Users,           label: 'Người dùng',    href: '/admin/users',             group: 'main' },
     
-    // Kho hàng (WMS)
-    { icon: BarChart3,       label: 'WMS Dashboard',   href: '/admin/inventory/wms-dashboard',   group: 'inventory' },
-    { icon: Boxes,           label: 'Tồn kho SKU',     href: '/admin/inventory/stock',            group: 'inventory' },
-    { icon: FileDown,        label: 'Phiếu Kho',       href: '/admin/inventory/receipts',         group: 'inventory' },
-    { icon: ClipboardList,   label: 'Kiểm kê kho',    href: '/admin/inventory/stocktake',        group: 'inventory' },
-    { icon: History,         label: 'Lịch sử giao dịch', href: '/admin/inventory/transactions',   group: 'inventory' },
-    { icon: Navigation,      label: 'Vận đơn GHN/J&T', href: '/admin/inventory/logistics',       group: 'inventory' },
-    { icon: ShieldCheck,     label: 'Audit Log kho',  href: '/admin/inventory/audit-log',        group: 'inventory' },
-    { icon: Truck,           label: 'Nhà cung cấp',   href: '/admin/inventory/suppliers',        group: 'inventory' },
+    // Quản Lý Tồn Kho (Inbound WMS)
+    { icon: BarChart3,       label: 'Bảng Điều Khiển', href: '/admin/inventory/wms-dashboard',   group: 'inventory' },
+    { icon: Boxes,           label: 'Quản Lý Tồn Kho', href: '/admin/inventory/stock',           group: 'inventory' },
+    { icon: FileDown,        label: 'Phiếu Nhập Kho',  href: '/admin/inventory/receipts',        group: 'inventory' },
+    { icon: ClipboardList,   label: 'Kiểm Đếm & Cân Bằng', href: '/admin/inventory/stocktake',   group: 'inventory' },
+    { icon: Grid,            label: 'Sơ Đồ Vị Trí Kho', href: '/admin/inventory/warehouses',    group: 'inventory' },
+    { icon: Truck,           label: 'Nhà Cung Cấp',    href: '/admin/inventory/suppliers',       group: 'inventory' },
+    { icon: ShieldCheck,     label: 'Nhật Ký Hệ Thống', href: '/admin/inventory/audit-log',     group: 'inventory' },
     
     { icon: Star,            label: 'Đánh giá',      href: '/admin/reviews',           group: 'catalog' },
     { icon: MessageSquare,   label: 'Live Chat',     href: '/admin/chats',             group: 'catalog' },
@@ -49,15 +48,16 @@ const MENU_ITEMS = [
     { icon: Mail,            label: 'Email Đăng ký', href: '/admin/newsletters',       group: 'store' },
     { icon: Gift,            label: 'Vòng quay',     href: '/admin/lucky-wheel',       group: 'store' },
     { icon: CreditCard,      label: 'Thanh toán',    href: '/admin/payment-methods',   group: 'store' },
-    { icon: Truck,           label: 'Vận chuyển',    href: '/admin/shipping-methods',  group: 'store' },
+    { icon: Navigation,      label: 'Vận đơn & Giao vận', href: '/admin/inventory/logistics', group: 'store' },
+    { icon: Truck,           label: 'Đơn vị vận chuyển', href: '/admin/shipping-methods', group: 'store' },
     { icon: Settings,        label: 'Cài đặt',       href: '/admin/settings',          group: 'store' },
 ];
 
 const GROUPS = [
     { key: 'main',    label: 'Chính' },
-    { key: 'inventory', label: 'Quản lý kho (WMS)' },
+    { key: 'inventory', label: 'Quản lý tồn kho (Inbound WMS)' },
     { key: 'catalog', label: 'Sản phẩm' },
-    { key: 'store',   label: 'Cửa hàng' },
+    { key: 'store',   label: 'Cửa hàng & Vận hành' },
 ];
 
 // Bottom nav items for mobile

@@ -3,12 +3,17 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Home, Users, FileText, ShoppingCart, History, BarChart3, ClipboardList, Navigation, ShieldCheck, ArrowLeftRight } from 'lucide-react';
+import { LayoutDashboard, Home, Users, FileText, ShoppingCart, History, BarChart3, ClipboardList, Navigation, ShieldCheck, ArrowLeftRight, Boxes, FileDown, Grid, Truck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const tabs = [
-    { name: 'Bảng Điều Khiển WMS',     href: '/admin/inventory/wms-dashboard', icon: BarChart3      },
-    { name: 'Quản Lý Tồn Kho',       href: '/admin/inventory/stock',         icon: Home           },
+    { name: 'Bảng Điều Khiển',       href: '/admin/inventory/wms-dashboard', icon: BarChart3      },
+    { name: 'Quản Lý Tồn Kho SKU',   href: '/admin/inventory/stock',         icon: Boxes          },
+    { name: 'Phiếu Nhập Kho',        href: '/admin/inventory/receipts',      icon: FileDown       },
+    { name: 'Kiểm Đếm & Cân Bằng',   href: '/admin/inventory/stocktake',     icon: ClipboardList  },
+    { name: 'Sơ Đồ Vị Trí Kho',      href: '/admin/inventory/warehouses',    icon: Grid           },
+    { name: 'Nhà Cung Cấp',          href: '/admin/inventory/suppliers',     icon: Truck          },
+    { name: 'Nhật Ký Hệ Thống',      href: '/admin/inventory/audit-log',     icon: ShieldCheck    },
 ];
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {
