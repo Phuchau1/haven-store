@@ -1,8 +1,42 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // ────────────────────────────────────────────────────────────
-// SMART FALLBACK LOGIC
+// SMART FALLBACK LOGIC - ĐA DẠNG CÂU TỪ TỰ NHIÊN
 // ────────────────────────────────────────────────────────────
+const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+const RANDOM_PRICE_INTROS = [
+    (n, max) => `Dưới **${max}đ**, HAVEN có **${n} mẫu** cực đẹp bạn tham khảo nhé:\n\n`,
+    (n, max) => `Gợi ý cho bạn **${n} sản phẩm** giá dưới **${max}đ** đang bán chạy tại store:\n\n`,
+    (n, max) => `Mình lọc ra **${n} món đồ** trong tầm giá dưới **${max}đ** cho bạn nè:\n\n`,
+    (n, max) => `HAVEN có sẵn các mẫu dưới **${max}đ** rất hợp gu:\n\n`,
+];
+
+const RANDOM_OVER_PRICE_INTROS = [
+    (n, min) => `Từ **${min}đ** trở lên, HAVEN có các mẫu cao cấp này:\n\n`,
+    (n, min) => `Dòng sản phẩm trên **${min}đ** với chất liệu cao cấp dành cho bạn:\n\n`,
+];
+
+const RANDOM_FLASH_INTROS = [
+    (n) => `⚡ Tin vui! HAVEN đang có **${n} deal Flash Sale** siêu hời:\n\n`,
+    (n) => `🔥 Đang có **${n} sản phẩm giảm giá chớp nhoáng** hôm nay nè bạn:\n\n`,
+    (n) => `⚡ Danh sách **${n} mẫu Flash Sale** giá tốt nhất hiện tại:\n\n`,
+];
+
+const RANDOM_GENERAL_INTROS = [
+    (n) => `HAVEN có **${n} gợi ý** phù hợp với bạn đây nè:\n\n`,
+    (n) => `Mời bạn xem qua **${n} sản phẩm** đúng nhu cầu nhé:\n\n`,
+    (n) => `Mình gợi ý cho bạn **${n} mẫu** rất hot tại shop nha:\n\n`,
+    (n) => `Dưới đây là **${n} lựa chọn** chất lượng cho bạn:\n\n`,
+];
+
+const RANDOM_CLOSINGS = [
+    'Xem thêm nhiều mẫu khác tại https://havenstore.io.vn/products nha! ✨',
+    'Bạn thích mẫu nào cứ nhắn mình tư vấn size thêm nhé! 🛍️',
+    'Cần tư vấn phối đồ hay chọn size thì bảo mình nha! 😊',
+    'Khám phá thêm bộ sưu tập đầy đủ tại https://havenstore.io.vn/products nhé! 🌟',
+];
+
 const doSmartFallback = (message, products) => {
     const q = message.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -40,20 +74,33 @@ const doSmartFallback = (message, products) => {
     matched = matched.sort((a, b) => a.price - b.price).slice(0, 6);
 
     if (matched.length > 0) {
-        const intro = isFlashSale
-            ? `HAVEN đang có **${matched.length} sản phẩm Flash Sale**:\n\n`
-            : maxPrice
-                ? `Sản phẩm dưới **${maxPrice.toLocaleString('vi-VN')}đ** tại HAVEN:\n\n`
-                : `HAVEN có **${matched.length} sản phẩm** phù hợp:\n\n`;
+        let intro = '';
+        if (isFlashSale) {
+            intro = pickRandom(RANDOM_FLASH_INTROS)(matched.length);
+        } else if (maxPrice) {
+            intro = pickRandom(RANDOM_PRICE_INTROS)(matched.length, maxPrice.toLocaleString('vi-VN'));
+        } else if (minPrice) {
+            intro = pickRandom(RANDOM_OVER_PRICE_INTROS)(matched.length, minPrice.toLocaleString('vi-VN'));
+        } else {
+            intro = pickRandom(RANDOM_GENERAL_INTROS)(matched.length);
+        }
 
-        return intro + matched.map(p => {
+        const items = matched.map(p => {
             const saleNote = p.flashSale && p.flashSalePrice
-                ? ` | Flash Sale: ${p.flashSalePrice.toLocaleString('vi-VN')}đ`
+                ? ` | ⚡ Flash: ${p.flashSalePrice.toLocaleString('vi-VN')}đ`
                 : '';
-            return `• **${p.name}** — ${p.price.toLocaleString('vi-VN')}đ${saleNote}`;
-        }).join('\n') + '\n\nXem thêm tại https://havenstore.io.vn/products';
+            const link = p.slug ? `\n  👉 https://havenstore.io.vn/product/${p.slug}` : '';
+            return `• **${p.name}** — ${p.price.toLocaleString('vi-VN')}đ${saleNote}${link}`;
+        }).join('\n\n');
+
+        return intro + items + '\n\n' + pickRandom(RANDOM_CLOSINGS);
     } else {
-        return 'Xin lỗi mình chưa tìm thấy sản phẩm phù hợp. Bạn xem tất cả tại https://havenstore.io.vn/products nhé!';
+        const notFoundList = [
+            'Hiện tại mình chưa tìm thấy mẫu nào đúng yêu cầu này. Bạn ghé qua https://havenstore.io.vn/products để xem toàn bộ sản phẩm nhé! 🛍️',
+            'Tiếc là mẫu này HAVEN đang tạm hết hoặc chưa có. Bạn xem thêm các mẫu khác tại https://havenstore.io.vn/products nha! 😊',
+            'HAVEN chưa có sản phẩm khớp với từ khóa này. Bạn thử tìm từ khóa khác hoặc lướt xem tại https://havenstore.io.vn/products nhé!',
+        ];
+        return pickRandom(notFoundList);
     }
 };
 
@@ -83,7 +130,7 @@ exports.chatPriceQuery = async (req, res) => {
             const flash = p.flashSale && p.flashSalePrice
                 ? ` | Flash Sale: ${p.flashSalePrice.toLocaleString('vi-VN')}đ`
                 : '';
-            const link = p.slug ? `havenstore.io.vn/product/${p.slug}` : 'havenstore.io.vn/products';
+            const link = p.slug ? `https://havenstore.io.vn/product/${p.slug}` : 'https://havenstore.io.vn/products';
             return `- ${p.name}: ${p.price.toLocaleString('vi-VN')}đ${discount > 0 ? ` (giảm ${discount}%, gốc: ${p.originalPrice.toLocaleString('vi-VN')}đ)` : ''}${flash} [${p.category || 'Khác'}] Link: ${link}`;
         }).join('\n');
 
@@ -93,7 +140,13 @@ exports.chatPriceQuery = async (req, res) => {
         if (apiKey) {
             try {
                 const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: 'gemini-3.7-flash' });
+                const model = genAI.getGenerativeModel({
+                    model: 'gemini-3.7-flash',
+                    generationConfig: {
+                        temperature: 0.85,
+                        topP: 0.95,
+                    }
+                });
 
                 const geminiHistory = [];
                 if (history.length > 0) {
@@ -105,14 +158,18 @@ exports.chatPriceQuery = async (req, res) => {
                     });
                 }
 
-                const fullPrompt = `Bạn là HAVEN AI — trợ lý tư vấn thời trang nam của cửa hàng HAVEN (havenstore.io.vn).
-Nhiệm vụ: Trả lời câu hỏi về giá sản phẩm, phối đồ, Flash Sale một cách ngắn gọn, thân thiện bằng tiếng Việt.
-Xưng "mình", gọi khách là "bạn". Tối đa 120 từ. Dùng bullet point. Nếu Flash Sale thì nhấn mạnh.
+                const fullPrompt = `Bạn là HAVEN AI — stylist và trợ lý tư vấn thời trang nam cao cấp của HAVEN (havenstore.io.vn).
 
-DANH SÁCH SẢN PHẨM HAVEN:
+NGUYÊN TẮC PHẢN HỒI (QUAN TRỌNG):
+1. ĐA DẠNG CÂU TỪ: Tuyệt đối KHÔNG lặp lại một câu mở đầu rập khuôn kiểu 'Dạ mình tìm thấy một số sản phẩm...'. Hãy linh hoạt biến đổi câu mở đầu sinh động, tự nhiên như người thật (VD: 'Tầm giá này bên mình có mấy mẫu đỉnh này nè:', 'Gợi ý ngay cho bạn những mẫu hot nhất:', 'Dưới 300k thì các mẫu sau đang được chuộng lắm:', 'Bạn tham khảo vài item này xem sao nhé:',...).
+2. PHONG CÁCH: Thân thiện, năng động, am hiểu thời trang. Xưng "mình", gọi khách là "bạn".
+3. TRÌNH BÀY: Ngắn gọn (dưới 130 từ), dùng bullet point rõ ràng, ghi kèm giá và link sản phẩm cụ thể.
+4. FLASH SALE: Nếu sản phẩm đang Flash Sale thì làm nổi bật bằng icon ⚡.
+
+DANH SÁCH SẢN PHẨM HIỆN CÓ CỦA HAVEN:
 ${priceList}
 
-CÂU HỎI: ${message.trim()}`;
+CÂU HỎI CỦA KHÁCH: ${message.trim()}`;
 
                 const chat = model.startChat({ history: geminiHistory });
                 const result = await chat.sendMessage(fullPrompt);
@@ -131,7 +188,7 @@ CÂU HỎI: ${message.trim()}`;
         console.error('[HAVEN AI Chat] Critical Error:', error.message, error.stack);
         return res.status(500).json({
             success: false,
-            reply: `Xin lỗi, mình gặp sự cố hệ thống. Bạn vui lòng xem sản phẩm tại havenstore.io.vn nhé!`
+            reply: `Xin lỗi, mình gặp sự cố hệ thống. Bạn vui lòng xem sản phẩm tại https://havenstore.io.vn/products nhé!`
         });
     }
 };
