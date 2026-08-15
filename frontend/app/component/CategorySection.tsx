@@ -78,30 +78,17 @@ export default function CategorySection() {
         fetchMiddleBanners();
     }, []);
 
-    // Autoplay logic - Only auto slide on Mobile, Laptop/Desktop uses interactive scroll
+    // Autoplay logic - Tự động lướt slide mỗi 10 giây (10s)
     useEffect(() => {
-        if (loading || slides.length <= 1) return;
+        if (loading || slides.length <= 1 || isHovered) return;
 
-        if (!isMobile || isHovered) {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-            }
-            return;
-        }
-
-        timerRef.current = setInterval(() => {
+        const timer = setInterval(() => {
             setDirection('up');
             setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
-        }, 5000);
+        }, 10000); // 10s
 
-        return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-            }
-        };
-    }, [slides, loading, isMobile, isHovered]);
+        return () => clearInterval(timer);
+    }, [slides, loading, isHovered]);
 
     const handleNext = () => {
         setDirection('up');
@@ -132,7 +119,7 @@ export default function CategorySection() {
     if (loading) {
         return (
             <section className="py-6 px-4 container-torano mx-auto">
-                <div className="h-[350px] md:h-[500px] lg:h-[600px] w-full flex justify-center items-center bg-slate-50 rounded-[24px] border border-slate-100">
+                <div className="h-[320px] sm:h-[400px] md:h-[480px] lg:h-[540px] w-full flex justify-center items-center bg-slate-50 rounded-[24px] border border-slate-100">
                     <Loader2 className="animate-spin text-slate-400" size={32} />
                 </div>
             </section>
@@ -146,7 +133,7 @@ export default function CategorySection() {
         enter: (dir: 'up' | 'down') => ({
             y: dir === 'up' ? '100%' : '-100%',
             opacity: 0,
-            scale: 1.05
+            scale: 1.03
         }),
         center: {
             y: 0,
@@ -161,7 +148,7 @@ export default function CategorySection() {
         exit: (dir: 'up' | 'down') => ({
             y: dir === 'up' ? '-100%' : '100%',
             opacity: 0,
-            scale: 0.95,
+            scale: 0.97,
             transition: {
                 y: { type: 'spring', stiffness: 300, damping: 30 },
                 opacity: { duration: 0.5 },
@@ -173,7 +160,7 @@ export default function CategorySection() {
     return (
         <section className="py-6 px-4 container-torano mx-auto">
             <div 
-                className="relative w-full h-[350px] md:h-[500px] lg:h-[750px] overflow-hidden bg-black rounded-[24px] shadow-lg"
+                className="relative w-full h-[320px] sm:h-[400px] md:h-[480px] lg:h-[540px] overflow-hidden bg-black rounded-[24px] shadow-lg"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onWheel={(e) => {
@@ -192,13 +179,13 @@ export default function CategorySection() {
                         exit="exit"
                         className="absolute inset-0 w-full h-full"
                     >
-                        {/* Background Image */}
+                        {/* Background Image (Cắt vừa vặn, chuẩn tâm nhìn) */}
                         <div className="relative w-full h-full">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                                 src={currentSlide.image} 
                                 alt={currentSlide.title} 
-                                className="w-full h-full object-cover object-[center_20%] select-none pointer-events-none"
+                                className="w-full h-full object-cover object-center select-none pointer-events-none"
                             />
                             <div className="absolute inset-0 bg-black/35" />
                         </div>
