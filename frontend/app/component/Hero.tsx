@@ -121,7 +121,7 @@ export default function Hero() {
             </div>
 
             {/* ── Main Content ── */}
-            <div className="relative z-10 flex flex-col justify-center h-full px-6 sm:px-16 lg:px-28 xl:px-36">
+            <div className="relative z-10 flex flex-col justify-center h-full container-torano">
 
                 {/* Badge */}
                 <motion.div

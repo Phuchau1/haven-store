@@ -45,11 +45,11 @@
 /* Container responsive adjustments */
 .container-torano {
   width: 100%;
-  max-width: 1700px;
+  max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: var(--container-padding);
-  padding-right: var(--container-padding);
+  padding-left: clamp(16px, 3vw, 32px);
+  padding-right: clamp(16px, 3vw, 32px);
   box-sizing: border-box;
 }
 
