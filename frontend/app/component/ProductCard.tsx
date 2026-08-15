@@ -18,6 +18,7 @@ interface ProductCardProps {
     showSold?: boolean;
     showDiscount?: boolean;
     isFlashSaleCard?: boolean;
+    isUpcomingFlashSale?: boolean;
 }
 
 export default function ProductCard({ 
@@ -25,7 +26,8 @@ export default function ProductCard({
     index = 0, 
     showSold = false, 
     showDiscount = true,
-    isFlashSaleCard = false 
+    isFlashSaleCard = false,
+    isUpcomingFlashSale = false 
 }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [selectedColor, setSelectedColor] = useState<typeof product.colors[0] | null>(null);
@@ -192,7 +194,15 @@ export default function ProductCard({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`text-[16px] font-bold ${isFlashSaleCard ? 'text-[#D32F2F]' : 'text-[#111111]'}`}>
-                                    {formatPrice(product.price)}
+                                    {isUpcomingFlashSale ? (
+                                        (() => {
+                                            const str = Math.round(product.price).toString();
+                                            const firstDigit = str[0] || '2';
+                                            return `₫${firstDigit}??.000`;
+                                        })()
+                                    ) : (
+                                        formatPrice(product.price)
+                                    )}
                                 </span>
                                 {(product.originalPrice || 0) > product.price && (
                                     <span className="text-[13px] font-normal text-[#999999] line-through">
@@ -210,6 +220,18 @@ export default function ProductCard({
                         {/* Shopee-style Flash Sale Progress Pill */}
                         {isFlashSaleCard && (
                             (() => {
+                                if (isUpcomingFlashSale) {
+                                    return (
+                                        <div className="mt-3 w-full">
+                                            <div className="relative w-full h-[22px] bg-[#fff2ec] border border-[#ff8b66]/60 rounded-full overflow-hidden flex items-center justify-center shadow-sm">
+                                                <span className="relative z-10 text-[11px] font-black uppercase text-[#ee4d2d] tracking-wider flex items-center gap-1">
+                                                    ⏰ SẮP MỞ BÁN
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
                                 const soldCount = product.flashSaleSold !== undefined ? product.flashSaleSold : (product.soldQuantity || 0);
                                 const totalCount = product.flashSaleStock !== undefined && product.flashSaleStock > 0 ? product.flashSaleStock : (soldCount + 20);
                                 const percentSold = totalCount > 0 ? Math.min(Math.round((soldCount / totalCount) * 100), 100) : 15;

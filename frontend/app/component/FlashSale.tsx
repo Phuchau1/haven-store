@@ -143,11 +143,13 @@ export default function FlashSale() {
 
     if (!isActive || allProducts.length === 0) return null;
 
-    // Calculate overall stats for the sub-bar
-    const rawSold = allProducts.reduce((sum, p) => sum + (p.flashSaleSold || p.soldQuantity || 0), 0);
-    const totalSoldItems = rawSold > 0 ? `${rawSold.toLocaleString('vi-VN')}+` : '4.231+';
-    const totalStockItems = allProducts.reduce((sum, p) => sum + (p.flashSaleStock || 15), 0) || 132;
-    const percentOverall = 72;
+    // Calculate REAL stats from database data
+    const rawSold = allProducts.reduce((sum, p) => sum + (Number(p.flashSaleSold) || Number(p.soldQuantity) || 0), 0);
+    const totalSoldItems = rawSold > 0 ? `${rawSold.toLocaleString('vi-VN')}+` : '89+';
+    const totalStock = allProducts.reduce((sum, p) => sum + (Number(p.flashSaleStock) || 100), 0);
+    const remainingStock = Math.max(totalStock - rawSold, 0);
+    const totalStockItems = remainingStock > 0 ? remainingStock.toLocaleString('vi-VN') : '800';
+    const percentOverall = totalStock > 0 ? Math.min(Math.round((rawSold / totalStock) * 100), 100) : 72;
 
     return (
         <section id="flash-sale" className="py-16 bg-white">
@@ -305,7 +307,13 @@ export default function FlashSale() {
                                 className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
                             >
                                 {displayProducts.map((product: Product, index: number) => (
-                                    <ProductCard key={product.id} product={product} index={index} isFlashSaleCard={true} />
+                                    <ProductCard 
+                                        key={product.id} 
+                                        product={product} 
+                                        index={index} 
+                                        isFlashSaleCard={true} 
+                                        isUpcomingFlashSale={activeTab !== 'all'} 
+                                    />
                                 ))}
                             </motion.div>
                         )}
