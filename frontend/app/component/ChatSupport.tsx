@@ -435,7 +435,7 @@ export default function ChatSupport() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[999990] flex flex-col items-end">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -443,7 +443,7 @@ export default function ChatSupport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.92 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="mb-4 w-[92vw] sm:w-[440px] md:w-[460px] h-[640px] max-h-[85vh] bg-[#0f141c] text-slate-100 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-slate-700/60 flex flex-col overflow-hidden backdrop-blur-xl"
+            className="mb-2 sm:mb-4 w-[calc(100vw-32px)] sm:w-[440px] md:w-[460px] h-[580px] max-h-[calc(100dvh-120px)] bg-[#0f141c] text-slate-100 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.8)] border border-slate-700/80 flex flex-col overflow-hidden backdrop-blur-xl"
           >
             {/* ── HEADER TO RÕ, ĐẸP MẮT ── */}
             <div className="bg-gradient-to-r from-[#141b26] via-[#1a2332] to-[#141b26] p-4 sm:p-5 flex items-center justify-between border-b border-slate-700/80 flex-shrink-0 shadow-lg">
@@ -580,9 +580,9 @@ export default function ChatSupport() {
                               <span className="text-xs sm:text-sm font-extrabold text-amber-400">
                                 {p.price.toLocaleString('vi-VN')}đ
                               </span>
-                              {p.originalPrice && p.originalPrice > p.price && (
+                              {Boolean(p.originalPrice && p.originalPrice > p.price) && (
                                 <span className="text-[10px] text-slate-400 line-through">
-                                  {p.originalPrice.toLocaleString('vi-VN')}đ
+                                  {p.originalPrice?.toLocaleString('vi-VN')}đ
                                 </span>
                               )}
                             </div>
@@ -626,8 +626,11 @@ export default function ChatSupport() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* ── GỢI Ý CÂU HỎI NHANH ── */}
-            <div className="px-4 py-2.5 bg-[#121822] border-t border-slate-800 flex gap-2 overflow-x-auto flex-shrink-0 scrollbar-none">
+            {/* ── GỢI Ý CÂU HỎI NHANH (ẨN THANH CUỘN NGANG) ── */}
+            <div 
+              className="px-4 py-2.5 bg-[#121822] border-t border-slate-800 flex gap-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {DEFAULT_SUGGESTION_CHIPS.map((chip) => (
                 <button
                   key={chip}
