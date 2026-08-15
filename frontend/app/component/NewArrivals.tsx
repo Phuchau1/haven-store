@@ -14,9 +14,22 @@ export default function NewArrivals() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await fetch('/api/products?sort=newest&limit=8');
+                const res = await fetch('/api/products?sort=newest&limit=30');
                 const data = await res.json();
-                if (data.success) setProducts(data.products);
+                if (data.success && Array.isArray(data.products)) {
+                    // Lọc sản phẩm mới nguyên giá, không phải sản phẩm giảm giá
+                    const nonDiscounted = data.products.filter((p: Product) => {
+                        const orig = Number(p.originalPrice) || 0;
+                        const curr = Number(p.price) || 0;
+                        const disc = (p as any).discount || 0;
+                        const hasDiscountBadge = p.badge && (p.badge.includes('%') || p.badge.toUpperCase().includes('SALE'));
+                        return disc === 0 && (orig <= curr || orig === 0) && !hasDiscountBadge;
+                    });
+                    
+                    // Nếu có đủ sản phẩm nguyên giá thì lấy sản phẩm nguyên giá, ngược lại lấy các sản phẩm mới nhất
+                    const selectedProducts = nonDiscounted.length >= 4 ? nonDiscounted : data.products;
+                    setProducts(selectedProducts.slice(0, 8));
+                }
             } catch (error) {
                 console.error('Fetch error:', error);
             } finally {
@@ -71,14 +84,14 @@ export default function NewArrivals() {
                     </motion.div>
                 </div>
 
-                {/* Products Grid with Exclusive "MỚI" Badge */}
+                {/* Products Grid with Exclusive "MỚI" Badge & No Discount Tags */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
                     {products.map((product: Product, index: number) => (
                         <ProductCard 
                             key={product.id} 
                             product={product} 
                             index={index} 
-                            showDiscount={true} 
+                            showDiscount={false} 
                             forceBadge="MỚI"
                         />
                     ))}

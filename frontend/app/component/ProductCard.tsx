@@ -236,7 +236,7 @@ export default function ProductCard({
                                         formatPrice(product.price)
                                     )}
                                 </span>
-                                {(product.originalPrice || 0) > product.price && (
+                                {showDiscount && (product.originalPrice || 0) > product.price && (
                                     <span className="text-[13px] sm:text-[13.5px] font-normal text-gray-400 line-through">
                                         {formatPrice(product.originalPrice || 0)}
                                     </span>
