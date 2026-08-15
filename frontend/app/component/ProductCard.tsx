@@ -63,10 +63,10 @@ export default function ProductCard({
         >
             <Link 
                 href={isUpcomingFlashSale ? `/product/${getProductSlug(product)}?slot=upcoming` : `/product/${getProductSlug(product)}`} 
-                className={`group block h-full flex flex-col transition-all duration-300 hover:-translate-y-2 bg-white border rounded-2xl overflow-hidden ${
+                className={`group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1 bg-white border rounded-2xl overflow-hidden shadow-xs hover:shadow-md ${
                     isFlashSaleCard || (showDiscount && discount > 0)
-                        ? 'border-slate-200/90 hover:border-[#dc2626] hover:shadow-[0_22px_45px_rgba(220,38,38,0.18)] hover:ring-1 hover:ring-[#dc2626]/20'
-                        : 'border-slate-200/90 hover:border-[#1e40af] hover:shadow-[0_22px_45px_rgba(30,64,175,0.18)] hover:ring-1 hover:ring-[#1e40af]/25'
+                        ? 'border-slate-200 hover:border-[#dc2626]'
+                        : 'border-slate-200 hover:border-[#1e40af]'
                 }`}
                 onMouseLeave={() => setSelectedColor(null)}
             >
@@ -81,7 +81,7 @@ export default function ProductCard({
                         src={displayedImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-0 scale-[1.05]' : 'opacity-100 scale-100'}`}
+                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-0 scale-[1.04]' : 'opacity-100 scale-100'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                     {/* Hover Image */}
@@ -89,7 +89,7 @@ export default function ProductCard({
                         src={hoverImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'}`}
+                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
@@ -97,11 +97,11 @@ export default function ProductCard({
                     <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {product.badge && !(showDiscount && discount > 0 && product.badge.toUpperCase().includes('SALE')) && (
                             <span
-                                className={`inline-block px-2.5 py-0.5 text-[10.5px] uppercase font-black rounded-md tracking-wider shadow-sm ${
+                                className={`inline-block px-2.5 py-0.5 text-[10.5px] uppercase font-black rounded-md tracking-wider ${
                                     product.badge.toUpperCase() === 'MỚI' || product.badge.toUpperCase() === 'NEW' || product.badge.toUpperCase().includes('FREESHIP')
-                                        ? 'bg-[#1e40af] text-white shadow-blue-800/20'
+                                        ? 'bg-[#1e40af] text-white'
                                         : product.badge.toUpperCase() === 'HOT' || product.badge.toUpperCase().includes('CHẠY')
-                                            ? 'bg-[#d97706] text-white shadow-amber-500/20'
+                                            ? 'bg-[#d97706] text-white'
                                             : 'bg-[#1e40af] text-white'
                                 }`}
                             >
@@ -109,7 +109,7 @@ export default function ProductCard({
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2.5 py-0.5 text-[10.5px] font-black rounded-md bg-[#dc2626] text-white shadow-sm shadow-red-500/20">
+                            <span className="inline-block px-2.5 py-0.5 text-[10.5px] font-black rounded-md bg-[#dc2626] text-white">
                                 -{discount}%
                             </span>
                         )}
