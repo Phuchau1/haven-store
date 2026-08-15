@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2, Sparkles } from 'lucide-react';
+import { ShoppingBag, Heart, Star, Truck, RefreshCw, Shield, ChevronLeft, Check, Loader2, Sparkles, Zap, Clock, Tag } from 'lucide-react';
 import ImageZoom from '@/app/component/ImageZoom';
 import { formatPrice, slugify, getProductSlug, cleanProductTitle } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
@@ -137,6 +137,34 @@ export default function ProductDetailPage() {
         };
         fetchProductData();
     }, [params.id]);
+
+    // Live ticking countdown timer for Flash Sale (ticks every second in real-time)
+    useEffect(() => {
+        const updateTimer = () => {
+            let targetTime: number;
+            if (activeFlashSale?.endTime) {
+                targetTime = new Date(activeFlashSale.endTime).getTime();
+            } else {
+                const now = new Date();
+                const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+                targetTime = endOfDay.getTime();
+            }
+
+            const diff = targetTime - Date.now();
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                setTimeLeft({ hours, minutes, seconds });
+            } else {
+                setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+            }
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [activeFlashSale?.endTime]);
 
     if (loading) {
         return (
@@ -344,34 +372,34 @@ export default function ProductDetailPage() {
 
                         {/* Price & Flash Sale Shopee Banner */}
                         {(product.isFlashSale || product.flashSale) ? (
-                            <div className="rounded-2xl overflow-hidden border border-orange-400/40 shadow-lg">
+                            <div className="rounded-xl overflow-hidden border border-orange-400/40 shadow-md">
                                 {/* Shopee Flash Sale Top Bar */}
-                                <div className="bg-gradient-to-r from-[#ee4d2d] via-[#f25833] to-[#ff5722] px-4 py-2.5 flex items-center justify-between text-white shadow-sm">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-base select-none">⏰</span>
-                                        <span className="text-sm sm:text-base font-black tracking-wider uppercase drop-shadow-sm">
+                                <div className="bg-gradient-to-r from-[#ee4d2d] via-[#f25833] to-[#ff5722] px-3.5 py-2 flex items-center justify-between text-white shadow-sm">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center">
+                                            <Zap size={13} className="fill-white text-white" />
+                                        </div>
+                                        <span className="text-xs sm:text-sm font-black tracking-wider uppercase drop-shadow-sm">
                                             FLASH SALE
                                         </span>
                                     </div>
 
                                     {/* Countdown Box */}
-                                    <div className="flex items-center gap-1.5 text-xs font-bold">
-                                        <span className="hidden sm:inline text-orange-100 font-bold text-[11px] uppercase tracking-wider mr-1">
-                                            🕒 KẾT THÚC TRONG
-                                        </span>
-                                        <span className="sm:hidden text-orange-100 text-[11px] mr-0.5">
-                                            🕒
-                                        </span>
-                                        <div className="flex items-center gap-1">
-                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-xs rounded shadow">
+                                    <div className="flex items-center gap-1 text-xs font-bold">
+                                        <div className="flex items-center gap-1 text-orange-100 text-[11px] font-bold uppercase tracking-wider">
+                                            <Clock size={12} className="text-orange-200" />
+                                            <span className="hidden sm:inline">KẾT THÚC TRONG</span>
+                                        </div>
+                                        <div className="flex items-center gap-0.5 ml-1">
+                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-[11px] rounded">
                                                 {String(timeLeft.hours).padStart(2, '0')}
                                             </span>
-                                            <span className="font-bold">:</span>
-                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-xs rounded shadow">
+                                            <span className="text-[10px] text-orange-200">:</span>
+                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-[11px] rounded">
                                                 {String(timeLeft.minutes).padStart(2, '0')}
                                             </span>
-                                            <span className="font-bold">:</span>
-                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-xs rounded shadow">
+                                            <span className="text-[10px] text-orange-200">:</span>
+                                            <span className="px-1.5 py-0.5 bg-black text-white font-mono font-black text-[11px] rounded">
                                                 {String(timeLeft.seconds).padStart(2, '0')}
                                             </span>
                                         </div>
@@ -379,17 +407,17 @@ export default function ProductDetailPage() {
                                 </div>
 
                                 {/* Shopee Price Box */}
-                                <div className="bg-[#fff7f4] p-4 sm:p-5 flex flex-col gap-2.5">
+                                <div className="bg-[#fff7f4] p-3.5 sm:p-4 flex flex-col gap-2">
                                     <div className="flex items-baseline gap-3 flex-wrap">
-                                        <span className="text-3xl sm:text-4xl font-black text-[#ee4d2d] tracking-tight">
+                                        <span className="text-2xl sm:text-3xl font-black text-[#ee4d2d] tracking-tight">
                                             {formatPrice(currentPrice)}
                                         </span>
                                         {currentOriginalPrice > currentPrice && (
                                             <>
-                                                <span className="text-base sm:text-lg text-gray-400 line-through font-normal">
+                                                <span className="text-sm sm:text-base text-gray-400 line-through font-normal">
                                                     {formatPrice(currentOriginalPrice)}
                                                 </span>
-                                                <span className="px-2 py-0.5 bg-red-100 text-[#ee4d2d] text-xs font-extrabold rounded-md uppercase border border-red-200">
+                                                <span className="px-1.5 py-0.5 bg-red-100 text-[#ee4d2d] text-[11px] font-extrabold rounded uppercase border border-red-200">
                                                     -{discount}%
                                                 </span>
                                             </>
@@ -398,8 +426,9 @@ export default function ProductDetailPage() {
 
                                     {/* Voucher / Exclusive Flash Sale Tag */}
                                     <div className="flex items-center gap-2 text-xs font-medium text-[#ee4d2d] flex-wrap">
-                                        <span className="px-2.5 py-1 bg-red-500/10 border border-[#ee4d2d]/30 rounded-md text-[11px] font-bold flex items-center gap-1">
-                                            ⚡ Giá Sau Voucher & Flash Sale
+                                        <span className="px-2 py-0.5 bg-red-500/10 border border-[#ee4d2d]/30 rounded text-[11px] font-bold flex items-center gap-1">
+                                            <Tag size={11} className="text-[#ee4d2d]" />
+                                            Giá Sau Voucher & Flash Sale
                                         </span>
                                         <span className="text-gray-500 text-[11px]">
                                             Ưu đãi có hạn theo khung giờ hôm nay
