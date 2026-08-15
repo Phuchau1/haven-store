@@ -10,8 +10,8 @@ export default function Footer() {
     return (
         <footer className="bg-white border-t border-slate-200 text-slate-900">
             <div className="container-torano py-16 lg:py-20">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12">
-                    {/* Col 1: Brand Info (Cols 4) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 w-full">
+                    {/* Col 1: Brand Info (4/12) */}
                     <div className="lg:col-span-4">
                         <Link href="/" className="inline-block mb-3">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -53,9 +53,9 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {/* Col 2: Quick Links (Cols 2.5) */}
-                    <div className="lg:col-span-2.5">
-                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4">
+                    {/* Col 2: Quick Links (3/12) */}
+                    <div className="lg:col-span-3">
+                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4 whitespace-nowrap">
                             LIÊN KẾT NHANH
                         </h3>
                         <ul className="space-y-2.5">
@@ -70,7 +70,7 @@ export default function Footer() {
                                 <li key={link.label}>
                                     <Link
                                         href={link.href}
-                                        className="group inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors"
+                                        className="group inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors whitespace-nowrap"
                                     >
                                         <span className="text-slate-400 group-hover:text-slate-950 text-xs transition-colors">›</span>
                                         <span>{link.label}</span>
@@ -80,9 +80,9 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Col 3: Policies (Cols 2.5) */}
-                    <div className="lg:col-span-2.5">
-                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4">
+                    {/* Col 3: Policies (2.5 -> 2/12) */}
+                    <div className="lg:col-span-2">
+                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4 whitespace-nowrap">
                             CHÍNH SÁCH
                         </h3>
                         <ul className="space-y-2.5">
@@ -96,7 +96,7 @@ export default function Footer() {
                                 <li key={item}>
                                     <Link 
                                         href="#" 
-                                        className="group inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors"
+                                        className="group inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors whitespace-nowrap"
                                     >
                                         <span className="text-slate-400 group-hover:text-slate-950 text-xs transition-colors">›</span>
                                         <span>{item}</span>
@@ -106,9 +106,9 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Col 4: Contact Info (Cols 3) */}
+                    {/* Col 4: Contact Info (3/12) */}
                     <div className="lg:col-span-3">
-                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4">
+                        <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4 whitespace-nowrap">
                             LIÊN HỆ
                         </h3>
                         <ul className="space-y-3">
