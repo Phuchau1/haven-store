@@ -158,15 +158,15 @@ export default function ProductCard({
                 {/* ── PRODUCT DETAILS (COMPACT & BALANCED) ── */}
                 <div className="p-3 sm:p-3.5 flex-1 flex flex-col bg-white">
                     {/* Category & Swatches Row */}
-                    <div className="flex items-center justify-between gap-1 min-h-[18px]">
+                    <div className="flex items-center justify-between gap-2 min-h-[22px]">
                         <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">
                             {product.categoryLabel || product.category || 'THỜI TRANG'}
                         </p>
 
-                        {/* Colors Swatches (rendered compactly) */}
+                        {/* Colors Swatches (To rõ, sắc nét, dễ chọn) */}
                         {product.colors && product.colors.length > 1 && (
-                            <div className="flex items-center gap-1 shrink-0">
-                                {product.colors.slice(0, 4).map((color, idx) => {
+                            <div className="flex items-center gap-1.5 shrink-0 py-0.5">
+                                {product.colors.slice(0, 5).map((color, idx) => {
                                     const isActive = selectedColor ? selectedColor.name === color.name : idx === 0;
                                     return (
                                         <button
@@ -178,10 +178,10 @@ export default function ProductCard({
                                                 setSelectedColor(color);
                                             }}
                                             onMouseEnter={() => setSelectedColor(color)}
-                                            className={`w-3 h-3 rounded-full border border-gray-200 transition-all duration-200 ${
+                                            className={`w-4 h-4 sm:w-[18px] sm:h-[18px] rounded-full border border-gray-300 shadow-xs transition-all duration-200 cursor-pointer ${
                                                 isActive
-                                                    ? 'ring-1.5 ring-offset-0.5 ring-slate-800 scale-110 shadow-xs'
-                                                    : 'hover:scale-110'
+                                                    ? 'ring-2 ring-offset-1 ring-slate-900 scale-110 shadow-sm'
+                                                    : 'hover:scale-115 hover:border-slate-600'
                                             }`}
                                             style={{ backgroundColor: color.hex }}
                                             title={color.name}
