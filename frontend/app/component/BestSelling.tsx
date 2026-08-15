@@ -79,17 +79,6 @@ export default function BestSelling() {
                         <ProductCard key={product.id} product={product} index={index} showSold={true} />
                     ))}
                 </div>
-
-                {/* View All Button */}
-                <div className="mt-12 text-center">
-                    <Link
-                        href="/products?sort=best-selling"
-                        className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-white hover:bg-[#09090b] text-[#09090b] hover:text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 border-2 border-[#09090b] shadow-sm hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
-                    >
-                        <span>Khám Phá Toàn Bộ Bán Chạy</span>
-                        <ArrowRight size={14} />
-                    </Link>
-                </div>
             </div>
         </section>
     );

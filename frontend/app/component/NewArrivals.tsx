@@ -77,17 +77,6 @@ export default function NewArrivals() {
                         <ProductCard key={product.id} product={product} index={index} showDiscount={true} />
                     ))}
                 </div>
-
-                {/* View All Button */}
-                <div className="mt-12 text-center">
-                    <Link
-                        href="/products"
-                        className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#09090b] hover:bg-[#d97706] text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
-                    >
-                        <span>Xem Tất Cả Sản Phẩm Mới</span>
-                        <ArrowRight size={14} />
-                    </Link>
-                </div>
             </div>
         </section>
     );

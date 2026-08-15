@@ -243,7 +243,7 @@ export default function CategorySection() {
                                 setDirection(idx > currentIndex ? 'up' : 'down');
                                 setCurrentIndex(idx);
                             }}
-                            className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300 ${
+                            className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                                 idx === currentIndex 
                                     ? 'bg-white scale-125 shadow-lg' 
                                     : 'bg-white/40 hover:bg-white/70'
@@ -252,26 +252,6 @@ export default function CategorySection() {
                         />
                     ))}
                 </div>
-
-                {/* Vertical Arrow Buttons */}
-                <div className="absolute left-6 md:left-10 bottom-6 md:bottom-10 z-20 flex flex-col gap-2">
-                    <button
-                        onClick={handlePrev}
-                        className="p-2 md:p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
-                        aria-label="Previous Slide"
-                    >
-                        <ChevronUp size={16} />
-                    </button>
-                    <button
-                        onClick={handleNext}
-                        className="p-2 md:p-2.5 rounded-full bg-black/35 hover:bg-white hover:text-black text-white border border-white/20 transition-all duration-300 backdrop-blur-md"
-                        aria-label="Next Slide"
-                    >
-                        <ChevronDown size={16} />
-                    </button>
-                </div>
-
-                {/* Slide Index Counter removed as requested */}
             </div>
         </section>
     );
