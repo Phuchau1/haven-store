@@ -78,9 +78,13 @@ const fs = require('fs');
 if (!fs.existsSync(publicUploads)) {
     fs.mkdirSync(publicUploads, { recursive: true });
 }
-// --- HEALTH CHECK FOR DEPLOYMENT (RENDER / VERCEL) ---
+// --- HEALTH CHECK & GOOGLE VERIFICATION ---
 app.get(['/', '/health'], (req, res) => {
     res.status(200).json({ status: 'ok', message: 'HAVEN Store Backend API is running smoothly', timestamp: new Date() });
+});
+app.get('/google5e31d691b45f169a.html', (req, res) => {
+    res.setHeader('Content-Type', 'text/html');
+    res.send('google-site-verification: google5e31d691b45f169a.html');
 });
 
 // --- ROUTES ---
