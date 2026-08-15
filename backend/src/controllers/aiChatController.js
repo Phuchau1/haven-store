@@ -39,7 +39,26 @@ const doSmartSearchAndFallback = (rawMessage, products) => {
         return STORE_POLICIES.payment + '\n\nXem thêm sản phẩm tại https://havenstore.io.vn/products nha!';
     }
 
-    // 5. Phát hiện ngưỡng giá từ câu hỏi
+    // 5. Phát hiện giới tính câu hỏi (Nam / Nữ) để lọc chính xác 100%
+    const isMenQuery = /\b(nam|men|boy|trai|quy ong|dan ong)\b/i.test(unaccentedQ);
+    const isWomenQuery = /\b(nu|women|girl|gai|quy co|phu nu|dam|vay|croptop|chan vay)\b/i.test(unaccentedQ);
+
+    let candidateProducts = products;
+    if (isMenQuery && !isWomenQuery) {
+        candidateProducts = products.filter(p => {
+            const text = removeAccents(`${p.name} ${p.category} ${p.categoryLabel} ${p.subCategory} ${p.subCategoryLabel}`);
+            const isExplicitlyFemale = text.includes('nu') || text.includes('dam') || text.includes('vay') || text.includes('croptop') || text.includes('womens');
+            return !isExplicitlyFemale;
+        });
+    } else if (isWomenQuery && !isMenQuery) {
+        candidateProducts = products.filter(p => {
+            const text = removeAccents(`${p.name} ${p.category} ${p.categoryLabel} ${p.subCategory} ${p.subCategoryLabel}`);
+            const isFemale = text.includes('nu') || text.includes('dam') || text.includes('vay') || text.includes('croptop') || text.includes('womens') || p.category === 'cat-womens';
+            return isFemale;
+        });
+    }
+
+    // 6. Phát hiện ngưỡng giá từ câu hỏi
     const underMatch = rawMessage.match(/dưới\s*([\d.,]+)\s*k?/i);
     const overMatch  = rawMessage.match(/trên\s*([\d.,]+)\s*k?/i);
 
@@ -55,22 +74,22 @@ const doSmartSearchAndFallback = (rawMessage, products) => {
 
     // A. Hỏi Đánh giá cao nhất / Rating / 5 sao
     if (/danh gia|rating|tot nhat|5 sao|review|sao/i.test(unaccentedQ)) {
-        matched = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviews || 0) - (a.reviews || 0)).slice(0, 5);
+        matched = [...candidateProducts].sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviews || 0) - (a.reviews || 0)).slice(0, 5);
         titlePrefix = `⭐ Các sản phẩm **được đánh giá cao & nhận nhiều 5 sao nhất** tại HAVEN:`;
     }
     // B. Hỏi Bán chạy nhất / Hot / Best seller
     else if (/ban chay|hot|pho bien|best seller|ua chuong/i.test(unaccentedQ)) {
-        matched = [...products].sort((a, b) => (b.soldQuantity || 0) - (a.soldQuantity || 0) || (b.rating || 0) - (a.rating || 0)).slice(0, 5);
+        matched = [...candidateProducts].sort((a, b) => (b.soldQuantity || 0) - (a.soldQuantity || 0) || (b.rating || 0) - (a.rating || 0)).slice(0, 5);
         titlePrefix = `🔥 Danh sách các mẫu **bán chạy & được săn đón nhiều nhất** tại HAVEN:`;
     }
     // C. Hỏi Hàng Mới Nhất
     else if (/moi nhat|new arrival|hang moi|bo suu tap moi/i.test(unaccentedQ)) {
-        matched = [...products].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 5);
+        matched = [...candidateProducts].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 5);
         titlePrefix = `✨ Bộ sưu tập **hàng mới về (New Arrivals)** tại HAVEN:`;
     }
     // D. Hỏi Sale / Flash Sale / Giảm giá
     else if (/sale|gi[aả]m gi[aá]|khuy[eê]n m[aã]i|flash|u[uư] [dđ][aã]i/i.test(rawMessage)) {
-        matched = products.filter(p => p.flashSale || (p.originalPrice && p.originalPrice > p.price))
+        matched = candidateProducts.filter(p => p.flashSale || (p.originalPrice && p.originalPrice > p.price))
             .sort((a, b) => {
                 const discA = a.originalPrice ? (a.originalPrice - a.price) / a.originalPrice : 0;
                 const discB = b.originalPrice ? (b.originalPrice - b.price) / b.originalPrice : 0;
@@ -80,21 +99,21 @@ const doSmartSearchAndFallback = (rawMessage, products) => {
     }
     // E. Hỏi lọc theo Khoảng Giá
     else if (maxPrice) {
-        matched = products.filter(p => {
+        matched = candidateProducts.filter(p => {
             const eff = (p.flashSale && p.flashSalePrice) ? p.flashSalePrice : p.price;
             return eff <= maxPrice;
         }).sort((a, b) => a.price - b.price).slice(0, 6);
         titlePrefix = `💰 Gợi ý các mẫu giá dưới **${maxPrice.toLocaleString('vi-VN')}đ** đang có sẵn:`;
     } else if (minPrice) {
-        matched = products.filter(p => p.price >= minPrice).sort((a, b) => a.price - b.price).slice(0, 6);
+        matched = candidateProducts.filter(p => p.price >= minPrice).sort((a, b) => a.price - b.price).slice(0, 6);
         titlePrefix = `💎 Các dòng sản phẩm cao cấp từ **${minPrice.toLocaleString('vi-VN')}đ** dành cho bạn:`;
     }
     // F. Tìm kiếm Universal theo Tên sản phẩm, Thương hiệu, Danh mục, Từ khóa
     else {
-        const stopWords = ['tim', 'cho', 'minh', 'toi', 'ban', 'co', 'khong', 'nhe', 'a', 'san', 'pham', 'mau', 'hang', 'loai', 'muon', 'xem', 'hoi'];
+        const stopWords = ['tim', 'cho', 'minh', 'toi', 'ban', 'co', 'khong', 'nhe', 'a', 'san', 'pham', 'mau', 'hang', 'loai', 'muon', 'xem', 'hoi', 'mua', 'can'];
         const tokens = unaccentedQ.split(/\s+/).filter(w => w.length > 1 && !stopWords.includes(w));
 
-        matched = products.map(p => {
+        matched = candidateProducts.map(p => {
             const pName = removeAccents(p.name);
             const pCat = removeAccents(p.categoryLabel || p.category);
             const pSub = removeAccents(p.subCategoryLabel || p.subCategory);
@@ -108,7 +127,7 @@ const doSmartSearchAndFallback = (rawMessage, products) => {
             if (pCat && pCat.includes(unaccentedQ)) score += 40;
 
             tokens.forEach(tok => {
-                if (pName.includes(tok)) score += 20;
+                if (pName.includes(tok)) score += 25;
                 if (pBrand && pBrand.includes(tok)) score += 15;
                 if (pSub && pSub.includes(tok)) score += 10;
                 if (pCat && pCat.includes(tok)) score += 8;
@@ -147,7 +166,7 @@ const doSmartSearchAndFallback = (rawMessage, products) => {
 
 
 // ────────────────────────────────────────────────────────────
-// AI CHAT CONTROLLER - GEMINI 3.7 FLASH VỚI TOÀN BỘ STORE KNOWLEDGE
+// AI CHAT CONTROLLER - GEMINI FLASH VỚI TOÀN BỘ STORE KNOWLEDGE
 // POST /api/ai/chat
 // Body: { message: "...", history: [{role, text}] }
 // ────────────────────────────────────────────────────────────
@@ -173,38 +192,36 @@ exports.chatPriceQuery = async (req, res) => {
             const flash = p.flashSale && p.flashSalePrice
                 ? ` | ⚡ Flash Sale: ${p.flashSalePrice.toLocaleString('vi-VN')}đ`
                 : '';
-            const gender = (p.category === 'cat-womens' || /nữ/i.test(p.categoryLabel || '')) ? 'Nữ' : 'Nam';
+            const gender = (p.category === 'cat-womens' || /nữ/i.test(p.categoryLabel || '') || /nữ/i.test(p.name || '')) ? 'Nữ' : 'Nam';
             const link = p.slug ? `https://havenstore.io.vn/product/${p.slug}` : 'https://havenstore.io.vn/products';
             const brand = p.brand ? ` | Brand: ${p.brand}` : '';
             const rating = p.rating ? ` | ★${p.rating}` : '';
             return `- ID:${p._id} | [${gender} - ${p.categoryLabel || p.category}] ${p.name}: ${p.price.toLocaleString('vi-VN')}đ${discount > 0 ? ` (giảm ${discount}%, gốc ${p.originalPrice.toLocaleString('vi-VN')}đ)` : ''}${flash}${brand}${rating} | Link: ${link}`;
         }).join('\n');
 
-        const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+        const { AISettingModel } = require('../models/AISetting');
+        const aiSetting = await AISettingModel.findOne({ type: 'chat' }).lean().catch(() => null);
+        const apiKey = (aiSetting?.apiKey && aiSetting.apiKey.trim()) || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
         let reply = '';
 
         if (apiKey) {
-            try {
-                const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({
-                    model: 'gemini-3.7-flash',
-                    generationConfig: {
-                        temperature: 0.85,
-                        topP: 0.95,
-                    }
-                });
+            // Danh sách model ưu tiên từ mới nhất
+            const modelCandidates = ['gemini-flash-latest', 'gemini-3.7-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash-latest'];
+            let geminiSuccess = false;
 
-                const geminiHistory = [];
-                if (history.length > 0) {
-                    history.slice(-8).forEach(m => {
-                        geminiHistory.push({
-                            role: m.role === 'ai' ? 'model' : 'user',
-                            parts: [{ text: m.text }]
-                        });
+            for (const modelName of modelCandidates) {
+                if (geminiSuccess) break;
+                try {
+                    const genAI = new GoogleGenerativeAI(apiKey);
+                    const model = genAI.getGenerativeModel({
+                        model: modelName,
+                        generationConfig: {
+                            temperature: 0.7,
+                            topP: 0.9,
+                        }
                     });
-                }
 
-                const fullPrompt = `Bạn là HAVEN AI — stylist và chuyên viên tư vấn bán hàng thông minh của thương hiệu thời trang cao cấp HAVEN (havenstore.io.vn).
+                    const fullPrompt = `Bạn là HAVEN AI — stylist và chuyên viên tư vấn bán hàng thông minh của thương hiệu thời trang cao cấp HAVEN (havenstore.io.vn).
 
 THÔNG TIN TOÀN DIỆN VỀ CỬA HÀNG HAVEN:
 1. THỜI TRANG NAM: Áo sơ mi nam, Áo Polo nam, Áo thun nam, Áo khoác nam, Quần kaki, Quần tây/âu, Quần jean, Quần short, Bộ vest, Giày da nam (Derby), Dép da (Hermès), Ví da, Thắt lưng da, Mũ nón (D-HAT06), Tất vớ.
@@ -218,22 +235,27 @@ THÔNG TIN TOÀN DIỆN VỀ CỬA HÀNG HAVEN:
    - 💳 Thanh toán: COD, MoMo, VNPay, Chuyển khoản ngân hàng.
    - 🌐 Website: https://havenstore.io.vn
 
-DANH SÁCH ${products.length} SẢN PHẨM THỰC TẾ TRONG KHO:
+DANH SÁCH ${products.length} SẢN PHẨM THỰC TẾ TRONG KHO (CHỈ TƯ VẤN CÁC SẢN PHẨM NÀY, TUYỆT ĐỐI KHÔNG BỊA RA SẢN PHẨM KHÔNG CÓ TRONG DANH SÁCH):
 ${productLines}
 
 QUY TẮC BẮT BUỘC:
-- Trả lời bằng tiếng Việt tự nhiên, thân thiện, linh hoạt câu chữ. Xưng "mình", gọi khách là "bạn".
-- Khi khách hỏi tìm bất kỳ sản phẩm nào theo Tên (Nike, Jordan, Hermès, Sơ mi, Polo, Đầm, Váy, Giày, Dép, Túi...), Danh mục, Mức giá, Đánh giá cao, Bán chạy... hãy liệt kê chính xác các sản phẩm tương ứng.
-- Khi tư vấn từ 1 đến 3 sản phẩm cụ thể, ở DÒNG CUỐI CÙNG của câu trả lời BẮT BUỘC ghi cú pháp: SUGGEST_IDS: id1,id2,id3 (dùng đúng ID sản phẩm từ danh sách trên) để website hiển thị thẻ sản phẩm tương tác kèm hình ảnh cho khách hàng.
+- Nếu khách hỏi đồ NAM (áo sơ mi nam, áo thun nam, quần nam...), TUYỆT ĐỐI CHỈ giới thiệu sản phẩm NAM, KHÔNG ĐƯỢC đưa sản phẩm Nữ (váy, đầm, áo croptop, sơ mi nữ).
+- Nếu khách hỏi đồ NỮ (áo sơ mi nữ, đầm, váy, croptop...), TUYỆT ĐỐI CHỈ giới thiệu sản phẩm NỮ.
+- Trả lời bằng tiếng Việt tự nhiên, thân thiện. Xưng "mình", gọi khách là "bạn".
+- Khi tư vấn từ 1 đến 3 sản phẩm cụ thể, ở DÒNG CUỐI CÙNG của câu trả lời BẮT BUỘC ghi cú pháp: SUGGEST_IDS: id1,id2,id3 (dùng đúng ID sản phẩm từ danh sách trên) để website hiển thị thẻ sản phẩm tương tác cho khách hàng.
 - Tối đa 150 từ mỗi câu trả lời.
 
 CÂU HỎI CỦA KHÁCH: ${message.trim()}`;
 
-                const chat = model.startChat({ history: geminiHistory });
-                const result = await chat.sendMessage(fullPrompt);
-                reply = result.response.text().trim();
-            } catch (apiError) {
-                console.warn('[AI Chat] Gemini API error, falling back to smart search:', apiError.message);
+                    const result = await model.generateContent(fullPrompt);
+                    reply = result.response.text().trim();
+                    geminiSuccess = true;
+                } catch (apiError) {
+                    console.warn(`[AI Chat] Gemini ${modelName} error:`, apiError.message);
+                }
+            }
+
+            if (!geminiSuccess) {
                 reply = doSmartSearchAndFallback(message, products);
             }
         } else {
