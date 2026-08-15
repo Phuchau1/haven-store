@@ -386,8 +386,8 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 exit={{ scale: 0.85, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', bounce: 0.2 }}
             >
-                {/* Header Clean Red Theme (Sticky Top) */}
-                <div className="relative bg-gradient-to-r from-[#D32F2F] via-[#E53935] to-[#C62828] px-6 pt-5 pb-4 text-center text-white shrink-0 shadow-md">
+                {/* Header Clean Red Theme with Notification Inside (Sticky Top) */}
+                <div className="relative bg-gradient-to-r from-[#D32F2F] via-[#E53935] to-[#C62828] px-5 sm:px-6 pt-5 pb-4.5 text-center text-white shrink-0 shadow-md">
                     <button
                         onClick={!spinning ? onClose : undefined}
                         className="absolute right-4 top-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer"
@@ -403,14 +403,32 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                         Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn
                     </p>
 
-                    {/* Banner ngày sự kiện nếu có */}
-                    {(config?.startDate || config?.endDate) && (
-                        <div className="mt-1.5 text-[11px] bg-white/15 px-3 py-0.5 rounded-full inline-flex items-center gap-1.5 font-medium text-white/90">
-                            <Clock size={12} />
-                            <span>
-                                {config.startDate ? `Từ ${new Date(config.startDate).toLocaleDateString('vi-VN')}` : ''}
-                                {config.endDate ? ` đến ${new Date(config.endDate).toLocaleDateString('vi-VN')}` : ''}
-                            </span>
+                    {/* Status Notification Box inside the RED HEADER */}
+                    {config?.isActive !== false && (
+                        <div className="mt-3.5">
+                            {canSpin ? (
+                                <div className="w-full py-2 px-3.5 rounded-2xl bg-white/20 border border-white/40 text-white flex items-center justify-between text-xs sm:text-[12.5px] font-bold backdrop-blur-md shadow-inner">
+                                    <span className="flex items-center gap-1.5">
+                                        <Sparkles size={15} className="text-amber-300" />
+                                        <span>Bạn đang có lượt quay may mắn miễn phí!</span>
+                                    </span>
+                                    <span className="text-[10px] bg-white text-red-600 px-2.5 py-0.5 rounded-full font-black uppercase shadow-xs">
+                                        SẴN SÀNG
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="w-full py-2 px-3.5 rounded-2xl bg-black/30 border border-white/25 text-white flex items-center justify-between text-xs sm:text-[12.5px] font-bold backdrop-blur-md shadow-inner">
+                                    <span className="flex items-center gap-1.5">
+                                        <Clock size={15} className="text-amber-300" />
+                                        <span>{statusMessage || 'Đã hết lượt quay hôm nay'}</span>
+                                    </span>
+                                    {timeLeft && (
+                                        <span className="text-[11px] font-mono font-black text-white bg-red-600 px-2.5 py-0.5 rounded-md shadow-xs">
+                                            {timeLeft}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -419,38 +437,13 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 <div className="relative px-5 py-4 pb-6 flex flex-col items-center bg-slate-50/90 shrink-0">
 
                     {/* Vòng quay đang bảo trì */}
-                    {config?.isActive === false ? (
+                    {config?.isActive === false && (
                         <div className="w-full p-6 text-center bg-rose-50 border border-rose-200 rounded-2xl space-y-2 mb-4">
                             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
                             <h3 className="text-base font-bold text-rose-800">Vòng quay đang tạm ngưng bảo trì</h3>
                             <p className="text-xs text-rose-600">Vui lòng quay lại sau khi ban quản trị hoàn tất nâng cấp.</p>
                         </div>
-                    ) : (
-                        <>
-                            {/* Status Notification Box at the TOP (High Contrast & Clear) */}
-                            {canSpin ? (
-                                <div className="w-full mb-2.5 py-2.5 px-4 rounded-2xl bg-emerald-100/90 border border-emerald-300 text-emerald-950 flex items-center justify-between text-xs sm:text-[13px] font-bold shadow-xs">
-                                    <span className="flex items-center gap-2">
-                                        <Sparkles size={16} className="text-emerald-700" />
-                                        <span>Bạn đang có lượt quay may mắn miễn phí!</span>
-                                    </span>
-                                    <span className="text-[10.5px] bg-emerald-700 text-white px-2.5 py-0.5 rounded-full font-black uppercase shadow-xs">
-                                        SẴN SÀNG
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="w-full mb-2.5 py-2.5 px-4 rounded-2xl bg-amber-100/90 border border-amber-300 text-amber-950 flex items-center justify-between text-xs sm:text-[13px] font-bold shadow-xs">
-                                    <span className="flex items-center gap-2">
-                                        <Clock size={16} className="text-amber-700" />
-                                        <span>{statusMessage || 'Đã hết lượt quay hôm nay'}</span>
-                                    </span>
-                                    {timeLeft && (
-                                        <span className="text-xs font-mono font-black text-white bg-amber-700 px-2.5 py-0.5 rounded-lg shadow-xs">
-                                            {timeLeft}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
+                    )}
 
                             {/* Outer Frame (Perfect Fit Canvas) */}
                             <div className="relative w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] rounded-full p-3 bg-white shadow-xl border-[5px] border-amber-400 flex items-center justify-center shrink-0 my-1">
@@ -513,8 +506,6 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                     </button>
                                 )}
                             </div>
-                        </>
-                    )}
                 </div>
 
                 <AnimatePresence>
