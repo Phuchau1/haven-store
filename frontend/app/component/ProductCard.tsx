@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Heart, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag, Sparkles, Flame, Truck } from 'lucide-react';
 import { Product } from '@/types';
 import { formatPrice, getProductSlug, cleanProductTitle } from '@/lib/format';
 import { useCart } from '@/app/component/CartContext';
@@ -19,6 +19,7 @@ interface ProductCardProps {
     showDiscount?: boolean;
     isFlashSaleCard?: boolean;
     isUpcomingFlashSale?: boolean;
+    forceBadge?: string;
 }
 
 export default function ProductCard({ 
@@ -27,31 +28,39 @@ export default function ProductCard({
     showSold = false, 
     showDiscount = true,
     isFlashSaleCard = false,
-    isUpcomingFlashSale = false 
+    isUpcomingFlashSale = false,
+    forceBadge
 }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const [selectedColor, setSelectedColor] = useState<typeof product.colors[0] | null>(null);
+    const [selectedColor, setSelectedColor] = useState<any>(null);
     const { addItem } = useCart();
     const { isFavorite, toggleFavorite } = useFavoritesStore();
     const { user } = useAuth();
     
     const isLiked = isFavorite(product.id);
 
+    const origPrice = Number(product.originalPrice) || 0;
+    const currPrice = Number(product.price) || 0;
+    const discount = (product as any).discount || (
+        origPrice > currPrice
+            ? Math.round(((origPrice - currPrice) / origPrice) * 100) 
+            : 0
+    );
+
     const handleQuickAdd = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        addItem(product, product.sizes?.[0] || 'M', selectedColor || product.colors?.[0]);
+        
+        const firstSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'M';
+        const firstColor = product.colors && product.colors.length > 0 ? product.colors[0] : { name: 'Mặc định', hex: '#000000' };
+
+        addItem(product, firstSize, selectedColor || firstColor);
         toast.success(`Đã thêm ${cleanProductTitle(product.name)} vào giỏ hàng`);
     };
 
-    const origPrice = Number(product.originalPrice) || 0;
-    const currPrice = Number(product.price) || 0;
-    const discount = origPrice > currPrice
-        ? Math.round(((origPrice - currPrice) / origPrice) * 100)
-        : 0;
-
     const displayedImage = selectedColor?.image || product.images?.[0] || '/haven-logo.png';
     const hoverImage = selectedColor?.image ? selectedColor.image : (product.images?.[1] || product.images?.[0] || '/haven-logo.png');
+    const badgeText = forceBadge || product.badge;
 
     return (
         <motion.div
@@ -93,19 +102,30 @@ export default function ProductCard({
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
-                    {/* Badges Overlay (Strict 4-Color Brand Palette: Distinct Navy, Black, Red, Gold) */}
+                    {/* Badges Overlay (Strict 4-Color Brand Palette with Vector Icons) */}
                     <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                        {product.badge && !(showDiscount && discount > 0 && product.badge.toUpperCase().includes('SALE')) && (
+                        {badgeText && !(showDiscount && discount > 0 && badgeText.toUpperCase().includes('SALE')) && (
                             <span
-                                className={`inline-block px-2.5 py-0.5 text-[10.5px] uppercase font-black rounded-md tracking-wider ${
-                                    product.badge.toUpperCase() === 'MỚI' || product.badge.toUpperCase() === 'NEW' || product.badge.toUpperCase().includes('FREESHIP')
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10.5px] uppercase font-black rounded-md tracking-wider shadow-2xs ${
+                                    badgeText.toUpperCase() === 'MỚI' || badgeText.toUpperCase() === 'NEW'
                                         ? 'bg-[#1e40af] text-white'
-                                        : product.badge.toUpperCase() === 'HOT' || product.badge.toUpperCase().includes('CHẠY')
-                                            ? 'bg-[#d97706] text-white'
-                                            : 'bg-[#1e40af] text-white'
+                                        : badgeText.toUpperCase().includes('FREESHIP')
+                                            ? 'bg-[#1e40af] text-white'
+                                            : badgeText.toUpperCase() === 'HOT' || badgeText.toUpperCase().includes('CHẠY')
+                                                ? 'bg-[#d97706] text-white'
+                                                : 'bg-[#1e40af] text-white'
                                 }`}
                             >
-                                {product.badge}
+                                {(badgeText.toUpperCase() === 'MỚI' || badgeText.toUpperCase() === 'NEW') && (
+                                    <Sparkles size={11} className="text-amber-300 fill-amber-300/40 shrink-0" />
+                                )}
+                                {badgeText.toUpperCase().includes('FREESHIP') && (
+                                    <Truck size={11} className="shrink-0" />
+                                )}
+                                {(badgeText.toUpperCase() === 'HOT' || badgeText.toUpperCase().includes('CHẠY')) && (
+                                    <Flame size={11} className="shrink-0 fill-white" />
+                                )}
+                                <span>{badgeText}</span>
                             </span>
                         )}
                         {showDiscount && discount > 0 && (

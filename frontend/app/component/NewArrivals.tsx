@@ -14,7 +14,7 @@ export default function NewArrivals() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await fetch('/api/products?limit=8');
+                const res = await fetch('/api/products?sort=newest&limit=8');
                 const data = await res.json();
                 if (data.success) setProducts(data.products);
             } catch (error) {
@@ -71,10 +71,16 @@ export default function NewArrivals() {
                     </motion.div>
                 </div>
 
-                {/* Products Grid */}
+                {/* Products Grid with Exclusive "MỚI" Badge */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
                     {products.map((product: Product, index: number) => (
-                        <ProductCard key={product.id} product={product} index={index} showDiscount={true} />
+                        <ProductCard 
+                            key={product.id} 
+                            product={product} 
+                            index={index} 
+                            showDiscount={true} 
+                            forceBadge="MỚI"
+                        />
                     ))}
                 </div>
             </div>
