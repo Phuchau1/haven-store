@@ -271,22 +271,25 @@ export default function ProductCard({
                                     : 'ĐANG BÁN CHẠY';
 
                                 return (
-                                    <div className="mt-3 w-full">
-                                        <div className="relative w-full h-[23px] bg-[#ffc5b2] rounded-full overflow-hidden flex items-center justify-center shadow-inner">
-                                            {/* Orange / Red gradient fill */}
-                                            <div 
-                                                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#ff424e] via-[#ff5b36] to-[#ff7832] rounded-full transition-all duration-700" 
-                                                style={{ width: `${displayPercent}%` }}
-                                            />
-                                            
-                                            {/* Fire icon on left edge */}
-                                            <span className="absolute left-1.5 z-10 text-[11px] select-none">
-                                                🔥
-                                            </span>
+                                    <div className="mt-3.5 w-full">
+                                        <div className="relative w-full h-[18px] sm:h-[19px]">
+                                            {/* Background pill track */}
+                                            <div className="w-full h-full bg-[#ffc5b2] rounded-full overflow-hidden flex items-center justify-center shadow-inner relative">
+                                                {/* Red / Orange active sold progress gradient */}
+                                                <div 
+                                                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#e01424] via-[#f7431e] to-[#ff6b35] rounded-full transition-all duration-700 shadow-xs" 
+                                                    style={{ width: `${displayPercent}%` }}
+                                                />
 
-                                            {/* Centered Bold Text */}
-                                            <span className="relative z-10 text-[11px] font-black uppercase text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
-                                                {label}
+                                                {/* Centered Bold Text */}
+                                                <span className="relative z-10 text-[10.5px] sm:text-[11px] font-black uppercase text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] pl-3.5">
+                                                    {label}
+                                                </span>
+                                            </div>
+
+                                            {/* Prominent Large Fire Emoji protruding outside the top-left */}
+                                            <span className="absolute -left-1 -top-1.5 z-20 text-[17px] sm:text-[18px] leading-none select-none drop-shadow-[0_2px_4px_rgba(238,77,45,0.4)] pointer-events-none filter saturate-150">
+                                                🔥
                                             </span>
                                         </div>
                                     </div>
