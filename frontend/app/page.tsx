@@ -9,7 +9,6 @@ import FeaturesBanner from '@/app/component/FeaturesBanner';
 import CustomerReviews from '@/app/component/CustomerReviews';
 import Newsletter from '@/app/component/Newsletter';
 import FlashSalePopup from '@/app/component/FlashSalePopup';
-import PriceChatWidget from '@/app/component/PriceChatWidget';
 
 export default function HomePage() {
   return (
@@ -24,7 +23,6 @@ export default function HomePage() {
       <CustomerReviews />
       <Newsletter />
       <FlashSalePopup />
-      <PriceChatWidget />
     </>
   );
 }
