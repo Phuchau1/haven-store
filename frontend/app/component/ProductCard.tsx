@@ -102,7 +102,7 @@ export default function ProductCard({
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
-                    {/* Badges Overlay (Strict 4-Color Brand Palette with Vector Icons) */}
+                    {/* Badges Overlay (Strict 4-Color Brand Palette) */}
                     <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {badgeText && !(showDiscount && discount > 0 && badgeText.toUpperCase().includes('SALE')) && (
                             <span
@@ -116,9 +116,6 @@ export default function ProductCard({
                                                 : 'bg-[#1e40af] text-white'
                                 }`}
                             >
-                                {(badgeText.toUpperCase() === 'MỚI' || badgeText.toUpperCase() === 'NEW') && (
-                                    <Sparkles size={11} className="text-amber-300 fill-amber-300/40 shrink-0" />
-                                )}
                                 {badgeText.toUpperCase().includes('FREESHIP') && (
                                     <Truck size={11} className="shrink-0" />
                                 )}

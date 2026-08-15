@@ -67,8 +67,7 @@ export default function NewArrivals() {
                         transition={{ duration: 0.5 }}
                         className="flex flex-col items-center"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1e40af] text-white border border-blue-900 mb-3.5 shadow-sm shadow-blue-900/20">
-                            <Sparkles size={13} className="text-amber-300 fill-amber-300/30" />
+                        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#1e40af] text-white border border-blue-900 mb-3.5 shadow-sm shadow-blue-900/20">
                             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">
                                 BỘ SƯU TẬP MỚI NHẤT
                             </span>
