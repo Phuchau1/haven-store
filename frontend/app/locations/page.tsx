@@ -12,7 +12,7 @@ import {
 interface StoreLocation {
     id: string;
     name: string;
-    city: 'all' | 'hcm' | 'hanoi' | 'danang' | 'longan';
+    city: 'all' | 'hcm' | 'longan';
     cityName: string;
     type: 'Flagship Showroom' | 'Concept Store' | 'Premium Boutique';
     address: string;
@@ -42,34 +42,6 @@ const STORES: StoreLocation[] = [
         isFlagship: true
     },
     {
-        id: 'store-hanoi-1',
-        name: 'HAVEN Concept Store - Hà Nội',
-        city: 'hanoi',
-        cityName: 'Hà Nội',
-        type: 'Concept Store',
-        address: '88 Phố Huế, Phường Hàng Bài, Quận Hoàn Kiếm, Hà Nội',
-        phone: '024 3987 6543',
-        openingHours: '09:00 - 22:00 (Mở cửa cả tuần)',
-        image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&q=80',
-        mapUrl: 'https://maps.google.com/maps?q=88%20Ph%E1%BB%91%20Hu%E1%BA%BF,%20Ho%C3%A0n%20Ki%E1%BA%BFm,%20H%C3%A0%20N%E1%BB%99i&t=&z=15&ie=UTF8&iwloc=&output=embed',
-        directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=88+Pho+Hue+Hoan+Kiem+Ha+Noi',
-        amenities: ['Chỗ đỗ xe máy & ô tô', 'Tư vấn phối đồ chuyên sâu', 'Giao hàng hỏa tốc', 'Thanh toán thẻ / QR']
-    },
-    {
-        id: 'store-danang-1',
-        name: 'HAVEN Premium Boutique - Đà Nẵng',
-        city: 'danang',
-        cityName: 'Đà Nẵng',
-        type: 'Premium Boutique',
-        address: '120 Nguyễn Văn Linh, Quận Hải Châu, TP. Đà Nẵng',
-        phone: '0236 388 9999',
-        openingHours: '09:00 - 22:00 (Mở cửa cả tuần)',
-        image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=900&q=80',
-        mapUrl: 'https://maps.google.com/maps?q=120%20Nguy%E1%BB%85n%20V%C4%83n%20Linh,%20H%E1%BA%A3i%20Ch%C3%A2u,%20%C4%90%C3%A0%20N%E1%BA%B5ng&t=&z=15&ie=UTF8&iwloc=&output=embed',
-        directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=120+Nguyen+Van+Linh+Hai+Chau+Da+Nang',
-        amenities: ['Chỗ đỗ xe thuận tiện', 'Đầy đủ BST mới nhất', 'Thanh toán linh hoạt', 'Đổi trả tại chỗ']
-    },
-    {
         id: 'store-longan-1',
         name: 'HAVEN Store - Long An',
         city: 'longan',
@@ -87,9 +59,7 @@ const STORES: StoreLocation[] = [
 
 const CITY_TABS = [
     { value: 'all', label: 'Tất cả cửa hàng' },
-    { value: 'hcm', label: 'Hồ Chí Minh' },
-    { value: 'hanoi', label: 'Hà Nội' },
-    { value: 'danang', label: 'Đà Nẵng' },
+    { value: 'hcm', label: 'TP. Hồ Chí Minh' },
     { value: 'longan', label: 'Long An' }
 ];
 
