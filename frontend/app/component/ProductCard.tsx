@@ -70,9 +70,9 @@ export default function ProductCard({
                 }`}
                 onMouseLeave={() => setSelectedColor(null)}
             >
-                {/* ── PRODUCT IMAGE CONTAINER ── */}
+                {/* ── PRODUCT IMAGE CONTAINER (WIDER & SHORTER 1:1 RATIO) ── */}
                 <div
-                    className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-[#fafafa] transition-all duration-300"
+                    className="relative aspect-square overflow-hidden bg-[#f8fafc] transition-all duration-300"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
@@ -81,7 +81,7 @@ export default function ProductCard({
                         src={displayedImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-0 scale-[1.06]' : 'opacity-100 scale-100'}`}
+                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-0 scale-[1.05]' : 'opacity-100 scale-100'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                     {/* Hover Image */}
@@ -94,10 +94,10 @@ export default function ProductCard({
                     />
 
                     {/* Badges Overlay (Strict 4-Color Brand Palette: Navy, Black, Red, Gold) */}
-                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
+                    <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {product.badge && !(showDiscount && discount > 0 && product.badge.toUpperCase().includes('SALE')) && (
                             <span
-                                className={`inline-block px-2.5 py-1 text-[11px] uppercase font-black rounded-lg tracking-wider shadow-sm ${
+                                className={`inline-block px-2 py-0.5 text-[10.5px] uppercase font-black rounded-md tracking-wider shadow-sm ${
                                     product.badge.toUpperCase() === 'MỚI' || product.badge.toUpperCase() === 'NEW' || product.badge.toUpperCase().includes('FREESHIP')
                                         ? 'bg-[#0f172a] text-white border border-slate-700/40'
                                         : product.badge.toUpperCase() === 'HOT' || product.badge.toUpperCase().includes('CHẠY')
@@ -109,7 +109,7 @@ export default function ProductCard({
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2.5 py-1 text-[11px] font-black rounded-lg bg-[#dc2626] text-white shadow-sm shadow-red-500/20">
+                            <span className="inline-block px-2 py-0.5 text-[10.5px] font-black rounded-md bg-[#dc2626] text-white shadow-sm shadow-red-500/20">
                                 -{discount}%
                             </span>
                         )}
@@ -127,15 +127,15 @@ export default function ProductCard({
                                 toast.success(`Đã thêm vào yêu thích`);
                             }
                         }}
-                        className={`absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
+                        className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${
                             isLiked
                                 ? 'bg-[#dc2626] text-white shadow-md'
-                                : 'bg-white/90 text-gray-600 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#d97706] hover:bg-white'
+                                : 'bg-white/90 text-gray-600 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#dc2626] hover:bg-white'
                         }`}
                         whileTap={{ scale: 0.85 }}
                         aria-label={isLiked ? 'Bỏ thích' : 'Thích sản phẩm'}
                     >
-                        <Heart size={15} fill={isLiked ? 'currentColor' : 'none'} />
+                        <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
                     </motion.button>
 
                     {/* Quick Add Button */}
@@ -143,57 +143,57 @@ export default function ProductCard({
                         initial={{ opacity: 0, y: 10 }}
                         animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
+                        className="absolute bottom-0 left-0 right-0 z-10 px-2.5 pb-2.5"
                     >
                         <button
                             onClick={handleQuickAdd}
-                            className="w-full flex items-center justify-center gap-2 h-10 bg-slate-950 hover:bg-[#d97706] text-white text-[13px] font-bold transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
+                            className="w-full flex items-center justify-center gap-1.5 h-9 bg-slate-950 hover:bg-[#0f172a] text-white text-[12.5px] font-bold transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
                         >
-                            <ShoppingBag size={14} />
+                            <ShoppingBag size={13} />
                             Thêm vào giỏ
                         </button>
                     </motion.div>
                 </div>
 
-                {/* ── PRODUCT DETAILS (LARGE & CLEAR) ── */}
-                <div className="p-4 sm:p-5 flex-1 flex flex-col bg-white">
-                    {/* Category Label */}
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                        {product.categoryLabel || product.category || 'THỜI TRANG'}
-                    </p>
+                {/* ── PRODUCT DETAILS (COMPACT & BALANCED) ── */}
+                <div className="p-3 sm:p-3.5 flex-1 flex flex-col bg-white">
+                    {/* Category & Swatches Row */}
+                    <div className="flex items-center justify-between gap-1 min-h-[18px]">
+                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                            {product.categoryLabel || product.category || 'THỜI TRANG'}
+                        </p>
 
-                    {/* Colors Swatches */}
-                    {product.colors && product.colors.length > 1 ? (
-                        <div className="flex items-center gap-1.5 py-1 z-20 min-h-[24px]">
-                            {product.colors.map((color, idx) => {
-                                const isActive = selectedColor ? selectedColor.name === color.name : idx === 0;
-                                return (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setSelectedColor(color);
-                                        }}
-                                        onMouseEnter={() => setSelectedColor(color)}
-                                        className={`w-4 h-4 rounded-full border border-gray-200 transition-all duration-200 ${
-                                            isActive
-                                                ? 'ring-2 ring-offset-1 ring-slate-800 scale-110 shadow-sm'
-                                                : 'hover:scale-110'
-                                        }`}
-                                        style={{ backgroundColor: color.hex }}
-                                        title={color.name}
-                                    />
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="h-[24px]" />
-                    )}
+                        {/* Colors Swatches (rendered compactly) */}
+                        {product.colors && product.colors.length > 1 && (
+                            <div className="flex items-center gap-1 shrink-0">
+                                {product.colors.slice(0, 4).map((color, idx) => {
+                                    const isActive = selectedColor ? selectedColor.name === color.name : idx === 0;
+                                    return (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setSelectedColor(color);
+                                            }}
+                                            onMouseEnter={() => setSelectedColor(color)}
+                                            className={`w-3 h-3 rounded-full border border-gray-200 transition-all duration-200 ${
+                                                isActive
+                                                    ? 'ring-1.5 ring-offset-0.5 ring-slate-800 scale-110 shadow-xs'
+                                                    : 'hover:scale-110'
+                                            }`}
+                                            style={{ backgroundColor: color.hex }}
+                                            title={color.name}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
 
                     {/* Product Name (Bold & Easy to Read) */}
-                    <h3 className={`text-[15px] sm:text-[15.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[44px] mt-0.5 transition-colors ${
+                    <h3 className={`text-[14px] sm:text-[14.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[38px] mt-1 transition-colors ${
                         isFlashSaleCard || (showDiscount && discount > 0)
                             ? 'group-hover:text-[#dc2626]'
                             : 'group-hover:text-[#0f172a]'
@@ -202,10 +202,10 @@ export default function ProductCard({
                     </h3>
 
                     {/* Price Section */}
-                    <div className="flex flex-col mt-auto pt-2 w-full">
+                    <div className="flex flex-col mt-auto pt-1.5 w-full">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-baseline gap-2 flex-wrap">
-                                <span className={`text-[17px] sm:text-[18px] font-extrabold tracking-tight ${isFlashSaleCard ? 'text-[#dc2626]' : 'text-slate-900'}`}>
+                            <div className="flex items-baseline gap-1.5 flex-wrap">
+                                <span className={`text-[16.5px] sm:text-[17.5px] font-black tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-[#0f172a]'}`}>
                                     {isUpcomingFlashSale ? (
                                         (() => {
                                             const str = Math.round(product.price).toString();
