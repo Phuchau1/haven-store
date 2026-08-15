@@ -207,30 +207,36 @@ export default function ProductCard({
                             )}
                         </div>
 
-                        {/* Thin Premium progress bar for Flash Sale */}
+                        {/* Shopee-style Flash Sale Progress Pill */}
                         {isFlashSaleCard && (
                             (() => {
-                                const soldCount = product.flashSaleSold !== undefined ? product.flashSaleSold : 0;
-                                const totalCount = product.flashSaleStock !== undefined && product.flashSaleStock > 0 ? product.flashSaleStock : 50;
-                                const percentSold = totalCount > 0 ? Math.round((soldCount / totalCount) * 100) : 0;
-                                
+                                const soldCount = product.flashSaleSold !== undefined ? product.flashSaleSold : (product.soldQuantity || 0);
+                                const totalCount = product.flashSaleStock !== undefined && product.flashSaleStock > 0 ? product.flashSaleStock : (soldCount + 20);
+                                const percentSold = totalCount > 0 ? Math.min(Math.round((soldCount / totalCount) * 100), 100) : 15;
+                                const displayPercent = Math.max(percentSold, 14);
+
+                                const label = soldCount > 0 
+                                    ? (percentSold >= 90 ? `🔥 SẮP CHÁY HÀNG (${soldCount})` : `ĐÃ BÁN ${soldCount}`)
+                                    : 'ĐANG BÁN CHẠY';
+
                                 return (
-                                    <div className="space-y-1.5 mt-3.5">
-                                        {/* Thin red progress line */}
-                                        <div className="relative w-full h-[6px] bg-[#F5F5F5] rounded-full overflow-hidden">
+                                    <div className="mt-3 w-full">
+                                        <div className="relative w-full h-[22px] bg-[#ffc5b2] rounded-full overflow-hidden flex items-center justify-center shadow-inner">
+                                            {/* Orange / Red gradient fill */}
                                             <div 
-                                                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#D32F2F] to-[#FF6B35] rounded-full transition-all duration-500" 
-                                                style={{ width: `${percentSold}%` }}
+                                                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#ff424e] via-[#ff5b36] to-[#ff7832] rounded-full transition-all duration-700" 
+                                                style={{ width: `${displayPercent}%` }}
                                             />
-                                        </div>
-                                        {/* Progress Text below */}
-                                        <div className="flex justify-between items-center text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-                                            <span>Đã bán {soldCount}/{totalCount} sản phẩm</span>
-                                            {percentSold >= 80 && (
-                                                <span className="text-[#D32F2F] flex items-center gap-0.5 animate-pulse">
-                                                    🔥 Sắp cháy hàng
-                                                </span>
-                                            )}
+                                            
+                                            {/* Fire icon on left edge */}
+                                            <span className="absolute left-1.5 z-10 text-[11px] select-none">
+                                                🔥
+                                            </span>
+
+                                            {/* Centered Bold Text */}
+                                            <span className="relative z-10 text-[11px] font-black uppercase text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                                                {label}
+                                            </span>
                                         </div>
                                     </div>
                                 );

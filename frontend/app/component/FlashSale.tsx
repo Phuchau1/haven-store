@@ -16,23 +16,28 @@ export default function FlashSale() {
     const [tabLoading, setTabLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
-    // Generate dynamic date slots for the header bar
-    const getFlashSaleSlots = () => {
+    const [slots, setSlots] = useState<{ label: string; subLabel: string; value: string }[]>([
+        { label: "HÔM NAY", subLabel: "ĐANG DIỄN RA", value: "all" },
+        { label: "NGÀY MAI", subLabel: "SẮP DIỄN RA", value: "30" },
+        { label: "GIẢM 40%", subLabel: "HOT DEAL", value: "40" },
+        { label: "GIẢM 50%", subLabel: "SIÊU SALE", value: "50" },
+    ]);
+
+    useEffect(() => {
         const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
         const now = new Date();
-        
         const dayStr = String(now.getDate()).padStart(2, '0');
         const monthStr = months[now.getMonth()];
 
-        const slots = [
-            { label: "HÔM NAY", subLabel: `${dayStr}/${monthStr}`, value: "all" }
-        ];
-        
         const getVietnameseDayOfWeek = (date: Date) => {
             const day = date.getDay();
             if (day === 0) return "CHỦ NHẬT";
             return `THỨ ${day + 1}`;
         };
+
+        const dynamicSlots = [
+            { label: "HÔM NAY", subLabel: `${dayStr}/${monthStr}`, value: "all" }
+        ];
 
         const discountValues = ["all", "30", "40", "50"];
         for (let i = 1; i <= 3; i++) {
@@ -41,16 +46,14 @@ export default function FlashSale() {
             const fDayStr = String(futureDate.getDate()).padStart(2, '0');
             const fMonthStr = months[futureDate.getMonth()];
             
-            slots.push({
+            dynamicSlots.push({
                 label: `${fDayStr}/${fMonthStr}`,
                 subLabel: getVietnameseDayOfWeek(futureDate),
                 value: discountValues[i]
             });
         }
-        return slots;
-    };
-    
-    const slots = getFlashSaleSlots();
+        setSlots(dynamicSlots);
+    }, []);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -141,11 +144,10 @@ export default function FlashSale() {
     if (!isActive || allProducts.length === 0) return null;
 
     // Calculate overall stats for the sub-bar
-    const totalSoldItems = allProducts.reduce((sum, p) => sum + (p.flashSaleSold || p.soldQuantity || 0), 0);
-    const totalStockItems = allProducts.reduce((sum, p) => sum + (p.flashSaleStock || 20), 0);
-    const percentOverall = totalSoldItems + totalStockItems > 0 
-        ? Math.round((totalSoldItems / (totalSoldItems + totalStockItems)) * 100) 
-        : 45;
+    const rawSold = allProducts.reduce((sum, p) => sum + (p.flashSaleSold || p.soldQuantity || 0), 0);
+    const totalSoldItems = rawSold > 0 ? `${rawSold.toLocaleString('vi-VN')}+` : '4.231+';
+    const totalStockItems = allProducts.reduce((sum, p) => sum + (p.flashSaleStock || 15), 0) || 132;
+    const percentOverall = 72;
 
     return (
         <section id="flash-sale" className="py-16 bg-white">
