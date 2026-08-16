@@ -110,7 +110,36 @@ export default function FavoritesPage() {
                     </div>
                 </div>
 
-                {favorites.length === 0 ? (
+                {!user ? (
+                    /* Login Required State */
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col items-center justify-center py-20 px-6 text-center bg-white rounded-3xl shadow-sm border border-gray-100 max-w-2xl mx-auto"
+                    >
+                        <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-5 shadow-xs">
+                            <Heart size={40} fill="currentColor" />
+                        </div>
+                        <h2 className="text-2xl font-black text-slate-900 mb-2">Đăng Nhập Để Lưu Sản Phẩm Yêu Thích</h2>
+                        <p className="text-slate-500 mb-6 max-w-md text-sm leading-relaxed">
+                            Vui lòng đăng nhập tài khoản HAVEN để đồng bộ và quản lý danh sách sản phẩm yêu thích trên mọi thiết bị.
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <Link 
+                                href="/login?redirect=/yeu-thich"
+                                className="inline-flex items-center gap-2 px-8 py-3.5 bg-black text-white rounded-full font-bold hover:bg-[#C9A227] transition-all shadow-md hover:-translate-y-0.5 text-sm cursor-pointer"
+                            >
+                                Đăng nhập ngay
+                            </Link>
+                            <Link 
+                                href="/"
+                                className="inline-flex items-center gap-2 px-6 py-3.5 bg-gray-100 text-slate-700 rounded-full font-semibold hover:bg-gray-200 transition-all text-sm cursor-pointer"
+                            >
+                                Khám phá cửa hàng
+                            </Link>
+                        </div>
+                    </motion.div>
+                ) : favorites.length === 0 ? (
                     /* Empty State */
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}

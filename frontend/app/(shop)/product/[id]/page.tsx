@@ -16,6 +16,7 @@ import { useRecentlyViewed } from '@/app/hooks/useRecentlyViewed';
 import RecentlyViewed from '@/app/component/RecentlyViewed';
 import { useAuth } from '@/app/component/AuthContext';
 import { useCartStore } from '@/app/store/useCartStore';
+import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 import { useToast } from '@/app/component/ToastProvider';
 import VirtualTryOnModal from '@/app/component/VirtualTryOnModal';
 const COLOR_CLASS_MAP: Record<string, string> = {
@@ -54,13 +55,30 @@ export default function ProductDetailPage() {
     const [selectedSize, setSelectedSize] = useState('');
     const [selectedColor, setSelectedColor] = useState<Color | null>(null);
     const [quantity, setQuantity] = useState(1);
-    const [isLiked, setIsLiked] = useState(false);
     const [showAddedNotification, setShowAddedNotification] = useState(false);
     const [isTryOnOpen, setIsTryOnOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 22, seconds: 10 });
     const [isReminded, setIsReminded] = useState(false);
 
     const { user } = useAuth();
+    const { isFavorite, toggleFavorite } = useFavoritesStore();
+    const isFav = product?.id ? isFavorite(product.id) : false;
+
+    const handleToggleWishlist = async () => {
+        if (!product) return;
+        if (!user) {
+            showToast('Vui lòng đăng nhập để lưu sản phẩm vào danh sách yêu thích!', 'warning', 'Cần đăng nhập');
+            router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+            return;
+        }
+        await toggleFavorite(product, user.id);
+        if (isFav) {
+            showToast('Đã xóa sản phẩm khỏi danh sách yêu thích', 'info', 'Đã xóa yêu thích');
+        } else {
+            showToast('Đã thêm sản phẩm vào danh sách yêu thích', 'success', 'Đã lưu yêu thích');
+        }
+    };
+
     const { addProduct } = useRecentlyViewed(user?.id);
 
     useEffect(() => {
@@ -681,7 +699,7 @@ export default function ProductDetailPage() {
                                             }} className="px-3.5 h-full hover:bg-gray-50 transition-colors text-sm font-medium">+</button>
                                         </div>
                                     </div>
-                                    {/* Hàng 2 nút: Thêm vào giỏ + Mua Ngay cùng 1 hàng */}
+                                    {/* Hàng nút: Thêm vào giỏ + Mua Ngay + Nút Yêu Thích */}
                                     <div className="flex items-center gap-2">
                                         <motion.button
                                             onClick={handleAddToCart}
@@ -702,6 +720,19 @@ export default function ProductDetailPage() {
                                             }`}
                                         >
                                             {getVariantStock() === 0 ? 'Hết hàng' : 'Mua Ngay'}
+                                        </motion.button>
+                                        <motion.button
+                                            onClick={handleToggleWishlist}
+                                            whileTap={{ scale: 0.9 }}
+                                            title={isFav ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                                            aria-label={isFav ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                                            className={`w-[42px] h-[42px] shrink-0 border flex items-center justify-center transition-all cursor-pointer ${
+                                                isFav 
+                                                    ? 'bg-rose-50 border-rose-400 text-rose-600 shadow-xs' 
+                                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-500 hover:text-rose-600'
+                                            }`}
+                                        >
+                                            <Heart size={18} fill={isFav ? 'currentColor' : 'none'} />
                                         </motion.button>
                                     </div>
                                 </>

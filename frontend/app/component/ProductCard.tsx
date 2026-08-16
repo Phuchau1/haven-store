@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingBag, Sparkles, Flame, Truck } from 'lucide-react';
 import { Product } from '@/types';
@@ -33,6 +34,7 @@ export default function ProductCard({
 }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [selectedColor, setSelectedColor] = useState<any>(null);
+    const router = useRouter();
     const { addItem } = useCart();
     const { isFavorite, toggleFavorite } = useFavoritesStore();
     const { user } = useAuth();
@@ -137,7 +139,12 @@ export default function ProductCard({
                         onClick={async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            await toggleFavorite(product, user?.id);
+                            if (!user) {
+                                toast.error('Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!');
+                                router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+                                return;
+                            }
+                            await toggleFavorite(product, user.id);
                             if (isLiked) {
                                 toast.success(`Đã xóa khỏi yêu thích`);
                             } else {

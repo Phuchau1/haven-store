@@ -16,39 +16,38 @@ export const useFavoritesStore = create<FavoritesState>()(
         favorites: [],
 
         addFavorite: async (product, userId) => {
+            if (!userId) return;
             const current = get().favorites;
             if (!current.find(p => p.id === product.id)) {
                 set({ favorites: [...current, product] });
-                if (userId) {
-                    try {
-                        await fetch('/api/wishlist', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ user_id: userId, product_id: product.id })
-                        });
-                    } catch (error) {
-                        console.error('Lỗi khi thêm wishlist server:', error);
-                    }
+                try {
+                    await fetch('/api/wishlist', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: userId, product_id: product.id })
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi thêm wishlist server:', error);
                 }
             }
         },
 
         removeFavorite: async (productId, userId) => {
+            if (!userId) return;
             set((state) => ({
                 favorites: state.favorites.filter(p => p.id !== productId)
             }));
-            if (userId) {
-                try {
-                    await fetch(`/api/wishlist/${productId}?user_id=${userId}`, {
-                        method: 'DELETE'
-                    });
-                } catch (error) {
-                    console.error('Lỗi khi xóa wishlist server:', error);
-                }
+            try {
+                await fetch(`/api/wishlist/${productId}?user_id=${userId}`, {
+                    method: 'DELETE'
+                });
+            } catch (error) {
+                console.error('Lỗi khi xóa wishlist server:', error);
             }
         },
 
         toggleFavorite: async (product, userId) => {
+            if (!userId) return;
             const isFav = get().favorites.some(p => p.id === product.id);
             if (isFav) {
                 await get().removeFavorite(product.id, userId);
