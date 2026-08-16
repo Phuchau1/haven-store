@@ -54,11 +54,11 @@ export default function FlashSalePopup() {
 
                     {/* Floating Promo Banner */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                        initial={{ opacity: 0, scale: 0.88, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                        className="relative w-full max-w-[420px] aspect-square z-10 select-none bg-transparent cursor-pointer filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.55)]"
+                        exit={{ opacity: 0, scale: 0.88, y: 30 }}
+                        transition={{ type: 'spring', damping: 24, stiffness: 260 }}
+                        className="relative w-[92vw] max-w-[560px] md:max-w-[600px] aspect-square z-10 select-none bg-transparent cursor-pointer filter drop-shadow-[0_25px_50px_rgba(0,0,0,0.65)]"
                     >
                         {/* Close button with circular background blur */}
                         <button
@@ -66,10 +66,10 @@ export default function FlashSalePopup() {
                                 e.stopPropagation();
                                 handleClose();
                             }}
-                            className="absolute top-0 right-0 z-20 flex items-center justify-center w-8 h-8 rounded-full bg-black/45 hover:bg-black/70 text-white transition-all border border-white/10 backdrop-blur-sm shadow-md"
+                            className="absolute top-2 right-2 sm:-top-2 sm:-right-2 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all border border-white/20 backdrop-blur-md shadow-xl hover:scale-110 active:scale-95"
                             aria-label="Đóng quảng cáo"
                         >
-                            <X size={16} />
+                            <X size={18} />
                         </button>
 
                         {/* Clickable Banner Image */}
@@ -78,7 +78,7 @@ export default function FlashSalePopup() {
                                 src="/flash-sale-popup.png"
                                 alt="Flash Sale Deal Hot Giờ Vàng"
                                 fill
-                                className="object-contain group-hover:scale-[1.04] transition-transform duration-500 ease-out"
+                                className="object-contain group-hover:scale-[1.05] transition-transform duration-500 ease-out"
                                 priority
                             />
                         </div>
