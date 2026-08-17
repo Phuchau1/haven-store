@@ -41,10 +41,10 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         return (
             <Link
                 href={menu.link}
-                className="relative text-[18px] font-semibold tracking-wide text-gray-800 hover:text-[#C9A227] transition-colors group px-4 py-1 whitespace-nowrap"
+                className="relative text-[14.5px] font-semibold tracking-wide text-slate-800 hover:text-[#C9A227] transition-colors group px-3.5 py-1.5 whitespace-nowrap"
             >
                 {menu.title}
-                <span className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#C9A227] scale-x-0 transition-transform duration-300 group-hover:scale-x-100 rounded-full" />
             </Link>
         );
     }
@@ -57,13 +57,13 @@ function DesktopMenuItem({ menu }: { menu: MenuNode }) {
         >
             <Link
                 href={menu.link}
-                className={`relative flex items-center gap-1 text-[18px] font-semibold tracking-wide transition-colors px-4 py-1 whitespace-nowrap group ${open ? 'text-[#C9A227]' : 'text-gray-800 hover:text-[#C9A227]'}`}
+                className={`relative flex items-center gap-1 text-[14.5px] font-semibold tracking-wide transition-colors px-3.5 py-1.5 whitespace-nowrap group ${open ? 'text-[#C9A227]' : 'text-slate-800 hover:text-[#C9A227]'}`}
             >
                 {menu.title}
                 <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown size={16} />
+                    <ChevronDown size={13} strokeWidth={2.5} className="opacity-70 group-hover:opacity-100 transition-opacity" />
                 </motion.span>
-                <span className={`absolute bottom-0 left-2 right-2 h-[1.5px] bg-[#C9A227] transition-transform duration-300 ${open ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+                <span className={`absolute bottom-0 left-3 right-3 h-[2px] bg-[#C9A227] transition-transform duration-300 ${open ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'} rounded-full`} />
             </Link>
 
             <AnimatePresence>
@@ -334,12 +334,12 @@ export default function Header() {
                             >
                                 {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                             </button>
-                            <Link href="/" className="flex items-center overflow-visible" style={{ height: 'var(--header-logo-height, 72px)', padding: '6px 0' }}>
+                            <Link href="/" className="flex items-center overflow-visible py-1 group" style={{ height: 'var(--header-logo-height, 72px)' }}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src="/logo-new.png"
                                     alt="HAVEN"
-                                    className="max-h-full h-auto w-auto object-contain hover:opacity-80 transition-opacity duration-300 drop-shadow-sm"
+                                    className="h-full max-h-[68px] sm:max-h-[72px] w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-xs"
                                 />
                             </Link>
                         </div>
