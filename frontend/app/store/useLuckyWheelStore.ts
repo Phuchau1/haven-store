@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
+
 export interface WheelPrize {
     id: number | string;
     _id?: string;
@@ -34,20 +36,39 @@ export interface WheelConfig {
     prizes: WheelPrize[];
 }
 
+export interface SpinRewardRecord {
+    _id: string;
+    reward_text: string;
+    spin_date: string;
+    voucher_id?: {
+        coupon_code?: string;
+        discount_value?: number;
+        expires_at?: string;
+    } | string | null;
+}
+
 interface LuckyWheelStore {
     isOpen: boolean;
+    activeTab: 'wheel' | 'history';
     config: WheelConfig | null;
     canSpin: boolean;
     remainingSpins: number;
     maxSpins: number;
+    usedSpins: number;
+    isLoggedIn: boolean;
+    requireLogin: boolean;
     nextSpinAt: string | null;
     statusReason: string | null;
     statusMessage: string | null;
     wonPrize: WheelPrize | null;
+    recentRewards: SpinRewardRecord[];
+    isLoadingCheck: boolean;
+
+    setActiveTab: (tab: 'wheel' | 'history') => void;
     setConfig: (config: WheelConfig) => void;
     openWheel: () => void;
     closeWheel: () => void;
-    recordSpin: (prize: WheelPrize) => void;
+    recordSpin: (prize: WheelPrize, newRemaining?: number) => void;
     clearPrize: () => void;
     checkCanSpin: (userId?: string, token?: string | null) => Promise<void>;
     getTimeUntilNextSpin: () => string;
@@ -56,34 +77,48 @@ interface LuckyWheelStore {
 export const useLuckyWheelStore = create<LuckyWheelStore>()(
     (set, get) => ({
         isOpen: false,
+        activeTab: 'wheel',
         config: null,
-        canSpin: true,
-        remainingSpins: 1,
-        maxSpins: 1,
+        canSpin: false,
+        remainingSpins: 0,
+        maxSpins: 2,
+        usedSpins: 0,
+        isLoggedIn: false,
+        requireLogin: true,
         nextSpinAt: null,
         statusReason: null,
         statusMessage: null,
         wonPrize: null,
+        recentRewards: [],
+        isLoadingCheck: true,
+
+        setActiveTab: (tab) => set({ activeTab: tab }),
 
         setConfig: (config) => set({ 
             config,
-            maxSpins: config.spinsPerPeriod || 1
+            maxSpins: config.spinsPerPeriod || 2,
+            requireLogin: config.requireLogin !== false
         }),
 
-        openWheel: () => set({ isOpen: true }),
+        openWheel: () => set({ isOpen: true, activeTab: 'wheel' }),
         closeWheel: () => set({ isOpen: false }),
 
-        recordSpin: (prize) => {
-            set((state) => ({ 
+        recordSpin: (prize, newRemaining) => {
+            const currentRem = get().remainingSpins;
+            const updatedRem = typeof newRemaining === 'number' ? newRemaining : Math.max(0, currentRem - 1);
+            const updatedUsed = get().usedSpins + 1;
+            set({ 
                 wonPrize: prize, 
-                canSpin: false,
-                remainingSpins: Math.max(0, state.remainingSpins - 1)
-            }));
+                canSpin: updatedRem > 0,
+                remainingSpins: updatedRem,
+                usedSpins: updatedUsed,
+            });
         },
 
         clearPrize: () => set({ wonPrize: null }),
 
         checkCanSpin: async (userId?: string, token?: string | null) => {
+            set({ isLoadingCheck: true });
             try {
                 const deviceId = typeof window !== 'undefined' ? (localStorage.getItem('device_id') || 'web-client') : 'web-client';
                 const headers: Record<string, string> = {
@@ -92,27 +127,41 @@ export const useLuckyWheelStore = create<LuckyWheelStore>()(
                 if (token) {
                     headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
                 }
+                if (userId) {
+                    headers['x-user-id'] = userId;
+                }
 
                 const params = new URLSearchParams();
                 if (userId) params.append('user_id', userId);
                 params.append('device_id', deviceId);
 
-                const res = await fetch(`/api/lucky-wheel/can-spin?${params.toString()}`, { headers });
+                const endpoint = `${BACKEND_URL.replace(/\/$/, '')}/api/lucky-wheel/can-spin?${params.toString()}`;
+                const res = await fetch(endpoint, { headers });
                 const data = await res.json();
+                
                 if (data.success !== undefined) {
-                    const max = get().config?.spinsPerPeriod || data.maxSpins || 1;
-                    const rem = data.canSpin ? (data.remainingSpins ?? 1) : 0;
+                    const max = data.maxSpins || get().config?.spinsPerPeriod || 2;
+                    const used = data.usedSpins || 0;
+                    const rem = typeof data.remainingSpins === 'number' ? data.remainingSpins : Math.max(0, max - used);
+                    const canSpinVal = Boolean(data.canSpin && rem > 0);
+
                     set({
-                        canSpin: !!data.canSpin,
+                        canSpin: canSpinVal,
                         remainingSpins: rem,
                         maxSpins: max,
+                        usedSpins: used,
+                        isLoggedIn: Boolean(data.isLoggedIn ?? !!userId),
+                        requireLogin: Boolean(data.requireLogin ?? true),
                         nextSpinAt: data.nextSpinAt || null,
-                        statusReason: data.reason || null,
+                        statusReason: data.reason || (!canSpinVal ? 'period_limit' : null),
                         statusMessage: data.message || null,
+                        recentRewards: data.myRecentRewards || [],
+                        isLoadingCheck: false,
                     });
                 }
             } catch (error) {
                 console.error('Lỗi khi kiểm tra lượt quay:', error);
+                set({ isLoadingCheck: false });
             }
         },
 

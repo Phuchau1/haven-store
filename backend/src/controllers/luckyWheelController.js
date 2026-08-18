@@ -165,7 +165,7 @@ exports.getConfig = async (req, res) => {
 // ────────────────────────────────────────────────────────────
 exports.canSpin = async (req, res) => {
     try {
-        const user_id = req.user ? String(req.user._id || req.user.id) : (req.query.user_id || req.body?.user_id || '');
+        const rawUserId = req.user ? String(req.user._id || req.user.id) : (req.query.user_id || req.body?.user_id || '');
         const ip     = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
         const device = req.headers['x-device-id'] || req.query.device_id || req.body?.device_id || '';
 
@@ -179,6 +179,9 @@ exports.canSpin = async (req, res) => {
                 canSpin: false,
                 reason: 'disabled',
                 message: 'Vòng quay may mắn đang tạm ngưng bảo trì.',
+                maxSpins: configDoc.spinsPerPeriod || 2,
+                usedSpins: 0,
+                remainingSpins: 0,
             });
         }
 
@@ -189,6 +192,9 @@ exports.canSpin = async (req, res) => {
                 canSpin: false,
                 reason: 'not_started',
                 message: `Sự kiện chưa bắt đầu (diễn ra từ ${new Date(configDoc.startDate).toLocaleDateString('vi-VN')}).`,
+                maxSpins: configDoc.spinsPerPeriod || 2,
+                usedSpins: 0,
+                remainingSpins: 0,
             });
         }
 
@@ -199,37 +205,43 @@ exports.canSpin = async (req, res) => {
                 canSpin: false,
                 reason: 'ended',
                 message: `Sự kiện vòng quay đã kết thúc vào ngày ${new Date(configDoc.endDate).toLocaleDateString('vi-VN')}.`,
+                maxSpins: configDoc.spinsPerPeriod || 2,
+                usedSpins: 0,
+                remainingSpins: 0,
             });
         }
 
         // 4. Kiểm tra yêu cầu đăng nhập
-        if (configDoc.requireLogin && !user_id) {
+        if (configDoc.requireLogin && !rawUserId) {
             return res.json({
                 success: true,
                 canSpin: false,
                 reason: 'login_required',
-                message: 'Vui lòng đăng nhập để tham gia quay thưởng.',
+                message: 'Vui lòng đăng nhập để nhận lượt quay may mắn mỗi ngày.',
+                maxSpins: configDoc.spinsPerPeriod || 2,
+                usedSpins: 0,
+                remainingSpins: configDoc.spinsPerPeriod || 2,
+                requireLogin: true,
+                isLoggedIn: false,
             });
         }
 
-        // 5. Kiểm tra Thành viên mới (nếu kích hoạt)
-        if (configDoc.onlyNewMembers && user_id) {
-            let userObj = await UserModel.findOne({ id: String(user_id) }).lean().catch(() => null);
-            if (!userObj) userObj = await UserModel.findById(user_id).lean().catch(() => null);
-            if (userObj && userObj.createdAt) {
-                const diffDays = (now.getTime() - new Date(userObj.createdAt).getTime()) / (1000 * 3600 * 24);
-                if (diffDays > 30) {
-                    return res.json({
-                        success: true,
-                        canSpin: false,
-                        reason: 'new_members_only',
-                        message: 'Chương trình vòng quay đợt này chỉ áp dụng cho thành viên mới đăng ký trong 30 ngày.',
-                    });
-                }
+        // Tìm tất cả ID alias của user (id string + _id ObjectId)
+        let userAliases = [];
+        if (rawUserId) {
+            userAliases.push(String(rawUserId));
+            let userObj = await UserModel.findOne({ id: String(rawUserId) }).lean().catch(() => null);
+            if (!userObj) {
+                userObj = await UserModel.findById(rawUserId).lean().catch(() => null);
+            }
+            if (userObj) {
+                if (userObj.id) userAliases.push(String(userObj.id));
+                if (userObj._id) userAliases.push(String(userObj._id));
             }
         }
+        userAliases = Array.from(new Set(userAliases.filter(Boolean)));
 
-        // 6. Kiểm tra giới hạn chu kỳ (daily / weekly / monthly)
+        // 5. Kiểm tra giới hạn chu kỳ (daily / weekly / monthly)
         const periodStart = getPeriodStartDate(configDoc.resetInterval);
         const nextReset = new Date(periodStart);
         if (configDoc.resetInterval === 'weekly') nextReset.setDate(nextReset.getDate() + 7);
@@ -237,91 +249,50 @@ exports.canSpin = async (req, res) => {
         else nextReset.setDate(nextReset.getDate() + 1);
         nextReset.setHours(0, 0, 0, 0);
 
-        // 6.1. Kiểm tra IP Anti-Spam
-        if (configDoc.maxSpinsPerIP > 0 && ip) {
-            const ipCount = await SpinHistory.countDocuments({
-                ip,
-                spin_date: { $gte: periodStart }
-            });
-            if (ipCount >= configDoc.maxSpinsPerIP) {
-                return res.json({
-                    success: true,
-                    canSpin: false,
-                    reason: 'ip_limit',
-                    message: 'Bạn đã hết lượt quay trong chu kỳ này. Hãy quay lại sau!',
-                    nextSpinAt: nextReset.toISOString(),
-                });
-            }
-        }
-
-        // 6.2. Kiểm tra Device Anti-Spam
-        if (configDoc.maxSpinsPerDevice > 0 && device) {
-            const deviceCount = await SpinHistory.countDocuments({
-                device,
-                spin_date: { $gte: periodStart }
-            });
-            if (deviceCount >= configDoc.maxSpinsPerDevice) {
-                return res.json({
-                    success: true,
-                    canSpin: false,
-                    reason: 'device_limit',
-                    message: 'Bạn đã hết lượt quay trong chu kỳ này. Hãy quay lại sau!',
-                    nextSpinAt: nextReset.toISOString(),
-                });
-            }
-        }
-
         let userSpinsInPeriod = 0;
         let userSpinsTotalMonth = 0;
+        let myRecentRewards = [];
 
-        if (user_id) {
-            const [periodCount, monthCount] = await Promise.all([
+        if (userAliases.length > 0) {
+            const [periodCount, monthCount, recentSpins] = await Promise.all([
                 SpinHistory.countDocuments({
-                    user_id: String(user_id),
+                    user_id: { $in: userAliases },
                     spin_date: { $gte: periodStart }
                 }),
                 SpinHistory.countDocuments({
-                    user_id: String(user_id),
+                    user_id: { $in: userAliases },
                     spin_date: { $gte: new Date(now.getFullYear(), now.getMonth(), 1) }
-                })
+                }),
+                SpinHistory.find({ user_id: { $in: userAliases } })
+                    .sort({ spin_date: -1 })
+                    .limit(6)
+                    .lean()
+                    .catch(() => [])
             ]);
             userSpinsInPeriod = periodCount;
             userSpinsTotalMonth = monthCount;
+            myRecentRewards = recentSpins;
         }
 
-        // Kiểm tra giới hạn lượt mỗi tài khoản theo tháng
-        if (configDoc.maxSpinsPerAccount > 0 && userSpinsTotalMonth >= configDoc.maxSpinsPerAccount) {
-            return res.json({
-                success: true,
-                canSpin: false,
-                reason: 'account_limit',
-                message: `Bạn đã đạt giới hạn tối đa ${configDoc.maxSpinsPerAccount} lượt quay trong tháng này.`,
-            });
-        }
-
-        // Kiểm tra lượt quay chu kỳ này
-        if (userSpinsInPeriod >= configDoc.spinsPerPeriod) {
-            const nextReset = new Date(periodStart);
-            if (configDoc.resetInterval === 'weekly') nextReset.setDate(nextReset.getDate() + 7);
-            else if (configDoc.resetInterval === 'monthly') nextReset.setMonth(nextReset.getMonth() + 1);
-            else nextReset.setDate(nextReset.getDate() + 1);
-            nextReset.setHours(0, 0, 0, 0);
-
-            return res.json({
-                success: true,
-                canSpin: false,
-                reason: 'period_limit',
-                message: 'Bạn đã hết lượt quay trong chu kỳ này. Hãy quay lại sau!',
-                spinsInPeriod: userSpinsInPeriod,
-                nextSpinAt: nextReset.toISOString(),
-            });
-        }
+        const maxSpins = configDoc.spinsPerPeriod || 2;
+        const usedSpins = userSpinsInPeriod;
+        const remainingSpins = Math.max(0, maxSpins - usedSpins);
+        const canSpin = remainingSpins > 0;
 
         res.json({
             success: true,
-            canSpin: true,
-            remainingSpins: Math.max(0, configDoc.spinsPerPeriod - userSpinsInPeriod),
-            spinsInPeriod: userSpinsInPeriod,
+            canSpin,
+            maxSpins,
+            usedSpins,
+            remainingSpins,
+            isLoggedIn: !!rawUserId,
+            requireLogin: configDoc.requireLogin,
+            nextSpinAt: nextReset.toISOString(),
+            myRecentRewards,
+            reason: !canSpin ? 'period_limit' : null,
+            message: !canSpin 
+                ? `Bạn đã dùng hết ${usedSpins}/${maxSpins} lượt quay hôm nay. Hãy quay lại vào ngày mai nhé!` 
+                : `Bạn có ${remainingSpins}/${maxSpins} lượt quay miễn phí hôm nay.`,
             showProbability: configDoc.showProbability,
         });
     } catch (error) {
@@ -336,7 +307,7 @@ exports.canSpin = async (req, res) => {
 // ────────────────────────────────────────────────────────────
 exports.spin = async (req, res) => {
     try {
-        const userId = req.user ? String(req.user._id || req.user.id) : (req.body.user_id || req.query.user_id || '');
+        const rawUserId = req.user ? String(req.user._id || req.user.id) : (req.body.user_id || req.query.user_id || '');
         const ip     = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
         const device = req.headers['x-device-id'] || req.body?.device_id || (req.headers['user-agent'] || '').substring(0, 200);
 
@@ -357,59 +328,43 @@ exports.spin = async (req, res) => {
         }
 
         // 3. Yêu cầu đăng nhập
-        if (configDoc.requireLogin && !userId) {
+        if (configDoc.requireLogin && !rawUserId) {
             return res.status(401).json({ success: false, message: 'Bạn cần đăng nhập để thực hiện quay thưởng.' });
         }
 
-        // 4. Thành viên mới
-        if (configDoc.onlyNewMembers && userId) {
-            let userObj = await UserModel.findOne({ id: userId }).lean().catch(() => null);
-            if (!userObj) userObj = await UserModel.findById(userId).lean().catch(() => null);
-            if (userObj && userObj.createdAt) {
-                const diffDays = (now.getTime() - new Date(userObj.createdAt).getTime()) / (1000 * 3600 * 24);
-                if (diffDays > 30) {
-                    return res.status(400).json({ success: false, message: 'Chương trình chỉ áp dụng cho tài khoản thành viên mới.' });
+        // Tìm tất cả ID alias của user
+        let userAliases = [];
+        let primaryUserId = rawUserId || 'guest';
+        if (rawUserId) {
+            userAliases.push(String(rawUserId));
+            let userObj = await UserModel.findOne({ id: String(rawUserId) }).lean().catch(() => null);
+            if (!userObj) {
+                userObj = await UserModel.findById(rawUserId).lean().catch(() => null);
+            }
+            if (userObj) {
+                if (userObj.id) {
+                    userAliases.push(String(userObj.id));
+                    primaryUserId = String(userObj.id);
                 }
+                if (userObj._id) userAliases.push(String(userObj._id));
             }
         }
+        userAliases = Array.from(new Set(userAliases.filter(Boolean)));
 
         const periodStart = getPeriodStartDate(configDoc.resetInterval);
 
-        // 5. Kiểm tra Anti-Spam IP
-        if (configDoc.maxSpinsPerIP > 0 && ip) {
-            const ipCount = await SpinHistory.countDocuments({
-                ip,
+        // 4. Kiểm tra Lượt quay tài khoản
+        if (userAliases.length > 0) {
+            const periodCount = await SpinHistory.countDocuments({
+                user_id: { $in: userAliases },
                 spin_date: { $gte: periodStart }
             });
-            if (ipCount >= configDoc.maxSpinsPerIP) {
-                return res.status(400).json({ success: false, message: `Địa chỉ IP này đã đạt giới hạn tối đa ${configDoc.maxSpinsPerIP} lượt quay trong đợt này.` });
-            }
-        }
 
-        // 6. Kiểm tra Anti-Spam Device ID
-        if (configDoc.maxSpinsPerDevice > 0 && device) {
-            const deviceCount = await SpinHistory.countDocuments({
-                device,
-                spin_date: { $gte: periodStart }
-            });
-            if (deviceCount >= configDoc.maxSpinsPerDevice) {
-                return res.status(400).json({ success: false, message: `Thiết bị này đã đạt giới hạn tối đa ${configDoc.maxSpinsPerDevice} lượt quay trong đợt này.` });
-            }
-        }
-
-        // 7. Kiểm tra Lượt quay tài khoản
-        if (userId) {
-            const [periodCount, monthCount] = await Promise.all([
-                SpinHistory.countDocuments({ user_id: userId, spin_date: { $gte: periodStart } }),
-                SpinHistory.countDocuments({ user_id: userId, spin_date: { $gte: new Date(now.getFullYear(), now.getMonth(), 1) } })
-            ]);
-
-            if (configDoc.maxSpinsPerAccount > 0 && monthCount >= configDoc.maxSpinsPerAccount) {
-                return res.status(400).json({ success: false, message: `Bạn đã đạt giới hạn tối đa ${configDoc.maxSpinsPerAccount} lượt quay trong tháng.` });
-            }
-
-            if (periodCount >= configDoc.spinsPerPeriod) {
-                return res.status(400).json({ success: false, message: 'Bạn đã hết lượt quay trong chu kỳ này.' });
+            if (periodCount >= (configDoc.spinsPerPeriod || 2)) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Bạn đã sử dụng hết ${periodCount}/${configDoc.spinsPerPeriod || 2} lượt quay trong ngày hôm nay. Hẹn gặp lại bạn vào ngày mai!` 
+                });
             }
         }
 
@@ -434,7 +389,7 @@ exports.spin = async (req, res) => {
 
         // 10. Tạo UserCoupon nếu trúng thưởng voucher
         let createdCoupon = null;
-        if (userId && winPrize.type !== 'none' && winPrize.valid_hours > 0) {
+        if (primaryUserId && primaryUserId !== 'guest' && winPrize.type !== 'none' && winPrize.valid_hours > 0) {
             let couponType = winPrize.type;
             if (couponType === 'discount' || couponType === 'voucher') couponType = 'fixed';
             if (couponType === 'freeship') couponType = 'shipping';
@@ -443,7 +398,7 @@ exports.spin = async (req, res) => {
                 const uniqueCode = `${winPrize.coupon_code || 'SPIN'}_${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
                 try {
                     createdCoupon = await UserCoupon.create({
-                        user_id:        userId,
+                        user_id:        primaryUserId,
                         reward_name:    winPrize.reward || winPrize.label,
                         coupon_code:    uniqueCode,
                         type:           couponType,
@@ -458,7 +413,7 @@ exports.spin = async (req, res) => {
 
         // 11. Lưu SpinHistory
         const spinRecord = await SpinHistory.create({
-            user_id:     userId || 'guest',
+            user_id:     primaryUserId,
             reward_id:   winPrize._id || winPrize.id || null,
             reward_text: winPrize.reward || winPrize.label,
             voucher_id:  createdCoupon ? createdCoupon._id : null,
@@ -471,11 +426,11 @@ exports.spin = async (req, res) => {
             await UserCoupon.findByIdAndUpdate(createdCoupon._id, { spin_history_id: spinRecord._id });
         }
 
-        // Tăng UserSpinLimit nếu có userId
-        if (userId) {
+        // Tăng UserSpinLimit nếu có primaryUserId
+        if (primaryUserId && primaryUserId !== 'guest') {
             const todayStr = toDateStr();
             await UserSpinLimit.findOneAndUpdate(
-                { user_id: userId, spin_date: todayStr },
+                { user_id: primaryUserId, spin_date: todayStr },
                 { $inc: { spin_count: 1 } },
                 { upsert: true, new: true }
             );

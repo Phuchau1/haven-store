@@ -2,12 +2,28 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Gift, RotateCcw, Copy, Check, Sparkles, Clock, Loader2, Info, AlertCircle } from 'lucide-react';
+import { 
+    X, Gift, RotateCcw, Copy, Check, Sparkles, Clock, 
+    Loader2, Info, AlertCircle, History, Award, ChevronRight, LogIn, ShoppingBag
+} from 'lucide-react';
+import Link from 'next/link';
 import { useLuckyWheelStore, WheelPrize, WheelConfig } from '@/app/store/useLuckyWheelStore';
 import { useAuth } from '@/app/component/AuthContext';
 import { useToast } from '@/app/component/ToastProvider';
 
-const DEFAULT_COLORS = ['#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'];
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
+
+// 8 Rich Luxury Palette Colors for Wheel Slices
+const LUXURY_PALETTE = [
+    '#C9A227', // Haven Gold
+    '#0F172A', // Deep Navy
+    '#DC2626', // Crimson Red
+    '#059669', // Emerald Green
+    '#D97706', // Imperial Amber
+    '#1E293B', // Slate Dark
+    '#7C3AED', // Royal Purple
+    '#B91C1C', // Wine Red
+];
 
 const mapPrize = (p: any, index: number): WheelPrize => {
     let rawLabel = p.reward || p.label || 'Quà tặng';
@@ -17,7 +33,7 @@ const mapPrize = (p: any, index: number): WheelPrize => {
     
     if (p.type === 'fixed') {
         const val = Number(p.discount_value) || 0;
-        shortLabel = val > 0 ? `Giảm ${val / 1000}k` : rawLabel;
+        shortLabel = val > 0 ? `Giảm ${val >= 1000 ? val / 1000 + 'k' : val + 'đ'}` : rawLabel;
         emoji = '💸';
         type = 'voucher';
     } else if (p.type === 'percent') {
@@ -26,11 +42,11 @@ const mapPrize = (p: any, index: number): WheelPrize => {
         emoji = '🏷️';
         type = 'voucher';
     } else if (p.type === 'shipping') {
-        shortLabel = rawLabel.includes('Freeship') ? rawLabel : 'Freeship';
+        shortLabel = rawLabel.toLowerCase().includes('freeship') ? 'Freeship' : rawLabel;
         emoji = '🚚';
         type = 'voucher';
     } else if (p.type === 'none') {
-        shortLabel = rawLabel.includes('May mắn') ? rawLabel : 'May mắn lần sau';
+        shortLabel = 'May mắn lần sau';
         emoji = '☘️';
         type = 'retry';
     }
@@ -42,51 +58,47 @@ const mapPrize = (p: any, index: number): WheelPrize => {
         type,
         value: Number(p.discount_value) || 0,
         code: type !== 'retry' ? p.coupon_code : '',
-        color: p.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+        color: p.color && p.color !== '#FFB300' && p.color !== '#E65100' ? p.color : LUXURY_PALETTE[index % LUXURY_PALETTE.length],
         textColor: '#FFFFFF',
         emoji,
         probability: p.probability !== undefined ? Number(p.probability) : 1
     };
 };
 
-// Draw high-res clear wheel on canvas
+// Draw Ultra High-Res Wheel on Canvas with Haven Monogram Center
 function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
     const size = canvas.width;
     const cx = size / 2;
     const cy = size / 2;
-    const radius = cx - 18;
+    const radius = cx - 20;
     const numSegments = prizes.length || 8;
     const segmentAngle = 360 / numSegments;
 
     ctx.clearRect(0, 0, size, size);
 
-    const PALETTE = [
-        '#E53E3E', '#ED8936', '#38A169', '#3182CE', 
-        '#D69E2E', '#805AD5', '#DD6B20', '#319795'
-    ];
-
+    // 1. Draw each wheel segment
     prizes.forEach((prize, i) => {
         const startAngle = (i * segmentAngle - 90) * (Math.PI / 180);
         const endAngle = ((i + 1) * segmentAngle - 90) * (Math.PI / 180);
 
-        // Segment Background
         ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.arc(cx, cy, radius, startAngle, endAngle);
         ctx.closePath();
 
-        const color = (prize.color && prize.color !== '#FFB300') ? prize.color : PALETTE[i % PALETTE.length];
+        const color = prize.color || LUXURY_PALETTE[i % LUXURY_PALETTE.length];
         ctx.fillStyle = color;
         ctx.fill();
 
-        // Thick Crisp White dividers
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 5;
+        // Metallic Gold divider line
+        ctx.strokeStyle = '#FDE68A';
+        ctx.lineWidth = 4;
         ctx.stroke();
 
-        // Render Text & Icon
+        // Render Text & Icon radially
         ctx.save();
         ctx.translate(cx, cy);
         const midAngle = startAngle + (endAngle - startAngle) / 2;
@@ -94,40 +106,57 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
         ctx.textAlign = 'right';
         ctx.fillStyle = '#FFFFFF';
 
-        ctx.font = `bold 24px "Be Vietnam Pro", Arial, sans-serif`;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.font = `bold 26px "Be Vietnam Pro", Inter, sans-serif`;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
         ctx.shadowBlur = 6;
         ctx.shadowOffsetY = 2;
 
         const textToRender = `${prize.emoji} ${prize.shortLabel}`;
-        ctx.fillText(textToRender, radius - 36, 8);
+        ctx.fillText(textToRender, radius - 38, 9);
         ctx.restore();
     });
 
-    // Center Gold Knob
+    // 2. Outer Metallic Gold Ring
     ctx.beginPath();
-    ctx.arc(cx, cy, 54, 0, Math.PI * 2);
-    ctx.fillStyle = '#F59E0B';
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+
+    // 3. Center Luxury Bezel
+    ctx.beginPath();
+    ctx.arc(cx, cy, 56, 0, Math.PI * 2);
+    const grad = ctx.createLinearGradient(cx - 56, cy - 56, cx + 56, cy + 56);
+    grad.addColorStop(0, '#FDE68A');
+    grad.addColorStop(0.5, '#D97706');
+    grad.addColorStop(1, '#92400E');
+    ctx.fillStyle = grad;
     ctx.fill();
-    ctx.lineWidth = 7;
+    ctx.lineWidth = 6;
     ctx.strokeStyle = '#FFFFFF';
     ctx.stroke();
 
-    // Center Inner Ring
+    // 4. Center Inner Core (Navy with Golden "H" Monogram)
     ctx.beginPath();
     ctx.arc(cx, cy, 42, 0, Math.PI * 2);
-    ctx.fillStyle = '#D97706';
+    ctx.fillStyle = '#0F172A';
     ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#FDE68A';
+    ctx.stroke();
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 34px sans-serif';
+    // Center Golden 'H' Monogram with Crown
+    ctx.fillStyle = '#FDE68A';
+    ctx.font = 'bold 36px "Be Vietnam Pro", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🎁', cx, cy + 2);
+    ctx.shadowColor = 'rgba(217, 119, 6, 0.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillText('H', cx, cy + 2);
 }
 
-// Modal kết quả trúng thưởng
-function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize; prizes: WheelPrize[]; onClose: () => void }) {
+// Modal Kết Quả Trúng Thưởng
+function PrizeModal({ prize, onClose, onGoHistory }: { prize: WheelPrize; onClose: () => void; onGoHistory: () => void }) {
     const [copied, setCopied] = useState(false);
     const { showToast } = useToast();
 
@@ -135,7 +164,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize; prizes: Whe
         if (prize.code) {
             navigator.clipboard.writeText(prize.code);
             setCopied(true);
-            showToast(`Đã sao chép mã ${prize.code}`, 'success', 'Đã lưu');
+            showToast(`Đã sao chép mã ${prize.code}`, 'success', 'Đã lưu mã');
             setTimeout(() => setCopied(false), 2000);
         }
     };
@@ -147,7 +176,7 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize; prizes: Whe
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
         >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
 
             <motion.div
                 className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 text-center"
@@ -155,24 +184,24 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize; prizes: Whe
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.8, y: 20 }}
             >
-                <div className="p-6 pt-8">
-                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-4xl shadow-inner animate-bounce">
+                <div className="bg-gradient-to-b from-[#0F172A] to-[#1E293B] p-6 pt-8 text-white relative">
+                    <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-amber-500/20 border-2 border-amber-400 text-amber-300 flex items-center justify-center text-4xl shadow-inner animate-bounce">
                         {prize.emoji}
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-900">
-                        {prize.type === 'retry' ? 'Chúc may mắn lần sau!' : 'Chúc mừng bạn!'}
+                    <h2 className="text-2xl font-black text-amber-300 tracking-tight">
+                        {prize.type === 'retry' ? 'Chúc may mắn lần sau!' : '🎉 CHÚC MỪNG BẠN!'}
                     </h2>
-                    <p className="text-slate-500 mt-1 text-xs font-medium">
-                        {prize.type === 'retry' ? 'Hãy quay lại vào chu kỳ tiếp theo nhé!' : 'Bạn đã nhận được phần thưởng'}
+                    <p className="text-slate-300 mt-1 text-xs font-medium">
+                        {prize.type === 'retry' ? 'Hãy quay lại vào ngày mai để thử vận may nhé!' : 'Bạn đã quay trúng phần thưởng độc quyền từ HAVEN'}
                     </p>
                 </div>
 
                 {prize.type !== 'retry' && (
-                    <div className="px-6 py-6">
-                        <div className="text-center mb-5">
+                    <div className="p-6">
+                        <div className="text-center mb-4">
                             <div
-                                className="inline-block px-6 py-3 rounded-2xl text-white font-black text-2xl shadow-md"
-                                style={{ backgroundColor: prize.color }}
+                                className="inline-block px-6 py-3 rounded-2xl text-white font-black text-2xl shadow-lg border border-white/30"
+                                style={{ backgroundColor: prize.color || '#C9A227' }}
                             >
                                 {prize.label}
                             </div>
@@ -180,32 +209,55 @@ function PrizeModal({ prize, prizes, onClose }: { prize: WheelPrize; prizes: Whe
 
                         {prize.code && (
                             <>
-                                <p className="text-[11px] text-center font-bold text-slate-400 mb-2 uppercase tracking-wider">Mã voucher cá nhân</p>
+                                <p className="text-[11px] text-center font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                                    Mã voucher ưu đãi của bạn:
+                                </p>
                                 <button
                                     onClick={handleCopy}
-                                    className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-orange-50 border-2 border-dashed border-orange-200 hover:bg-orange-100/60 transition-colors group"
+                                    className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-amber-50 border-2 border-dashed border-amber-300 hover:bg-amber-100/70 transition-colors group cursor-pointer"
                                 >
-                                    <span className="font-mono text-2xl font-bold text-orange-600 tracking-wider">
+                                    <span className="font-mono text-xl sm:text-2xl font-bold text-amber-800 tracking-wider">
                                         {prize.code}
                                     </span>
                                     {copied
                                         ? <Check size={20} className="text-emerald-600" />
-                                        : <Copy size={20} className="text-orange-500 group-hover:scale-110 transition-transform" />
+                                        : <Copy size={20} className="text-amber-600 group-hover:scale-110 transition-transform" />
                                     }
                                 </button>
-                                <p className="text-[11px] text-center text-slate-400 mt-2 font-medium">Mã đã tự động lưu vào <strong>Ví Voucher</strong></p>
+                                <p className="text-[11.5px] text-center text-slate-500 mt-2 font-medium">
+                                    ✨ Mã đã được lưu vào danh sách voucher của bạn
+                                </p>
                             </>
                         )}
                     </div>
                 )}
 
-                <div className="px-6 pb-6">
-                    <button
-                        onClick={onClose}
-                        className="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-colors shadow-sm"
-                    >
-                        {prize.type === 'retry' ? 'Đóng' : 'Xem Ví Voucher của tôi'}
-                    </button>
+                <div className="px-6 pb-6 pt-2 flex flex-col gap-2">
+                    {prize.type !== 'retry' ? (
+                        <>
+                            <Link
+                                href="/products"
+                                onClick={onClose}
+                                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-sm hover:opacity-95 transition-all shadow-md flex items-center justify-center gap-2"
+                            >
+                                <ShoppingBag size={17} />
+                                <span>Mua sắm & Áp dụng ngay</span>
+                            </Link>
+                            <button
+                                onClick={onGoHistory}
+                                className="w-full py-2.5 rounded-xl text-slate-600 font-semibold text-xs hover:bg-slate-100 transition-colors"
+                            >
+                                Xem lịch sử trúng thưởng
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={onClose}
+                            className="w-full py-3.5 rounded-2xl bg-[#0F172A] text-white font-bold text-sm hover:bg-slate-800 transition-colors shadow-sm"
+                        >
+                            Đóng & Quay lại sau
+                        </button>
+                    )}
                 </div>
             </motion.div>
         </motion.div>
@@ -221,12 +273,18 @@ function WheelModal({ onClose }: { onClose: () => void }) {
     const [prize, setPrize] = useState<WheelPrize | null>(null);
     const [loadingConfig, setLoadingConfig] = useState(true);
     const [prizes, setPrizes] = useState<WheelPrize[]>([]);
+    const [copiedCode, setCopiedCode] = useState<string | null>(null);
     
-    const { config, setConfig, canSpin, remainingSpins, maxSpins, statusMessage, checkCanSpin, recordSpin, getTimeUntilNextSpin } = useLuckyWheelStore();
+    const { 
+        config, setConfig, canSpin, remainingSpins, maxSpins, usedSpins,
+        isLoggedIn, activeTab, setActiveTab, recentRewards, isLoadingCheck,
+        checkCanSpin, recordSpin, getTimeUntilNextSpin 
+    } = useLuckyWheelStore();
+    
     const { showToast } = useToast();
-    const timeLeft = !canSpin ? getTimeUntilNextSpin() : '';
+    const timeLeft = getTimeUntilNextSpin();
 
-    // Check spin availability from DB on mount
+    // Check spin availability from DB on mount and when user changes
     useEffect(() => {
         checkCanSpin(user?.id, token);
     }, [user?.id, token, checkCanSpin]);
@@ -236,9 +294,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
         let isMounted = true;
         const fetchConfig = async () => {
             try {
-                const apiEndpoint = process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== 'undefined'
-                    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/lucky-wheel/config`
-                    : '/api/lucky-wheel/config';
+                const apiEndpoint = `${BACKEND_URL.replace(/\/$/, '')}/api/lucky-wheel/config`;
                 const res = await fetch(apiEndpoint);
                 const data = await res.json();
                 if (data.success && isMounted) {
@@ -262,17 +318,24 @@ function WheelModal({ onClose }: { onClose: () => void }) {
         fetchConfig();
         
         return () => { isMounted = false; };
-    }, [config, setConfig]);
+    }, [setConfig]);
 
     useEffect(() => {
         if (!loadingConfig && canvasRef.current && prizes.length > 0) {
             drawWheel(canvasRef.current, prizes);
         }
-    }, [loadingConfig, prizes]);
+    }, [loadingConfig, prizes, activeTab]);
+
+    const handleCopyHistoryCode = (code: string) => {
+        navigator.clipboard.writeText(code);
+        setCopiedCode(code);
+        showToast(`Đã sao chép mã ${code}`, 'success', 'Đã lưu mã');
+        setTimeout(() => setCopiedCode(null), 2000);
+    };
 
     const spin = useCallback(async () => {
         if (spinning || !canSpin || loadingConfig || prizes.length === 0) return;
-        if (config?.requireLogin !== false && !token) {
+        if (!token && config?.requireLogin !== false) {
             showToast('Vui lòng đăng nhập để quay Vòng Quay May Mắn!', 'warning', 'Chưa đăng nhập');
             return;
         }
@@ -281,10 +344,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
         setPrize(null);
 
         try {
-            const apiEndpoint = process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== 'undefined'
-                ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/lucky-wheel/spin`
-                : '/api/lucky-wheel/spin';
-
+            const apiEndpoint = `${BACKEND_URL.replace(/\/$/, '')}/api/lucky-wheel/spin`;
             const deviceId = typeof window !== 'undefined' ? (localStorage.getItem('device_id') || 'web-client') : 'web-client';
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json',
@@ -293,6 +353,9 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
             if (token) {
                 headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            }
+            if (user?.id) {
+                headers['x-user-id'] = user.id;
             }
 
             const res = await fetch(apiEndpoint, {
@@ -307,12 +370,9 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             const data = await res.json();
 
             if (!data.success) {
-                showToast(data.message || 'Không thể quay', 'error', 'Lỗi quay thưởng');
+                showToast(data.message || 'Không thể quay', 'error', 'Hết lượt quay');
                 setSpinning(false);
-                if (data.message && data.message.includes('hết lượt')) {
-                    useLuckyWheelStore.setState({ canSpin: false, remainingSpins: 0, statusMessage: data.message });
-                    checkCanSpin(user?.id, token);
-                }
+                await checkCanSpin(user?.id, token);
                 return;
             }
 
@@ -324,7 +384,7 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                 return;
             }
 
-            // Tính toán góc quay
+            // Tính toán góc quay chính xác vào phần thưởng trúng
             const numSegments = prizes.length;
             const segmentAngle = 360 / numSegments;
             const targetSegmentCenterAngle = (winIndex + 0.5) * segmentAngle;
@@ -333,41 +393,45 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             let diff = targetRotationOffset - currentRotationMod;
             if (diff < 0) diff += 360;
 
-            const extraRounds = 360 * (5 + Math.floor(Math.random() * 2));
+            const extraRounds = 360 * (6 + Math.floor(Math.random() * 2));
             const finalAngle = rotation + extraRounds + diff;
             setRotation(finalAngle);
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 const won = { ...prizes[winIndex] };
                 if (data.coupon) {
                     won.code = data.coupon.coupon_code;
                 }
                 setPrize(won);
-                recordSpin(won);
+                recordSpin(won, Math.max(0, remainingSpins - 1));
                 setSpinning(false);
+                
+                // Đồng bộ lại lịch sử từ server
+                await checkCanSpin(user?.id, token);
+
                 if (won.type !== 'none' && won.type !== 'retry') {
                     showToast(`Chúc mừng! Bạn đã trúng ${won.label}`, 'success', 'Trúng thưởng');
                 }
-            }, 6200);
+            }, 5500);
 
         } catch (err: any) {
             console.error('Spin execution error:', err);
             showToast('Lỗi quay thưởng, vui lòng thử lại!', 'error', 'Lỗi kết nối');
             setSpinning(false);
         }
-    }, [spinning, canSpin, loadingConfig, prizes, config, token, user?.id, rotation, checkCanSpin, recordSpin, showToast]);
+    }, [spinning, canSpin, loadingConfig, prizes, config, token, user?.id, rotation, remainingSpins, checkCanSpin, recordSpin, showToast]);
 
     if (loadingConfig) {
         return (
             <motion.div
-                className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+                className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
             >
                 <div className="bg-white rounded-3xl p-8 flex flex-col items-center gap-3 shadow-2xl">
-                    <Loader2 size={36} className="text-red-500 animate-spin" />
-                    <p className="text-sm font-bold text-slate-700">Đang chuẩn bị vòng quay...</p>
+                    <Loader2 size={36} className="text-[#C9A227] animate-spin" />
+                    <p className="text-sm font-bold text-slate-700">Đang chuẩn bị Vòng Quay HAVEN...</p>
                 </div>
             </motion.div>
         );
@@ -380,139 +444,306 @@ function WheelModal({ onClose }: { onClose: () => void }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
         >
-            <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={!spinning ? onClose : undefined} />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={!spinning ? onClose : undefined} />
 
             <motion.div
-                className="relative w-full max-w-[480px] bg-white rounded-3xl shadow-2xl border border-slate-100 my-auto flex flex-col overflow-hidden"
-                initial={{ scale: 0.85, opacity: 0, y: 20 }}
+                className="relative w-full max-w-[490px] bg-white rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.35)] border border-slate-100 my-auto flex flex-col overflow-hidden"
+                initial={{ scale: 0.88, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.85, opacity: 0, y: 20 }}
+                exit={{ scale: 0.88, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', bounce: 0.2 }}
             >
-                {/* Header Clean Red Theme with Notification Inside (Sticky Top) */}
-                <div className="relative bg-gradient-to-r from-[#D32F2F] via-[#E53935] to-[#C62828] px-5 sm:px-6 pt-5 pb-4.5 text-center text-white shrink-0 shadow-md">
+                {/* ── LUXURY HAVEN HEADER ── */}
+                <div className="relative bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] px-5 sm:px-6 pt-5 pb-4 text-center text-white shrink-0 border-b border-amber-500/30">
                     <button
                         onClick={!spinning ? onClose : undefined}
-                        className="absolute right-4 top-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer"
+                        className="absolute right-4 top-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Đóng"
                     >
                         <X size={20} />
                     </button>
                     
-                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center justify-center gap-2">
-                        <Gift size={26} className="text-amber-300 fill-amber-300/40" />
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-bold mb-1.5">
+                        <Sparkles size={13} className="text-amber-400" />
+                        <span>HAVEN LUCKY REWARDS</span>
+                    </div>
+
+                    <h2 className="text-2xl sm:text-[26px] font-black tracking-tight text-white flex items-center justify-center gap-2">
                         <span>VÒNG QUAY MAY MẮN</span>
                     </h2>
-                    <p className="text-red-100 text-xs sm:text-sm font-semibold mt-1">
-                        Quay mỗi ngày — Nhận voucher quà tặng siêu hấp dẫn
+                    <p className="text-slate-300 text-xs sm:text-[13px] font-medium mt-0.5">
+                        Quay mỗi ngày — Nhận voucher giảm giá & quà tặng độc quyền
                     </p>
 
-                    {/* Status Notification Box inside the RED HEADER: Shows remaining spins and limit */}
-                    {config?.isActive !== false && (
-                        <div className="mt-3.5">
-                            {canSpin ? (
-                                <div className="w-full py-2 px-3.5 rounded-2xl bg-white/20 border border-white/40 text-white flex items-center justify-between text-xs sm:text-[12.5px] font-bold backdrop-blur-md shadow-inner">
-                                    <span className="flex items-center gap-1.5 truncate">
-                                        <Sparkles size={15} className="text-amber-300 shrink-0" />
-                                        <span>Bạn có <strong>{remainingSpins}/{maxSpins}</strong> lượt quay miễn phí hôm nay</span>
-                                    </span>
-                                    <span className="text-[10px] bg-white text-red-600 px-2.5 py-0.5 rounded-full font-black uppercase shadow-xs shrink-0 ml-2">
-                                        CÒN {remainingSpins} LƯỢT
-                                    </span>
+                    {/* ── TABS: VÒNG QUAY / LỊCH SỬ ── */}
+                    <div className="flex items-center justify-center gap-2 mt-3.5 bg-black/40 p-1 rounded-2xl border border-white/10 max-w-[340px] mx-auto">
+                        <button
+                            onClick={() => setActiveTab('wheel')}
+                            disabled={spinning}
+                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                activeTab === 'wheel'
+                                    ? 'bg-[#C9A227] text-black shadow-sm'
+                                    : 'text-slate-300 hover:text-white'
+                            }`}
+                        >
+                            <Gift size={14} />
+                            <span>Vòng quay</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            disabled={spinning}
+                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                activeTab === 'history'
+                                    ? 'bg-[#C9A227] text-black shadow-sm'
+                                    : 'text-slate-300 hover:text-white'
+                            }`}
+                        >
+                            <History size={14} />
+                            <span>Lịch sử ({recentRewards.length})</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* ── TAB 1: VÒNG QUAY CHÍNH ── */}
+                {activeTab === 'wheel' && (
+                    <div className="relative px-5 py-4 pb-6 flex flex-col items-center bg-[#F8FAFC] shrink-0">
+
+                        {/* ── HUD THỐNG KÊ LƯỢT QUAY THẬT ── */}
+                        <div className="w-full mb-3">
+                            {!user && config?.requireLogin !== false ? (
+                                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between gap-3 shadow-xs">
+                                    <div className="flex items-center gap-2 text-xs font-semibold">
+                                        <LogIn size={18} className="text-amber-600 shrink-0" />
+                                        <span>Đăng nhập để nhận <strong>{maxSpins} lượt quay</strong> miễn phí mỗi ngày!</span>
+                                    </div>
+                                    <Link
+                                        href="/login?redirect=/&openWheel=true"
+                                        onClick={onClose}
+                                        className="px-3.5 py-1.5 bg-[#0F172A] hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs shrink-0 whitespace-nowrap transition-all"
+                                    >
+                                        Đăng nhập
+                                    </Link>
                                 </div>
                             ) : (
-                                <div className="w-full py-2 px-3.5 rounded-2xl bg-black/30 border border-white/25 text-white flex items-center justify-between text-xs sm:text-[12.5px] font-bold backdrop-blur-md shadow-inner">
-                                    <span className="flex items-center gap-1.5 truncate">
-                                        <Clock size={15} className="text-amber-300 shrink-0" />
-                                        <span>Đã dùng hết <strong>{maxSpins}/{maxSpins}</strong> lượt quay hôm nay</span>
-                                    </span>
-                                    {timeLeft && (
-                                        <span className="text-[10.5px] font-mono font-black text-white bg-red-600 px-2.5 py-0.5 rounded-md shadow-xs shrink-0 ml-2">
-                                            HỒI SAU: {timeLeft}
-                                        </span>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs text-center">
+                                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Hôm nay</p>
+                                        <p className="text-sm font-black text-slate-900 mt-0.5">{maxSpins} lượt</p>
+                                    </div>
+                                    <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs text-center">
+                                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Đã quay</p>
+                                        <p className="text-sm font-black text-slate-600 mt-0.5">{usedSpins} lượt</p>
+                                    </div>
+                                    <div className={`p-2 rounded-2xl border shadow-2xs text-center ${
+                                        remainingSpins > 0 
+                                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                                            : 'bg-rose-50 border-rose-200 text-rose-800'
+                                    }`}>
+                                        <p className="text-[10.5px] font-bold uppercase tracking-wider opacity-80">Còn lại</p>
+                                        <p className="text-sm font-black mt-0.5">{remainingSpins} lượt</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Status message bar */}
+                            {user && (
+                                <div className="mt-2 text-center">
+                                    {canSpin ? (
+                                        <p className="text-xs text-emerald-700 font-bold flex items-center justify-center gap-1.5">
+                                            <Sparkles size={14} className="text-amber-500" />
+                                            <span>Bạn còn <strong>{remainingSpins}/{maxSpins}</strong> lượt quay. Chúc bạn may mắn!</span>
+                                        </p>
+                                    ) : (
+                                        <div className="py-1.5 px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-between text-xs font-bold">
+                                            <span className="flex items-center gap-1.5">
+                                                <Clock size={14} />
+                                                <span>Đã hết lượt hôm nay</span>
+                                            </span>
+                                            <span className="font-mono bg-rose-600 text-white px-2 py-0.5 rounded-md text-[11px]">
+                                                Hồi lại sau: {timeLeft}
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
 
-                {/* Wheel Area */}
-                <div className="relative px-5 py-4 pb-6 flex flex-col items-center bg-slate-50/90 shrink-0">
+                        {/* ── WHEEL CANVAS CONTAINER ── */}
+                        <div className="relative w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] rounded-full p-3 bg-gradient-to-tr from-amber-400 via-amber-300 to-yellow-200 shadow-[0_15px_40px_rgba(201,162,39,0.35)] border-4 border-amber-500 flex items-center justify-center shrink-0 my-1">
+                            
+                            {/* 24 Sparkling LED Bulbs */}
+                            {Array.from({ length: 24 }).map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={`absolute w-2.5 h-2.5 rounded-full shadow-sm ${
+                                        i % 3 === 0 ? 'bg-red-600 animate-pulse' : i % 3 === 1 ? 'bg-amber-300' : 'bg-white'
+                                    }`}
+                                    style={{
+                                        top: '50%', left: '50%',
+                                        transform: `translate(-50%, -50%) rotate(${i * 15}deg) translateY(-146px)`,
+                                    }}
+                                />
+                            ))}
 
-                    {/* Vòng quay đang bảo trì */}
-                    {config?.isActive === false && (
-                        <div className="w-full p-6 text-center bg-rose-50 border border-rose-200 rounded-2xl space-y-2 mb-4">
-                            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
-                            <h3 className="text-base font-bold text-rose-800">Vòng quay đang tạm ngưng bảo trì</h3>
-                            <p className="text-xs text-rose-600">Vui lòng quay lại sau khi ban quản trị hoàn tất nâng cấp.</p>
-                        </div>
-                    )}
+                            {/* Rotating Wheel Canvas */}
+                            <motion.div
+                                className="relative w-full h-full rounded-full overflow-hidden shadow-inner bg-white"
+                                animate={{ rotate: rotation }}
+                                transition={{ duration: spinning ? 5.5 : 0, ease: [0.15, 0.85, 0.15, 1] }}
+                            >
+                                <canvas ref={canvasRef} width={800} height={800} className="w-full h-full block" />
+                            </motion.div>
 
-                            {/* Outer Frame (Perfect Fit Canvas) */}
-                            <div className="relative w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] rounded-full p-3 bg-white shadow-xl border-[5px] border-amber-400 flex items-center justify-center shrink-0 my-1">
-                                
-                                {/* Bulbs / Dots */}
-                                {Array.from({ length: 16 }).map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className={`absolute w-3 h-3 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-amber-400'} shadow-sm`}
-                                        style={{
-                                            top: '50%', left: '50%',
-                                            transform: `translate(-50%, -50%) rotate(${i * 22.5}deg) translateY(-144px)`,
-                                        }}
-                                    />
-                                ))}
-
-                                {/* Rotating Wheel Canvas */}
-                                <motion.div
-                                    className="relative w-full h-full rounded-full overflow-hidden shadow-inner bg-white"
-                                    animate={{ rotate: rotation }}
-                                    transition={{ duration: spinning ? 5.2 : 0, ease: [0.15, 0.85, 0.15, 1] }}
-                                >
-                                    <canvas ref={canvasRef} width={800} height={800} className="w-full h-full block" />
-                                </motion.div>
-
-                                {/* Red Pin Pointer Arrow */}
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-11 drop-shadow-lg z-20 flex flex-col items-center pointer-events-none">
-                                    <div className="w-5 h-5 bg-red-600 rounded-full border-2 border-white shadow-sm z-10" />
-                                    <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[24px] border-t-red-600 -mt-2.5 filter drop-shadow" />
-                                </div>
+                            {/* Luxury Ruby Red Pin Pointer Arrow */}
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-11 drop-shadow-xl z-20 flex flex-col items-center pointer-events-none">
+                                <div className="w-5 h-5 bg-gradient-to-br from-red-500 to-red-700 rounded-full border-2 border-amber-300 shadow-md z-10" />
+                                <div className="w-0 h-0 border-l-[13px] border-l-transparent border-r-[13px] border-r-transparent border-t-[26px] border-t-red-600 -mt-2.5 filter drop-shadow" />
                             </div>
+                        </div>
 
-                            {/* Prominent Action Button at the Bottom (Fully Visible) */}
-                            <div className="mt-3 w-full">
-                                {canSpin ? (
-                                    <button
-                                        onClick={spin}
-                                        disabled={spinning}
-                                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 via-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black text-lg shadow-xl shadow-red-600/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                                    >
-                                        {spinning ? (
-                                            <>
-                                                <Loader2 className="animate-spin text-white" size={22} />
-                                                <span>ĐANG QUAY...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles size={20} className="text-amber-300" />
-                                                <span>QUAY NGAY!</span>
-                                            </>
-                                        )}
-                                    </button>
-                                ) : (
+                        {/* ── ACTION BUTTON ── */}
+                        <div className="mt-4 w-full">
+                            {!user && config?.requireLogin !== false ? (
+                                <Link
+                                    href="/login?redirect=/&openWheel=true"
+                                    onClick={onClose}
+                                    className="w-full py-3.5 rounded-2xl bg-[#0F172A] hover:bg-black text-amber-300 font-black text-base shadow-lg shadow-black/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                >
+                                    <LogIn size={20} />
+                                    <span>ĐĂNG NHẬP ĐỂ QUAY THƯỞNG</span>
+                                </Link>
+                            ) : canSpin ? (
+                                <button
+                                    onClick={spin}
+                                    disabled={spinning}
+                                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-600 to-red-600 hover:opacity-95 text-white font-black text-lg shadow-xl shadow-red-600/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    {spinning ? (
+                                        <>
+                                            <Loader2 className="animate-spin text-white" size={22} />
+                                            <span>ĐANG QUAY THƯỞNG...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles size={20} className="text-amber-200" />
+                                            <span>QUAY NGAY (CÒN {remainingSpins} LƯỢT)</span>
+                                        </>
+                                    )}
+                                </button>
+                            ) : (
+                                <div className="flex flex-col gap-2">
                                     <button
                                         disabled
-                                        className="w-full py-3 rounded-2xl bg-gray-100 border border-gray-200 text-gray-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                                        className="w-full py-3.5 rounded-2xl bg-slate-200 text-slate-400 font-bold text-sm flex items-center justify-center gap-2 cursor-not-allowed border border-slate-300"
                                     >
                                         <Clock size={16} />
-                                        <span>ĐÃ HẾT LƯỢT QUAY · HẸN GẶP LẠI VÀO NGÀY MAI</span>
+                                        <span>ĐÃ HẾT LƯỢT QUAY HÔM NAY</span>
                                     </button>
-                                )}
+                                    <button
+                                        onClick={() => setActiveTab('history')}
+                                        className="w-full py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                                    >
+                                        <Award size={15} className="text-[#C9A227]" />
+                                        <span>Xem các phần thưởng đã trúng</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── TAB 2: LỊCH SỬ TRÚNG THƯỞNG ── */}
+                {activeTab === 'history' && (
+                    <div className="p-5 bg-[#F8FAFC] min-h-[380px] max-h-[460px] overflow-y-auto flex flex-col">
+                        <div className="flex items-center justify-between mb-3.5">
+                            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <Award size={17} className="text-[#C9A227]" />
+                                <span>Phần thưởng bạn đã quay trúng:</span>
+                            </h3>
+                            <span className="text-xs text-slate-500 font-medium">
+                                Tổng cộng: {recentRewards.length} quà
+                            </span>
+                        </div>
+
+                        {recentRewards.length === 0 ? (
+                            <div className="my-auto py-10 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+                                <Gift size={40} className="text-slate-300" />
+                                <p className="text-sm font-medium">Bạn chưa có phần thưởng nào.</p>
+                                <button
+                                    onClick={() => setActiveTab('wheel')}
+                                    className="mt-2 px-4 py-2 bg-[#0F172A] text-white text-xs font-bold rounded-xl hover:bg-black transition-all"
+                                >
+                                    Tham gia quay ngay
+                                </button>
                             </div>
-                </div>
+                        ) : (
+                            <div className="space-y-2.5">
+                                {recentRewards.map((rec, idx) => {
+                                    const voucherCode = typeof rec.voucher_id === 'object' && rec.voucher_id?.coupon_code
+                                        ? rec.voucher_id.coupon_code
+                                        : null;
+
+                                    return (
+                                        <div
+                                            key={rec._id || idx}
+                                            className="p-3.5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3"
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-900 truncate">
+                                                    {rec.reward_text}
+                                                </p>
+                                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                                    {new Date(rec.spin_date).toLocaleString('vi-VN')}
+                                                </p>
+                                            </div>
+
+                                            {voucherCode ? (
+                                                <button
+                                                    onClick={() => handleCopyHistoryCode(voucherCode)}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-mono font-bold transition-all cursor-pointer"
+                                                    title="Bấm để sao chép mã"
+                                                >
+                                                    <span>{voucherCode}</span>
+                                                    {copiedCode === voucherCode ? (
+                                                        <Check size={14} className="text-emerald-600" />
+                                                    ) : (
+                                                        <Copy size={14} className="text-amber-600" />
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <span className="text-[11px] text-slate-400 font-medium px-2 py-1 bg-slate-50 rounded-lg">
+                                                    Đã ghi nhận
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <div className="mt-auto pt-4">
+                            <button
+                                onClick={() => setActiveTab('wheel')}
+                                className="w-full py-3 rounded-2xl bg-[#0F172A] hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                                <ChevronRight size={16} className="rotate-180" />
+                                <span>Quay lại Vòng Quay</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <AnimatePresence>
-                    {prize && <PrizeModal prize={prize} prizes={prizes} onClose={() => setPrize(null)} />}
+                    {prize && (
+                        <PrizeModal 
+                            prize={prize} 
+                            onClose={() => setPrize(null)} 
+                            onGoHistory={() => {
+                                setPrize(null);
+                                setActiveTab('history');
+                            }}
+                        />
+                    )}
                 </AnimatePresence>
             </motion.div>
         </motion.div>
@@ -541,20 +772,20 @@ export default function LuckyWheel() {
                         transition={{ type: 'spring', bounce: 0.5, delay: 1 }}
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.92 }}
-                        title="Vòng quay may mắn"
+                        title="Vòng quay may mắn HAVEN"
                     >
                         <motion.div
-                            className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center shadow-lg border-2 border-amber-300"
-                            style={{ background: 'linear-gradient(135deg, #C9A227 0%, #F59E0B 50%, #C9A227 100%)' }}
+                            className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center shadow-xl border-2 border-amber-300"
+                            style={{ background: 'linear-gradient(135deg, #0F172A 0%, #C9A227 50%, #0F172A 100%)' }}
                             animate={{ rotate: 360 }}
-                            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+                            transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
                         >
-                            <Gift size={22} className="text-white" style={{ transform: 'rotate(-90deg)' }} />
-                            {/* Glow */}
-                            <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ backgroundColor: '#C9A227' }} />
+                            <Gift size={22} className="text-amber-300" style={{ transform: 'rotate(-90deg)' }} />
+                            {/* Glow pulse */}
+                            <div className="absolute inset-0 rounded-full animate-ping opacity-25 bg-[#C9A227]" />
                         </motion.div>
-                        <span className="text-[9.5px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded-full shadow-xs border border-slate-200/90 whitespace-nowrap">
-                            May mắn
+                        <span className="text-[9.5px] font-bold text-slate-800 bg-white px-2 py-0.5 rounded-full shadow-xs border border-slate-200/90 whitespace-nowrap">
+                            Vòng quay
                         </span>
                     </motion.button>
                 )}
