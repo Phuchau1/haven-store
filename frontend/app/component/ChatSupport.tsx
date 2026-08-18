@@ -132,7 +132,7 @@ export default function ChatSupport() {
     const suggested: SuggestedProduct[] = ids
       .map((id) => products.find((p) => (p.id === id || (p as any)._id === id || (p as any)._id?.toString() === id)))
       .filter((p): p is Product => !!p && (p.inStock !== false))
-      .slice(0, 3)
+      .slice(0, 8)
       .map((p) => ({
         id: p.id || (p as any)._id?.toString() || '',
         name: p.name,
@@ -301,7 +301,7 @@ export default function ChatSupport() {
     }
 
     if (msg.includes('rẻ') || msg.includes('sale') || msg.includes('giảm giá') || msg.includes('flash')) {
-      const cheapProducts = [...products].sort((a, b) => a.price - b.price).filter(p => p.inStock !== false).slice(0, 3);
+      const cheapProducts = [...products].sort((a, b) => a.price - b.price).filter(p => p.inStock !== false).slice(0, 6);
       if (cheapProducts.length > 0) {
         const ids = cheapProducts.map(p => p.id || (p as any)._id).join(',');
         return `Dưới đây là các mẫu đang có mức giá ưu đãi tốt nhất tại HAVEN bạn nhé:\n\nSUGGEST_IDS: ${ids}`;
@@ -325,8 +325,8 @@ export default function ChatSupport() {
     }).filter(p => p.score > 0).sort((a, b) => b.score - a.score);
 
     if (scoredMatches.length > 0) {
-      const top3 = scoredMatches.slice(0, 3);
-      const ids = top3.map(p => p.product.id || (p.product as any)._id).join(',');
+      const topMatches = scoredMatches.slice(0, 6);
+      const ids = topMatches.map(p => p.product.id || (p.product as any)._id).join(',');
       return `Gợi ý cho bạn các mẫu phù hợp nhất tại HAVEN đây ạ:\n\nSUGGEST_IDS: ${ids}`;
     }
 
@@ -434,6 +434,37 @@ export default function ChatSupport() {
     setChatHistory([]);
   };
 
+  // ── Thêm gợi ý sản phẩm nổi bật vào tin nhắn chào mừng ban đầu ──
+  useEffect(() => {
+    if (products.length > 0) {
+      const topPicks = [...products]
+        .filter((p) => p.inStock !== false)
+        .slice(0, 5)
+        .map((p) => ({
+          id: p.id || (p as any)._id?.toString() || '',
+          name: p.name,
+          price: p.price,
+          originalPrice: p.originalPrice,
+          image: p.images?.[0] || '',
+          category: p.category,
+          flashSale: p.flashSale,
+          flashSalePrice: p.flashSalePrice,
+        }));
+
+      setMessages((prev) => {
+        if (prev.length === 1 && prev[0].id === '1' && (!prev[0].suggestedProducts || prev[0].suggestedProducts.length === 0)) {
+          return [
+            {
+              ...prev[0],
+              suggestedProducts: topPicks,
+            },
+          ];
+        }
+        return prev;
+      });
+    }
+  }, [products]);
+
   return (
     <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[999990] flex flex-col items-end">
       <AnimatePresence>
@@ -443,7 +474,7 @@ export default function ChatSupport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.92 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-[calc(100vw-32px)] sm:w-[440px] md:w-[460px] h-[580px] max-h-[calc(100dvh-100px)] bg-white text-slate-900 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-slate-200/90 flex flex-col overflow-hidden backdrop-blur-xl"
+            className="w-[calc(100vw-24px)] sm:w-[480px] md:w-[520px] h-[720px] max-h-[calc(100dvh-32px)] bg-white text-slate-900 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.22)] border border-slate-200/90 flex flex-col overflow-hidden backdrop-blur-xl"
           >
             {/* ── HEADER NỀN TRẮNG SANG TRỌNG ── */}
             <div className="bg-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-100 flex-shrink-0 shadow-2xs">
@@ -543,56 +574,61 @@ export default function ChatSupport() {
 
                   {/* ── THẺ GỢI Ý SẢN PHẨM NỀN TRẮNG ── */}
                   {msg.sender === 'bot' && msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                    <div className="ml-11 mt-3 flex flex-col gap-2.5 w-full max-w-[340px]">
-                      <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                        Gợi ý sản phẩm phù hợp:
-                      </p>
-                      {msg.suggestedProducts.map((p) => (
-                        <Link
-                          key={p.id}
-                          href={`/product/${getProductSlug(p)}`}
-                          className="flex items-center gap-3.5 p-2.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 hover:border-slate-400 shadow-2xs transition-all group"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          {p.image ? (
-                            <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
-                              <Image
-                                src={p.image}
-                                alt={p.name}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
-                              Ảnh
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#1e40af] transition-colors">
-                              {p.name}
-                            </p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs sm:text-sm font-black text-[#1e40af]">
-                                {p.price.toLocaleString('vi-VN')}đ
-                              </span>
-                              {Boolean(p.originalPrice && p.originalPrice > p.price) && (
-                                <span className="text-[10px] text-slate-400 line-through">
-                                  {p.originalPrice?.toLocaleString('vi-VN')}đ
+                    <div className="ml-11 mt-3 flex flex-col gap-2 w-full max-w-full pr-1">
+                      <div className="flex items-center gap-1.5 px-0.5">
+                        <Sparkles size={13} className="text-amber-500" />
+                        <p className="text-[11.5px] font-bold text-slate-700 uppercase tracking-wider">
+                          Gợi ý sản phẩm phù hợp ({msg.suggestedProducts.length}):
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {msg.suggestedProducts.map((p) => (
+                          <Link
+                            key={p.id}
+                            href={`/product/${getProductSlug(p)}`}
+                            className="flex items-center gap-3.5 p-2.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200/90 hover:border-slate-400 shadow-2xs transition-all group"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            {p.image ? (
+                              <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
+                                <Image
+                                  src={p.image}
+                                  alt={p.name}
+                                  fill
+                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
+                                Ảnh
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#1e40af] transition-colors">
+                                {p.name}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs sm:text-sm font-black text-[#1e40af]">
+                                  {p.price.toLocaleString('vi-VN')}đ
+                                </span>
+                                {Boolean(p.originalPrice && p.originalPrice > p.price) && (
+                                  <span className="text-[10px] text-slate-400 line-through">
+                                    {p.originalPrice?.toLocaleString('vi-VN')}đ
+                                  </span>
+                                )}
+                              </div>
+                              {p.flashSale && (
+                                <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 bg-red-100 text-red-600 border border-red-200 rounded font-bold">
+                                  ⚡ FLASH SALE
                                 </span>
                               )}
                             </div>
-                            {p.flashSale && (
-                              <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 bg-red-100 text-red-600 border border-red-200 rounded font-bold">
-                                ⚡ FLASH SALE
-                              </span>
-                            )}
-                          </div>
-                          <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-[#0f172a] group-hover:text-white text-slate-500 flex items-center justify-center transition-all flex-shrink-0">
-                            <ChevronRight size={16} />
-                          </div>
-                        </Link>
-                      ))}
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-[#0f172a] group-hover:text-white text-slate-500 flex items-center justify-center transition-all flex-shrink-0">
+                              <ChevronRight size={16} />
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </motion.div>

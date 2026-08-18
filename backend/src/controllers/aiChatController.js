@@ -157,7 +157,7 @@ const doSmartSearchAndFallback = (rawMessage, products) => {
             return `• **${p.name}** — ${p.price.toLocaleString('vi-VN')}đ${discount}${flash}${ratingStr}${link}`;
         }).join('\n\n');
 
-        const suggestIds = matched.slice(0, 3).map(p => p._id).join(',');
+        const suggestIds = matched.slice(0, 6).map(p => p._id).join(',');
         return `${titlePrefix}\n\n${items}\n\nXem thêm toàn bộ tại https://havenstore.io.vn/products nhé! 🌟\nSUGGEST_IDS: ${suggestIds}`;
     }
 
@@ -242,7 +242,7 @@ QUY TẮC BẮT BUỘC:
 - Nếu khách hỏi đồ NAM (áo sơ mi nam, áo thun nam, quần nam...), TUYỆT ĐỐI CHỈ giới thiệu sản phẩm NAM, KHÔNG ĐƯỢC đưa sản phẩm Nữ (váy, đầm, áo croptop, sơ mi nữ).
 - Nếu khách hỏi đồ NỮ (áo sơ mi nữ, đầm, váy, croptop...), TUYỆT ĐỐI CHỈ giới thiệu sản phẩm NỮ.
 - Trả lời bằng tiếng Việt tự nhiên, thân thiện. Xưng "mình", gọi khách là "bạn".
-- Khi tư vấn từ 1 đến 3 sản phẩm cụ thể, ở DÒNG CUỐI CÙNG của câu trả lời BẮT BUỘC ghi cú pháp: SUGGEST_IDS: id1,id2,id3 (dùng đúng ID sản phẩm từ danh sách trên) để website hiển thị thẻ sản phẩm tương tác cho khách hàng.
+- Khi tư vấn sản phẩm, hãy gợi ý từ 4 đến 6 sản phẩm phù hợp nhất, và ở DÒNG CUỐI CÙNG của câu trả lời BẮT BUỘC ghi cú pháp: SUGGEST_IDS: id1,id2,id3,id4,id5,id6 (dùng đúng ID sản phẩm từ danh sách trên) để website hiển thị thẻ sản phẩm tương tác cho khách hàng.
 - Tối đa 150 từ mỗi câu trả lời.
 
 CÂU HỎI CỦA KHÁCH: ${message.trim()}`;
