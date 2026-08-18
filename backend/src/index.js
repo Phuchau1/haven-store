@@ -52,15 +52,20 @@ const PORT = process.env.PORT || 5000;
 logger.info(`Starting server on port ${PORT}...`);
 logger.info(`CWD: ${process.cwd()}`);
 
+// --- HEALTH CHECK (First handler for instant Render health probe responses) ---
+app.all(['/health', '/api/health', '/'], (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'HAVEN Store Backend API is running smoothly', timestamp: new Date() });
+});
+
 // --- BẢO MẬT (SECURITY) ---
-app.use(helmet()); 
+app.use(helmet({ crossOriginResourcePolicy: false })); 
 
 // --- CORS ---
 app.use(cors({
     origin: process.env.NEXT_PUBLIC_FRONTEND_URL || '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id', 'x-requested-with', 'Accept']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id', 'x-requested-with', 'Accept', 'x-user-id']
 }));
 
 // --- LOGGING ---
@@ -78,10 +83,7 @@ const fs = require('fs');
 if (!fs.existsSync(publicUploads)) {
     fs.mkdirSync(publicUploads, { recursive: true });
 }
-// --- HEALTH CHECK & GOOGLE VERIFICATION ---
-app.get(['/', '/health'], (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'HAVEN Store Backend API is running smoothly', timestamp: new Date() });
-});
+
 app.get('/google5e31d691b45f169a.html', (req, res) => {
     res.setHeader('Content-Type', 'text/html');
     res.send('google-site-verification: google5e31d691b45f169a.html');
