@@ -73,7 +73,7 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
     const size = canvas.width;
     const cx = size / 2;
     const cy = size / 2;
-    const radius = cx - 20;
+    const radius = cx - 24;
     const numSegments = prizes.length || 8;
     const segmentAngle = 360 / numSegments;
 
@@ -95,7 +95,7 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
 
         // Metallic Gold divider line
         ctx.strokeStyle = '#FDE68A';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 5;
         ctx.stroke();
 
         // Render Text & Icon radially
@@ -104,15 +104,16 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
         const midAngle = startAngle + (endAngle - startAngle) / 2;
         ctx.rotate(midAngle);
         ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
         ctx.fillStyle = '#FFFFFF';
 
-        ctx.font = `bold 26px "Be Vietnam Pro", Inter, sans-serif`;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-        ctx.shadowBlur = 6;
+        ctx.font = `bold 32px "Be Vietnam Pro", Inter, sans-serif`;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 8;
         ctx.shadowOffsetY = 2;
 
-        const textToRender = `${prize.emoji} ${prize.shortLabel}`;
-        ctx.fillText(textToRender, radius - 38, 9);
+        const textToRender = `${prize.emoji}  ${prize.shortLabel}`;
+        ctx.fillText(textToRender, radius - 46, 0);
         ctx.restore();
     });
 
@@ -120,39 +121,40 @@ function drawWheel(canvas: HTMLCanvasElement, prizes: WheelPrize[]) {
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.strokeStyle = '#D97706';
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 10;
     ctx.stroke();
 
     // 3. Center Luxury Bezel
     ctx.beginPath();
-    ctx.arc(cx, cy, 56, 0, Math.PI * 2);
-    const grad = ctx.createLinearGradient(cx - 56, cy - 56, cx + 56, cy + 56);
-    grad.addColorStop(0, '#FDE68A');
-    grad.addColorStop(0.5, '#D97706');
+    ctx.arc(cx, cy, 70, 0, Math.PI * 2);
+    const grad = ctx.createLinearGradient(cx - 70, cy - 70, cx + 70, cy + 70);
+    grad.addColorStop(0, '#FEF08A');
+    grad.addColorStop(0.3, '#D97706');
+    grad.addColorStop(0.7, '#FDE68A');
     grad.addColorStop(1, '#92400E');
     ctx.fillStyle = grad;
     ctx.fill();
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 8;
     ctx.strokeStyle = '#FFFFFF';
     ctx.stroke();
 
     // 4. Center Inner Core (Navy with Golden "H" Monogram)
     ctx.beginPath();
-    ctx.arc(cx, cy, 42, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 52, 0, Math.PI * 2);
     ctx.fillStyle = '#0F172A';
     ctx.fill();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = '#FDE68A';
     ctx.stroke();
 
     // Center Golden 'H' Monogram with Crown
     ctx.fillStyle = '#FDE68A';
-    ctx.font = 'bold 36px "Be Vietnam Pro", sans-serif';
+    ctx.font = '900 44px "Be Vietnam Pro", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(217, 119, 6, 0.8)';
-    ctx.shadowBlur = 8;
-    ctx.fillText('H', cx, cy + 2);
+    ctx.shadowColor = 'rgba(217, 119, 6, 0.9)';
+    ctx.shadowBlur = 10;
+    ctx.fillText('H', cx, cy + 3);
 }
 
 // Modal Kết Quả Trúng Thưởng
@@ -176,13 +178,13 @@ function PrizeModal({ prize, onClose, onGoHistory }: { prize: WheelPrize; onClos
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
         >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={onClose} />
 
             <motion.div
-                className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 text-center"
-                initial={{ scale: 0.8, y: 20 }}
+                className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 text-center"
+                initial={{ scale: 0.85, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 20 }}
+                exit={{ scale: 0.85, y: 20 }}
             >
                 <div className="bg-gradient-to-b from-[#0F172A] to-[#1E293B] p-6 pt-8 text-white relative">
                     <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-amber-500/20 border-2 border-amber-400 text-amber-300 flex items-center justify-center text-4xl shadow-inner animate-bounce">
@@ -209,22 +211,22 @@ function PrizeModal({ prize, onClose, onGoHistory }: { prize: WheelPrize; onClos
 
                         {prize.code && (
                             <>
-                                <p className="text-[11px] text-center font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                                <p className="text-xs text-center font-bold text-slate-400 mb-2 uppercase tracking-wider">
                                     Mã voucher ưu đãi của bạn:
                                 </p>
                                 <button
                                     onClick={handleCopy}
-                                    className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-amber-50 border-2 border-dashed border-amber-300 hover:bg-amber-100/70 transition-colors group cursor-pointer"
+                                    className="w-full flex items-center justify-between px-5 py-4 rounded-2xl bg-amber-50 border-2 border-dashed border-amber-300 hover:bg-amber-100/70 transition-colors group cursor-pointer"
                                 >
-                                    <span className="font-mono text-xl sm:text-2xl font-bold text-amber-800 tracking-wider">
+                                    <span className="font-mono text-2xl font-bold text-amber-900 tracking-wider">
                                         {prize.code}
                                     </span>
                                     {copied
-                                        ? <Check size={20} className="text-emerald-600" />
-                                        : <Copy size={20} className="text-amber-600 group-hover:scale-110 transition-transform" />
+                                        ? <Check size={22} className="text-emerald-600" />
+                                        : <Copy size={22} className="text-amber-600 group-hover:scale-110 transition-transform" />
                                     }
                                 </button>
-                                <p className="text-[11.5px] text-center text-slate-500 mt-2 font-medium">
+                                <p className="text-xs text-center text-slate-500 mt-2 font-medium">
                                     ✨ Mã đã được lưu vào danh sách voucher của bạn
                                 </p>
                             </>
@@ -232,20 +234,20 @@ function PrizeModal({ prize, onClose, onGoHistory }: { prize: WheelPrize; onClos
                     </div>
                 )}
 
-                <div className="px-6 pb-6 pt-2 flex flex-col gap-2">
+                <div className="px-6 pb-6 pt-2 flex flex-col gap-2.5">
                     {prize.type !== 'retry' ? (
                         <>
                             <Link
                                 href="/products"
                                 onClick={onClose}
-                                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-sm hover:opacity-95 transition-all shadow-md flex items-center justify-center gap-2"
+                                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-sm hover:opacity-95 transition-all shadow-md flex items-center justify-center gap-2"
                             >
-                                <ShoppingBag size={17} />
+                                <ShoppingBag size={18} />
                                 <span>Mua sắm & Áp dụng ngay</span>
                             </Link>
                             <button
                                 onClick={onGoHistory}
-                                className="w-full py-2.5 rounded-xl text-slate-600 font-semibold text-xs hover:bg-slate-100 transition-colors"
+                                className="w-full py-2.5 rounded-xl text-slate-600 font-semibold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
                             >
                                 Xem lịch sử trúng thưởng
                             </button>
@@ -253,7 +255,7 @@ function PrizeModal({ prize, onClose, onGoHistory }: { prize: WheelPrize; onClos
                     ) : (
                         <button
                             onClick={onClose}
-                            className="w-full py-3.5 rounded-2xl bg-[#0F172A] text-white font-bold text-sm hover:bg-slate-800 transition-colors shadow-sm"
+                            className="w-full py-3.5 rounded-2xl bg-[#0F172A] text-white font-bold text-sm hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
                         >
                             Đóng & Quay lại sau
                         </button>
@@ -439,66 +441,66 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
     return (
         <motion.div
-            className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+            className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
         >
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={!spinning ? onClose : undefined} />
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={!spinning ? onClose : undefined} />
 
             <motion.div
-                className="relative w-full max-w-[490px] bg-white rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.35)] border border-slate-100 my-auto flex flex-col overflow-hidden"
-                initial={{ scale: 0.88, opacity: 0, y: 20 }}
+                className="relative w-full max-w-[550px] sm:max-w-[580px] bg-white rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.45)] border border-slate-100 my-auto flex flex-col overflow-hidden"
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.88, opacity: 0, y: 20 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', bounce: 0.2 }}
             >
                 {/* ── LUXURY HAVEN HEADER ── */}
-                <div className="relative bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] px-5 sm:px-6 pt-5 pb-4 text-center text-white shrink-0 border-b border-amber-500/30">
+                <div className="relative bg-gradient-to-r from-[#0B1120] via-[#1E293B] to-[#0B1120] px-6 pt-6 pb-4.5 text-center text-white shrink-0 border-b border-amber-500/30">
                     <button
                         onClick={!spinning ? onClose : undefined}
-                        className="absolute right-4 top-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        className="absolute right-4 top-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
                         aria-label="Đóng"
                     >
-                        <X size={20} />
+                        <X size={22} />
                     </button>
                     
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-bold mb-1.5">
-                        <Sparkles size={13} className="text-amber-400" />
-                        <span>HAVEN LUCKY REWARDS</span>
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-bold mb-2">
+                        <Sparkles size={14} className="text-amber-400" />
+                        <span>HAVEN EXCLUSIVE REWARDS</span>
                     </div>
 
-                    <h2 className="text-2xl sm:text-[26px] font-black tracking-tight text-white flex items-center justify-center gap-2">
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
                         <span>VÒNG QUAY MAY MẮN</span>
                     </h2>
-                    <p className="text-slate-300 text-xs sm:text-[13px] font-medium mt-0.5">
+                    <p className="text-slate-300 text-xs sm:text-sm font-medium mt-1">
                         Quay mỗi ngày — Nhận voucher giảm giá & quà tặng độc quyền
                     </p>
 
                     {/* ── TABS: VÒNG QUAY / LỊCH SỬ ── */}
-                    <div className="flex items-center justify-center gap-2 mt-3.5 bg-black/40 p-1 rounded-2xl border border-white/10 max-w-[340px] mx-auto">
+                    <div className="flex items-center justify-center gap-2 mt-4 bg-black/40 p-1.5 rounded-2xl border border-white/10 max-w-[360px] mx-auto">
                         <button
                             onClick={() => setActiveTab('wheel')}
                             disabled={spinning}
-                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                                 activeTab === 'wheel'
-                                    ? 'bg-[#C9A227] text-black shadow-sm'
+                                    ? 'bg-[#C9A227] text-slate-950 shadow-md font-extrabold'
                                     : 'text-slate-300 hover:text-white'
                             }`}
                         >
-                            <Gift size={14} />
+                            <Gift size={16} />
                             <span>Vòng quay</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('history')}
                             disabled={spinning}
-                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                                 activeTab === 'history'
-                                    ? 'bg-[#C9A227] text-black shadow-sm'
+                                    ? 'bg-[#C9A227] text-slate-950 shadow-md font-extrabold'
                                     : 'text-slate-300 hover:text-white'
                             }`}
                         >
-                            <History size={14} />
+                            <History size={16} />
                             <span>Lịch sử ({recentRewards.length})</span>
                         </button>
                     </div>
@@ -506,60 +508,60 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
                 {/* ── TAB 1: VÒNG QUAY CHÍNH ── */}
                 {activeTab === 'wheel' && (
-                    <div className="relative px-5 py-4 pb-6 flex flex-col items-center bg-[#F8FAFC] shrink-0">
+                    <div className="relative px-6 py-5 pb-7 flex flex-col items-center bg-[#F8FAFC] shrink-0">
 
                         {/* ── HUD THỐNG KÊ LƯỢT QUAY THẬT ── */}
-                        <div className="w-full mb-3">
+                        <div className="w-full mb-4">
                             {!user && config?.requireLogin !== false ? (
-                                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between gap-3 shadow-xs">
-                                    <div className="flex items-center gap-2 text-xs font-semibold">
-                                        <LogIn size={18} className="text-amber-600 shrink-0" />
+                                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between gap-3 shadow-xs">
+                                    <div className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
+                                        <LogIn size={20} className="text-amber-600 shrink-0" />
                                         <span>Đăng nhập để nhận <strong>{maxSpins} lượt quay</strong> miễn phí mỗi ngày!</span>
                                     </div>
                                     <Link
                                         href="/login?redirect=/&openWheel=true"
                                         onClick={onClose}
-                                        className="px-3.5 py-1.5 bg-[#0F172A] hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs shrink-0 whitespace-nowrap transition-all"
+                                        className="px-4 py-2 bg-[#0F172A] hover:bg-black text-amber-300 text-xs sm:text-sm font-bold rounded-xl shadow-xs shrink-0 whitespace-nowrap transition-all"
                                     >
                                         Đăng nhập
                                     </Link>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs text-center">
-                                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Hôm nay</p>
-                                        <p className="text-sm font-black text-slate-900 mt-0.5">{maxSpins} lượt</p>
+                                <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+                                    <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs text-center">
+                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hôm nay</p>
+                                        <p className="text-base sm:text-lg font-black text-slate-900 mt-0.5">{maxSpins} lượt</p>
                                     </div>
-                                    <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs text-center">
-                                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Đã quay</p>
-                                        <p className="text-sm font-black text-slate-600 mt-0.5">{usedSpins} lượt</p>
+                                    <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs text-center">
+                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đã quay</p>
+                                        <p className="text-base sm:text-lg font-black text-slate-600 mt-0.5">{usedSpins} lượt</p>
                                     </div>
-                                    <div className={`p-2 rounded-2xl border shadow-2xs text-center ${
+                                    <div className={`p-3 rounded-2xl border shadow-2xs text-center ${
                                         remainingSpins > 0 
                                             ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
                                             : 'bg-rose-50 border-rose-200 text-rose-800'
                                     }`}>
-                                        <p className="text-[10.5px] font-bold uppercase tracking-wider opacity-80">Còn lại</p>
-                                        <p className="text-sm font-black mt-0.5">{remainingSpins} lượt</p>
+                                        <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">Còn lại</p>
+                                        <p className="text-base sm:text-lg font-black mt-0.5">{remainingSpins} lượt</p>
                                     </div>
                                 </div>
                             )}
 
                             {/* Status message bar */}
                             {user && (
-                                <div className="mt-2 text-center">
+                                <div className="mt-2.5 text-center">
                                     {canSpin ? (
-                                        <p className="text-xs text-emerald-700 font-bold flex items-center justify-center gap-1.5">
-                                            <Sparkles size={14} className="text-amber-500" />
+                                        <p className="text-xs sm:text-sm text-emerald-700 font-bold flex items-center justify-center gap-2">
+                                            <Sparkles size={16} className="text-amber-500" />
                                             <span>Bạn còn <strong>{remainingSpins}/{maxSpins}</strong> lượt quay. Chúc bạn may mắn!</span>
                                         </p>
                                     ) : (
-                                        <div className="py-1.5 px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-between text-xs font-bold">
-                                            <span className="flex items-center gap-1.5">
-                                                <Clock size={14} />
+                                        <div className="py-2 px-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-between text-xs sm:text-sm font-bold">
+                                            <span className="flex items-center gap-2">
+                                                <Clock size={16} />
                                                 <span>Đã hết lượt hôm nay</span>
                                             </span>
-                                            <span className="font-mono bg-rose-600 text-white px-2 py-0.5 rounded-md text-[11px]">
+                                            <span className="font-mono bg-rose-600 text-white px-2.5 py-1 rounded-lg text-xs">
                                                 Hồi lại sau: {timeLeft}
                                             </span>
                                         </div>
@@ -568,19 +570,19 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                             )}
                         </div>
 
-                        {/* ── WHEEL CANVAS CONTAINER ── */}
-                        <div className="relative w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] rounded-full p-3 bg-gradient-to-tr from-amber-400 via-amber-300 to-yellow-200 shadow-[0_15px_40px_rgba(201,162,39,0.35)] border-4 border-amber-500 flex items-center justify-center shrink-0 my-1">
+                        {/* ── WHEEL CANVAS CONTAINER (ENLARGED & BALANCED) ── */}
+                        <div className="relative w-[340px] h-[340px] sm:w-[410px] sm:h-[410px] md:w-[430px] md:h-[430px] rounded-full p-3.5 sm:p-4 bg-gradient-to-tr from-amber-400 via-amber-300 to-yellow-200 shadow-[0_20px_50px_rgba(201,162,39,0.4)] border-[5px] sm:border-[6px] border-amber-500 flex items-center justify-center shrink-0 my-2">
                             
                             {/* 24 Sparkling LED Bulbs */}
                             {Array.from({ length: 24 }).map((_, i) => (
                                 <div
                                     key={i}
-                                    className={`absolute w-2.5 h-2.5 rounded-full shadow-sm ${
-                                        i % 3 === 0 ? 'bg-red-600 animate-pulse' : i % 3 === 1 ? 'bg-amber-300' : 'bg-white'
+                                    className={`absolute w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full shadow-sm ${
+                                        i % 3 === 0 ? 'bg-red-600 animate-pulse shadow-[0_0_8px_#DC2626]' : i % 3 === 1 ? 'bg-amber-300 shadow-[0_0_8px_#FCD34D]' : 'bg-white shadow-[0_0_8px_#FFFFFF]'
                                     }`}
                                     style={{
                                         top: '50%', left: '50%',
-                                        transform: `translate(-50%, -50%) rotate(${i * 15}deg) translateY(-146px)`,
+                                        transform: `translate(-50%, -50%) rotate(${i * 15}deg) translateY(calc(-170px - 2vw))`,
                                     }}
                                 />
                             ))}
@@ -591,13 +593,13 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                 animate={{ rotate: rotation }}
                                 transition={{ duration: spinning ? 5.5 : 0, ease: [0.15, 0.85, 0.15, 1] }}
                             >
-                                <canvas ref={canvasRef} width={800} height={800} className="w-full h-full block" />
+                                <canvas ref={canvasRef} width={1000} height={1000} className="w-full h-full block" />
                             </motion.div>
 
                             {/* Luxury Ruby Red Pin Pointer Arrow */}
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-11 drop-shadow-xl z-20 flex flex-col items-center pointer-events-none">
-                                <div className="w-5 h-5 bg-gradient-to-br from-red-500 to-red-700 rounded-full border-2 border-amber-300 shadow-md z-10" />
-                                <div className="w-0 h-0 border-l-[13px] border-l-transparent border-r-[13px] border-r-transparent border-t-[26px] border-t-red-600 -mt-2.5 filter drop-shadow" />
+                            <div className="absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 w-11 h-13 drop-shadow-2xl z-20 flex flex-col items-center pointer-events-none">
+                                <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-red-700 rounded-full border-2 border-amber-300 shadow-lg z-10" />
+                                <div className="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-red-600 -mt-3 filter drop-shadow" />
                             </div>
                         </div>
 
@@ -607,43 +609,43 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                 <Link
                                     href="/login?redirect=/&openWheel=true"
                                     onClick={onClose}
-                                    className="w-full py-3.5 rounded-2xl bg-[#0F172A] hover:bg-black text-amber-300 font-black text-base shadow-lg shadow-black/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                    className="w-full py-4 rounded-2xl bg-[#0F172A] hover:bg-black text-amber-300 font-black text-base sm:text-lg shadow-xl shadow-black/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                                 >
-                                    <LogIn size={20} />
+                                    <LogIn size={22} />
                                     <span>ĐĂNG NHẬP ĐỂ QUAY THƯỞNG</span>
                                 </Link>
                             ) : canSpin ? (
                                 <button
                                     onClick={spin}
                                     disabled={spinning}
-                                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-600 to-red-600 hover:opacity-95 text-white font-black text-lg shadow-xl shadow-red-600/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full py-4 sm:py-4.5 rounded-2xl bg-gradient-to-r from-red-600 via-amber-600 to-red-600 hover:opacity-95 text-white font-black text-lg sm:text-xl shadow-xl shadow-red-600/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 cursor-pointer"
                                 >
                                     {spinning ? (
                                         <>
-                                            <Loader2 className="animate-spin text-white" size={22} />
+                                            <Loader2 className="animate-spin text-white" size={24} />
                                             <span>ĐANG QUAY THƯỞNG...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Sparkles size={20} className="text-amber-200" />
+                                            <Sparkles size={22} className="text-amber-200" />
                                             <span>QUAY NGAY (CÒN {remainingSpins} LƯỢT)</span>
                                         </>
                                     )}
                                 </button>
                             ) : (
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2.5">
                                     <button
                                         disabled
-                                        className="w-full py-3.5 rounded-2xl bg-slate-200 text-slate-400 font-bold text-sm flex items-center justify-center gap-2 cursor-not-allowed border border-slate-300"
+                                        className="w-full py-4 rounded-2xl bg-slate-200 text-slate-400 font-bold text-sm sm:text-base flex items-center justify-center gap-2 cursor-not-allowed border border-slate-300"
                                     >
-                                        <Clock size={16} />
+                                        <Clock size={18} />
                                         <span>ĐÃ HẾT LƯỢT QUAY HÔM NAY</span>
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('history')}
-                                        className="w-full py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                                        className="w-full py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
                                     >
-                                        <Award size={15} className="text-[#C9A227]" />
+                                        <Award size={17} className="text-[#C9A227]" />
                                         <span>Xem các phần thưởng đã trúng</span>
                                     </button>
                                 </div>
@@ -654,30 +656,30 @@ function WheelModal({ onClose }: { onClose: () => void }) {
 
                 {/* ── TAB 2: LỊCH SỬ TRÚNG THƯỞNG ── */}
                 {activeTab === 'history' && (
-                    <div className="p-5 bg-[#F8FAFC] min-h-[380px] max-h-[460px] overflow-y-auto flex flex-col">
-                        <div className="flex items-center justify-between mb-3.5">
-                            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <Award size={17} className="text-[#C9A227]" />
+                    <div className="p-6 bg-[#F8FAFC] min-h-[420px] max-h-[500px] overflow-y-auto flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                <Award size={19} className="text-[#C9A227]" />
                                 <span>Phần thưởng bạn đã quay trúng:</span>
                             </h3>
-                            <span className="text-xs text-slate-500 font-medium">
+                            <span className="text-xs sm:text-sm text-slate-500 font-medium">
                                 Tổng cộng: {recentRewards.length} quà
                             </span>
                         </div>
 
                         {recentRewards.length === 0 ? (
-                            <div className="my-auto py-10 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-                                <Gift size={40} className="text-slate-300" />
+                            <div className="my-auto py-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
+                                <Gift size={48} className="text-slate-300" />
                                 <p className="text-sm font-medium">Bạn chưa có phần thưởng nào.</p>
                                 <button
                                     onClick={() => setActiveTab('wheel')}
-                                    className="mt-2 px-4 py-2 bg-[#0F172A] text-white text-xs font-bold rounded-xl hover:bg-black transition-all"
+                                    className="mt-2 px-5 py-2.5 bg-[#0F172A] text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-black transition-all cursor-pointer"
                                 >
                                     Tham gia quay ngay
                                 </button>
                             </div>
                         ) : (
-                            <div className="space-y-2.5">
+                            <div className="space-y-3">
                                 {recentRewards.map((rec, idx) => {
                                     const voucherCode = typeof rec.voucher_id === 'object' && rec.voucher_id?.coupon_code
                                         ? rec.voucher_id.coupon_code
@@ -686,13 +688,13 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                     return (
                                         <div
                                             key={rec._id || idx}
-                                            className="p-3.5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3"
+                                            className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3"
                                         >
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-bold text-slate-900 truncate">
+                                                <p className="text-sm sm:text-base font-bold text-slate-900 truncate">
                                                     {rec.reward_text}
                                                 </p>
-                                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                                <p className="text-xs text-slate-400 mt-1">
                                                     {new Date(rec.spin_date).toLocaleString('vi-VN')}
                                                 </p>
                                             </div>
@@ -700,18 +702,18 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                                             {voucherCode ? (
                                                 <button
                                                     onClick={() => handleCopyHistoryCode(voucherCode)}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-mono font-bold transition-all cursor-pointer"
+                                                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs sm:text-sm font-mono font-bold transition-all cursor-pointer"
                                                     title="Bấm để sao chép mã"
                                                 >
                                                     <span>{voucherCode}</span>
                                                     {copiedCode === voucherCode ? (
-                                                        <Check size={14} className="text-emerald-600" />
+                                                        <Check size={16} className="text-emerald-600" />
                                                     ) : (
-                                                        <Copy size={14} className="text-amber-600" />
+                                                        <Copy size={16} className="text-amber-600" />
                                                     )}
                                                 </button>
                                             ) : (
-                                                <span className="text-[11px] text-slate-400 font-medium px-2 py-1 bg-slate-50 rounded-lg">
+                                                <span className="text-xs text-slate-400 font-medium px-2.5 py-1 bg-slate-50 rounded-lg">
                                                     Đã ghi nhận
                                                 </span>
                                             )}
@@ -721,12 +723,12 @@ function WheelModal({ onClose }: { onClose: () => void }) {
                             </div>
                         )}
 
-                        <div className="mt-auto pt-4">
+                        <div className="mt-auto pt-5">
                             <button
                                 onClick={() => setActiveTab('wheel')}
-                                className="w-full py-3 rounded-2xl bg-[#0F172A] hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                className="w-full py-3.5 rounded-2xl bg-[#0F172A] hover:bg-black text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
                             >
-                                <ChevronRight size={16} className="rotate-180" />
+                                <ChevronRight size={18} className="rotate-180" />
                                 <span>Quay lại Vòng Quay</span>
                             </button>
                         </div>
