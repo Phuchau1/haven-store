@@ -17,10 +17,11 @@ const apiRoutes = require('./routes');
 const notFoundHandler = require('./middleware/notFoundHandler');
 const errorHandler = require('./middleware/errorHandler');
 const { globalLimiter } = require('./middleware/rateLimiter');
-const { cacheMiddleware } = require('./middleware/cacheMiddleware');
-
 const app = express();
 const server = http.createServer(app);
+
+// Cấu hình Trust Proxy để hoạt động ổn định trên Render / Cloudflare
+app.set('trust proxy', 1);
 
 // Khởi tạo Socket.io
 const io = socketIo(server, {

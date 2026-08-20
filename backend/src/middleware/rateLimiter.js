@@ -9,13 +9,14 @@ const rateLimit = require('express-rate-limit');
 
 /**
  * globalLimiter — Giới hạn chung cho toàn bộ /api
- * 200 request mỗi 15 phút mỗi IP
+ * 500 request mỗi 15 phút mỗi IP
  */
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 500,  // Tăng từ 200 → 500 — hỗ trợ 1000 users traffic cao hơn
+    max: 1000, // Tăng lên 1000 để đảm bảo không bị nghẽn
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false, trustProxy: false },
     message: {
         success: false,
         message: 'Bạn gửi quá nhiều yêu cầu. Vui lòng thử lại sau 15 phút.'
@@ -24,29 +25,31 @@ const globalLimiter = rateLimit({
 
 /**
  * authLimiter — Giới hạn chặt cho các endpoint đăng nhập / đăng ký
- * 10 request mỗi 15 phút mỗi IP — Chống brute-force mật khẩu
+ * 20 request mỗi 15 phút mỗi IP
  */
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 30,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false, trustProxy: false },
     message: {
         success: false,
         message: 'Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau 15 phút.'
     },
-    skipSuccessfulRequests: true // Không đếm các request thành công (chỉ tính lần thất bại)
+    skipSuccessfulRequests: true
 });
 
 /**
  * orderLimiter — Giới hạn cho endpoint đặt hàng
- * 10 request mỗi phút mỗi IP — Chống spam đơn hàng
+ * 30 request mỗi phút mỗi IP
  */
 const orderLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: 10,
+    max: 30,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false, trustProxy: false },
     message: {
         success: false,
         message: 'Bạn đặt hàng quá nhanh. Vui lòng chờ 1 phút trước khi thử lại.'
@@ -55,13 +58,14 @@ const orderLimiter = rateLimit({
 
 /**
  * uploadLimiter — Giới hạn upload file
- * 20 request mỗi phút mỗi IP
+ * 30 request mỗi phút mỗi IP
  */
 const uploadLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: 20,
+    max: 30,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false, trustProxy: false },
     message: {
         success: false,
         message: 'Bạn upload quá nhiều. Vui lòng chờ 1 phút.'
