@@ -1,9 +1,7 @@
 'use client';
 // ===== NEW ARRIVALS SECTION =====
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
 import { Product } from '@/types';
 import ProductCard from './ProductCard';
 
@@ -59,23 +57,10 @@ export default function NewArrivals() {
         <section id="new-arrivals" className="py-16 md:py-20 bg-white">
             <div className="container-torano">
                 {/* Section Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-4 border-b border-slate-200/80 gap-4">
-                    <div>
-                        <span className="text-xs font-bold text-[#1e40af] uppercase tracking-[0.25em] block mb-1.5">
-                            New Arrivals · 2026
-                        </span>
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-slate-950 tracking-tight">
-                            Sản Phẩm Mới Về
-                        </h2>
-                    </div>
-
-                    <Link 
-                        href="/products?sort=newest" 
-                        className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900 hover:text-[#1e40af] transition-colors group"
-                    >
-                        <span>Xem tất cả bộ sưu tập</span>
-                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                <div className="text-center mb-10 md:mb-12">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-slate-950 tracking-tight">
+                        Sản Phẩm Mới Về
+                    </h2>
                 </div>
 
                 {/* Products Grid with Exclusive "MỚI" Badge & No Discount Tags */}
