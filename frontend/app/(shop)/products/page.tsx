@@ -39,6 +39,59 @@ function parseCategoryFromUrl(searchParams: URLSearchParams, pathname: string) {
 
 // ── Tiêu đề trang dựa trên bộ lọc ───────────────────────────────────────────
 function getCategoryTitle(filters: FilterState, pathname: string) {
+    const catMap: Record<string, string> = {
+        'cat-womens': 'Thời Trang Nữ',
+        'do-nu': 'Thời Trang Nữ',
+        'nu': 'Thời Trang Nữ',
+        'ao-nu': 'Áo Nữ',
+        'ao-so-mi-nu': 'Áo Sơ Mi Nữ',
+        'ao-polo-nu': 'Áo Polo Nữ',
+        'ao-thun-nu': 'Áo T-Shirt Nữ',
+        'ao-khoac-nu': 'Áo Khoác Nữ',
+        'quan-nu': 'Quần Nữ',
+        'quan-au-nu': 'Quần Âu Nữ',
+        'quan-jean-nu': 'Quần Jean Nữ',
+        'quan-short-nu': 'Quần Short Nữ',
+        'vay-dam': 'Váy / Đầm Nữ',
+        'vay-lien-dam': 'Váy Liền Đầm Nữ',
+        'chan-vay': 'Chân Váy Nữ',
+        'phu-kien-nu': 'Phụ Kiện Nữ',
+        'giay-dep-nu': 'Giày Dép Nữ',
+        'tui-xach': 'Túi Xách Nữ',
+        'cat-clothing': 'Thời Trang Nam',
+        'nam': 'Thời Trang Nam',
+        'ao-nam': 'Áo Nam',
+        'ao-so-mi-nam': 'Áo Sơ Mi Nam',
+        'ao-polo-nam': 'Áo Polo Nam',
+        'ao-thun-nam': 'Áo T-Shirt Nam',
+        'ao-khoac-nam': 'Áo Khoác Nam',
+        'quan-nam': 'Quần Nam',
+        'quan-au-nam': 'Quần Âu Nam',
+        'quan-jean-nam': 'Quần Jean Nam',
+        'quan-kaki-nam': 'Quần Kaki Nam',
+        'quan-short-nam': 'Quần Short Nam',
+        'bo-do-nam': 'Bộ Đồ Nam',
+        'bo-vest-nam': 'Bộ Vest Nam',
+        'phu-kien-nam': 'Phụ Kiện Nam',
+        'giay-da-nam': 'Giày Da Nam',
+        'vi-da-nam': 'Ví Da Nam',
+        'day-lung-nam': 'Dây Lưng Nam',
+        'dep-nam': 'Dép Nam',
+        'cat-shoes': 'Giày Dép',
+        'cat-accessories': 'Phụ Kiện',
+        'quan-ao': 'Quần Áo',
+        'giay': 'Giày Dép',
+        'phu-kien': 'Phụ Kiện',
+    };
+
+    // 1. Ưu tiên danh mục con / danh mục chính được người dùng chọn trong bộ lọc
+    if (filters.subCategory && catMap[filters.subCategory]) {
+        return catMap[filters.subCategory];
+    }
+    if (filters.category && catMap[filters.category]) {
+        return catMap[filters.category];
+    }
+
     const isCollection = pathname?.startsWith('/collections/');
     const isPromo = pathname?.startsWith('/khuyen-mai/');
     if (isCollection || isPromo) {
@@ -50,32 +103,10 @@ function getCategoryTitle(filters: FilterState, pathname: string) {
             const pct = slug.split('-').pop();
             return `Ưu đãi giảm ${pct}%+`;
         }
-        const slugMap: Record<string, string> = {
-            'nam': 'Thời trang Nam', 'ao-nam': 'Áo Nam', 'ao-so-mi-nam': 'Áo Sơ Mi Nam',
-            'ao-polo-nam': 'Áo Polo Nam', 'ao-thun-nam': 'Áo Thun / T-Shirt Nam',
-            'ao-khoac-nam': 'Áo Khoác Nam', 'quan-nam': 'Quần Nam', 'quan-au-nam': 'Quần Âu Nam',
-            'quan-jean-nam': 'Quần Jean Nam', 'quan-kaki-nam': 'Quần Kaki Nam',
-            'quan-short-nam': 'Quần Short Nam', 'bo-do-nam': 'Bộ Đồ Nam',
-            'bo-vest-nam': 'Bộ Vest Nam', 'phu-kien-nam': 'Phụ Kiện Nam',
-            'giay-da-nam': 'Giày Da Nam', 'vi-da-nam': 'Ví Da Nam',
-            'day-lung-nam': 'Dây Lưng Nam', 'dep-nam': 'Dép Nam',
-            'do-nu': 'Thời trang Nữ', 'ao-nu': 'Áo Nữ', 'ao-so-mi-nu': 'Áo Sơ Mi Nữ',
-            'ao-polo-nu': 'Áo Polo Nữ', 'ao-thun-nu': 'Áo Thun / T-Shirt Nữ',
-            'ao-khoac-nu': 'Áo Khoác Nữ', 'quan-nu': 'Quần Nữ', 'quan-au-nu': 'Quần Âu Nữ',
-            'quan-jean-nu': 'Quần Jean Nữ', 'quan-short-nu': 'Quần Short Nữ',
-            'vay-dam': 'Váy / Đầm', 'vay-lien-dam': 'Váy Liền Đầm', 'chan-vay': 'Chân Váy',
-            'phu-kien-nu': 'Phụ Kiện Nữ', 'giay-dep-nu': 'Giày Dép Nữ', 'tui-xach': 'Túi Xách'
-        };
-        if (slugMap[slug]) return slugMap[slug];
+        if (catMap[slug]) return catMap[slug];
     }
     if (filters.discount) return `Sale ${filters.discount}%`;
     if (filters.search) return `"${filters.search}"`;
-    const catMap: Record<string, string> = {
-        'cat-clothing': 'Đồ Nam', 'cat-womens': 'Đồ Nữ',
-        'cat-shoes': 'Giày Dép', 'cat-accessories': 'Phụ Kiện',
-        'quan-ao': 'Quần Áo', 'giay': 'Giày Dép', 'phu-kien': 'Phụ Kiện',
-    };
-    if (filters.category) return catMap[filters.category] || 'Sản phẩm';
     return 'Tất cả sản phẩm';
 }
 

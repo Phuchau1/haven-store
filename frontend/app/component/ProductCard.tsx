@@ -74,7 +74,7 @@ export default function ProductCard({
         >
             <Link 
                 href={isUpcomingFlashSale ? `/product/${getProductSlug(product)}?slot=upcoming` : `/product/${getProductSlug(product)}`} 
-                className="group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1.5 bg-white border border-slate-200/90 hover:border-slate-900 rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.08)]"
+                className="group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1 bg-white border border-slate-200/90 hover:border-slate-900 rounded-xl overflow-hidden shadow-xs hover:shadow-md"
                 onMouseLeave={() => setSelectedColor(null)}
             >
                 {/* ── PRODUCT IMAGE CONTAINER (CLEAN 1:1 SQUARE RATIO) ── */}
@@ -104,7 +104,7 @@ export default function ProductCard({
                     <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {badgeText && !(showDiscount && discount > 0 && badgeText.toUpperCase().includes('SALE')) && (
                             <span
-                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10.5px] uppercase font-extrabold rounded-md tracking-wider shadow-xs ${
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10.5px] uppercase font-extrabold rounded tracking-wider shadow-xs ${
                                     badgeText.toUpperCase() === 'MỚI' || badgeText.toUpperCase() === 'NEW'
                                         ? 'bg-[#0a192f] text-white'
                                         : badgeText.toUpperCase().includes('FREESHIP')
@@ -124,7 +124,7 @@ export default function ProductCard({
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2.5 py-0.5 text-[10.5px] font-black rounded-md bg-[#dc2626] text-white shadow-xs">
+                            <span className="inline-block px-2.5 py-0.5 text-[10.5px] font-black rounded bg-[#dc2626] text-white shadow-xs">
                                 -{discount}%
                             </span>
                         )}
@@ -163,11 +163,11 @@ export default function ProductCard({
                         initial={{ opacity: 0, y: 10 }}
                         animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
+                        className="absolute bottom-0 left-0 right-0 z-10 px-2.5 pb-2.5"
                     >
                         <button
                             onClick={handleQuickAdd}
-                            className="w-full flex items-center justify-center gap-1.5 h-9 bg-[#0a192f] hover:bg-[#1e40af] text-white text-xs font-extrabold uppercase tracking-wider transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
+                            className="w-full flex items-center justify-center gap-1.5 h-8.5 bg-[#0a192f] hover:bg-[#1e40af] text-white text-[11.5px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shadow-md cursor-pointer"
                         >
                             <ShoppingBag size={13} />
                             Thêm vào giỏ
