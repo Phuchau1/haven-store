@@ -153,16 +153,24 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
     const isCancelled = ['cancelled','delivery_failed','returned_to_seller','dispute'].includes(order.status);
     const isReturn = ['return_requested','returning','return_received','refunded','refund_requested'].includes(order.status);
 
-    // SVG Map: Các điểm mốc vận chuyển
+    // Bản đồ mốc vận chuyển trực quan
     const MAP_NODES = [
-        { id: 'shop',   label: 'Shop', x: 180, y: 320, emoji: '🏪' },
-        { id: 'hcm',    label: 'Kho HCM', x: 200, y: 280, emoji: '🏗️' },
-        { id: 'transit',label: 'Trung chuyển', x: 230, y: 220, emoji: '📦' },
-        { id: 'local',  label: 'Kho địa phương', x: 260, y: 160, emoji: '🏢' },
-        { id: 'home',   label: 'Nhà bạn', x: 290, y: 100, emoji: '🏠' },
+        { id: 'shop',    label: 'Kho HAVEN',      desc: 'Xuất kho & Đóng gói',   emoji: '🏬' },
+        { id: 'hcm',     label: 'Hub Khai Thác',  desc: 'Phân loại tự động',     emoji: '🏢' },
+        { id: 'transit', label: 'Trung Chuyển',   desc: 'Vận chuyển liên tỉnh',  emoji: '🚛' },
+        { id: 'local',   label: 'Bưu Cục Phát',   desc: 'Đang giao đến bạn',     emoji: '🛵' },
+        { id: 'home',    label: 'Địa Chỉ Nhận',   desc: 'Giao hàng thành công',  emoji: '🏠' },
     ];
     const mapStep = Math.min(
-        shippingTimeline.length > 0 ? Math.floor((shippingTimeline.length / 7) * 4) : 0,
+        (order.status as string) === 'delivered' || (order.status as string) === 'completed'
+            ? 4
+            : shippingTimeline.length > 0
+                ? Math.min(Math.floor((shippingTimeline.length / 5) * 4), 3)
+                : ['shipped', 'in_transit', 'out_for_delivery'].includes(order.status as string)
+                    ? 2
+                    : ['processing', 'picked_up', 'waiting_pickup'].includes(order.status as string)
+                        ? 1
+                        : 0,
         4
     );
 
@@ -375,45 +383,75 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                         </div>
                     )}
 
-                    {/* ─── SVG MAP SIMULATION ────────────────────────────────── */}
+                    {/* ─── BẢN ĐỒ LỘ TRÌNH GIAO HÀNG TRỰC QUAN ────────────────── */}
                     {hasCarrier && !isCancelled && (
-                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
-                                <Navigation size={15} className="text-indigo-500" />
-                                <h4 className="font-bold text-slate-800 text-sm">Lộ trình giao hàng</h4>
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="px-5 py-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-indigo-50/40 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Navigation size={16} className="text-indigo-600 animate-pulse" />
+                                    <h4 className="font-extrabold text-slate-900 text-sm">Lộ trình vận chuyển trực quan</h4>
+                                </div>
+                                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                                    {MAP_NODES[mapStep]?.label || 'Đang cập nhật'}
+                                </span>
                             </div>
-                            <div className="p-4">
-                                <svg viewBox="0 0 400 420" className="w-full h-48" style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', borderRadius: '12px' }}>
-                                    {/* Route line */}
-                                    <polyline points="180,320 200,280 230,220 260,160 290,100" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,4" />
-                                    {/* Active route */}
-                                    {mapStep > 0 && (
-                                        <polyline
-                                            points={MAP_NODES.slice(0, mapStep + 1).map(n => `${n.x},${n.y}`).join(' ')}
-                                            fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round"
-                                        />
-                                    )}
-                                    {/* Nodes */}
-                                    {MAP_NODES.map((node, i) => (
-                                        <g key={node.id}>
-                                            <circle cx={node.x} cy={node.y} r={i <= mapStep ? 16 : 12}
-                                                fill={i <= mapStep ? '#6366f1' : '#e2e8f0'}
-                                                stroke="white" strokeWidth="2"
-                                            />
-                                            <text x={node.x} y={node.y + 5} textAnchor="middle" fontSize="11" fill={i <= mapStep ? 'white' : '#94a3b8'}>{node.emoji}</text>
-                                            <text x={node.x + 20} y={node.y + 5} fontSize="9" fill={i <= mapStep ? '#4f46e5' : '#94a3b8'} fontWeight={i <= mapStep ? 'bold' : 'normal'}>{node.label}</text>
-                                            {/* Pulse on current node */}
-                                            {i === mapStep && (
-                                                <circle cx={node.x} cy={node.y} r="20" fill="none" stroke="#6366f1" strokeWidth="1.5" opacity="0.4">
-                                                    <animate attributeName="r" values="16;24;16" dur="2s" repeatCount="indefinite" />
-                                                    <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
-                                                </circle>
-                                            )}
-                                        </g>
-                                    ))}
-                                    {/* Labels */}
-                                    <text x="20" y="415" fontSize="8" fill="#94a3b8">📍 Mô phỏng hành trình giao hàng</text>
-                                </svg>
+
+                            <div className="p-4 sm:p-5">
+                                {/* Route progress track */}
+                                <div className="relative py-2">
+                                    {/* Background connecting bar */}
+                                    <div className="absolute top-[22px] sm:top-[24px] left-6 right-6 h-1.5 bg-slate-100 rounded-full" />
+                                    {/* Active filled bar */}
+                                    <div 
+                                        className="absolute top-[22px] sm:top-[24px] left-6 h-1.5 bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500 rounded-full transition-all duration-700" 
+                                        style={{ width: `calc(${(mapStep / 4) * 100}% - 12px)` }}
+                                    />
+
+                                    {/* 5 Checkpoint Nodes */}
+                                    <div className="relative grid grid-cols-5 gap-1 text-center">
+                                        {MAP_NODES.map((node, i) => {
+                                            const isPassed = i <= mapStep;
+                                            const isCurrent = i === mapStep;
+                                            return (
+                                                <div key={node.id} className="flex flex-col items-center group">
+                                                    <div className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-lg sm:text-xl shadow-xs transition-all duration-300 ${
+                                                        isCurrent
+                                                            ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 scale-110 shadow-md'
+                                                            : isPassed
+                                                                ? 'bg-slate-900 text-white'
+                                                                : 'bg-slate-100 text-slate-400 border border-slate-200'
+                                                    }`}>
+                                                        <span>{node.emoji}</span>
+                                                        {isCurrent && (
+                                                            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
+                                                        )}
+                                                    </div>
+
+                                                    <p className={`text-[11px] sm:text-xs font-extrabold mt-2 line-clamp-1 ${
+                                                        isCurrent ? 'text-indigo-600' : isPassed ? 'text-slate-900' : 'text-slate-400'
+                                                    }`}>
+                                                        {node.label}
+                                                    </p>
+                                                    <p className="text-[9.5px] text-slate-400 font-medium hidden sm:block mt-0.5 line-clamp-1">
+                                                        {node.desc}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Live checkpoint info card */}
+                                <div className="mt-4 p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-indigo-600 animate-ping shrink-0" />
+                                        <span className="text-slate-600 font-medium">Hiện tại:</span>
+                                        <strong className="text-indigo-950 font-bold">{MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}</strong>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-lg border border-indigo-200 shrink-0">
+                                        {mapStep === 4 ? 'ĐÃ HOÀN TẤT' : `BƯỚC ${mapStep + 1}/5`}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     )}

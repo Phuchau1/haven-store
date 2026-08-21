@@ -625,21 +625,30 @@ export default function LogisticsManagementPage() {
                                                 { val: 'shipped',    label: '🚚 Đang vận chuyển' },
                                                 { val: 'delivered',  label: '✅ Giao thành công' },
                                                 { val: 'cancelled',  label: '❌ Hủy đơn hàng' },
-                                            ].map(st => (
+                                            ].map(st => {
+                                                const isDelivered = viewingOrderDetail.status === 'delivered' || viewingOrderDetail.status === 'completed';
+                                                const isCancelled = viewingOrderDetail.status === 'cancelled';
+                                                const cannotCancel = isDelivered && st.val === 'cancelled';
+                                                const cannotAdvance = isCancelled && st.val !== 'cancelled';
+                                                const isDisabled = updatingStatus || cannotCancel || cannotAdvance;
+
+                                                return (
                                                 <button
                                                     key={st.val}
                                                     type="button"
-                                                    disabled={updatingStatus}
+                                                    disabled={isDisabled}
                                                     onClick={() => handleUpdateStatus(viewingOrderDetail.id, st.val)}
                                                     className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                                                        isDisabled ? 'opacity-40 cursor-not-allowed grayscale' : ''
+                                                    } ${
                                                         viewingOrderDetail.status === st.val
                                                             ? 'bg-slate-900 text-white shadow-xs'
-                                                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                                            : !isDisabled ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100' : 'bg-slate-50 border border-slate-200 text-slate-400'
                                                     }`}
                                                 >
                                                     {st.label}
                                                 </button>
-                                            ))}
+                                            )})}
                                         </div>
                                     </div>
 

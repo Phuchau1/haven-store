@@ -508,9 +508,28 @@ const updateOrderStatus = async (req, res, next) => {
 
         const oldStatus = currentOrder.status;
         
-        // Không cho phép huỷ khi đơn hàng đang được vận chuyển
-        if (status === 'cancelled' && oldStatus === 'shipped') {
-            return res.status(400).json({ success: false, message: 'Không thể huỷ đơn hàng đang trong quá trình vận chuyển' });
+        // 1. Không cho phép huỷ khi đơn hàng đã giao thành công
+        if (status === 'cancelled' && (oldStatus === 'delivered' || oldStatus === 'completed')) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Đơn hàng đã giao thành công không thể hủy. Khách hàng vui lòng tạo yêu cầu đổi trả / hoàn tiền nếu có sự cố.' 
+            });
+        }
+
+        // 2. Không cho phép huỷ khi đơn hàng đang trong quá trình vận chuyển
+        if (status === 'cancelled' && ['shipped', 'in_transit', 'out_for_delivery', 'delivering'].includes(oldStatus)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Không thể huỷ đơn hàng đang trong quá trình vận chuyển.' 
+            });
+        }
+
+        // 3. Không cho phép đổi trạng thái của đơn hàng đã bị hủy
+        if (oldStatus === 'cancelled' && status !== 'cancelled') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Đơn hàng này đã bị hủy, không thể thay đổi tiến trình tiếp theo.' 
+            });
         }
 
         let updateData = { status };

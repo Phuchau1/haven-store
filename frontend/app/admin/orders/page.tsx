@@ -500,7 +500,12 @@ export default function AdminOrders() {
                                                                             const isBackward = currentIdx !== -1 && optIdx < currentIdx;
                                                                             const isTerminal = order.status === 'cancelled' || order.status === 'refunded';
                                                                             const isSame = order.status === opt.id || (normalizedStatus === 'delivered' && opt.id === 'delivered') || (normalizedStatus === 'shipped' && opt.id === 'shipped');
-                                                                            const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame);
+                                                                            
+                                                                            // Đơn đã giao thành công thì KHÔNG được hủy
+                                                                            const isDelivered = normalizedStatus === 'delivered';
+                                                                            const cannotCancelDelivered = isDelivered && opt.id === 'cancelled';
+                                                                            
+                                                                            const isDisabled = isSubmitting || (isBackward && !isSame) || (isTerminal && !isSame) || cannotCancelDelivered;
 
                                                                             return (
                                                                             <button
@@ -825,16 +830,25 @@ export default function AdminOrders() {
                                                             <span>Đơn vị: <strong className="text-white">{(selectedOrder as any).shippingProvider || (selectedOrder as any).carrierCode}</strong></span>
                                                             <span>Trạng thái: <strong className="text-emerald-400 font-bold uppercase">{selectedOrder.status}</strong></span>
                                                         </div>
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                disabled={isSimulating || selectedOrder.status === 'delivered'}
-                                                                onClick={() => handleAdvanceCarrier(selectedOrder.id!)}
-                                                                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                                            >
-                                                                <Truck size={14} />
-                                                                {selectedOrder.status === 'delivered' ? '✓ Đã giao thành công' : '⏩ Tiến 1 bước giao hàng'}
-                                                            </button>
-                                                        </div>
+
+                                                        {selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' ? (
+                                                            <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-xl text-xs font-bold text-rose-300 flex items-center gap-2">
+                                                                <XCircle size={15} />
+                                                                <span>Đơn hàng đã hủy — Toàn bộ tiến trình giao hàng đã dừng.</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    disabled={isSimulating || selectedOrder.status === 'delivered'}
+                                                                    onClick={() => handleAdvanceCarrier(selectedOrder.id!)}
+                                                                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                                >
+                                                                    <Truck size={14} />
+                                                                    {selectedOrder.status === 'delivered' ? '✓ Đã giao thành công' : '⏩ Tiến 1 bước giao hàng'}
+                                                                </button>
+                                                            </div>
+                                                        )}
+
                                                         {(selectedOrder as any).shippingTimeline?.length > 0 && (
                                                             <div className="mt-3 pt-3 border-t border-white/10 space-y-1 max-h-32 overflow-y-auto pr-1">
                                                                 <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Mốc đã qua ({(selectedOrder as any).shippingTimeline.length}):</p>
