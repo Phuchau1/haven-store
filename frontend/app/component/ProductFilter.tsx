@@ -12,7 +12,9 @@ interface ProductFilterProps {
     onClose: () => void;
 }
 
-const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '28', '29', '30', '31', '32', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44'];
+const topSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const pantSizes = ['28', '29', '30', '31', '32', '34', '35', '36'];
+const shoeSizes = ['38', '39', '40', '41', '42', '43', '44'];
 
 const allColors = [
     { name: 'Đen',   hex: '#1a1a1a' },
@@ -171,23 +173,84 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
 
             {/* ── Kích cỡ ──────────────────────────────── */}
             <section>
-                <h4 className="text-[11.5px] font-black tracking-wider uppercase text-slate-900 mb-2">
-                    Kích cỡ
-                </h4>
-                <div className="flex flex-wrap gap-1">
-                    {allSizes.map(size => (
+                <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-[11.5px] font-black tracking-wider uppercase text-slate-900">
+                        Kích cỡ
+                    </h4>
+                    {filters.sizes.length > 0 && (
                         <button
-                            key={size}
-                            onClick={() => toggleSize(size)}
-                            className={`min-w-[32px] h-7.5 px-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
-                                filters.sizes.includes(size)
-                                    ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
-                            }`}
+                            onClick={() => setFilters(prev => ({ ...prev, sizes: [] }))}
+                            className="text-[10.5px] text-slate-500 hover:text-slate-900 font-semibold cursor-pointer"
                         >
-                            {size}
+                            Xóa ({filters.sizes.length})
                         </button>
-                    ))}
+                    )}
+                </div>
+
+                {/* Phân nhóm 1: Size Áo */}
+                <div className="mb-2.5">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                        Size Áo (S, M, L...)
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                        {topSizes.map(size => (
+                            <button
+                                key={size}
+                                onClick={() => toggleSize(size)}
+                                className={`min-w-[34px] h-7.5 px-2 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                                    filters.sizes.includes(size)
+                                        ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                                }`}
+                            >
+                                {size}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Phân nhóm 2: Size Quần */}
+                <div className="mb-2.5">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                        Size Quần (28, 29, 30...)
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                        {pantSizes.map(size => (
+                            <button
+                                key={size}
+                                onClick={() => toggleSize(size)}
+                                className={`min-w-[34px] h-7.5 px-2 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                                    filters.sizes.includes(size)
+                                        ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                                }`}
+                            >
+                                {size}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Phân nhóm 3: Size Giày */}
+                <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                        Size Giày Dép (38, 39, 40...)
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                        {shoeSizes.map(size => (
+                            <button
+                                key={size}
+                                onClick={() => toggleSize(size)}
+                                className={`min-w-[34px] h-7.5 px-2 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                                    filters.sizes.includes(size)
+                                        ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                                }`}
+                            >
+                                {size}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </section>
 
