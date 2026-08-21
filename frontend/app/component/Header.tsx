@@ -180,6 +180,29 @@ function MobileMenuItem({ menu, onClose, level = 1 }: { menu: MenuNode; onClose:
     );
 }
 
+// ─── Default Menus Fallback (Luôn đảm bảo thanh menu không bao giờ bị mất) ─────
+const DEFAULT_NAV_MENUS: MenuNode[] = [
+    { id: 'home', title: 'TRANG CHỦ', link: '/', order: 1, isActive: true },
+    { id: 'new-arrivals', title: 'HÀNG MỚI VỀ', link: '/#new-arrivals', order: 2, isActive: true },
+    {
+        id: 'products',
+        title: 'SẢN PHẨM',
+        link: '/products',
+        order: 3,
+        isActive: true,
+        children: [
+            { id: 'ao-nam', title: 'Áo Nam', link: '/products?category=ao-nam', order: 1, isActive: true },
+            { id: 'quan-nam', title: 'Quần Nam', link: '/products?category=quan-nam', order: 2, isActive: true },
+            { id: 'phu-kien', title: 'Phụ Kiện', link: '/products?category=phu-kien', order: 3, isActive: true },
+            { id: 'tat-ca', title: 'Tất Cả Sản Phẩm', link: '/products', order: 4, isActive: true }
+        ]
+    },
+    { id: 'flash-sale', title: 'FLASH SALE', link: '/#flash-sale', order: 4, isActive: true },
+    { id: 'best-selling', title: 'BÁN CHẠY', link: '/products?sort=best-selling', order: 5, isActive: true },
+    { id: 'articles', title: 'BÀI VIẾT', link: '/about/tin-tuc', order: 6, isActive: true },
+    { id: 'contact', title: 'LIÊN HỆ', link: '/contact', order: 7, isActive: true }
+];
+
 // ─── Main Header ──────────────────────────────────────────────────────────────
 export default function Header() {
     const { totalItems, toggleCart } = useCart();
@@ -189,7 +212,7 @@ export default function Header() {
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [navMenus, setNavMenus] = useState<MenuNode[]>([]);
+    const [navMenus, setNavMenus] = useState<MenuNode[]>(DEFAULT_NAV_MENUS);
 
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
@@ -279,11 +302,11 @@ export default function Header() {
             try {
                 const res = await fetch('/api/menus?active=true');
                 const data = await res.json();
-                if (data.success && data.menus) {
+                if (data.success && data.menus && Array.isArray(data.menus) && data.menus.length > 0) {
                     setNavMenus(sanitizeNodes(data.menus));
                 }
             } catch {
-                // Fallback — nav still works
+                // Fallback already in place
             }
         };
         fetchMenus();

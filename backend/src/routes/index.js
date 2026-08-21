@@ -18,6 +18,7 @@ const flashSaleRoutes = require('./flashSaleRoutes');
 const paymentRoutes = require('./paymentRoutes');
 const couponRoutes = require('./couponRoutes');
 const articleRoutes = require('./articleRoutes');
+const menuRoutes = require('./menuRoutes');
 
 // Public and Core Routes
 const barcodeRoutes = require('./barcodeRoutes');
@@ -36,6 +37,7 @@ const shippingRoutes     = require('./shippingRoutes');     // Mock Shipping API
 const newsletterRoutes   = require('./newsletterRoutes');
 
 router.use('/auth', authRoutes);
+router.use('/menus', menuRoutes);
 router.use('/shipping', shippingRoutes);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
