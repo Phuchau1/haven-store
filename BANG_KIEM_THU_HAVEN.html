@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BẢNG KIỂM THỬ CHỨC NĂNG - HAVEN FASHION STORE</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-fpt {
+            font-weight: 900;
+            font-size: 22px;
+            color: #f97316;
+            letter-spacing: -0.5px;
+        }
+        .logo-sub {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .title-badge {
+            font-size: 26px;
+            font-weight: 900;
+            color: #ea580c;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .section-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 30px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title span {
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: #ea580c;
+            border-radius: 2px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: #ffffff;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #0f766e;
+            font-weight: 800;
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 2px solid #cbd5e1;
+            border-top: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 14px 16px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: top;
+        }
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+        .col-scenario { width: 22%; font-weight: 700; color: #0f172a; }
+        .col-data { width: 22%; font-family: monospace; font-size: 12.5px; color: #475569; }
+        .col-expected { width: 26%; }
+        .col-actual { width: 22%; }
+        .col-status { width: 8%; text-align: center; font-weight: 900; font-size: 14px; }
+        
+        .pass {
+            color: #0f172a;
+            font-weight: 900;
+        }
+        
+        .print-btn {
+            background: #ea580c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            float: right;
+            margin-top: -10px;
+        }
+        .print-btn:hover {
+            background: #c2410c;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; padding: 0; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="print-btn" onclick="window.print()">In Báo Cáo / Xuất PDF</button>
+
+    <div class="header">
+        <div class="logo-group">
+            <div>
+                <div class="logo-fpt">FPT POLYTECHNIC</div>
+                <div class="logo-sub">HAVEN FASHION STORE E-COMMERCE</div>
+            </div>
+        </div>
+        <div class="title-badge">KIỂM THỬ HỆ THỐNG</div>
+    </div>
+
+    <!-- MỤC 1 -->
+    <div class="section-title"><span></span>1. Chức năng Đăng Nhập & Xác Thực (Authentication)</div>
+    <table>
+        <thead>
+            <tr>
+                <th class="col-scenario">Tình huống</th>
+                <th class="col-data">Dữ liệu mẫu</th>
+                <th class="col-expected">Kết quả mong đợi</th>
+                <th class="col-actual">Kết quả thực tế</th>
+                <th class="col-status">Tình trạng</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="col-scenario">Bỏ trống trường bắt buộc</td>
+                <td class="col-data">Email: (trống)<br>Mật khẩu: (trống)</td>
+                <td class="col-expected">Hệ thống báo lỗi "Vui lòng nhập email." và "Vui lòng nhập mật khẩu."</td>
+                <td class="col-actual">Hiện thông báo cảnh báo đúng như mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Sai định dạng email</td>
+                <td class="col-data">Email: phuchau.vn<br>Mật khẩu: Admin@123</td>
+                <td class="col-expected">Hệ thống báo lỗi "Email không đúng định dạng."</td>
+                <td class="col-actual">Hiện thông báo lỗi đúng như mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Mật khẩu sai</td>
+                <td class="col-data">Email: admin@haven.vn<br>Mật khẩu: 123456</td>
+                <td class="col-expected">Hiển thị thông báo lỗi "Email hoặc mật khẩu không chính xác."</td>
+                <td class="col-actual">Hiện thông báo lỗi đúng như mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Đăng nhập thành công</td>
+                <td class="col-data">Email: admin@haven.vn<br>Mật khẩu: Admin@123</td>
+                <td class="col-expected">Chuyển hướng đến trang chủ/trang tài khoản cá nhân.</td>
+                <td class="col-actual">Đăng nhập thành công, chuyển trang đúng như mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- MỤC 2 -->
+    <div class="section-title"><span></span>2. Chức năng Vòng Quay May Mắn (Lucky Wheel)</div>
+    <table>
+        <thead>
+            <tr>
+                <th class="col-scenario">Tình huống</th>
+                <th class="col-data">Dữ liệu mẫu</th>
+                <th class="col-expected">Kết quả mong đợi</th>
+                <th class="col-actual">Kết quả thực tế</th>
+                <th class="col-status">Tình trạng</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="col-scenario">Chưa đăng nhập quay thưởng</td>
+                <td class="col-data">Khách chưa đăng nhập</td>
+                <td class="col-expected">Hiển thị thông báo "Vui lòng đăng nhập để quay thưởng" kèm nút Đăng nhập.</td>
+                <td class="col-actual">Chặn quay và hiển thị thông báo đúng như mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Quay thưởng khi còn lượt</td>
+                <td class="col-data">Tài khoản còn 2 lượt</td>
+                <td class="col-expected">Vòng quay xoay mượt mà ~5s, dừng đúng ô trúng, tạo mã voucher lưu vào DB.</td>
+                <td class="col-actual">Quay trúng giải, hiển thị popup chúc mừng và mã voucher.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Đã quay hết lượt trong ngày</td>
+                <td class="col-data">Tài khoản còn 0 lượt</td>
+                <td class="col-expected">Khóa nút quay thành "Đã hết lượt hôm nay", hiển thị đếm ngược giờ hồi lượt.</td>
+                <td class="col-actual">Khóa nút quay, đếm ngược thời gian chính xác.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Thoát web vào lại (Anti-Reset)</td>
+                <td class="col-data">F5 / Đóng trình duyệt</td>
+                <td class="col-expected">Số lượt đã dùng được bảo toàn từ MongoDB, không bị đặt lại về 2 lượt ban đầu.</td>
+                <td class="col-actual">Dữ liệu quota lượt quay được bảo toàn chính xác.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- MỤC 3 -->
+    <div class="section-title"><span></span>3. Chức năng Giỏ Hàng & Áp Dụng Mã Giảm Giá (Voucher)</div>
+    <table>
+        <thead>
+            <tr>
+                <th class="col-scenario">Tình huống</th>
+                <th class="col-data">Dữ liệu mẫu</th>
+                <th class="col-expected">Kết quả mong đợi</th>
+                <th class="col-actual">Kết quả thực tế</th>
+                <th class="col-status">Tình trạng</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="col-scenario">Thêm sản phẩm vào giỏ</td>
+                <td class="col-data">Áo Sơ Mi (Size L, Trắng, SL: 1)</td>
+                <td class="col-expected">Giỏ hàng tăng số lượng lên 1, hiển thị Toast thông báo thành công.</td>
+                <td class="col-actual">Cập nhật số lượng giỏ hàng và Toast đúng mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Nhập mã không tồn tại</td>
+                <td class="col-data">Mã: ABCXYZ999</td>
+                <td class="col-expected">Báo lỗi "Mã voucher không tồn tại hoặc đã hết hạn."</td>
+                <td class="col-actual">Báo lỗi đúng mong đợi, không trừ tiền.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Dùng voucher trúng từ Vòng quay</td>
+                <td class="col-data">Mã: HAVEN20-XXX</td>
+                <td class="col-expected">Giảm đúng 20% tổng tiền, tự động cập nhật bảng tổng kết chi phí.</td>
+                <td class="col-actual">Trừ tiền chính xác, ghi nhận mã voucher hợp lệ.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Xem danh sách voucher có sẵn</td>
+                <td class="col-data">Bấm "Xem voucher có sẵn"</td>
+                <td class="col-expected">Hiển thị voucher vòng quay cá nhân ở đầu + voucher hệ thống bên dưới.</td>
+                <td class="col-actual">Hiển thị đầy đủ, bấm "Dùng mã" tự động áp dụng.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- MỤC 4 -->
+    <div class="section-title"><span></span>4. Chức năng Đặt Hàng & Thanh Toán Trực Tuyến (Checkout)</div>
+    <table>
+        <thead>
+            <tr>
+                <th class="col-scenario">Tình huống</th>
+                <th class="col-data">Dữ liệu mẫu</th>
+                <th class="col-expected">Kết quả mong đợi</th>
+                <th class="col-actual">Kết quả thực tế</th>
+                <th class="col-status">Tình trạng</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="col-scenario">Bỏ trống thông tin bắt buộc</td>
+                <td class="col-data">Họ tên: (trống)<br>Địa chỉ: (trống)</td>
+                <td class="col-expected">Báo lỗi "Vui lòng nhập họ và tên người nhận." và "Vui lòng nhập địa chỉ giao hàng."</td>
+                <td class="col-actual">Hiển thị thông báo đúng mong đợi, chặn gửi form.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Số điện thoại không hợp lệ</td>
+                <td class="col-data">SĐT: 0912345 (7 số)</td>
+                <td class="col-expected">Báo lỗi "Số điện thoại không hợp lệ (phải gồm đúng 10 chữ số, bắt đầu bằng số 0)."</td>
+                <td class="col-actual">Báo lỗi đúng mong đợi, không cho đặt hàng.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Đặt hàng COD thành công</td>
+                <td class="col-data">Điền đủ thông tin, chọn COD</td>
+                <td class="col-expected">Tạo đơn hàng mới pending, giữ chỗ tồn kho (Reserved), xóa giỏ hàng và mở trang xác nhận.</td>
+                <td class="col-actual">Tạo đơn thành công, gửi email xác nhận đúng mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+            <tr>
+                <td class="col-scenario">Thanh toán Online (MoMo / VNPay)</td>
+                <td class="col-data">Điền đủ thông tin, chọn MoMo/VNPay</td>
+                <td class="col-expected">Chuyển hướng sang cổng thanh toán; sau khi hoàn tất, IPN tự động đổi trạng thái đơn sang paid.</td>
+                <td class="col-actual">Cổng nhận giao dịch, đơn chuyển sang "Đã thanh toán" đúng mong đợi.</td>
+                <td class="col-status pass">PASS</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>
+
