@@ -57,9 +57,11 @@ export default function NewArrivals() {
         <section id="new-arrivals" className="py-16 md:py-20 bg-white">
             <div className="container-torano">
                 {/* Section Header */}
-                <div className="text-center mb-10 md:mb-12">
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-slate-950 tracking-tight">
-                        Sản Phẩm Mới Về
+                <div className="flex items-center gap-3 mb-8 pb-3.5 border-b border-slate-200/80">
+                    <div className="w-1.5 h-6 sm:h-7 bg-[#1e40af] rounded-full shrink-0" />
+                    <h2 className="flex items-center gap-2 text-xl sm:text-2xl font-bold uppercase text-slate-900 tracking-tight">
+                        <span className="text-xl">✨</span>
+                        <span>SẢN PHẨM MỚI VỀ</span>
                     </h2>
                 </div>
 
