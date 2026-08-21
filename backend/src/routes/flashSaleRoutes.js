@@ -6,6 +6,7 @@ const flashSaleController = require('../controllers/flashSaleController');
 
 // Public route for frontend
 router.get('/active', flashSaleController.getActiveFlashSale);
+router.post('/remind', flashSaleController.registerFlashSaleReminder);
 
 // Admin dashboard route
 router.get('/admin/dashboard', flashSaleController.getFlashSaleDashboard);

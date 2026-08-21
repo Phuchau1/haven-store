@@ -18,7 +18,6 @@ import { useAuth } from '@/app/component/AuthContext';
 import { useCartStore } from '@/app/store/useCartStore';
 import { useFavoritesStore } from '@/app/store/useFavoritesStore';
 import { useToast } from '@/app/component/ToastProvider';
-import VirtualTryOnModal from '@/app/component/VirtualTryOnModal';
 const COLOR_CLASS_MAP: Record<string, string> = {
     'Đen': 'bg-black',
     'Trắng': 'bg-white',
@@ -56,7 +55,6 @@ export default function ProductDetailPage() {
     const [selectedColor, setSelectedColor] = useState<Color | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [showAddedNotification, setShowAddedNotification] = useState(false);
-    const [isTryOnOpen, setIsTryOnOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 22, seconds: 10 });
     const [isReminded, setIsReminded] = useState(false);
 
@@ -76,6 +74,65 @@ export default function ProductDetailPage() {
             showToast('Đã xóa sản phẩm khỏi danh sách yêu thích', 'info', 'Đã xóa yêu thích');
         } else {
             showToast('Đã thêm sản phẩm vào danh sách yêu thích', 'success', 'Đã lưu yêu thích');
+        }
+    };
+
+    const handleToggleReminder = async () => {
+        if (!product) return;
+        const nextState = !isReminded;
+        setIsReminded(nextState);
+
+        if (nextState) {
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(`haven_flash_sale_reminder_${product.id}`, 'true');
+                // Xin quyền Browser Native Notification
+                if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                    try {
+                        await Notification.requestPermission();
+                    } catch (e) {
+                        console.log('Notification permission request skipped', e);
+                    }
+                }
+            }
+
+            // Gọi API lưu đăng ký lên server
+            try {
+                await fetch('/api/flash-sales/remind', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: product.id,
+                        productName: product.name,
+                        userId: user?.id,
+                        email: user?.email
+                    })
+                });
+            } catch (e) {
+                console.log('Server reminder sync error', e);
+            }
+
+            showToast(
+                'Đã đặt nhắc nhở mở bán lúc 00:00 ngày mai! Hệ thống sẽ thông báo ngay khi đợt sale kích hoạt.',
+                'success',
+                '🔔 Đã Đặt Nhắc Nhở'
+            );
+
+            // Native notification nếu có quyền
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification('HAVEN STORE — Đã Đặt Nhắc Nhở!', {
+                        body: `Bạn sẽ nhận được thông báo khi sản phẩm "${product.name}" mở bán giá sốc vào ngày mai!`,
+                        icon: '/favicon.svg'
+                    });
+                } catch (e) {
+                    console.log('Native notification error', e);
+                }
+            }
+        } else {
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem(`haven_flash_sale_reminder_${product.id}`);
+            }
+            showToast('Đã hủy nhắc nhở mở bán cho sản phẩm này.', 'info', 'Đã Hủy Nhắc Nhở');
         }
     };
 
@@ -627,21 +684,7 @@ export default function ProductDetailPage() {
                                     </div>
 
                                     <motion.button
-                                        onClick={() => {
-                                            const nextState = !isReminded;
-                                            setIsReminded(nextState);
-                                            if (nextState) {
-                                                if (typeof window !== 'undefined') {
-                                                    localStorage.setItem(`haven_flash_sale_reminder_${product.id}`, 'true');
-                                                }
-                                                showToast('Đã lưu thông báo nhắc nhở! Bạn sẽ nhận thông báo khi mở bán ngày mai.', 'success', '🔔 Đã đặt nhắc nhở');
-                                            } else {
-                                                if (typeof window !== 'undefined') {
-                                                    localStorage.removeItem(`haven_flash_sale_reminder_${product.id}`);
-                                                }
-                                                showToast('Đã hủy nhắc nhở mở bán.', 'info', 'Đã hủy');
-                                            }
-                                        }}
+                                        onClick={handleToggleReminder}
                                         whileHover={{ scale: 1.01 }}
                                         whileTap={{ scale: 0.98 }}
                                         className={`w-full py-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-lg cursor-pointer ${
@@ -737,31 +780,6 @@ export default function ProductDetailPage() {
                                     </div>
                                 </>
                             )}
-
-                            {/* Nút Thử Đồ Ảo Bằng AI (Virtual Try-On) */}
-                            <motion.button
-                                onClick={() => setIsTryOnOpen(true)}
-                                whileHover={{ scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="w-full mt-1.5 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-950 via-slate-900 to-slate-950 border border-purple-500/40 hover:border-purple-400 text-white flex items-center justify-between shadow-lg shadow-purple-950/30 transition-all group cursor-pointer"
-                            >
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-amber-400 flex items-center justify-center shadow">
-                                        <Sparkles size={15} className="text-white animate-pulse" />
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                                            <span>Thử Đồ Ảo Bằng AI</span>
-                                            <span className="text-[9px] uppercase px-1.5 py-0.2 rounded bg-purple-500/30 text-purple-300 font-semibold">VTON 2.0</span>
-                                        </div>
-                                        <div className="text-[10px] text-slate-400">Xem bạn mặc trang phục này trước khi mua</div>
-                                    </div>
-                                </div>
-                                <span className="text-xs font-bold text-amber-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                                    Thử ngay →
-                                </span>
-                            </motion.button>
-
                         </div>
 
                         {/* Added Notification */}
@@ -839,17 +857,6 @@ export default function ProductDetailPage() {
                 {/* Recently Viewed Products */}
                 <RecentlyViewed currentProductId={product.id} />
             </div>
-
-            {/* Modal Thử Đồ Ảo Bằng AI */}
-            <VirtualTryOnModal
-                isOpen={isTryOnOpen}
-                onClose={() => setIsTryOnOpen(false)}
-                product={product}
-                selectedColor={selectedColor}
-                selectedSize={selectedSize}
-                onAddToCart={handleAddToCart}
-            />
-
         </div>
     );
 }

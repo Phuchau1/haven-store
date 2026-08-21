@@ -238,11 +238,53 @@ const getFlashSaleDashboard = async (req, res) => {
     }
 };
 
+/**
+ * @desc Đăng ký nhận thông báo mở bán Flash Sale
+ * @route POST /api/flash-sales/remind
+ */
+const registerFlashSaleReminder = async (req, res) => {
+    try {
+        const FlashSaleReminder = require('../models/FlashSaleReminder');
+        const { productId, productName, userId, email } = req.body;
+
+        if (!productId) {
+            return res.status(400).json({ success: false, message: 'Thiếu thông tin sản phẩm' });
+        }
+
+        const query = { productId };
+        if (userId) query.userId = userId;
+        else if (email) query.email = email;
+
+        const reminder = await FlashSaleReminder.findOneAndUpdate(
+            query,
+            {
+                productId,
+                productName: productName || 'Sản phẩm Flash Sale',
+                userId: userId || null,
+                email: email || null,
+                isNotified: false,
+                createdAt: new Date()
+            },
+            { upsert: true, new: true }
+        );
+
+        res.json({
+            success: true,
+            message: 'Đã lưu đăng ký thông báo mở bán thành công!',
+            data: reminder
+        });
+    } catch (error) {
+        console.error("registerFlashSaleReminder error:", error);
+        res.status(500).json({ success: false, message: 'Lỗi khi đăng ký thông báo' });
+    }
+};
+
 module.exports = {
     getActiveFlashSale,
     getAdminFlashSales,
     createFlashSale,
     updateFlashSale,
     deleteFlashSale,
-    getFlashSaleDashboard
+    getFlashSaleDashboard,
+    registerFlashSaleReminder
 };
