@@ -159,24 +159,31 @@ export default function FlashSale() {
     const percentOverall = (rawStock + rawSold) > 0 ? Math.min(Math.round((rawSold / (rawStock + rawSold)) * 100), 100) : 15;
 
     return (
-        <section id="flash-sale" className="py-16 bg-white">
+        <section id="flash-sale" className="py-14 sm:py-18 bg-[#fafafa]">
             <div className="container-torano">
-                {/* Unified Premium Shopee-style Header Container */}
-                <div className="bg-gradient-to-r from-[#D32F2F] to-[#b71c1c] rounded-2xl p-4 md:p-6 mb-8 flex flex-col shadow-lg border border-red-700/20">
+                {/* Enterprise High-End Flash Sale Header */}
+                <div className="bg-[#0a192f] text-white rounded-3xl p-6 md:p-8 mb-10 shadow-xl relative overflow-hidden border border-slate-800">
+                    {/* Background subtle light accent */}
+                    <div className="absolute -right-20 -top-20 w-72 h-72 bg-[#1e40af]/30 rounded-full blur-3xl pointer-events-none" />
                     
                     {/* Top Row: Title, Slots, Timer */}
-                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-2">
-                        {/* Left: Brand / Title */}
-                        <div className="flex items-center gap-3 w-full lg:w-auto">
-                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#D32F2F] shadow-md shrink-0 animate-bounce">
-                                <Zap size={26} fill="currentColor" />
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+                        {/* Left: Brand Title & Badge */}
+                        <div className="flex items-center gap-4 w-full lg:w-auto">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#dc2626] to-[#ea580c] rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+                                <Zap size={24} fill="currentColor" />
                             </div>
                             <div>
-                                <h2 className="text-2xl lg:text-3xl font-extrabold uppercase text-white tracking-tight leading-none" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
-                                    Flash Sale
-                                </h2>
-                                <p className="text-[10px] font-bold text-red-100 mt-1 uppercase tracking-wider">
-                                    Giá sốc hôm nay - săn ngay kẻo lỡ!
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-2xl lg:text-3xl font-black uppercase text-white tracking-tight">
+                                        Flash Sale
+                                    </h2>
+                                    <span className="bg-[#dc2626] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">
+                                        Giới hạn
+                                    </span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1 font-medium">
+                                    Ưu đãi số lượng có hạn · Cập nhật theo từng khung giờ
                                 </p>
                             </div>
                         </div>
@@ -189,14 +196,14 @@ export default function FlashSale() {
                                     <button
                                         key={index}
                                         onClick={() => handleTabChange(slot.value)}
-                                        className={`flex flex-col items-center justify-center min-w-[90px] sm:min-w-[100px] py-1.5 px-3 rounded-xl transition-all ${
+                                        className={`flex flex-col items-center justify-center min-w-[95px] sm:min-w-[105px] py-2 px-3.5 rounded-xl transition-all cursor-pointer ${
                                             isActiveTab 
-                                                ? 'bg-white text-[#D32F2F] font-bold shadow-md scale-105 border-2 border-white' 
-                                                : 'bg-[#9C1C1C] text-red-100 hover:bg-[#8A1616] border-2 border-transparent'
+                                                ? 'bg-white text-[#0a192f] font-black shadow-md scale-105' 
+                                                : 'bg-white/10 text-slate-300 hover:bg-white/15 hover:text-white'
                                         }`}
                                     >
-                                        <span className="text-sm font-extrabold">{slot.label}</span>
-                                        <span className={`text-[9px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#D32F2F]/80' : 'text-red-200'}`}>
+                                        <span className="text-xs font-black uppercase tracking-wider">{slot.label}</span>
+                                        <span className={`text-[9.5px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#1e40af]' : 'text-slate-400'}`}>
                                             {slot.subLabel}
                                         </span>
                                     </button>
@@ -205,8 +212,8 @@ export default function FlashSale() {
                         </div>
 
                         {/* Right: Countdown */}
-                        <div className="flex flex-col items-end w-full lg:w-auto border-t lg:border-t-0 border-red-800/50 pt-4 lg:pt-0">
-                            <span className="text-[9px] text-red-200 font-extrabold uppercase tracking-widest mb-1.5 pr-1 self-start lg:self-end">
+                        <div className="flex flex-col items-start lg:items-end w-full lg:w-auto border-t lg:border-t-0 border-slate-800 pt-4 lg:pt-0">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 self-start lg:self-end">
                                 Kết thúc sau
                             </span>
                             <div className="flex items-center gap-2">
@@ -217,70 +224,23 @@ export default function FlashSale() {
                                 ].map((unit, i) => (
                                     <React.Fragment key={i}>
                                         <div className="flex flex-col items-center">
-                                            <div className="w-11 h-11 flex items-center justify-center bg-[#111111] text-white rounded-xl shadow-md border border-neutral-800">
-                                                <span className="text-lg font-bold font-mono">
+                                            <div className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center bg-white/10 text-white rounded-xl shadow-inner border border-white/10">
+                                                <span className="text-base sm:text-lg font-black font-mono">
                                                     {String(unit.value).padStart(2, '0')}
                                                 </span>
                                             </div>
-                                            <span className="text-[9px] text-red-100 font-bold mt-1 uppercase tracking-wider">{unit.label}</span>
+                                            <span className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-wider">{unit.label}</span>
                                         </div>
-                                        {i < 2 && <span className="text-lg font-bold text-white mb-4">:</span>}
+                                        {i < 2 && <span className="text-base font-bold text-slate-500 mb-4">:</span>}
                                     </React.Fragment>
                                 ))}
                             </div>
                         </div>
                     </div>
-
-                    {/* Bottom Row: Dark Red Info Sub-Bar (Responsive 2x2 on mobile, 4x1 on desktop) */}
-                    <div className="mt-4 sm:mt-5 bg-[#8A1616]/60 rounded-xl p-3 sm:p-4 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-center text-white border border-red-800/30">
-                        {/* Column 1: Fire icon + Sold orders */}
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Flame size={16} className="text-amber-400" fill="currentColor" />
-                            </div>
-                            <div>
-                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Đã bán</div>
-                                <div className="text-xs sm:text-sm font-extrabold">{totalSoldItems} đơn</div>
-                            </div>
-                        </div>
-                        {/* Column 2: Box icon + Stock items */}
-                        <div className="flex items-center gap-2.5 pl-1 sm:pl-2 border-l border-red-800/40">
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Package size={16} className="text-amber-400" />
-                            </div>
-                            <div>
-                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Còn lại</div>
-                                <div className="text-xs sm:text-sm font-extrabold">{totalStockItems} món</div>
-                            </div>
-                        </div>
-                        {/* Column 3: Truck icon + Free shipping */}
-                        <div className="flex items-center gap-2.5 border-t lg:border-t-0 lg:border-l border-red-800/40 pt-2.5 lg:pt-0 lg:pl-4">
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Truck size={16} className="text-amber-400" />
-                            </div>
-                            <div>
-                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Freeship</div>
-                                <div className="text-[10.5px] sm:text-[11px] font-bold leading-tight">Từ 500.000đ</div>
-                            </div>
-                        </div>
-                        {/* Column 4: Divider + Program Progress */}
-                        <div className="flex flex-col gap-1 border-t lg:border-t-0 lg:border-l border-red-800/40 pt-2.5 lg:pt-0 lg:pl-4">
-                            <div className="flex justify-between items-center text-[9px] text-red-200 font-bold uppercase tracking-wider">
-                                <span>Tiến trình</span>
-                                <span className="font-extrabold text-white">{percentOverall}%</span>
-                            </div>
-                            <div className="relative w-full h-2 bg-red-950/60 rounded-full overflow-hidden border border-red-900/30">
-                                <div 
-                                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full transition-all duration-500" 
-                                    style={{ width: `${percentOverall}%` }}
-                                />
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                {/* Products Grid (Restored 2 rows of products) */}
-                <div className="px-2">
+                {/* Products Grid */}
+                <div className="px-1">
                     <AnimatePresence mode="wait">
                         {tabLoading ? (
                             <motion.div
@@ -288,10 +248,10 @@ export default function FlashSale() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
+                                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
                             >
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                                    <div key={i} className="aspect-square rounded-2xl shimmer bg-red-100/40" />
+                                    <div key={i} className="aspect-square rounded-2xl shimmer bg-slate-200/60" />
                                 ))}
                             </motion.div>
                         ) : displayProducts.length === 0 ? (
@@ -299,10 +259,10 @@ export default function FlashSale() {
                                 key="empty"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="text-center py-16 text-gray-500 bg-gray-50 rounded-2xl"
+                                className="text-center py-16 text-slate-500 bg-white rounded-3xl border border-slate-200"
                             >
-                                <Percent size={40} className="mx-auto mb-3 text-red-200" />
-                                <p className="font-medium">Không có sản phẩm sale {activeTab !== 'all' ? `${activeTab}%+` : ''} nào.</p>
+                                <Percent size={40} className="mx-auto mb-3 text-slate-300" />
+                                <p className="font-semibold text-slate-700">Khung giờ này đang được cập nhật sản phẩm.</p>
                             </motion.div>
                         ) : (
                             <motion.div

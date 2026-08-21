@@ -56,31 +56,26 @@ export default function NewArrivals() {
     if (products.length === 0) return null;
 
     return (
-        <section id="new-arrivals" className="py-16 md:py-20 bg-[#fafafa]">
+        <section id="new-arrivals" className="py-16 md:py-20 bg-white">
             <div className="container-torano">
                 {/* Section Header */}
-                <div className="flex flex-col items-center justify-center mb-12 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                        className="flex flex-col items-center"
-                    >
-                        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#1e40af] text-white border border-blue-900 mb-3.5 shadow-sm shadow-blue-900/20">
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">
-                                BỘ SƯU TẬP MỚI NHẤT
-                            </span>
-                        </div>
-
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-950 tracking-tight">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-4 border-b border-slate-200/80 gap-4">
+                    <div>
+                        <span className="text-xs font-bold text-[#1e40af] uppercase tracking-[0.25em] block mb-1.5">
+                            New Arrivals · 2026
+                        </span>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-slate-950 tracking-tight">
                             Sản Phẩm Mới Về
                         </h2>
+                    </div>
 
-                        <p className="mt-3 text-sm sm:text-base text-slate-500 max-w-xl font-normal leading-relaxed">
-                            Cập nhật những thiết kế mới nhất với phong cách hiện đại và chất liệu cao cấp
-                        </p>
-                    </motion.div>
+                    <Link 
+                        href="/products?sort=newest" 
+                        className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900 hover:text-[#1e40af] transition-colors group"
+                    >
+                        <span>Xem tất cả bộ sưu tập</span>
+                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                 </div>
 
                 {/* Products Grid with Exclusive "MỚI" Badge & No Discount Tags */}

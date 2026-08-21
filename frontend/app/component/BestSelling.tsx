@@ -45,25 +45,26 @@ export default function BestSelling() {
     if (products.length === 0) return null;
 
     return (
-        <section className="py-16 md:py-20 bg-white">
+        <section className="py-16 md:py-20 bg-[#f8fafc] border-y border-slate-200/80">
             <div className="container-torano">
                 {/* Section Header */}
-                <div className="flex flex-col items-center justify-center mb-12 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                        className="flex flex-col items-center"
-                    >
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-950 tracking-tight">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-4 border-b border-slate-200/80 gap-4">
+                    <div>
+                        <span className="text-xs font-bold text-[#d97706] uppercase tracking-[0.25em] block mb-1.5">
+                            Best Sellers · Xu Hướng
+                        </span>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-slate-950 tracking-tight">
                             Sản Phẩm Bán Chạy
                         </h2>
+                    </div>
 
-                        <p className="mt-3 text-sm sm:text-base text-slate-500 max-w-xl font-normal leading-relaxed">
-                            Top những thiết kế được yêu thích và săn đón nhiều nhất trong tuần
-                        </p>
-                    </motion.div>
+                    <Link 
+                        href="/products?sort=best-selling" 
+                        className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900 hover:text-[#1e40af] transition-colors group"
+                    >
+                        <span>Xem tất cả sản phẩm hot</span>
+                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                 </div>
 
                 {/* Products Grid */}
