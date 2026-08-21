@@ -1,9 +1,7 @@
 // ===== HELPER FORMAT TIỀN VND =====
 export function formatPrice(price: number): string {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    }).format(price);
+    if (isNaN(price) || price === null || price === undefined) return '0đ';
+    return Number(price).toLocaleString('vi-VN') + 'đ';
 }
 
 // ===== HELPER CHUYỂN ĐỔI CHUỖI THÀNH SLUG CHUẨN URL (SEO) =====

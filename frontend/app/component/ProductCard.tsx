@@ -213,7 +213,7 @@ export default function ProductCard({
                     </div>
 
                     {/* Product Name */}
-                    <h3 className="text-[13.5px] sm:text-[14px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[36px] mt-1 group-hover:text-[#1e40af] transition-colors">
+                    <h3 className="text-[13.5px] sm:text-[14px] font-semibold text-slate-800 leading-snug line-clamp-2 min-h-[38px] mt-1 group-hover:text-[#1e40af] transition-colors">
                         {cleanProductTitle(product.name)}
                     </h3>
 
@@ -221,25 +221,25 @@ export default function ProductCard({
                     <div className="flex flex-col mt-auto pt-2 w-full">
                         <div className="flex items-center justify-between">
                             <div className="flex items-baseline gap-1.5 flex-wrap">
-                                <span className={`text-[16px] sm:text-[17px] font-black tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-[#1e3a8a]'}`}>
+                                <span className={`text-[15px] sm:text-[16px] font-bold tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
                                     {isUpcomingFlashSale ? (
                                         (() => {
                                             const str = Math.round(product.price).toString();
                                             const firstDigit = str[0] || '2';
-                                            return `₫${firstDigit}??.000`;
+                                            return `${firstDigit}??.000đ`;
                                         })()
                                     ) : (
                                         formatPrice(product.price)
                                     )}
                                 </span>
                                 {showDiscount && (product.originalPrice || 0) > product.price && (
-                                    <span className="text-[12px] sm:text-[12.5px] font-medium text-slate-400 line-through">
+                                    <span className="text-[12px] font-normal text-slate-400 line-through">
                                         {formatPrice(product.originalPrice || 0)}
                                     </span>
                                 )}
                             </div>
                             {!isFlashSaleCard && showSold && product.soldQuantity !== undefined && (
-                                <span className="text-[10.5px] text-slate-600 font-semibold bg-slate-100 px-2 py-0.5 rounded-md">
+                                <span className="text-[10.5px] text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded">
                                     Đã bán {product.soldQuantity}
                                 </span>
                             )}
