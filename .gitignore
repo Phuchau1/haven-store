@@ -39,4 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# logs and dumps
+*.log
+logs/
+backend/logs/
+.mongodb_data/
+*.zip
+scratch_*.js
+*.dbml
+
 frontend.zip
