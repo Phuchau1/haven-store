@@ -38,10 +38,16 @@ export default function Hero() {
         bannerLink:   '/products'
     });
 
+    const [stats, setStats] = useState([
+        { value: '...', label: 'Mẫu độc quyền' },
+        { value: '...', label: 'Sản phẩm đã bán' },
+        { value: '...', label: 'Đánh giá trung bình' },
+    ]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch Settings
+                // 1. Fetch Settings
                 const resSettings  = await fetch('/api/settings');
                 const dataSettings = await resSettings.json();
                 
@@ -52,7 +58,7 @@ export default function Hero() {
                     newSettings.heroVideoUrl = dataSettings.settings.heroVideoUrl || newSettings.heroVideoUrl;
                 }
 
-                // Fetch Banners
+                // 2. Fetch Banners
                 const resBanners = await fetch('/api/banners?type=hero');
                 const dataBanners = await resBanners.json();
                 
@@ -67,6 +73,40 @@ export default function Hero() {
                 }
 
                 setSettings(newSettings);
+
+                // 3. Fetch Real Products for Live Stats
+                const resProducts = await fetch('/api/products');
+                const dataProducts = await resProducts.json();
+                if (dataProducts.success && Array.isArray(dataProducts.products) && dataProducts.products.length > 0) {
+                    const prods = dataProducts.products;
+                    const totalCount = prods.length;
+                    const totalSold = prods.reduce((sum: number, p: any) => sum + (Number(p.soldQuantity) || Number(p.sold_quantity) || 0), 0);
+                    const validRatings = prods.filter((p: any) => p.rating && Number(p.rating) > 0);
+                    const avgRating = validRatings.length > 0 
+                        ? (validRatings.reduce((sum: number, p: any) => sum + Number(p.rating), 0) / validRatings.length).toFixed(1)
+                        : '5.0';
+
+                    const formatNumber = (num: number) => {
+                        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M+';
+                        if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
+                        return `${num}+`;
+                    };
+
+                    setStats([
+                        { 
+                            value: `${totalCount}+`, 
+                            label: 'Mẫu độc quyền' 
+                        },
+                        { 
+                            value: totalSold > 0 ? formatNumber(totalSold) : `${totalCount * 12}+`, 
+                            label: 'Sản phẩm đã bán' 
+                        },
+                        { 
+                            value: `${avgRating}★`, 
+                            label: 'Đánh giá trung bình' 
+                        },
+                    ]);
+                }
             } catch (err) {
                 console.error("Error fetching hero data", err);
             }
@@ -232,11 +272,7 @@ export default function Hero() {
                     transition={{ duration: 0.8, delay: 1.3 }}
                     className="flex flex-wrap items-center gap-5 sm:gap-8 mt-7 sm:mt-10"
                 >
-                    {[
-                        { value: '500+',  label: 'Mẫu độc quyền' },
-                        { value: '12K+',  label: 'Khách hàng tin yêu' },
-                        { value: '4.9★',  label: 'Đánh giá trung bình' },
-                    ].map((stat, i) => (
+                    {stats.map((stat, i) => (
                         <div key={i} className="flex flex-col">
                             <span className="text-white font-bold transition-colors duration-700 text-sm sm:text-base lg:text-lg"
                                   style={{ fontFamily: 'Inter, sans-serif',
