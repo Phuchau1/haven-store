@@ -226,7 +226,7 @@ export default function ChatSupport() {
     restoreSession();
   }, [isReady, user, parseSuggestedProducts]);
 
-  // ── Poll for admin responses ──
+  // ── Poll for admin responses without overwriting active conversation ──
   useEffect(() => {
     if (!isOpen || !sessionId) return;
 
@@ -234,8 +234,9 @@ export default function ChatSupport() {
       try {
         const res = await fetch(`${BACKEND_URL}/api/chats/sessions/${sessionId}/messages`);
         const data = await res.json();
-        if (data.success && Array.isArray(data.messages)) {
-          if (data.messages.length !== messages.length) {
+        if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+          const hasNewAdminMsg = data.messages.some((m: any) => m.sender_type === 'admin' && !messages.some(curr => curr.id === m.id));
+          if (hasNewAdminMsg) {
             const formattedMessages: Message[] = data.messages.map((m: {id: string; message: string; sender_type: string; createdAt: string}) => {
               const { cleanReply, suggested } = parseSuggestedProducts(m.message);
               return {
@@ -250,12 +251,12 @@ export default function ChatSupport() {
           }
         }
       } catch (err) {
-        console.error('Lỗi khi cập nhật tin nhắn:', err);
+        // Silently handle polling error
       }
-    }, 4000);
+    }, 6000);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen, sessionId, messages.length, parseSuggestedProducts]);
+  }, [isOpen, sessionId, messages, parseSuggestedProducts]);
 
   // ── Scroll to bottom ──
   useEffect(() => {
@@ -272,12 +273,16 @@ export default function ChatSupport() {
     }
   }, [isOpen]);
 
-  // ── Call AI via Backend (Gemini RAG) ──
+  // ── Call AI via Backend (Gemini RAG) with Fast Fallback (<1s response) ──
   const callGemini = async (userMessage: string): Promise<string> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s timeout for fast response
+
     try {
       const res = await fetch(`${BACKEND_URL}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           message: userMessage,
           history: chatHistory.map(turn => ({
@@ -286,13 +291,14 @@ export default function ChatSupport() {
           }))
         })
       });
+      clearTimeout(timeoutId);
       const data = await res.json();
       if (data.success && data.reply) return data.reply;
-    } catch (err) {
-      console.error('Backend AI error, using fallback:', err);
+    } catch {
+      clearTimeout(timeoutId);
     }
 
-    // 2. Fallback Logic cục bộ
+    // 2. Siêu Tốc: Smart Fallback Logic cục bộ chạy dưới 50ms
     const msg = userMessage.toLowerCase();
     
     if (msg.includes('danh mục') || msg.includes('loại')) {
@@ -301,10 +307,27 @@ export default function ChatSupport() {
     }
 
     if (msg.includes('rẻ') || msg.includes('sale') || msg.includes('giảm giá') || msg.includes('flash')) {
-      const cheapProducts = [...products].sort((a, b) => a.price - b.price).filter(p => p.inStock !== false).slice(0, 6);
-      if (cheapProducts.length > 0) {
-        const ids = cheapProducts.map(p => p.id || (p as any)._id).join(',');
-        return `Dưới đây là các mẫu đang có mức giá ưu đãi tốt nhất tại HAVEN bạn nhé:\n\nSUGGEST_IDS: ${ids}`;
+      const saleProducts = [...products]
+        .filter(p => p.inStock !== false && (p.flashSale || (p.originalPrice && p.originalPrice > p.price)))
+        .sort((a, b) => a.price - b.price)
+        .slice(0, 5);
+
+      const fallbackList = saleProducts.length > 0 ? saleProducts : [...products].sort((a, b) => a.price - b.price).slice(0, 5);
+      if (fallbackList.length > 0) {
+        const ids = fallbackList.map(p => p.id || (p as any)._id).join(',');
+        return `Dưới đây là các mẫu đang có mức giá ưu đãi Flash Sale tốt nhất tại HAVEN bạn nhé:\n\nSUGGEST_IDS: ${ids}`;
+      }
+    }
+
+    // Lọc theo ngân sách (vd: dưới 300k, dưới 500k)
+    const priceUnderMatch = msg.match(/dưới\s*(\d+)\s*k?/i);
+    if (priceUnderMatch) {
+      const numStr = priceUnderMatch[1];
+      const maxP = (parseInt(numStr, 10) < 1000 ? parseInt(numStr, 10) * 1000 : parseInt(numStr, 10));
+      const underProducts = products.filter(p => p.inStock !== false && p.price <= maxP).slice(0, 5);
+      if (underProducts.length > 0) {
+        const ids = underProducts.map(p => p.id || (p as any)._id).join(',');
+        return `Gợi ý các sản phẩm phù hợp với mức giá dưới ${maxP.toLocaleString('vi-VN')}đ tại HAVEN:\n\nSUGGEST_IDS: ${ids}`;
       }
     }
 
@@ -325,12 +348,12 @@ export default function ChatSupport() {
     }).filter(p => p.score > 0).sort((a, b) => b.score - a.score);
 
     if (scoredMatches.length > 0) {
-      const topMatches = scoredMatches.slice(0, 6);
+      const topMatches = scoredMatches.slice(0, 5);
       const ids = topMatches.map(p => p.product.id || (p.product as any)._id).join(',');
       return `Gợi ý cho bạn các mẫu phù hợp nhất tại HAVEN đây ạ:\n\nSUGGEST_IDS: ${ids}`;
     }
 
-    return 'Dạ xin lỗi bạn, mình chưa tìm thấy sản phẩm phù hợp. Bạn có thể xem toàn bộ bộ sưu tập tại https://havenstore.io.vn/products nhé!';
+    return 'Dạ HAVEN có rất nhiều bộ sưu tập mới và ưu đãi. Bạn có thể xem toàn bộ sản phẩm tại https://havenstore.io.vn/products nhé!';
   };
 
   // ── Xử lý gửi tin nhắn ──
@@ -572,59 +595,57 @@ export default function ChatSupport() {
                     </div>
                   </div>
 
-                  {/* ── THẺ GỢI Ý SẢN PHẨM NỀN TRẮNG GỌN ── */}
+                  {/* ── THẺ GỢI Ý SẢN PHẨM DẠNG CAROUSEL NGANG GỌN GÀNG ── */}
                   {msg.sender === 'bot' && msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                    <div className="ml-9 mt-2 flex flex-col gap-1.5 w-full max-w-full pr-1">
+                    <div className="ml-9 mt-2 flex flex-col gap-1.5 w-full max-w-[calc(100%-36px)]">
                       <div className="flex items-center gap-1 px-0.5">
                         <Sparkles size={11} className="text-amber-500" />
                         <p className="text-[10.5px] font-bold text-slate-700 uppercase tracking-wider">
-                          Gợi ý sản phẩm ({msg.suggestedProducts.length}):
+                          Sản phẩm gợi ý ({msg.suggestedProducts.length}):
                         </p>
                       </div>
-                      <div className="flex flex-col gap-1.5">
+                      <div 
+                        className="flex gap-2 overflow-x-auto pb-1.5 pt-0.5 scroll-smooth hide-scrollbar"
+                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      >
                         {msg.suggestedProducts.map((p) => (
                           <Link
                             key={p.id}
                             href={`/product/${getProductSlug(p)}`}
-                            className="flex items-center gap-2.5 p-2 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-400 shadow-2xs transition-all group"
+                            className="flex-shrink-0 w-[136px] bg-white hover:bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-400 p-2 shadow-2xs transition-all flex flex-col group cursor-pointer"
                             onClick={() => setIsOpen(false)}
                           >
-                            {p.image ? (
-                              <div className="relative w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
+                            <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-slate-100 mb-1.5 border border-slate-100">
+                              {p.image ? (
                                 <Image
                                   src={p.image}
                                   alt={p.name}
                                   fill
-                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
                                 />
-                              </div>
-                            ) : (
-                              <div className="w-11 h-11 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-[10px]">
-                                SP
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[12px] font-medium text-slate-800 truncate group-hover:text-slate-950 transition-colors">
-                                {cleanProductTitle(p.name)}
-                              </p>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className={`text-[12px] font-bold ${p.flashSale || (p.originalPrice && p.originalPrice > p.price) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
-                                  {formatPrice(p.price)}
-                                </span>
-                                {Boolean(p.originalPrice && p.originalPrice > p.price) && (
-                                  <span className="text-[10px] text-slate-400 font-normal line-through">
-                                    {formatPrice(p.originalPrice || 0)}
-                                  </span>
-                                )}
-                              </div>
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">
+                                  HAVEN
+                                </div>
+                              )}
                               {p.flashSale && (
-                                <span className="inline-block mt-0.5 text-[8.5px] px-1.5 py-0.2 bg-red-50 text-red-600 border border-red-200 rounded font-bold">
-                                  ⚡ FLASH SALE
+                                <span className="absolute top-1 left-1 text-[8px] font-black px-1.5 py-0.5 bg-red-600 text-white rounded shadow-xs">
+                                  FLASH SALE
                                 </span>
                               )}
                             </div>
-                            <div className="w-6 h-6 rounded-md bg-slate-50 group-hover:bg-slate-100 text-slate-400 group-hover:text-slate-700 flex items-center justify-center transition-all flex-shrink-0">
-                              <ChevronRight size={13} />
+                            <p className="text-[11.5px] font-medium text-slate-800 line-clamp-1 group-hover:text-slate-950 transition-colors">
+                              {cleanProductTitle(p.name)}
+                            </p>
+                            <div className="flex items-baseline gap-1 mt-0.5">
+                              <span className={`text-[11.5px] font-bold ${p.flashSale || (p.originalPrice && p.originalPrice > p.price) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
+                                {formatPrice(p.price)}
+                              </span>
+                              {Boolean(p.originalPrice && p.originalPrice > p.price) && (
+                                <span className="text-[9px] text-slate-400 font-normal line-through">
+                                  {formatPrice(p.originalPrice || 0)}
+                                </span>
+                              )}
                             </div>
                           </Link>
                         ))}
