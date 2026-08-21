@@ -6,7 +6,7 @@ import { X, Send, User, Loader2, Sparkles, ChevronRight, RotateCcw, ArrowDownCir
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
-import { getProductSlug } from '@/lib/format';
+import { getProductSlug, formatPrice, cleanProductTitle } from '@/lib/format';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fashion-backend-93lh.onrender.com';
 
@@ -604,26 +604,26 @@ export default function ChatSupport() {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#1e40af] transition-colors">
-                                {p.name}
+                              <p className="text-[12px] font-medium text-slate-800 truncate group-hover:text-slate-950 transition-colors">
+                                {cleanProductTitle(p.name)}
                               </p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-xs font-bold text-[#1e40af]">
-                                  {p.price.toLocaleString('vi-VN')}đ
+                                <span className={`text-[12px] font-bold ${p.flashSale || (p.originalPrice && p.originalPrice > p.price) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
+                                  {formatPrice(p.price)}
                                 </span>
                                 {Boolean(p.originalPrice && p.originalPrice > p.price) && (
-                                  <span className="text-[9.5px] text-slate-400 line-through">
-                                    {p.originalPrice?.toLocaleString('vi-VN')}đ
+                                  <span className="text-[10px] text-slate-400 font-normal line-through">
+                                    {formatPrice(p.originalPrice || 0)}
                                   </span>
                                 )}
                               </div>
                               {p.flashSale && (
-                                <span className="inline-block mt-0.5 text-[8.5px] px-1.5 py-0.2 bg-red-100 text-red-600 border border-red-200 rounded font-bold">
+                                <span className="inline-block mt-0.5 text-[8.5px] px-1.5 py-0.2 bg-red-50 text-red-600 border border-red-200 rounded font-bold">
                                   ⚡ FLASH SALE
                                 </span>
                               )}
                             </div>
-                            <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-[#0f172a] group-hover:text-white text-slate-500 flex items-center justify-center transition-all flex-shrink-0">
+                            <div className="w-6 h-6 rounded-md bg-slate-50 group-hover:bg-slate-100 text-slate-400 group-hover:text-slate-700 flex items-center justify-center transition-all flex-shrink-0">
                               <ChevronRight size={13} />
                             </div>
                           </Link>
