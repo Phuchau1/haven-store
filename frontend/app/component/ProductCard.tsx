@@ -66,24 +66,20 @@ export default function ProductCard({
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: index * 0.05 }}
+            transition={{ duration: 0.35, delay: index * 0.04 }}
             className="h-full"
         >
             <Link 
                 href={isUpcomingFlashSale ? `/product/${getProductSlug(product)}?slot=upcoming` : `/product/${getProductSlug(product)}`} 
-                className={`group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1 bg-white border rounded-2xl overflow-hidden shadow-xs hover:shadow-md ${
-                    isFlashSaleCard || (showDiscount && discount > 0)
-                        ? 'border-slate-200 hover:border-[#dc2626]'
-                        : 'border-slate-200 hover:border-[#1e40af]'
-                }`}
+                className="group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1.5 bg-white border border-slate-200/90 hover:border-slate-900 rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.08)]"
                 onMouseLeave={() => setSelectedColor(null)}
             >
-                {/* ── PRODUCT IMAGE CONTAINER (WIDER & SHORTER 1:1 RATIO) ── */}
+                {/* ── PRODUCT IMAGE CONTAINER (FASHION 3:4 PORTRAIT RATIO) ── */}
                 <div
-                    className="relative aspect-square overflow-hidden bg-[#f8fafc] transition-all duration-300"
+                    className="relative aspect-[3/4] overflow-hidden bg-[#f8fafc] transition-all duration-500"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
@@ -92,7 +88,7 @@ export default function ProductCard({
                         src={displayedImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-0 scale-[1.04]' : 'opacity-100 scale-100'}`}
+                        className={`object-cover transition-all duration-700 ease-out ${isHovered ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                     {/* Hover Image */}
@@ -100,22 +96,22 @@ export default function ProductCard({
                         src={hoverImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'}`}
+                        className={`object-cover transition-all duration-700 ease-out ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
-                    {/* Badges Overlay (Strict 4-Color Brand Palette) */}
+                    {/* Badges Overlay */}
                     <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {badgeText && !(showDiscount && discount > 0 && badgeText.toUpperCase().includes('SALE')) && (
                             <span
-                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10.5px] uppercase font-black rounded-md tracking-wider shadow-2xs ${
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10.5px] uppercase font-extrabold rounded-md tracking-wider shadow-xs ${
                                     badgeText.toUpperCase() === 'MỚI' || badgeText.toUpperCase() === 'NEW'
-                                        ? 'bg-[#1e40af] text-white'
+                                        ? 'bg-[#0a192f] text-white'
                                         : badgeText.toUpperCase().includes('FREESHIP')
                                             ? 'bg-[#1e40af] text-white'
                                             : badgeText.toUpperCase() === 'HOT' || badgeText.toUpperCase().includes('CHẠY')
                                                 ? 'bg-[#d97706] text-white'
-                                                : 'bg-[#1e40af] text-white'
+                                                : 'bg-[#0a192f] text-white'
                                 }`}
                             >
                                 {badgeText.toUpperCase().includes('FREESHIP') && (
@@ -128,7 +124,7 @@ export default function ProductCard({
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2.5 py-0.5 text-[10.5px] font-black rounded-md bg-[#dc2626] text-white">
+                            <span className="inline-block px-2.5 py-0.5 text-[10.5px] font-black rounded-md bg-[#dc2626] text-white shadow-xs">
                                 -{discount}%
                             </span>
                         )}
@@ -154,7 +150,7 @@ export default function ProductCard({
                         className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${
                             isLiked
                                 ? 'bg-[#dc2626] text-white shadow-md'
-                                : 'bg-white/90 text-gray-600 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#dc2626] hover:bg-white'
+                                : 'bg-white/95 text-slate-700 opacity-0 group-hover:opacity-100 shadow-sm hover:text-[#dc2626] hover:bg-white'
                         }`}
                         whileTap={{ scale: 0.85 }}
                         aria-label={isLiked ? 'Bỏ thích' : 'Thích sản phẩm'}
@@ -162,16 +158,16 @@ export default function ProductCard({
                         <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
                     </motion.button>
 
-                    {/* Quick Add Button */}
+                    {/* Quick Add Button on Hover */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute bottom-0 left-0 right-0 z-10 px-2.5 pb-2.5"
+                        className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-3"
                     >
                         <button
                             onClick={handleQuickAdd}
-                            className="w-full flex items-center justify-center gap-1.5 h-9 bg-slate-950 hover:bg-[#0f172a] text-white text-[12.5px] font-bold transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
+                            className="w-full flex items-center justify-center gap-1.5 h-9.5 bg-[#0a192f] hover:bg-[#1e40af] text-white text-xs font-extrabold uppercase tracking-wider transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
                         >
                             <ShoppingBag size={13} />
                             Thêm vào giỏ
@@ -179,15 +175,15 @@ export default function ProductCard({
                     </motion.div>
                 </div>
 
-                {/* ── PRODUCT DETAILS (COMPACT & BALANCED) ── */}
-                <div className="p-3 sm:p-3.5 flex-1 flex flex-col bg-white">
+                {/* ── PRODUCT DETAILS ── */}
+                <div className="p-3.5 sm:p-4 flex-1 flex flex-col bg-white">
                     {/* Category & Swatches Row */}
                     <div className="flex items-center justify-between gap-2 min-h-[22px]">
-                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">
-                            {product.categoryLabel || product.category || 'THỜI TRANG'}
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                            {product.categoryLabel || product.category || 'HAVEN'}
                         </p>
 
-                        {/* Colors Swatches (Kích thước vừa phải, thanh lịch) */}
+                        {/* Colors Swatches */}
                         {product.colors && product.colors.length > 1 && (
                             <div className="flex items-center gap-1.5 shrink-0 py-0.5">
                                 {product.colors.slice(0, 5).map((color, idx) => {
@@ -202,9 +198,9 @@ export default function ProductCard({
                                                 setSelectedColor(color);
                                             }}
                                             onMouseEnter={() => setSelectedColor(color)}
-                                            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-gray-300 transition-all duration-200 cursor-pointer ${
+                                            className={`w-3.5 h-3.5 rounded-full border border-slate-300 transition-all duration-200 cursor-pointer ${
                                                 isActive
-                                                    ? 'ring-1.5 ring-offset-1 ring-slate-800 scale-105 shadow-xs'
+                                                    ? 'ring-1.5 ring-offset-1 ring-slate-900 scale-105 shadow-xs'
                                                     : 'hover:scale-110 hover:border-slate-500 opacity-90 hover:opacity-100'
                                             }`}
                                             style={{ backgroundColor: color.hex }}
@@ -216,20 +212,16 @@ export default function ProductCard({
                         )}
                     </div>
 
-                    {/* Product Name (Bold & Easy to Read) */}
-                    <h3 className={`text-[14px] sm:text-[14.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[38px] mt-1 transition-colors ${
-                        isFlashSaleCard || (showDiscount && discount > 0)
-                            ? 'group-hover:text-[#dc2626]'
-                            : 'group-hover:text-[#1e40af]'
-                    }`}>
+                    {/* Product Name */}
+                    <h3 className="text-[14px] sm:text-[14.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[38px] mt-1 group-hover:text-[#1e40af] transition-colors">
                         {cleanProductTitle(product.name)}
                     </h3>
 
                     {/* Price Section */}
-                    <div className="flex flex-col mt-auto pt-1.5 w-full">
+                    <div className="flex flex-col mt-auto pt-2 w-full">
                         <div className="flex items-center justify-between">
                             <div className="flex items-baseline gap-1.5 flex-wrap">
-                                <span className={`text-[16.5px] sm:text-[17.5px] font-black tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-[#0f172a]'}`}>
+                                <span className={`text-[16.5px] sm:text-[17.5px] font-black tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-[#1e3a8a]'}`}>
                                     {isUpcomingFlashSale ? (
                                         (() => {
                                             const str = Math.round(product.price).toString();
@@ -241,13 +233,13 @@ export default function ProductCard({
                                     )}
                                 </span>
                                 {showDiscount && (product.originalPrice || 0) > product.price && (
-                                    <span className="text-[13px] sm:text-[13.5px] font-normal text-gray-400 line-through">
+                                    <span className="text-[12.5px] sm:text-[13px] font-medium text-slate-400 line-through">
                                         {formatPrice(product.originalPrice || 0)}
                                     </span>
                                 )}
                             </div>
                             {!isFlashSaleCard && showSold && product.soldQuantity !== undefined && (
-                                <span className="text-[11px] text-gray-600 font-semibold bg-gray-100 px-2 py-0.5 rounded-md">
+                                <span className="text-[11px] text-slate-600 font-semibold bg-slate-100 px-2 py-0.5 rounded-md">
                                     Đã bán {product.soldQuantity}
                                 </span>
                             )}
@@ -259,8 +251,8 @@ export default function ProductCard({
                                 if (isUpcomingFlashSale) {
                                     return (
                                         <div className="mt-3 w-full">
-                                            <div className="relative w-full h-[23px] bg-[#fff2ec] border border-[#ff8b66]/60 rounded-full overflow-hidden flex items-center justify-center shadow-sm">
-                                                <span className="relative z-10 text-[11px] font-black uppercase text-[#ee4d2d] tracking-wider flex items-center gap-1">
+                                            <div className="relative w-full h-[22px] bg-[#fff2ec] border border-[#ff8b66]/60 rounded-full overflow-hidden flex items-center justify-center shadow-xs">
+                                                <span className="relative z-10 text-[10.5px] font-black uppercase text-[#ee4d2d] tracking-wider flex items-center gap-1">
                                                     ⏰ SẮP MỞ BÁN
                                                 </span>
                                             </div>
@@ -278,7 +270,7 @@ export default function ProductCard({
                                     : 'ĐANG BÁN CHẠY';
 
                                 return (
-                                    <div className="mt-3.5 w-full">
+                                    <div className="mt-3 w-full">
                                         <div className="relative w-full h-[18px] sm:h-[19px]">
                                             {/* Background pill track */}
                                             <div className="w-full h-full bg-[#ffc5b2] rounded-full overflow-hidden flex items-center justify-center shadow-inner relative">
@@ -289,7 +281,7 @@ export default function ProductCard({
                                                 />
 
                                                 {/* Centered Bold Text */}
-                                                <span className="relative z-10 text-[10.5px] sm:text-[11px] font-black uppercase text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] pl-3.5">
+                                                <span className="relative z-10 text-[10.5px] font-black uppercase text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] pl-3.5">
                                                     {label}
                                                 </span>
                                             </div>
