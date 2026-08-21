@@ -1,7 +1,22 @@
 import type { Metadata } from 'next';
+import { Be_Vietnam_Pro, Inter } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import './responsive.css';
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-be-vietnam',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 import LayoutShell from '@/app/component/LayoutShell';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from 'react-hot-toast';
@@ -173,7 +188,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="antialiased">
+      <body className={`${beVietnamPro.variable} ${inter.variable} font-sans antialiased`}>
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "70678187265-22i4v8strfakkvhvh7clrc3atks3i8g7.apps.googleusercontent.com"}>
           <ToastProvider>
             <AuthProvider>
