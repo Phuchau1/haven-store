@@ -43,46 +43,73 @@ const decreaseStockOnOrder = async (orderItems, orderId, session) => {
         for (const item of orderItems) {
             const productId = item.product.id;
             const size = item.selectedSize;
-            const color = item.selectedColor.name;
+            const color = item.selectedColor?.name || item.selectedColor;
             const quantity = item.quantity;
 
-            // 1. (Đã gỡ bỏ logic cộng soldQuantity ở đây vì sẽ chỉ cộng khi giao hàng thành công)
+            // 1. Cập nhật tồn kho trên ProductVariantModel
+            let pVariant = null;
+            try {
+                pVariant = await ProductVariantModel.findOneAndUpdate(
+                    { 
+                        product_id: productId, 
+                        size_id: size, 
+                        color_id: color
+                    },
+                    { 
+                        $inc: { stock: -quantity },
+                        $set: { updatedAt: new Date() }
+                    },
+                    { new: true, session: session || null }
+                );
+            } catch (vErr) {
+                log(`[ProductVariantModel] Warning: ${vErr.message}`);
+            }
 
-            // 2. Cập nhật tồn kho (Stock) trên model Biến thể (ProductVariant)
-            // Lọc: Phải đảm bảo (tồn kho - tồn kho đang giữ) >= số lượng khách mua
-            const pVariant = await ProductVariantModel.findOneAndUpdate(
-                { 
-                    product_id: productId, 
-                    size_id: size, 
-                    color_id: color,
-                    $expr: { $gte: [{ $subtract: ["$stock", { $ifNull: ["$reserved_stock", 0] }] }, quantity] }
-                },
-                // Tăng "Tồn kho đang giữ" (dành cho đơn này) thay vì trừ thẳng vào kho thực tế
-                { $inc: { reserved_stock: quantity } },
-                { new: true, session }
-            );
-
-            // Nếu không tìm thấy hoặc không thỏa mãn $expr (không đủ hàng) -> Báo lỗi
-            if (!pVariant) {
-                throw new Error(`Sản phẩm ${item.product.name} không đủ hàng.`);
+            // 2. Đồng bộ trực tiếp vào ProductModel.variants & ProductModel.soldQuantity
+            try {
+                const productDoc = await ProductModel.findOne({ id: productId }).session(session || null);
+                if (productDoc) {
+                    if (Array.isArray(productDoc.variants) && productDoc.variants.length > 0) {
+                        const vIdx = productDoc.variants.findIndex(v => 
+                            (v.color?.toLowerCase() === String(color).toLowerCase()) && 
+                            (v.size?.toUpperCase() === String(size).toUpperCase())
+                        );
+                        if (vIdx !== -1) {
+                            productDoc.variants[vIdx].stock = Math.max(0, (productDoc.variants[vIdx].stock || 0) - quantity);
+                        }
+                        const totalStock = productDoc.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+                        productDoc.inStock = totalStock > 0;
+                    } else {
+                        // Sản phẩm không có biến thể
+                        if (productDoc.stock !== undefined) {
+                            productDoc.stock = Math.max(0, (productDoc.stock || 0) - quantity);
+                            productDoc.inStock = productDoc.stock > 0;
+                        }
+                    }
+                    productDoc.soldQuantity = (productDoc.soldQuantity || 0) + quantity;
+                    await productDoc.save({ session: session || null });
+                    log(`[ProductModel Sync] Đã trừ ${quantity} tồn kho và cộng soldQuantity cho sản phẩm ${productId}`);
+                }
+            } catch (pErr) {
+                log(`[ProductModel Sync Warning] ${pErr.message}`);
             }
 
             // 3. Tạo log lịch sử biến động kho
             const logId = `inv-log-${Math.random().toString(36).substr(2, 9)}`;
             const invLog = new InventoryHistoryModel({
                 id: logId,
-                variant_id: pVariant.id,
-                type: 'export', // Xuất kho (giữ chỗ)
+                variant_id: pVariant ? pVariant.id : `variant-${productId}-${String(color).toLowerCase()}-${String(size).toLowerCase()}`,
+                type: 'export',
                 quantity: quantity,
-                note: `Giữ chỗ tồn kho cho Đơn hàng #${orderId}`,
+                note: `Xuất bán cho Đơn hàng #${orderId}`,
                 created_at: new Date().toISOString()
             });
-            await invLog.save({ session });
+            await invLog.save({ session: session || null });
         }
-        log(`Đã giữ chỗ tồn kho thành công cho đơn hàng: ${orderId}`);
+        log(`Đã trừ tồn kho thành công cho đơn hàng: ${orderId}`);
     } catch (error) {
         log(`Lỗi khi trừ tồn kho (decreaseStockOnOrder): ${error.message}`);
-        throw error; // Quăng lỗi lên trên để abort transaction
+        throw error;
     }
 };
 
