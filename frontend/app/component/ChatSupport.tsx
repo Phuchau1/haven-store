@@ -62,18 +62,18 @@ const DEFAULT_SUGGESTION_CHIPS = [
 ];
 
 // Helper render text with simple markdown (bold + links + high contrast)
-function FormattedText({ text }: { text: string }) {
+function FormattedText({ text, isUser = false }: { text: string; isUser?: boolean }) {
   const parts = text.split('\n');
   return (
-    <div className="space-y-2 text-[14.5px] leading-relaxed text-slate-900 font-normal">
+    <div className={`space-y-1.5 text-[13px] leading-relaxed font-normal ${isUser ? 'text-white' : 'text-slate-800'}`}>
       {parts.map((line, lIdx) => {
-        if (!line.trim()) return <div key={lIdx} className="h-1.5" />;
+        if (!line.trim()) return <div key={lIdx} className="h-1" />;
 
         // Bold formatting **text**
         const formattedTokens = line.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s]+)/g).map((token, tIdx) => {
           if (token.startsWith('**') && token.endsWith('**')) {
             return (
-              <strong key={tIdx} className="font-black text-slate-950">
+              <strong key={tIdx} className={`font-bold ${isUser ? 'text-white' : 'text-slate-950'}`}>
                 {token.slice(2, -2)}
               </strong>
             );
@@ -85,7 +85,7 @@ function FormattedText({ text }: { text: string }) {
                 href={token}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#1e40af] underline font-bold hover:text-blue-800 transition-colors break-all"
+                className={`underline font-bold transition-colors break-all ${isUser ? 'text-blue-200 hover:text-white' : 'text-[#1e40af] hover:text-blue-800'}`}
               >
                 {token.replace(/^https?:\/\/(www\.)?/, '')}
               </a>
@@ -470,87 +470,87 @@ export default function ChatSupport() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.92 }}
+            initial={{ opacity: 0, y: 25, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.92 }}
+            exit={{ opacity: 0, y: 25, scale: 0.94 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-[calc(100vw-24px)] sm:w-[480px] md:w-[520px] h-[720px] max-h-[calc(100dvh-32px)] bg-white text-slate-900 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.22)] border border-slate-200/90 flex flex-col overflow-hidden backdrop-blur-xl"
+            className="w-[calc(100vw-24px)] sm:w-[380px] md:w-[400px] h-[520px] sm:h-[550px] max-h-[calc(100dvh-32px)] bg-white text-slate-900 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.18)] border border-slate-200 flex flex-col overflow-hidden backdrop-blur-xl"
           >
-            {/* ── HEADER NỀN TRẮNG SANG TRỌNG ── */}
-            <div className="bg-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-100 flex-shrink-0 shadow-2xs">
-              <div className="flex items-center gap-3.5">
+            {/* ── HEADER NỀN TRẮNG GỌN GÀNG ── */}
+            <div className="bg-white px-3.5 py-3 flex items-center justify-between border-b border-slate-100 flex-shrink-0 shadow-2xs">
+              <div className="flex items-center gap-2.5">
                 {/* Logo Store Avatar */}
-                <div className="relative w-12 h-12 rounded-2xl bg-black border border-slate-900 p-1 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
+                <div className="relative w-9 h-9 rounded-xl bg-black border border-slate-900 p-1 flex items-center justify-center shadow-xs overflow-hidden flex-shrink-0">
                   <Image
                     src="/haven-logo.png"
                     alt="HAVEN Logo"
-                    width={40}
-                    height={40}
+                    width={28}
+                    height={28}
                     className="object-contain"
                     priority
                   />
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
                 </div>
 
                 <div>
-                  <h3 className="text-base sm:text-lg font-black tracking-tight text-slate-950">
+                  <h3 className="text-sm font-bold tracking-tight text-slate-900">
                     HAVEN AI
                   </h3>
-                  <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Trực tuyến · Trợ lý thời trang cao cấp
+                  <p className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Trợ lý thời trang trực tuyến
                   </p>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-1.5 text-slate-500">
+              <div className="flex items-center gap-1 text-slate-500">
                 <button
                   onClick={handleResetChat}
                   title="Làm mới đoạn chat"
-                  className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
                   aria-label="Làm mới"
                 >
-                  <RotateCcw size={18} />
+                  <RotateCcw size={15} />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
                   title="Đóng chat"
-                  className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
                   aria-label="Đóng"
                 >
-                  <X size={20} />
+                  <X size={17} />
                 </button>
               </div>
             </div>
 
             {/* ── KHUNG TIN NHẮN NỀN TRẮNG / OFF-WHITE ── */}
             <div 
-              className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 bg-[#f8fafc] hide-scrollbar"
+              className="flex-1 overflow-y-auto p-3 sm:p-3.5 space-y-3.5 bg-[#f8fafc] hide-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
-                  <div className={`flex gap-2.5 max-w-[92%] sm:max-w-[88%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex gap-2 max-w-[94%] sm:max-w-[90%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                     {/* Avatar Bubble */}
-                    <div className="w-8.5 h-8.5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-xs border border-slate-200">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-xs border border-slate-200">
                       {msg.sender === 'user' ? (
                         <div className="w-full h-full bg-[#0f172a] text-white font-bold flex items-center justify-center">
-                          <User size={15} />
+                          <User size={13} />
                         </div>
                       ) : (
                         <div className="w-full h-full bg-black p-0.5 flex items-center justify-center">
                           <Image
                             src="/haven-logo.png"
                             alt="HAVEN"
-                            width={24}
-                            height={24}
+                            width={18}
+                            height={18}
                             className="object-contain"
                           />
                         </div>
@@ -559,38 +559,38 @@ export default function ChatSupport() {
 
                     {/* Bubble Content */}
                     <div
-                      className={`p-3.5 sm:p-4 rounded-2xl shadow-xs leading-relaxed font-sans text-sm ${
+                      className={`p-2.5 sm:p-3 rounded-2xl shadow-2xs leading-relaxed font-sans ${
                         msg.sender === 'user'
-                          ? 'bg-[#0f172a] text-white font-medium rounded-tr-none'
-                          : 'bg-white text-slate-900 border border-slate-200/90 rounded-tl-none'
+                          ? 'bg-[#0f172a] text-white rounded-tr-none'
+                          : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
                       }`}
                     >
-                      <FormattedText text={msg.text} />
-                      <p className={`text-[11px] mt-2 font-sans font-medium tracking-tight ${msg.sender === 'user' ? 'text-white/60 text-right' : 'text-slate-400'}`}>
+                      <FormattedText text={msg.text} isUser={msg.sender === 'user'} />
+                      <p className={`text-[10px] mt-1 font-sans font-medium tracking-tight ${msg.sender === 'user' ? 'text-white/70 text-right' : 'text-slate-400'}`}>
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
 
-                  {/* ── THẺ GỢI Ý SẢN PHẨM NỀN TRẮNG ── */}
+                  {/* ── THẺ GỢI Ý SẢN PHẨM NỀN TRẮNG GỌN ── */}
                   {msg.sender === 'bot' && msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                    <div className="ml-11 mt-3 flex flex-col gap-2 w-full max-w-full pr-1">
-                      <div className="flex items-center gap-1.5 px-0.5">
-                        <Sparkles size={13} className="text-amber-500" />
-                        <p className="text-[11.5px] font-bold text-slate-700 uppercase tracking-wider">
-                          Gợi ý sản phẩm phù hợp ({msg.suggestedProducts.length}):
+                    <div className="ml-9 mt-2 flex flex-col gap-1.5 w-full max-w-full pr-1">
+                      <div className="flex items-center gap-1 px-0.5">
+                        <Sparkles size={11} className="text-amber-500" />
+                        <p className="text-[10.5px] font-bold text-slate-700 uppercase tracking-wider">
+                          Gợi ý sản phẩm ({msg.suggestedProducts.length}):
                         </p>
                       </div>
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-1.5">
                         {msg.suggestedProducts.map((p) => (
                           <Link
                             key={p.id}
                             href={`/product/${getProductSlug(p)}`}
-                            className="flex items-center gap-3.5 p-2.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200/90 hover:border-slate-400 shadow-2xs transition-all group"
+                            className="flex items-center gap-2.5 p-2 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-400 shadow-2xs transition-all group"
                             onClick={() => setIsOpen(false)}
                           >
                             {p.image ? (
-                              <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
+                              <div className="relative w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
                                 <Image
                                   src={p.image}
                                   alt={p.name}
@@ -599,32 +599,32 @@ export default function ChatSupport() {
                                 />
                               </div>
                             ) : (
-                              <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
-                                Ảnh
+                              <div className="w-11 h-11 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-[10px]">
+                                SP
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#1e40af] transition-colors">
+                              <p className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#1e40af] transition-colors">
                                 {p.name}
                               </p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs sm:text-sm font-black text-[#1e40af]">
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-xs font-bold text-[#1e40af]">
                                   {p.price.toLocaleString('vi-VN')}đ
                                 </span>
                                 {Boolean(p.originalPrice && p.originalPrice > p.price) && (
-                                  <span className="text-[10px] text-slate-400 line-through">
+                                  <span className="text-[9.5px] text-slate-400 line-through">
                                     {p.originalPrice?.toLocaleString('vi-VN')}đ
                                   </span>
                                 )}
                               </div>
                               {p.flashSale && (
-                                <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 bg-red-100 text-red-600 border border-red-200 rounded font-bold">
+                                <span className="inline-block mt-0.5 text-[8.5px] px-1.5 py-0.2 bg-red-100 text-red-600 border border-red-200 rounded font-bold">
                                   ⚡ FLASH SALE
                                 </span>
                               )}
                             </div>
-                            <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-[#0f172a] group-hover:text-white text-slate-500 flex items-center justify-center transition-all flex-shrink-0">
-                              <ChevronRight size={16} />
+                            <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-[#0f172a] group-hover:text-white text-slate-500 flex items-center justify-center transition-all flex-shrink-0">
+                              <ChevronRight size={13} />
                             </div>
                           </Link>
                         ))}
@@ -636,21 +636,21 @@ export default function ChatSupport() {
 
               {/* Typing indicator */}
               {isLoading && (
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-black p-0.5 flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-black p-0.5 flex items-center justify-center flex-shrink-0">
                     <Image
                       src="/haven-logo.png"
                       alt="HAVEN"
-                      width={24}
-                      height={24}
+                      width={18}
+                      height={18}
                       className="object-contain"
                     />
                   </div>
-                  <div className="bg-white border border-slate-200 px-4 py-3 rounded-2xl rounded-tl-none shadow-xs flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-slate-800 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-2 h-2 bg-slate-800 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-2 h-2 bg-slate-800 rounded-full animate-bounce [animation-delay:300ms]" />
-                    <span className="text-xs text-slate-500 ml-2 font-medium">HAVEN AI đang soạn câu trả lời...</span>
+                  <div className="bg-white border border-slate-200 px-3 py-2 rounded-xl rounded-tl-none shadow-xs flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-slate-800 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1.5 h-1.5 bg-slate-800 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 bg-slate-800 rounded-full animate-bounce [animation-delay:300ms]" />
+                    <span className="text-[11px] text-slate-500 ml-1.5 font-medium">HAVEN AI đang phản hồi...</span>
                   </div>
                 </div>
               )}
@@ -660,7 +660,7 @@ export default function ChatSupport() {
 
             {/* ── GỢI Ý CÂU HỎI NHANH ── */}
             <div 
-              className="px-4 py-2.5 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
+              className="px-3 py-2 bg-white border-t border-slate-100 flex gap-1.5 overflow-x-auto flex-shrink-0 hide-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {DEFAULT_SUGGESTION_CHIPS.map((chip) => (
@@ -668,7 +668,7 @@ export default function ChatSupport() {
                   key={chip}
                   onClick={() => handleSend(chip)}
                   disabled={isLoading}
-                  className="flex-shrink-0 px-3.5 py-1.5 bg-slate-100 hover:bg-[#0f172a] hover:text-white text-slate-700 text-xs font-semibold rounded-full border border-slate-200 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
+                  className="flex-shrink-0 px-2.5 py-1 bg-slate-100 hover:bg-[#0f172a] hover:text-white text-slate-700 text-[11px] font-medium rounded-full border border-slate-200 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
                 >
                   {chip}
                 </button>
@@ -676,8 +676,8 @@ export default function ChatSupport() {
             </div>
 
             {/* ── KHUNG NHẬP TIN NHẮN NỀN TRẮNG ── */}
-            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex-shrink-0">
-              <div className="relative flex items-center gap-2">
+            <div className="p-2.5 sm:p-3 bg-white border-t border-slate-100 flex-shrink-0">
+              <div className="relative flex items-center gap-1.5">
                 <input
                   ref={inputRef}
                   type="text"
@@ -689,23 +689,23 @@ export default function ChatSupport() {
                       handleSend();
                     }
                   }}
-                  placeholder="Hỏi về giá, kích thước, phối đồ..."
+                  placeholder="Hỏi về giá, kích cỡ, phối đồ..."
                   disabled={isLoading}
-                  className="flex-1 pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm sm:text-base text-slate-900 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all placeholder:text-slate-400 disabled:opacity-60"
+                  className="flex-1 pl-3.5 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-[13px] text-slate-900 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all placeholder:text-slate-400 disabled:opacity-60"
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={!inputValue.trim() || isLoading}
-                  className="p-3.5 bg-[#0f172a] hover:bg-[#1e40af] text-white font-bold rounded-2xl active:scale-95 transition-all disabled:opacity-40 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex-shrink-0 shadow-md cursor-pointer"
+                  className="p-2.5 bg-[#0f172a] hover:bg-[#1e40af] text-white font-bold rounded-xl active:scale-95 transition-all disabled:opacity-40 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex-shrink-0 shadow-xs cursor-pointer"
                   aria-label="Gửi tin nhắn"
                 >
-                  {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                  {isLoading ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                 </button>
               </div>
 
-              <div className="flex items-center justify-between mt-2.5 px-1 text-[11px] text-slate-400 font-medium">
+              <div className="flex items-center justify-between mt-1.5 px-0.5 text-[10px] text-slate-400">
                 <span>HAVEN Fashion</span>
-                <span>Trợ lý thời trang trực tuyến</span>
+                <span>Trợ lý thông minh</span>
               </div>
             </div>
           </motion.div>
