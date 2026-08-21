@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, User, Loader2, Sparkles, ChevronRight, RotateCcw, ArrowDownCircle } from 'lucide-react';
+import { X, Send, User, Loader2, Sparkles, ChevronRight, RotateCcw, Trash2, Bot, Phone, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/component/AuthContext';
@@ -497,18 +497,18 @@ export default function ChatSupport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 25, scale: 0.94 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-[calc(100vw-24px)] sm:w-[380px] md:w-[400px] h-[520px] sm:h-[550px] max-h-[calc(100dvh-32px)] bg-white text-slate-900 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.18)] border border-slate-200 flex flex-col overflow-hidden backdrop-blur-xl"
+            className="w-[calc(100vw-32px)] sm:w-[420px] md:w-[450px] h-[600px] sm:h-[640px] md:h-[680px] max-h-[calc(100dvh-36px)] bg-white text-slate-900 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.22)] border border-slate-200 flex flex-col overflow-hidden backdrop-blur-xl"
           >
-            {/* ── HEADER NỀN TRẮNG GỌN GÀNG ── */}
-            <div className="bg-white px-3.5 py-3 flex items-center justify-between border-b border-slate-100 flex-shrink-0 shadow-2xs">
-              <div className="flex items-center gap-2.5">
-                {/* Logo Store Avatar */}
-                <div className="relative w-9 h-9 rounded-xl bg-black border border-slate-900 p-1 flex items-center justify-center shadow-xs overflow-hidden flex-shrink-0">
+            {/* ── HEADER DEEP NAVY SANG TRỌNG ── */}
+            <div className="bg-[#0a192f] text-white px-4 py-3.5 flex items-center justify-between flex-shrink-0 shadow-md">
+              <div className="flex items-center gap-3">
+                {/* Bot Avatar */}
+                <div className="relative w-10 h-10 rounded-2xl bg-white text-[#0a192f] flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0 p-1">
                   <Image
                     src="/haven-logo.png"
                     alt="HAVEN Logo"
-                    width={28}
-                    height={28}
+                    width={32}
+                    height={32}
                     className="object-contain"
                     priority
                   />
@@ -516,40 +516,40 @@ export default function ChatSupport() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-bold tracking-tight text-slate-900">
-                    HAVEN AI
+                  <h3 className="text-[15px] font-bold tracking-tight text-white flex items-center gap-1.5">
+                    Trợ Lý AI HAVEN
                   </h3>
-                  <p className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Trợ lý thời trang trực tuyến
+                  <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Sẵn sàng hỗ trợ 24/7
                   </p>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1 text-slate-500">
+              {/* Action Buttons: Trash & Close in Circular Glass Pills */}
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={handleResetChat}
-                  title="Làm mới đoạn chat"
-                  className="p-1.5 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
-                  aria-label="Làm mới"
+                  title="Xóa lịch sử chat"
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+                  aria-label="Xóa đoạn chat"
                 >
-                  <RotateCcw size={15} />
+                  <Trash2 size={15} />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  title="Đóng chat"
-                  className="p-1.5 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
+                  title="Đóng cửa sổ"
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 hover:text-white flex items-center justify-center transition-all cursor-pointer"
                   aria-label="Đóng"
                 >
-                  <X size={17} />
+                  <X size={16} />
                 </button>
               </div>
             </div>
 
-            {/* ── KHUNG TIN NHẮN NỀN TRẮNG / OFF-WHITE ── */}
+            {/* ── KHUNG TIN NHẮN NỀN TRẮNG / OFF-WHITE RỘNG RÃI ── */}
             <div 
-              className="flex-1 overflow-y-auto p-3 sm:p-3.5 space-y-3.5 bg-[#f8fafc] hide-scrollbar"
+              className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-4 bg-[#f8fafc] hide-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {messages.map((msg) => (
@@ -560,20 +560,20 @@ export default function ChatSupport() {
                   transition={{ duration: 0.2 }}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
-                  <div className={`flex gap-2 max-w-[94%] sm:max-w-[90%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex gap-2.5 max-w-[94%] sm:max-w-[90%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                     {/* Avatar Bubble */}
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-xs border border-slate-200">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden shadow-xs border border-slate-200">
                       {msg.sender === 'user' ? (
-                        <div className="w-full h-full bg-[#0f172a] text-white font-bold flex items-center justify-center">
-                          <User size={13} />
+                        <div className="w-full h-full bg-[#0a192f] text-white font-bold flex items-center justify-center">
+                          <User size={14} />
                         </div>
                       ) : (
                         <div className="w-full h-full bg-black p-0.5 flex items-center justify-center">
                           <Image
                             src="/haven-logo.png"
                             alt="HAVEN"
-                            width={18}
-                            height={18}
+                            width={22}
+                            height={22}
                             className="object-contain"
                           />
                         </div>
@@ -582,14 +582,14 @@ export default function ChatSupport() {
 
                     {/* Bubble Content */}
                     <div
-                      className={`p-2.5 sm:p-3 rounded-2xl shadow-2xs leading-relaxed font-sans ${
+                      className={`p-3 sm:p-3.5 rounded-2xl shadow-2xs leading-relaxed font-sans ${
                         msg.sender === 'user'
-                          ? 'bg-[#0f172a] text-white rounded-tr-none'
+                          ? 'bg-[#0a192f] text-white rounded-tr-none'
                           : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
                       }`}
                     >
                       <FormattedText text={msg.text} isUser={msg.sender === 'user'} />
-                      <p className={`text-[10px] mt-1 font-sans font-medium tracking-tight ${msg.sender === 'user' ? 'text-white/70 text-right' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] mt-1.5 font-sans font-medium tracking-tight ${msg.sender === 'user' ? 'text-white/70 text-right' : 'text-slate-400'}`}>
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -597,25 +597,25 @@ export default function ChatSupport() {
 
                   {/* ── THẺ GỢI Ý SẢN PHẨM DẠNG CAROUSEL NGANG GỌN GÀNG ── */}
                   {msg.sender === 'bot' && msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                    <div className="ml-9 mt-2 flex flex-col gap-1.5 w-full max-w-[calc(100%-36px)]">
+                    <div className="ml-10 mt-2 flex flex-col gap-1.5 w-full max-w-[calc(100%-40px)]">
                       <div className="flex items-center gap-1 px-0.5">
                         <Sparkles size={11} className="text-amber-500" />
-                        <p className="text-[10.5px] font-bold text-slate-700 uppercase tracking-wider">
+                        <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                           Sản phẩm gợi ý ({msg.suggestedProducts.length}):
                         </p>
                       </div>
                       <div 
-                        className="flex gap-2 overflow-x-auto pb-1.5 pt-0.5 scroll-smooth hide-scrollbar"
+                        className="flex gap-2.5 overflow-x-auto pb-2 pt-0.5 scroll-smooth hide-scrollbar"
                         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                       >
                         {msg.suggestedProducts.map((p) => (
                           <Link
                             key={p.id}
                             href={`/product/${getProductSlug(p)}`}
-                            className="flex-shrink-0 w-[136px] bg-white hover:bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-400 p-2 shadow-2xs transition-all flex flex-col group cursor-pointer"
+                            className="flex-shrink-0 w-[145px] bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 hover:border-slate-400 p-2 shadow-2xs transition-all flex flex-col group cursor-pointer"
                             onClick={() => setIsOpen(false)}
                           >
-                            <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-slate-100 mb-1.5 border border-slate-100">
+                            <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-100 mb-2 border border-slate-100">
                               {p.image ? (
                                 <Image
                                   src={p.image}
@@ -629,20 +629,20 @@ export default function ChatSupport() {
                                 </div>
                               )}
                               {p.flashSale && (
-                                <span className="absolute top-1 left-1 text-[8px] font-black px-1.5 py-0.5 bg-red-600 text-white rounded shadow-xs">
+                                <span className="absolute top-1.5 left-1.5 text-[8.5px] font-black px-1.5 py-0.5 bg-red-600 text-white rounded shadow-xs">
                                   FLASH SALE
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11.5px] font-medium text-slate-800 line-clamp-1 group-hover:text-slate-950 transition-colors">
+                            <p className="text-[12px] font-medium text-slate-800 line-clamp-1 group-hover:text-slate-950 transition-colors">
                               {cleanProductTitle(p.name)}
                             </p>
                             <div className="flex items-baseline gap-1 mt-0.5">
-                              <span className={`text-[11.5px] font-bold ${p.flashSale || (p.originalPrice && p.originalPrice > p.price) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
+                              <span className={`text-[12px] font-bold ${p.flashSale || (p.originalPrice && p.originalPrice > p.price) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
                                 {formatPrice(p.price)}
                               </span>
                               {Boolean(p.originalPrice && p.originalPrice > p.price) && (
-                                <span className="text-[9px] text-slate-400 font-normal line-through">
+                                <span className="text-[9.5px] text-slate-400 font-normal line-through">
                                   {formatPrice(p.originalPrice || 0)}
                                 </span>
                               )}
@@ -657,21 +657,21 @@ export default function ChatSupport() {
 
               {/* Typing indicator */}
               {isLoading && (
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-black p-0.5 flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-black p-0.5 flex items-center justify-center flex-shrink-0">
                     <Image
                       src="/haven-logo.png"
                       alt="HAVEN"
-                      width={18}
-                      height={18}
+                      width={22}
+                      height={22}
                       className="object-contain"
                     />
                   </div>
-                  <div className="bg-white border border-slate-200 px-3 py-2 rounded-xl rounded-tl-none shadow-xs flex items-center gap-1">
+                  <div className="bg-white border border-slate-200 px-3.5 py-2.5 rounded-2xl rounded-tl-none shadow-xs flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 bg-slate-800 rounded-full animate-bounce [animation-delay:0ms]" />
                     <span className="w-1.5 h-1.5 bg-slate-800 rounded-full animate-bounce [animation-delay:150ms]" />
                     <span className="w-1.5 h-1.5 bg-slate-800 rounded-full animate-bounce [animation-delay:300ms]" />
-                    <span className="text-[11px] text-slate-500 ml-1.5 font-medium">HAVEN AI đang phản hồi...</span>
+                    <span className="text-xs text-slate-500 ml-1.5 font-medium">HAVEN AI đang phản hồi...</span>
                   </div>
                 </div>
               )}
@@ -681,7 +681,7 @@ export default function ChatSupport() {
 
             {/* ── GỢI Ý CÂU HỎI NHANH ── */}
             <div 
-              className="px-3 py-2 bg-white border-t border-slate-100 flex gap-1.5 overflow-x-auto flex-shrink-0 hide-scrollbar"
+              className="px-3.5 py-2.5 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {DEFAULT_SUGGESTION_CHIPS.map((chip) => (
@@ -689,16 +689,17 @@ export default function ChatSupport() {
                   key={chip}
                   onClick={() => handleSend(chip)}
                   disabled={isLoading}
-                  className="flex-shrink-0 px-2.5 py-1 bg-slate-100 hover:bg-[#0f172a] hover:text-white text-slate-700 text-[11px] font-medium rounded-full border border-slate-200 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-[#0a192f] hover:text-white text-slate-700 text-xs font-medium rounded-full border border-slate-200 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
                 >
-                  {chip}
+                  <MessageCircle size={12} className="text-slate-400 shrink-0" />
+                  <span>{chip}</span>
                 </button>
               ))}
             </div>
 
-            {/* ── KHUNG NHẬP TIN NHẮN NỀN TRẮNG ── */}
-            <div className="p-2.5 sm:p-3 bg-white border-t border-slate-100 flex-shrink-0">
-              <div className="relative flex items-center gap-1.5">
+            {/* ── KHUNG NHẬP TIN NHẮN DẠNG PILL HIỆN ĐẠI ── */}
+            <div className="p-3 sm:p-3.5 bg-white border-t border-slate-100 flex-shrink-0">
+              <div className="relative flex items-center gap-2 bg-slate-100/90 border border-slate-200 rounded-full p-1.5 pl-4 focus-within:border-slate-900 focus-within:bg-white focus-within:ring-1 focus-within:ring-slate-900 transition-all shadow-inner">
                 <input
                   ref={inputRef}
                   type="text"
@@ -710,23 +711,22 @@ export default function ChatSupport() {
                       handleSend();
                     }
                   }}
-                  placeholder="Hỏi về giá, kích cỡ, phối đồ..."
+                  placeholder="Nhập câu hỏi (Ví dụ: Flash sale, áo polo, cách phối đồ...)"
                   disabled={isLoading}
-                  className="flex-1 pl-3.5 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-[13px] text-slate-900 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all placeholder:text-slate-400 disabled:opacity-60"
+                  className="flex-1 bg-transparent text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 disabled:opacity-60 font-medium"
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={!inputValue.trim() || isLoading}
-                  className="p-2.5 bg-[#0f172a] hover:bg-[#1e40af] text-white font-bold rounded-xl active:scale-95 transition-all disabled:opacity-40 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex-shrink-0 shadow-xs cursor-pointer"
+                  className="w-9 h-9 rounded-full bg-[#0a192f] hover:bg-[#1e40af] text-white flex items-center justify-center active:scale-95 transition-all disabled:opacity-40 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed flex-shrink-0 shadow-md cursor-pointer"
                   aria-label="Gửi tin nhắn"
                 >
                   {isLoading ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                 </button>
               </div>
 
-              <div className="flex items-center justify-between mt-1.5 px-0.5 text-[10px] text-slate-400">
-                <span>HAVEN Fashion</span>
-                <span>Trợ lý thông minh</span>
+              <div className="text-center mt-2 text-[10.5px] text-slate-400 font-medium">
+                Cung cấp bởi <span className="font-semibold text-slate-600">⚡ HAVEN AI Assistant</span>
               </div>
             </div>
           </motion.div>
