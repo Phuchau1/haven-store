@@ -621,3 +621,193 @@ h1, h2, h3, h4, p, a, span {
 .article-content th, .article-content td { padding: 0.75rem; border-bottom: 1px solid #E5E7EB; color: #4B5563; font-size: 1.125rem; font-weight: 300; }
 .article-content th { font-weight: 600; color: #111827; background-color: #F9FAFB; }
 
+/* ============================================================
+ * ADMIN DESIGN SYSTEM — PHÚC HẬU STORE HIGH-END SPEC
+ * ============================================================ */
+.admin-body {
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Inter", sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.admin-title-section {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0a192f;
+  letter-spacing: -0.2px;
+}
+
+.admin-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* 1. Admin Card Container */
+.admin-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 2px 14px rgba(10, 25, 47, 0.06);
+  margin-bottom: 24px;
+  transition: box-shadow 0.2s ease;
+}
+.admin-card:hover {
+  box-shadow: 0 4px 20px rgba(10, 25, 47, 0.09);
+}
+
+/* 2. Form Input / Select / Textarea */
+.admin-input,
+.admin-select,
+.admin-textarea {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: #0f172a;
+  outline: none;
+  width: 100%;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.admin-input:focus,
+.admin-select:focus,
+.admin-textarea:focus {
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+/* 3. Bảng Dữ Liệu Admin */
+.admin-table-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 14px rgba(10, 25, 47, 0.06);
+}
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+.admin-table thead th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 14px 16px;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+.admin-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13.5px;
+  color: #334155;
+  vertical-align: middle;
+  transition: background 0.15s ease;
+}
+.admin-table tbody tr:hover td {
+  background: #f0f7ff;
+}
+
+/* 4. Hệ Thống Nút Bấm (Action Buttons) */
+.btn-admin-primary {
+  background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13.5px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(10, 25, 47, 0.15);
+}
+.btn-admin-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(30, 58, 138, 0.3);
+  color: #ffffff;
+}
+
+.btn-admin-tool {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1.5px solid #7dd3fc;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.btn-admin-tool:hover {
+  background: #bae6fd;
+  color: #0284c7;
+}
+
+.btn-admin-danger {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.btn-admin-danger:hover {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+/* 5. Badges & Trạng thái */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.admin-badge-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+.admin-badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.admin-badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+.admin-badge-info {
+  background: #e0f2fe;
+  color: #075985;
+  border: 1px solid #bae6fd;
+}
+
+
