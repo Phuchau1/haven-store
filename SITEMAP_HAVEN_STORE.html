@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THIẾT KẾ SITEMAP - HAVEN FASHION STORE</title>
+    <title>THIẾT KẾ SITEMAP ADMIN - HAVEN FASHION STORE</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,7 +17,7 @@
             padding: 40px 20px;
         }
         .page {
-            max-width: 1280px;
+            max-width: 1380px;
             margin: 0 auto 50px auto;
             background: #ffffff;
             padding: 40px;
@@ -81,22 +81,22 @@
             padding: 20px 0;
         }
         .root-node {
-            background: #ffffff;
-            border: 2.5px solid #ea580c;
-            color: #0f172a;
+            background: #ea580c;
+            border: 3px solid #c2410c;
+            color: #ffffff;
             font-weight: 900;
-            font-size: 18px;
-            padding: 20px 30px;
+            font-size: 19px;
+            padding: 24px 32px;
             border-radius: 30px;
-            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15);
-            min-width: 140px;
+            box-shadow: 0 6px 18px rgba(234, 88, 12, 0.25);
+            min-width: 170px;
             text-align: center;
-            position: relative;
+            letter-spacing: 0.5px;
         }
         .branches {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
             position: relative;
             padding-left: 30px;
             border-left: 2.5px solid #0f172a;
@@ -118,35 +118,36 @@
         .node-chain {
             display: flex;
             align-items: center;
-            gap: 25px;
+            gap: 20px;
         }
         .node-pill {
             background: #ffffff;
             border: 2px solid #ea580c;
             color: #0f172a;
-            font-weight: 700;
-            font-size: 14px;
-            padding: 10px 22px;
+            font-weight: 800;
+            font-size: 13.5px;
+            padding: 9px 20px;
             border-radius: 20px;
             text-align: center;
             white-space: nowrap;
             box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-            position: relative;
         }
         .node-pill.sub {
-            border-color: #f97316;
-            background: #fffbeb;
-            font-weight: 600;
-            font-size: 13.5px;
-        }
-        .node-pill.sub2 {
-            border-color: #fb923c;
-            background: #ffffff;
-            font-weight: 600;
+            border-color: #0d9488;
+            background: #f0fdfa;
+            color: #0f766e;
+            font-weight: 700;
             font-size: 13px;
         }
+        .node-pill.sub2 {
+            border-color: #64748b;
+            background: #ffffff;
+            color: #334155;
+            font-weight: 600;
+            font-size: 12.5px;
+        }
         .arrow-line {
-            width: 25px;
+            width: 20px;
             height: 2px;
             background: #0f172a;
             position: relative;
@@ -172,273 +173,175 @@
 </head>
 <body>
 
-<!-- TRANG 1: SITEMAP CLIENT -->
+<!-- TRANG: SITEMAP ADMIN TOÀN DIỆN -->
 <div class="page">
-    <button class="print-btn" onclick="window.print()">In / Xuất PDF</button>
+    <button class="print-btn" onclick="window.print()">In Báo Cáo / Xuất PDF</button>
     <div class="header">
         <div class="logo-wrap">
             <div class="logo-fpt">FPT POLYTECHNIC</div>
             <div class="logo-haven">HAVEN FASHION</div>
         </div>
-        <div class="title-text">THIẾT KẾ SITEMAP - CLIENT (KHÁCH HÀNG)</div>
+        <div class="title-text">THIẾT KẾ SITEMAP - ADMIN (TRANG QUẢN TRỊ)</div>
     </div>
 
     <div class="sitemap-container">
-        <div class="root-node">HAVEN</div>
+        <div class="root-node">ADMIN HAVEN</div>
         <div class="branches">
-            <!-- 1. Tìm kiếm -->
+
+            <!-- 1. Tổng quan Dashboard -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Tìm kiếm</div>
+                    <div class="node-pill">1. Tổng quan (Dashboard)</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Tìm theo từ khóa / AI Search</div>
+                    <div class="node-pill sub">Thống kê Doanh thu & Lợi nhuận</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Gợi ý sản phẩm</div>
+                    <div class="node-pill sub2">Biểu đồ tăng trưởng, Đơn hàng & Tồn kho</div>
                 </div>
             </div>
 
-            <!-- 2. Giỏ hàng -->
+            <!-- 2. Quản lý Bán hàng & Đơn hàng -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Giỏ hàng</div>
+                    <div class="node-pill">2. Quản lý Đơn hàng</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Chi tiết giỏ hàng</div>
+                    <div class="node-pill sub">Danh sách & Chi tiết đơn hàng</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Thanh toán (Checkout)</div>
+                    <div class="node-pill sub2">Cập nhật trạng thái, Vận đơn & In hóa đơn</div>
                 </div>
             </div>
 
-            <!-- 3. Sản phẩm -->
+            <!-- 3. Quản lý Đổi trả -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Sản phẩm</div>
+                    <div class="node-pill">3. Quản lý Đổi trả hàng</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Bộ lọc (Size, Màu, Giá, Brand)</div>
+                    <div class="node-pill sub">Danh sách yêu cầu đổi trả / hoàn tiền</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Chi tiết sản phẩm & Đánh giá</div>
+                    <div class="node-pill sub2">Xét duyệt bằng chứng & Hoàn tiền cho khách</div>
                 </div>
             </div>
 
-            <!-- 4. Đăng nhập -->
+            <!-- 4. Quản lý Sản phẩm -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Đăng nhập</div>
+                    <div class="node-pill">4. Quản lý Sản phẩm</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Quên mật khẩu</div>
+                    <div class="node-pill sub">Thêm / Sửa / Xóa Sản phẩm</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Đặt lại mật khẩu qua OTP/Email</div>
+                    <div class="node-pill sub2">Biến thể (Size, Màu sắc), Giá bán & Tồn kho</div>
                 </div>
             </div>
 
-            <!-- 5. Đăng ký -->
+            <!-- 5. Danh mục & Thương hiệu -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Đăng ký</div>
+                    <div class="node-pill">5. Danh mục & Thương hiệu</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Tạo tài khoản mới</div>
+                    <div class="node-pill sub">Cây danh mục (Nam, Nữ, Phụ kiện)</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Kích hoạt & Nhận ưu đãi</div>
+                    <div class="node-pill sub2">Quản lý Thương hiệu & Bộ sưu tập</div>
                 </div>
             </div>
 
-            <!-- 6. Voucher -->
+            <!-- 6. Quản trị Kho vận (WMS) -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Voucher & Khuyến mãi</div>
+                    <div class="node-pill">6. Quản trị Kho vận (WMS)</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Kho voucher hệ thống</div>
+                    <div class="node-pill sub">Kho hàng & Nhà cung cấp</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Voucher của tôi</div>
+                    <div class="node-pill sub2">Phiếu nhập kho, Kiểm kê tồn kho & Sổ lịch sử</div>
                 </div>
             </div>
 
             <!-- 7. Vòng quay may mắn -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Vòng quay may mắn</div>
+                    <div class="node-pill">7. Vòng quay may mắn</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Quay thưởng nhận quà</div>
+                    <div class="node-pill sub">Cấu hình phần thưởng (Voucher 10%–50%)</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Lịch sử trúng thưởng</div>
+                    <div class="node-pill sub2">Cài đặt tỷ lệ trúng & Lịch sử nhận quà</div>
                 </div>
             </div>
 
-            <!-- 8. Flash Sale -->
+            <!-- 8. Mã giảm giá (Voucher) -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Flash Sale</div>
+                    <div class="node-pill">8. Mã giảm giá (Coupons)</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Đồng hồ đếm ngược Deal sốc</div>
+                    <div class="node-pill sub">Tạo mã Voucher (Cố định, %, Freeship)</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Khung giờ săn sale</div>
+                    <div class="node-pill sub2">Cài đặt ngày hết hạn, Điều kiện & Giới hạn dùng</div>
                 </div>
             </div>
 
-            <!-- 9. Tin tức -->
+            <!-- 9. Flash Sale theo giờ -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Tin tức / Blog</div>
+                    <div class="node-pill">9. Quản lý Flash Sale</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Danh mục xu hướng thời trang</div>
+                    <div class="node-pill sub">Cấu hình khung giờ săn sale & Đếm ngược</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Chi tiết bài viết</div>
+                    <div class="node-pill sub2">Chọn sản phẩm giảm sốc & Số lượng sale</div>
                 </div>
             </div>
 
-            <!-- 10. Yêu thích -->
+            <!-- 10. Quản lý Người dùng -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Yêu thích</div>
+                    <div class="node-pill">10. Người dùng & Phân quyền</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Danh sách sản phẩm quan tâm</div>
+                    <div class="node-pill sub">Danh sách tài khoản người dùng</div>
+                    <div class="arrow-line"></div>
+                    <div class="node-pill sub2">Phân quyền Role (Admin, Staff, Client) & Khóa nick</div>
                 </div>
             </div>
 
-            <!-- 11. Tài khoản -->
+            <!-- 11. Đánh giá & Phản hồi -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Tài khoản</div>
+                    <div class="node-pill">11. Đánh giá sản phẩm</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Hồ sơ cá nhân & Sổ địa chỉ</div>
+                    <div class="node-pill sub">Danh sách bình luận & Số sao của khách</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Lịch sử đơn hàng & Tra cứu</div>
+                    <div class="node-pill sub2">Kiểm duyệt hiển thị, Ẩn/Hiện đánh giá</div>
                 </div>
             </div>
 
-            <!-- 12. Chat AI -->
+            <!-- 12. Nội dung Banner & Tin tức -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Trợ lý AI Chatbot</div>
+                    <div class="node-pill">12. Banner & Tin tức</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Tư vấn chọn Size, Phối đồ & Hỗ trợ đơn</div>
+                    <div class="node-pill sub">Quản lý Slider & Banner quảng cáo</div>
+                    <div class="arrow-line"></div>
+                    <div class="node-pill sub2">Quản lý bài viết Blog xu hướng thời trang</div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- TRANG 2: SITEMAP ADMIN -->
-<div class="page">
-    <div class="header">
-        <div class="logo-wrap">
-            <div class="logo-fpt">FPT POLYTECHNIC</div>
-            <div class="logo-haven">HAVEN FASHION</div>
-        </div>
-        <div class="title-text">THIẾT KẾ SITEMAP - ADMIN (QUẢN TRỊ VIÊN)</div>
-    </div>
-
-    <div class="sitemap-container">
-        <div class="root-node">ADMIN HAVEN</div>
-        <div class="branches">
-            <!-- 1. Dashboard -->
+            <!-- 13. Hội thoại Trợ lý AI Chat -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Dashboard</div>
+                    <div class="node-pill">13. Trợ lý AI & Chatbot</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Thống kê doanh thu, lợi nhuận</div>
+                    <div class="node-pill sub">Nhật ký hội thoại tư vấn của AI Chatbot</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Biểu đồ tăng trưởng & Đơn hàng</div>
+                    <div class="node-pill sub2">Theo dõi câu hỏi khách hàng & Hiệu quả tư vấn</div>
                 </div>
             </div>
 
-            <!-- 2. Quản lý Đơn hàng -->
+            <!-- 14. Cài đặt hệ thống -->
             <div class="branch-row">
                 <div class="node-chain">
-                    <div class="node-pill">Quản lý Đơn hàng</div>
+                    <div class="node-pill">14. Cài đặt Hệ thống</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub">Danh sách đơn hàng</div>
+                    <div class="node-pill sub">Cổng thanh toán (MoMo, VNPay, COD) & Phí Ship</div>
                     <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Chi tiết đơn, Duyệt & Giao hàng</div>
+                    <div class="node-pill sub2">Cấu hình API Gemini AI, Email SMTP & Bảo mật</div>
                 </div>
             </div>
 
-            <!-- 3. Quản lý Sản phẩm -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Quản lý Sản phẩm</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Sản phẩm, Danh mục, Thương hiệu</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Biến thể (Size, Màu), Giá bán</div>
-                </div>
-            </div>
-
-            <!-- 4. Quản lý Kho vận WMS -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Quản lý Kho vận (WMS)</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Kho hàng & Nhà cung cấp</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Phiếu nhập kho, Kiểm kê, Tồn kho</div>
-                </div>
-            </div>
-
-            <!-- 5. Vòng quay may mắn -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Vòng quay may mắn</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Cấu hình phần thưởng & Tỷ lệ trúng</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Lịch sử nhận quà của khách</div>
-                </div>
-            </div>
-
-            <!-- 6. Voucher & Flash Sale -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Marketing & Khuyến mãi</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Mã giảm giá (Coupon)</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Sự kiện Flash Sale theo giờ</div>
-                </div>
-            </div>
-
-            <!-- 7. Quản lý Người dùng -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Quản lý Người dùng</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Danh sách tài khoản</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Phân quyền (Admin, Staff, Client)</div>
-                </div>
-            </div>
-
-            <!-- 8. Nội dung & Banner -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Banner & Tin tức</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Banner trang chủ & Slider</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Quản lý bài viết Blog/Tin tức</div>
-                </div>
-            </div>
-
-            <!-- 9. Chat & Hỗ trợ -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Hội thoại Khách hàng</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Lịch sử tư vấn của AI Chatbot</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Phản hồi & Đánh giá sản phẩm</div>
-                </div>
-            </div>
-
-            <!-- 10. Cài đặt hệ thống -->
-            <div class="branch-row">
-                <div class="node-chain">
-                    <div class="node-pill">Cài đặt hệ thống</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub">Cổng thanh toán & Phí vận chuyển</div>
-                    <div class="arrow-line"></div>
-                    <div class="node-pill sub2">Cấu hình API & Tích hợp AI</div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
