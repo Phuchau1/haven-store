@@ -68,9 +68,24 @@ const getProducts = async (req, res, next) => {
             }
         }
 
-        // Lọc theo Danh mục con
+        // Lọc theo Danh mục con (Hỗ trợ nhóm cha như ao-nam, quan-nam, ao-nu, quan-nu, v.v.)
         if (subCategory) {
-            query.subCategory = subCategory;
+            const groupMappings = {
+                'ao-nam': ['ao-so-mi-nam', 'ao-polo-nam', 'ao-thun-nam', 'ao-khoac-nam'],
+                'quan-nam': ['quan-au-nam', 'quan-jean-nam', 'quan-kaki-nam', 'quan-short-nam'],
+                'bo-do-nam': ['bo-vest-nam'],
+                'phu-kien-nam': ['giay-da-nam', 'vi-da-nam', 'day-lung-nam', 'dep-nam'],
+                'ao-nu': ['ao-so-mi-nu', 'ao-polo-nu', 'ao-thun-nu', 'ao-khoac-nu'],
+                'quan-nu': ['quan-au-nu', 'quan-jean-nu', 'quan-short-nu'],
+                'vay-dam': ['vay-lien-dam', 'chan-vay'],
+                'phu-kien-nu': ['giay-dep-nu', 'tui-xach']
+            };
+
+            if (groupMappings[subCategory]) {
+                andConditions.push({ subCategory: { $in: groupMappings[subCategory] } });
+            } else {
+                andConditions.push({ subCategory: subCategory });
+            }
         }
 
         // Lọc các sản phẩm Đang giảm giá (bất kỳ mức nào)
