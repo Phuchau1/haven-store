@@ -17,6 +17,7 @@ const apiRoutes = require('./routes');
 const notFoundHandler = require('./middleware/notFoundHandler');
 const errorHandler = require('./middleware/errorHandler');
 const { globalLimiter } = require('./middleware/rateLimiter');
+const { cacheMiddleware } = require('./middleware/cacheMiddleware');
 const app = express();
 const server = http.createServer(app);
 
