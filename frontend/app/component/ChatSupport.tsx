@@ -54,11 +54,11 @@ interface ChatTurn {
 }
 
 const DEFAULT_SUGGESTION_CHIPS = [
-  '🔥 Flash Sale hôm nay?',
-  '💰 Sản phẩm dưới 300k',
-  '👕 Áo Polo hot nhất',
-  '👔 Gợi ý phối đồ đi làm',
-  '⭐ Đánh giá cao nhất',
+  'Flash Sale hôm nay?',
+  'Sản phẩm dưới 300k',
+  'Áo Polo hot nhất',
+  'Gợi ý phối đồ đi làm',
+  'Chính sách đổi trả',
 ];
 
 // Helper render text with simple markdown (bold + links + high contrast)
@@ -676,9 +676,9 @@ export default function ChatSupport() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* ── GỢI Ý CÂU HỎI NHANH ── */}
+            {/* ── GỢI Ý CÂU HỎI NHANH (TINH GỌN, KHÔNG ICON RỐI MẮT) ── */}
             <div 
-              className="px-3.5 py-2.5 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
+              className="px-3.5 py-2.5 bg-white border-t border-slate-100 flex gap-1.5 overflow-x-auto flex-shrink-0 hide-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {DEFAULT_SUGGESTION_CHIPS.map((chip) => (
@@ -686,10 +686,9 @@ export default function ChatSupport() {
                   key={chip}
                   onClick={() => handleSend(chip)}
                   disabled={isLoading}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-[#0a192f] hover:text-white text-slate-700 text-xs font-medium rounded-full border border-slate-200 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
+                  className="flex-shrink-0 px-3 py-1.5 bg-slate-50 hover:bg-[#0a192f] hover:text-white text-slate-700 text-xs font-semibold rounded-full border border-slate-200 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
                 >
-                  <MessageCircle size={12} className="text-slate-400 shrink-0" />
-                  <span>{chip}</span>
+                  {chip}
                 </button>
               ))}
             </div>
@@ -708,7 +707,7 @@ export default function ChatSupport() {
                       handleSend();
                     }
                   }}
-                  placeholder="Nhập câu hỏi (Ví dụ: Flash sale, áo polo, cách phối đồ...)"
+                  placeholder="Nhập câu hỏi (giá, size, phối đồ...)"
                   disabled={isLoading}
                   className="flex-1 bg-transparent text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 disabled:opacity-60 font-medium"
                 />
