@@ -20,13 +20,7 @@ const paymentRoutes = require('./paymentRoutes');
 const couponRoutes = require('./couponRoutes');
 const articleRoutes = require('./articleRoutes');
 
-// WMS Routes
-const menuRoutes = require('./menuRoutes');
-const warehouseRoutes = require('./warehouseRoutes');
-const supplierRoutes = require('./supplierRoutes');
-const stockReceiptRoutes = require('./stockReceiptRoutes');
-const poRoutes = require('./poRoutes');
-const inventoryReportRoutes = require('./inventoryReportRoutes');
+// Public and Core Routes
 const barcodeRoutes = require('./barcodeRoutes');
 const exportRoutes = require('./exportRoutes');
 const luckyWheelRoutes = require('./luckyWheelRoutes');
@@ -35,7 +29,6 @@ const recentlyViewedRoutes = require('./recentlyViewedRoutes');
 const loyaltyRoutes        = require('./loyaltyRoutes');
 const analyticsRoutes      = require('./analyticsRoutes');
 const aiRoutes             = require('./aiRoutes');
-const wmsRoutes            = require('./wmsRoutes');
 
 const crmRoutes          = require('./crmRoutes');
 
@@ -55,7 +48,6 @@ router.use('/settings', settingRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/reviews', reviewRoutes);   // ← Route đánh giá riêng biệt
 router.use('/chats', chatRoutes);
-router.use('/inventory', inventoryRoutes);
 router.use('/cart', cartRoutes);
 router.use('/wishlist', wishlistRoutes);
 router.use('/addresses', addressRoutes);
@@ -70,19 +62,9 @@ router.use('/newsletter', newsletterRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
 router.use('/loyalty',  loyaltyRoutes);   // Hệ thống điểm tích lũy
 router.use('/analytics', analyticsRoutes); // Analytics & tracking
-router.use('/wms',      wmsRoutes);        // Enterprise WMS & Logistics Management
 router.use('/crm',      crmRoutes);        // Enterprise CRM 360 & Referral
 router.use('/carrier',  carrierRoutes);    // Carrier Simulation Engine (GHN/GHTK/J&T/VTP/BEST/NJV)
-
-// WMS API
-router.use('/menus', menuRoutes);
-router.use('/warehouses', warehouseRoutes);
-router.use('/suppliers', supplierRoutes);
-router.use('/stock-receipts', stockReceiptRoutes);
-router.use('/purchase-orders', poRoutes);
-router.use('/inventory-reports', inventoryReportRoutes);
 router.use('/barcode', barcodeRoutes);
-router.use('/export', exportRoutes);
 
 const brandCollectionRoutes = require('./brandCollectionRoutes');
 

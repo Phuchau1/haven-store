@@ -10,7 +10,6 @@ const mongoose = require('mongoose');
 const { OrderModel } = require('../models/Order');
 const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
-const { InventoryHistoryModel } = require('../models/InventoryHistory');
 const { CouponModel } = require('../models/Coupon');
 const { ShippingMethodModel } = require('../models/ShippingMethod');
 // Sử dụng BullMQ queue để gửi email bất đồng bộ (không làm chậm tốc độ tạo đơn)
@@ -93,18 +92,6 @@ const decreaseStockOnOrder = async (orderItems, orderId, session) => {
             } catch (pErr) {
                 log(`[ProductModel Sync Warning] ${pErr.message}`);
             }
-
-            // 3. Tạo log lịch sử biến động kho
-            const logId = `inv-log-${Math.random().toString(36).substr(2, 9)}`;
-            const invLog = new InventoryHistoryModel({
-                id: logId,
-                variant_id: pVariant ? pVariant.id : `variant-${productId}-${String(color).toLowerCase()}-${String(size).toLowerCase()}`,
-                type: 'export',
-                quantity: quantity,
-                note: `Xuất bán cho Đơn hàng #${orderId}`,
-                created_at: new Date().toISOString()
-            });
-            await invLog.save({ session: session || null });
         }
         log(`Đã trừ tồn kho thành công cho đơn hàng: ${orderId}`);
     } catch (error) {
@@ -130,22 +117,11 @@ const releaseReservedStock = async (orderItems, orderId) => {
             // (Đã gỡ bỏ logic trừ soldQuantity ở đây vì soldQuantity chỉ tính trên đơn delivered)
 
             // Chỉ trả lại reserved_stock, stock vật lý KHÔNG thay đổi
-            const pVariant = await ProductVariantModel.findOneAndUpdate(
+            await ProductVariantModel.findOneAndUpdate(
                 { product_id: productId, size_id: size, color_id: color },
                 { $inc: { reserved_stock: -quantity } },
                 { new: true }
             );
-
-            // Ghi log: Hoàn giữ chỗ
-            const invLog = new InventoryHistoryModel({
-                id: `inv-log-${Math.random().toString(36).substr(2, 9)}`,
-                variant_id: pVariant ? pVariant.id : `variant-${productId}-${color.toLowerCase()}-${size.toLowerCase()}`,
-                type: 'import',
-                quantity: quantity,
-                note: `Hoàn giữ chỗ tự động do Hủy Đơn hàng #${orderId}`,
-                created_at: new Date().toISOString()
-            });
-            await invLog.save();
         }
         log(`[releaseReservedStock] Đã hoàn giữ chỗ tồn kho cho đơn hủy PENDING: ${orderId}`);
     } catch (error) {
@@ -169,22 +145,11 @@ const returnExportedStock = async (orderItems, orderId) => {
             const quantity = item.quantity;
 
             // Tăng stock vật lý (hàng hoàn về kho)
-            const pVariant = await ProductVariantModel.findOneAndUpdate(
+            await ProductVariantModel.findOneAndUpdate(
                 { product_id: productId, size_id: size, color_id: color },
                 { $inc: { stock: quantity } },
                 { new: true }
             );
-
-            // Ghi log: Nhập kho hàng hoàn
-            const invLog = new InventoryHistoryModel({
-                id: `inv-log-${Math.random().toString(36).substr(2, 9)}`,
-                variant_id: pVariant ? pVariant.id : `variant-${productId}-${color.toLowerCase()}-${size.toLowerCase()}`,
-                type: 'import',
-                quantity: quantity,
-                note: `Nhập kho hàng hoàn trả cho Đơn hàng #${orderId}`,
-                created_at: new Date().toISOString()
-            });
-            await invLog.save();
         }
         log(`[returnExportedStock] Đã nhập lại tồn kho vật lý cho đơn hoàn: ${orderId}`);
     } catch (error) {
@@ -207,22 +172,11 @@ const exportStockOnApproval = async (orderItems, orderId) => {
             const quantity = item.quantity;
 
             // Giảm stock vật lý VÀ giảm reserved_stock cùng lúc
-            const pVariant = await ProductVariantModel.findOneAndUpdate(
+            await ProductVariantModel.findOneAndUpdate(
                 { product_id: productId, size_id: size, color_id: color },
                 { $inc: { stock: -quantity, reserved_stock: -quantity } },
                 { new: true }
             );
-
-            // Ghi log: Xuất kho do duyệt đơn
-            const invLog = new InventoryHistoryModel({
-                id: `inv-log-${Math.random().toString(36).substr(2, 9)}`,
-                variant_id: pVariant ? pVariant.id : `variant-${productId}-${color.toLowerCase()}-${size.toLowerCase()}`,
-                type: 'export',
-                quantity: quantity,
-                note: `Xuất kho do duyệt Đơn hàng #${orderId}`,
-                created_at: new Date().toISOString()
-            });
-            await invLog.save();
         }
         log(`[exportStockOnApproval] Đã xuất kho cho đơn được duyệt: ${orderId}`);
     } catch (error) {
