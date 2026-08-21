@@ -10,7 +10,6 @@ const settingRoutes = require('./settingRoutes');
 const categoryRoutes = require('./categoryRoutes');
 const reviewRoutes = require('./reviewRoutes');
 const chatRoutes = require('./chatRoutes');
-const inventoryRoutes = require('./inventoryRoutes');
 const cartRoutes = require('./cartRoutes');
 const wishlistRoutes = require('./wishlistRoutes');
 const addressRoutes = require('./addressRoutes');
@@ -22,7 +21,6 @@ const articleRoutes = require('./articleRoutes');
 
 // Public and Core Routes
 const barcodeRoutes = require('./barcodeRoutes');
-const exportRoutes = require('./exportRoutes');
 const luckyWheelRoutes = require('./luckyWheelRoutes');
 
 const recentlyViewedRoutes = require('./recentlyViewedRoutes');
@@ -56,7 +54,6 @@ router.use('/flash-sales', flashSaleRoutes);
 router.use('/payment', paymentRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/articles', articleRoutes);
-router.use('/export', exportRoutes);
 router.use('/lucky-wheel', luckyWheelRoutes);
 router.use('/newsletter', newsletterRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
