@@ -1,13 +1,38 @@
 'use client';
+/**
+ * Hero.tsx — Fashion Store Landing Hero
+ *
+ * Cách hoạt động:
+ * ─────────────────────────────────────────────────────────
+ * 1. VIDEO / ẢNH nền: phát tự động, opacity 55%
+ * 2. GRADIENT OVERLAY: phủ lên trên video, tạo không khí
+ *    và giúp chữ dễ đọc. Gradient thay đổi theo THEME màu.
+ * 3. BỘ CHỌN MÀU (Color Mood):
+ *    - Mỗi theme là 1 tông màu khác nhau (vàng, xanh, đỏ hồng, trắng...)
+ *    - Khi click vào chấm màu → gradient overlay + các accent
+ *      (sparkle icon, gạch trang trí, đốm sáng) đổi màu tức thì
+ *    - Dùng CSS transition 700ms → chuyển màu mượt mà
+ * 4. TYPOGRAPHY: Inter 900 Black cho cả 2 dòng tiêu đề
+ * ─────────────────────────────────────────────────────────
+ */
+
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
+
+// ── Tông màu cố định Premium ─────────────────────────────────
+const PREMIUM_THEME = {
+    overlayLeft: 'rgba(0,0,0,0.60)',
+    overlayMid:  'rgba(0,0,0,0.20)',
+    overlayBottom: 'rgba(0,0,0,0.50)',
+    accent: '#C9A227', // Gold
+};
 
 export default function Hero() {
     const [settings, setSettings] = useState({
-        heroHeading:  'HAVEN STUDIO\nBỘ SƯU TẬP 2026',
-        heroSubtitle: 'Định hình phong cách tối giản và thanh lịch. Những thiết kế thủ công được tuyển chọn kỹ lưỡng cho cuộc sống hiện đại.',
+        heroHeading:  'ĐỊNH NGHĨA\nLẠI PHONG CÁCH',
+        heroSubtitle: 'Mỗi bộ trang phục là một tuyên ngôn.\nMỗi lần diện đồ là một câu chuyện riêng của bạn.',
         heroVideoUrl: 'https://videos.pexels.com/video-files/3753716/3753716-uhd_2560_1440_25fps.mp4',
         heroImage:    'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920&h=1080&fit=crop',
         bannerLink:   '/products'
@@ -16,24 +41,29 @@ export default function Hero() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const resSettings = await fetch('/api/settings');
+                // Fetch Settings
+                const resSettings  = await fetch('/api/settings');
                 const dataSettings = await resSettings.json();
                 
                 const newSettings = { ...settings };
+                
                 if (dataSettings.success && dataSettings.settings) {
-                    if (dataSettings.settings.heroSubtitle) newSettings.heroSubtitle = dataSettings.settings.heroSubtitle;
-                    if (dataSettings.settings.heroVideoUrl) newSettings.heroVideoUrl = dataSettings.settings.heroVideoUrl;
+                    newSettings.heroSubtitle = dataSettings.settings.heroSubtitle || newSettings.heroSubtitle;
+                    newSettings.heroVideoUrl = dataSettings.settings.heroVideoUrl || newSettings.heroVideoUrl;
                 }
 
+                // Fetch Banners
                 const resBanners = await fetch('/api/banners?type=hero');
                 const dataBanners = await resBanners.json();
                 
                 if (dataBanners.success && dataBanners.banners && dataBanners.banners.length > 0) {
                     const banner = dataBanners.banners[0];
-                    if (banner.title) newSettings.heroHeading = banner.title;
-                    if (banner.image) newSettings.heroImage = banner.image;
-                    if (banner.video) newSettings.heroVideoUrl = banner.video;
-                    if (banner.link) newSettings.bannerLink = banner.link;
+                    newSettings.heroHeading = banner.title;
+                    newSettings.heroImage = banner.image;
+                    if (banner.video) {
+                        newSettings.heroVideoUrl = banner.video;
+                    }
+                    newSettings.bannerLink = banner.link;
                 }
 
                 setSettings(newSettings);
@@ -42,111 +72,213 @@ export default function Hero() {
             }
         };
         fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const headingLines = settings.heroHeading.split('\n');
+    const t = PREMIUM_THEME; // shorthand
 
     return (
-        <section className="relative h-[560px] sm:h-[640px] lg:h-[760px] overflow-hidden bg-[#09090b]">
-            {/* Background Media */}
+        <section className="relative h-[500px] lg:h-[720px] overflow-hidden bg-black">
+
+            {/* ── Background Video / Image ── */}
             <div className="absolute inset-0">
                 {settings.heroVideoUrl ? (
                     <video
                         autoPlay muted loop playsInline
                         poster={settings.heroImage}
-                        className="w-full h-full object-cover scale-105"
-                        style={{ opacity: 0.55 }}
+                        className="w-full h-full object-cover"
+                        style={{ opacity: 0.60 }}
                     >
                         <source src={settings.heroVideoUrl} type="video/mp4" />
                     </video>
                 ) : (
                     <div
-                        className="w-full h-full bg-cover bg-center scale-105"
-                        style={{ backgroundImage: `url(${settings.heroImage})`, opacity: 0.65 }}
+                        className="w-full h-full bg-cover bg-center"
+                        style={{ backgroundImage: `url(${settings.heroImage})`, opacity: 0.85 }}
                     />
                 )}
-                {/* Enterprise Dark Vignette Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+
+                {/*
+                  GRADIENT OVERLAY — lớp màu phủ lên video.
+                  Dùng inline style để transition màu mượt theo theme.
+                  - from-left: tối đậm → che phần nội dung, tạo độ tương phản cho chữ
+                  - to-right: trong suốt → video nhìn thấy rõ bên phải
+                  - bottom: tối đậm → tạo viền dưới, giúp footer/scroll indicator nổi bật
+                */}
+                <div
+                    className="absolute inset-0 transition-all duration-700"
+                    style={{
+                        background: `linear-gradient(to right, ${t.overlayLeft} 0%, ${t.overlayMid} 55%, transparent 100%)`
+                    }}
+                />
+                <div
+                    className="absolute inset-0 transition-all duration-700"
+                    style={{
+                        background: `linear-gradient(to top, ${t.overlayBottom} 0%, transparent 50%, rgba(0,0,0,0.25) 100%)`
+                    }}
+                />
             </div>
 
-            {/* Content Container */}
-            <div className="relative h-full container-torano flex flex-col justify-end pb-16 lg:pb-24 z-10">
-                <div className="max-w-2xl">
-                    {/* Season Tag */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md mb-5"
-                    >
-                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                        <span className="text-[11px] font-bold text-white/90 uppercase tracking-[0.25em]">
-                            EDITORIAL LOOKBOOK 2026
+            {/* ── Main Content ── */}
+            <div className="relative z-10 flex flex-col justify-center h-full container-torano">
+
+                {/* Badge */}
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    className="mb-6 flex items-center gap-3"
+                >
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/15"
+                         style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(12px)' }}>
+                        {/* Accent icon đổi màu theo theme */}
+                        <Sparkles size={12} style={{ color: t.accent, transition: 'color 0.7s' }} />
+                        <span className="text-white/75 text-[10px] uppercase"
+                              style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.3em' }}>
+                            Bộ Sưu Tập Mới · 2026
                         </span>
-                    </motion.div>
+                    </div>
+                    <div className="h-px w-12 bg-white/20" />
+                </motion.div>
 
-                    {/* Main Heading */}
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.1 }}
-                        className="text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-[1.08]"
-                    >
-                        {headingLines.map((line, idx) => (
-                            <span key={idx} className="block">
+                {/* ── Heading — cả 2 dòng cùng phông Inter 900 ── */}
+                <div className="overflow-visible space-y-1">
+                    {headingLines.map((line, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 60 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.9, delay: 0.35 + i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                            <h1
+                                className="font-black text-white leading-[1.15] tracking-[-0.02em] uppercase"
+                                style={{
+                                    fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif",
+                                    fontWeight: 800,
+                                    fontSize: 'clamp(2.5rem, 5.5vw, 5.5rem)',
+                                }}
+                            >
                                 {line}
-                            </span>
-                        ))}
-                    </motion.h1>
-
-                    {/* Subtitle */}
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.2 }}
-                        className="mt-5 text-sm sm:text-base text-gray-300/90 leading-relaxed font-light max-w-lg"
-                    >
-                        {settings.heroSubtitle}
-                    </motion.p>
-
-                    {/* CTA Buttons */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.3 }}
-                        className="mt-8 flex flex-wrap items-center gap-4"
-                    >
-                        <Link
-                            href={settings.bannerLink || '/products'}
-                            className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-black text-xs font-bold uppercase tracking-wider rounded-none hover:bg-neutral-200 transition-all duration-300 group shadow-lg"
-                        >
-                            <span>Khám phá bộ sưu tập</span>
-                            <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-                        </Link>
-
-                        <Link
-                            href="/products?category=ao-nam"
-                            className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold uppercase tracking-wider rounded-none border border-white/25 backdrop-blur-sm transition-all duration-300"
-                        >
-                            <span>Nam</span>
-                        </Link>
-
-                        <Link
-                            href="/products?category=nu"
-                            className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold uppercase tracking-wider rounded-none border border-white/25 backdrop-blur-sm transition-all duration-300"
-                        >
-                            <span>Nữ</span>
-                        </Link>
-                    </motion.div>
+                            </h1>
+                        </motion.div>
+                    ))}
                 </div>
+
+                {/* Decorative divider — accent đổi màu */}
+                <motion.div
+                    initial={{ scaleX: 0, opacity: 0 }}
+                    animate={{ scaleX: 1, opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 0.75 }}
+                    className="mt-6 mb-4 flex items-center gap-4"
+                    style={{ transformOrigin: 'left' }}
+                >
+                    <div className="h-px w-16 bg-white/35" />
+                    {/* Accent dot */}
+                    <div
+                        className="w-1.5 h-1.5 rounded-full transition-all duration-700"
+                        style={{ backgroundColor: t.accent }}
+                    />
+                    <div className="h-px w-6 bg-white/15" />
+                </motion.div>
+
+                {/* Subtitle */}
+                <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: 0.85 }}
+                    className="text-white/90 max-w-lg leading-[1.7] whitespace-pre-line mt-2"
+                    style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", fontSize: 'clamp(0.95rem, 1.2vw, 1.1rem)', fontWeight: 400 }}
+                >
+                    {settings.heroSubtitle}
+                </motion.p>
+
+                {/* CTA Buttons */}
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: 1.05 }}
+                    className="flex flex-row flex-wrap items-center gap-3 mt-6 sm:mt-8"
+                >
+                    {/* Primary CTA: HÀNG MỚI VỀ */}
+                    <Link href={(settings as any).heroBtn1Link || "#new-arrivals"}>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="group relative flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-[#C9A227] text-white rounded-full overflow-hidden transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm font-semibold tracking-wider uppercase cursor-pointer"
+                        >
+                            <span className="relative z-10">{(settings as any).heroBtn1Text || "Hàng Mới Về"}</span>
+                            <ArrowRight size={16} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
+                            <div className="absolute inset-0 bg-black/10 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+                        </motion.button>
+                    </Link>
+
+                    {/* Secondary CTA: SĂN SALE HOT */}
+                    <Link href={(settings as any).heroBtn2Link || "/products?discounted=true"}>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="group flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full border border-white text-white hover:bg-white hover:text-black transition-all duration-300 text-xs sm:text-sm font-semibold tracking-wider uppercase cursor-pointer"
+                        >
+                            <span>{(settings as any).heroBtn2Text || "Săn Sale Hot"}</span>
+                        </motion.button>
+                    </Link>
+                </motion.div>
+
+                {/* Stats row */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 1.3 }}
+                    className="flex flex-wrap items-center gap-5 sm:gap-8 mt-7 sm:mt-10"
+                >
+                    {[
+                        { value: '500+',  label: 'Mẫu độc quyền' },
+                        { value: '12K+',  label: 'Khách hàng tin yêu' },
+                        { value: '4.9★',  label: 'Đánh giá trung bình' },
+                    ].map((stat, i) => (
+                        <div key={i} className="flex flex-col">
+                            <span className="text-white font-bold transition-colors duration-700 text-sm sm:text-base lg:text-lg"
+                                  style={{ fontFamily: 'Inter, sans-serif',
+                                           color: i === 0 ? t.accent : 'white' }}>
+                                {stat.value}
+                            </span>
+                            <span className="text-white/60 uppercase text-[9.5px] sm:text-[10px] tracking-wider"
+                                  style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {stat.label}
+                            </span>
+                        </div>
+                    ))}
+                </motion.div>
             </div>
 
-            {/* Bottom Subtle Indicator Bar */}
-            <div className="absolute bottom-6 right-4 sm:right-8 z-10 hidden sm:flex items-center gap-6 text-[11px] text-white/60 tracking-widest uppercase font-medium">
-                <span>01 / 03</span>
-                <span className="w-12 h-px bg-white/30" />
-                <span>HAVEN STUDIO</span>
+
+            {/* ── Scroll indicator ── */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.6 }}
+                className="absolute bottom-6 left-1/2 -translate-x-1/2"
+            >
+                <motion.div
+                    animate={{ y: [0, 8, 0] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                    className="flex flex-col items-center gap-2"
+                >
+                    <span className="text-white/35 uppercase"
+                          style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', letterSpacing: '0.35em' }}>
+                        Cuộn xuống
+                    </span>
+                    <div className="w-px h-8 bg-gradient-to-b from-white/40 to-transparent" />
+                </motion.div>
+            </motion.div>
+
+            {/* ── Right accent line ── */}
+            <div className="absolute top-1/2 right-20 -translate-y-1/2 hidden xl:flex flex-col items-center gap-2">
+                <div className="w-px h-20 bg-white/10" />
+                <div className="w-1 h-1 rounded-full transition-all duration-700"
+                     style={{ backgroundColor: `${t.accent}99` }} />
+                <div className="w-px h-20 bg-white/10" />
             </div>
         </section>
     );

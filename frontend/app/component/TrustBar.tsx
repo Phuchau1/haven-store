@@ -1,48 +1,50 @@
 'use client';
+// ===== TRUST BAR COMPONENT =====
+// Dải tín nhiệm hiển thị ngay dưới Hero Banner
 import React from 'react';
-import { Truck, RefreshCw, ShieldCheck, Clock } from 'lucide-react';
+import { Truck, RefreshCw, ShieldCheck, CreditCard } from 'lucide-react';
 
 const TRUST_ITEMS = [
     {
         icon: Truck,
-        title: 'GIAO HÀNG HỎA TỐC',
-        subtitle: 'Miễn phí cho đơn hàng từ 500.000₫',
+        title: 'Miễn phí vận chuyển',
+        subtitle: 'Cho đơn từ 500.000đ',
     },
     {
         icon: RefreshCw,
-        title: '30 NGÀY ĐỔI TRẢ',
-        subtitle: 'Thủ tục nhanh chóng, tận nơi',
+        title: 'Đổi trả 30 ngày',
+        subtitle: 'Miễn phí, không cần lý do',
     },
     {
         icon: ShieldCheck,
-        title: '100% CHÍNH HÃNG',
-        subtitle: 'Cam kết chất liệu và form dáng cao cấp',
+        title: 'Hàng chính hãng 100%',
+        subtitle: 'Cam kết chất lượng',
     },
     {
-        icon: Clock,
-        title: 'HỖ TRỢ TƯ VẤN 24/7',
-        subtitle: 'Đội ngũ stylist luôn sẵn sàng hỗ trợ',
+        icon: CreditCard,
+        title: 'Thanh toán an toàn',
+        subtitle: 'VISA, MoMo, COD',
     },
 ];
 
 export default function TrustBar() {
     return (
-        <div className="bg-[#fafafa] border-y border-neutral-200/80">
+        <div className="bg-white border-y border-gray-100">
             <div className="container-torano">
-                <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200/80">
+                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
                     {TRUST_ITEMS.map(({ icon: Icon, title, subtitle }) => (
                         <div
                             key={title}
-                            className="flex items-center gap-3.5 px-4 sm:px-6 py-4 md:py-5.5 hover:bg-white transition-colors duration-300"
+                            className="flex items-center justify-center gap-3 px-4 py-4 md:py-5 hover:bg-gray-50 transition-colors duration-200"
                         >
-                            <div className="w-10 h-10 rounded-full border border-neutral-300 bg-white flex items-center justify-center text-neutral-900 shrink-0 shadow-2xs">
-                                <Icon size={17} strokeWidth={1.75} />
+                            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-black flex items-center justify-center">
+                                <Icon size={16} className="text-white" strokeWidth={2} />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-bold text-neutral-900 tracking-wider uppercase leading-tight truncate">
+                                <p className="text-[13px] font-semibold text-gray-900 leading-tight truncate">
                                     {title}
                                 </p>
-                                <p className="text-[11.5px] text-neutral-500 mt-1 truncate leading-tight">
+                                <p className="text-[11px] text-gray-500 mt-0.5 truncate hidden sm:block">
                                     {subtitle}
                                 </p>
                             </div>

@@ -54,49 +54,52 @@ export default function Newsletter() {
     };
 
     return (
-        <section className="py-14 lg:py-18 bg-white border-t border-neutral-200/80">
+        <section className="py-10 lg:py-14 bg-white">
             <div className="container-torano">
-                <div className="relative rounded-2xl bg-[#09090b] text-white p-8 sm:p-12 lg:p-14 overflow-hidden shadow-2xl border border-neutral-800">
+                <div className="relative rounded-3xl bg-gradient-to-r from-slate-100 via-[#f8fafc] to-slate-100/90 border border-slate-200/90 p-8 sm:p-12 lg:p-14 overflow-hidden shadow-xs">
+                    {/* Background subtle luxury accent */}
+                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-slate-200/40 rounded-full blur-3xl pointer-events-none" />
+
                     <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                        {/* Left Column */}
+                        {/* Left Column: Heading & Description in crisp black */}
                         <div className="lg:col-span-6 text-left">
-                            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-400 mb-2">
-                                HAVEN PRIVILEGE CLUB
-                            </p>
-                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white uppercase">
-                                Đăng Ký Nhận Bản Tin
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-950 uppercase">
+                                Đăng ký nhận tin
                             </h2>
-                            <p className="mt-2.5 text-sm sm:text-base text-neutral-300 font-light leading-relaxed max-w-lg">
-                                Nhận ngay mã giảm <span className="font-bold text-white">10%</span> cho đơn hàng đầu tiên và cập nhật sớm nhất các bộ sưu tập giới hạn.
+                            <p className="mt-2.5 text-sm sm:text-base text-slate-600 font-normal leading-relaxed max-w-lg">
+                                Nhận ngay ưu đãi độc quyền và cập nhật những bộ sưu tập mới nhất từ HAVEN.
                             </p>
                         </div>
 
-                        {/* Right Column: Form */}
+                        {/* Right Column: Pill Form */}
                         <div className="lg:col-span-6">
                             <form
                                 onSubmit={handleSubmit}
-                                className="flex flex-col sm:flex-row items-center gap-2 bg-neutral-900/90 p-2 rounded-xl border border-neutral-700 shadow-lg focus-within:border-white transition-all"
+                                className="flex flex-col sm:flex-row items-center gap-2 bg-white p-2 rounded-2xl sm:rounded-full border border-slate-300 shadow-sm focus-within:border-slate-900 transition-all"
                             >
-                                <div className="flex items-center gap-2.5 flex-1 px-4 py-2.5 w-full">
-                                    <Send size={15} className="text-neutral-400 shrink-0" />
+                                <div className="flex items-center gap-2.5 flex-1 px-4 py-2 w-full">
+                                    <Send size={16} className="text-slate-400 shrink-0 rotate-[-10deg]" />
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="Nhập địa chỉ email của bạn..."
-                                        className="w-full bg-transparent text-sm text-white placeholder:text-neutral-500 focus:outline-none font-normal"
+                                        placeholder="Nhập email của bạn..."
+                                        className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none font-medium"
                                         required
                                         disabled={loading}
                                     />
                                 </div>
 
-                                <button
+                                <motion.button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full sm:w-auto px-7 py-3.5 bg-white text-black hover:bg-neutral-200 rounded-lg text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="w-full sm:w-auto px-7 py-3.5 bg-[#0f172a] hover:bg-[#1e40af] text-white rounded-xl sm:rounded-full text-xs font-black tracking-wider uppercase whitespace-nowrap transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                                 >
-                                    <span>{loading ? 'Đang gửi...' : 'Đăng ký ngay'}</span>
-                                </button>
+                                    <Send size={13} className="text-white" />
+                                    <span>{loading ? 'ĐANG GỬI...' : 'ĐĂNG KÝ NGAY'}</span>
+                                </motion.button>
                             </form>
                         </div>
                     </div>
