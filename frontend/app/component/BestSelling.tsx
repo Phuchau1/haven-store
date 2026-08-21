@@ -43,14 +43,13 @@ export default function BestSelling() {
     if (products.length === 0) return null;
 
     return (
-        <section className="py-16 md:py-20 bg-[#f8fafc] border-y border-slate-200/80">
+        <section className="py-8 md:py-10 bg-[#f8fafc] border-y border-slate-200/80">
             <div className="container-torano">
                 {/* Section Header */}
-                <div className="flex items-center gap-3 mb-8 pb-3.5 border-b border-slate-200/80">
-                    <div className="w-1.5 h-6 sm:h-7 bg-[#dc2626] rounded-full shrink-0" />
-                    <h2 className="flex items-center gap-2 text-xl sm:text-2xl font-bold uppercase text-slate-900 tracking-tight">
-                        <span className="text-xl">🔥</span>
-                        <span>SẢN PHẨM BÁN CHẠY</span>
+                <div className="flex items-center gap-2.5 mb-6 pb-2.5 border-b border-slate-200/80">
+                    <div className="w-1.5 h-5 sm:h-6 bg-[#dc2626] rounded-full shrink-0" />
+                    <h2 className="text-lg sm:text-xl font-bold uppercase text-slate-900 tracking-tight">
+                        SẢN PHẨM BÁN CHẠY
                     </h2>
                 </div>
 
