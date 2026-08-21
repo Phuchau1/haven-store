@@ -497,7 +497,7 @@ export default function ChatSupport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 25, scale: 0.94 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-[calc(100vw-32px)] sm:w-[420px] md:w-[450px] h-[600px] sm:h-[640px] md:h-[680px] max-h-[calc(100dvh-36px)] bg-white text-slate-900 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.22)] border border-slate-200 flex flex-col overflow-hidden backdrop-blur-xl"
+            className="w-[calc(100vw-32px)] sm:w-[380px] md:w-[410px] lg:w-[25vw] lg:min-w-[360px] lg:max-w-[430px] h-[570px] sm:h-[610px] lg:h-[640px] max-h-[calc(100dvh-32px)] bg-white text-slate-900 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.22)] border border-slate-200 flex flex-col overflow-hidden backdrop-blur-xl"
           >
             {/* ── HEADER DEEP NAVY SANG TRỌNG ── */}
             <div className="bg-[#0a192f] text-white px-4 py-3.5 flex items-center justify-between flex-shrink-0 shadow-md">
@@ -595,27 +595,24 @@ export default function ChatSupport() {
                     </div>
                   </div>
 
-                  {/* ── THẺ GỢI Ý SẢN PHẨM DẠNG CAROUSEL NGANG GỌN GÀNG ── */}
+                  {/* ── THẺ GỢI Ý SẢN PHẨM: 1 HÀNG 2 SẢN PHẨM DỄ THAO TÁC ── */}
                   {msg.sender === 'bot' && msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                    <div className="ml-10 mt-2 flex flex-col gap-1.5 w-full max-w-[calc(100%-40px)]">
+                    <div className="ml-9 sm:ml-10 mt-2 flex flex-col gap-1.5 w-full max-w-[calc(100%-36px)] sm:max-w-[calc(100%-40px)]">
                       <div className="flex items-center gap-1 px-0.5">
                         <Sparkles size={11} className="text-amber-500" />
                         <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                           Sản phẩm gợi ý ({msg.suggestedProducts.length}):
                         </p>
                       </div>
-                      <div 
-                        className="flex gap-2.5 overflow-x-auto pb-2 pt-0.5 scroll-smooth hide-scrollbar"
-                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                      >
-                        {msg.suggestedProducts.map((p) => (
+                      <div className="grid grid-cols-2 gap-2">
+                        {msg.suggestedProducts.slice(0, 4).map((p) => (
                           <Link
                             key={p.id}
                             href={`/product/${getProductSlug(p)}`}
-                            className="flex-shrink-0 w-[145px] bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 hover:border-slate-400 p-2 shadow-2xs transition-all flex flex-col group cursor-pointer"
+                            className="bg-white hover:bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-400 p-2 shadow-2xs transition-all flex flex-col group cursor-pointer"
                             onClick={() => setIsOpen(false)}
                           >
-                            <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-100 mb-2 border border-slate-100">
+                            <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-slate-100 mb-1.5 border border-slate-100">
                               {p.image ? (
                                 <Image
                                   src={p.image}
@@ -629,20 +626,20 @@ export default function ChatSupport() {
                                 </div>
                               )}
                               {p.flashSale && (
-                                <span className="absolute top-1.5 left-1.5 text-[8.5px] font-black px-1.5 py-0.5 bg-red-600 text-white rounded shadow-xs">
+                                <span className="absolute top-1 left-1 text-[7.5px] font-black px-1.5 py-0.5 bg-red-600 text-white rounded shadow-xs">
                                   FLASH SALE
                                 </span>
                               )}
                             </div>
-                            <p className="text-[12px] font-medium text-slate-800 line-clamp-1 group-hover:text-slate-950 transition-colors">
+                            <p className="text-[11.5px] font-medium text-slate-800 line-clamp-1 group-hover:text-slate-950 transition-colors">
                               {cleanProductTitle(p.name)}
                             </p>
-                            <div className="flex items-baseline gap-1 mt-0.5">
-                              <span className={`text-[12px] font-bold ${p.flashSale || (p.originalPrice && p.originalPrice > p.price) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
+                            <div className="flex items-baseline gap-1 mt-0.5 flex-wrap">
+                              <span className={`text-[11.5px] font-bold ${p.flashSale || (p.originalPrice && p.originalPrice > p.price) ? 'text-[#dc2626]' : 'text-slate-900'}`}>
                                 {formatPrice(p.price)}
                               </span>
                               {Boolean(p.originalPrice && p.originalPrice > p.price) && (
-                                <span className="text-[9.5px] text-slate-400 font-normal line-through">
+                                <span className="text-[9px] text-slate-400 font-normal line-through">
                                   {formatPrice(p.originalPrice || 0)}
                                 </span>
                               )}
