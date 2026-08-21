@@ -56,13 +56,6 @@ export default function BestSelling() {
                         transition={{ duration: 0.5 }}
                         className="flex flex-col items-center"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1e40af] text-white border border-blue-900 mb-3.5 shadow-sm shadow-blue-900/20">
-                            <Flame size={13} className="text-[#dc2626] fill-[#dc2626]" />
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">
-                                XU HƯỚNG MUA SẮM
-                            </span>
-                        </div>
-
                         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-950 tracking-tight">
                             Sản Phẩm Bán Chạy
                         </h2>
