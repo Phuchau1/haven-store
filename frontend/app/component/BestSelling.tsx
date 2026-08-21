@@ -45,36 +45,30 @@ export default function BestSelling() {
     if (products.length === 0) return null;
 
     return (
-        <section className="py-16 md:py-20 bg-white">
+        <section className="py-16 md:py-22 bg-[#fafafa]">
             <div className="container-torano">
-                {/* Section Header */}
-                <div className="flex flex-col items-center justify-center mb-12 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                        className="flex flex-col items-center"
-                    >
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1e40af] text-white border border-blue-900 mb-3.5 shadow-sm shadow-blue-900/20">
-                            <Flame size={13} className="text-[#dc2626] fill-[#dc2626]" />
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">
-                                XU HƯỚNG MUA SẮM
-                            </span>
-                        </div>
-
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-slate-950 tracking-tight">
+                {/* Section Header - Editorial Fashion */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-4 border-b border-neutral-200/80 gap-4">
+                    <div>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-400">
+                            MOST POPULAR DESIGNS
+                        </p>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-neutral-950 tracking-tight mt-1">
                             Sản Phẩm Bán Chạy
                         </h2>
+                    </div>
 
-                        <p className="mt-3 text-sm sm:text-base text-slate-500 max-w-xl font-normal leading-relaxed">
-                            Top những thiết kế được yêu thích và săn đón nhiều nhất trong tuần
-                        </p>
-                    </motion.div>
+                    <Link 
+                        href="/products?sort=best-selling" 
+                        className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-900 hover:text-neutral-600 transition-colors group"
+                    >
+                        <span>Xem tất cả sản phẩm bán chạy</span>
+                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                 </div>
 
                 {/* Products Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-7">
                     {products.map((product: Product, index: number) => (
                         <ProductCard key={product.id} product={product} index={index} showSold={true} />
                     ))}

@@ -66,24 +66,20 @@ export default function ProductCard({
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: index * 0.05 }}
+            transition={{ duration: 0.35, delay: index * 0.04 }}
             className="h-full"
         >
             <Link 
                 href={isUpcomingFlashSale ? `/product/${getProductSlug(product)}?slot=upcoming` : `/product/${getProductSlug(product)}`} 
-                className={`group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1 bg-white border rounded-2xl overflow-hidden shadow-xs hover:shadow-md ${
-                    isFlashSaleCard || (showDiscount && discount > 0)
-                        ? 'border-slate-200 hover:border-[#dc2626]'
-                        : 'border-slate-200 hover:border-[#1e40af]'
-                }`}
+                className="group block h-full flex flex-col transition-all duration-300 bg-white border border-neutral-200/80 hover:border-neutral-900 rounded-none overflow-hidden"
                 onMouseLeave={() => setSelectedColor(null)}
             >
-                {/* ── PRODUCT IMAGE CONTAINER (WIDER & SHORTER 1:1 RATIO) ── */}
+                {/* ── PRODUCT IMAGE CONTAINER (EDITORIAL 3:4 PORTRAIT RATIO) ── */}
                 <div
-                    className="relative aspect-square overflow-hidden bg-[#f8fafc] transition-all duration-300"
+                    className="relative aspect-[3/4] overflow-hidden bg-[#f5f5f5] transition-all duration-500"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
@@ -92,7 +88,7 @@ export default function ProductCard({
                         src={displayedImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-0 scale-[1.04]' : 'opacity-100 scale-100'}`}
+                        className={`object-cover transition-all duration-700 ease-out ${isHovered ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                     {/* Hover Image */}
@@ -100,35 +96,27 @@ export default function ProductCard({
                         src={hoverImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-500 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'}`}
+                        className={`object-cover transition-all duration-700 ease-out ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
-                    {/* Badges Overlay (Strict 4-Color Brand Palette) */}
-                    <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
+                    {/* Minimalist Editorial Badges Overlay */}
+                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
                         {badgeText && !(showDiscount && discount > 0 && badgeText.toUpperCase().includes('SALE')) && (
                             <span
-                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10.5px] uppercase font-black rounded-md tracking-wider shadow-2xs ${
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider ${
                                     badgeText.toUpperCase() === 'MỚI' || badgeText.toUpperCase() === 'NEW'
-                                        ? 'bg-[#1e40af] text-white'
-                                        : badgeText.toUpperCase().includes('FREESHIP')
-                                            ? 'bg-[#1e40af] text-white'
-                                            : badgeText.toUpperCase() === 'HOT' || badgeText.toUpperCase().includes('CHẠY')
-                                                ? 'bg-[#d97706] text-white'
-                                                : 'bg-[#1e40af] text-white'
+                                        ? 'bg-black text-white'
+                                        : badgeText.toUpperCase() === 'HOT' || badgeText.toUpperCase().includes('CHẠY')
+                                            ? 'bg-neutral-900 text-white'
+                                            : 'bg-black text-white'
                                 }`}
                             >
-                                {badgeText.toUpperCase().includes('FREESHIP') && (
-                                    <Truck size={11} className="shrink-0" />
-                                )}
-                                {(badgeText.toUpperCase() === 'HOT' || badgeText.toUpperCase().includes('CHẠY')) && (
-                                    <Flame size={11} className="shrink-0 fill-white" />
-                                )}
                                 <span>{badgeText}</span>
                             </span>
                         )}
                         {showDiscount && discount > 0 && (
-                            <span className="inline-block px-2.5 py-0.5 text-[10.5px] font-black rounded-md bg-[#dc2626] text-white">
+                            <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-red-600 text-white tracking-wider">
                                 -{discount}%
                             </span>
                         )}
@@ -179,18 +167,18 @@ export default function ProductCard({
                     </motion.div>
                 </div>
 
-                {/* ── PRODUCT DETAILS (COMPACT & BALANCED) ── */}
-                <div className="p-3 sm:p-3.5 flex-1 flex flex-col bg-white">
+                {/* ── PRODUCT DETAILS (MINIMALIST LUXURY) ── */}
+                <div className="p-3.5 sm:p-4 flex-1 flex flex-col bg-white">
                     {/* Category & Swatches Row */}
-                    <div className="flex items-center justify-between gap-2 min-h-[22px]">
-                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">
-                            {product.categoryLabel || product.category || 'THỜI TRANG'}
+                    <div className="flex items-center justify-between gap-2 min-h-[20px]">
+                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest truncate">
+                            {product.categoryLabel || product.category || 'HAVEN'}
                         </p>
 
-                        {/* Colors Swatches (Kích thước vừa phải, thanh lịch) */}
+                        {/* Colors Swatches */}
                         {product.colors && product.colors.length > 1 && (
                             <div className="flex items-center gap-1.5 shrink-0 py-0.5">
-                                {product.colors.slice(0, 5).map((color, idx) => {
+                                {product.colors.slice(0, 4).map((color, idx) => {
                                     const isActive = selectedColor ? selectedColor.name === color.name : idx === 0;
                                     return (
                                         <button
@@ -202,10 +190,10 @@ export default function ProductCard({
                                                 setSelectedColor(color);
                                             }}
                                             onMouseEnter={() => setSelectedColor(color)}
-                                            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-gray-300 transition-all duration-200 cursor-pointer ${
+                                            className={`w-3.5 h-3.5 rounded-full border border-neutral-300 transition-all duration-200 cursor-pointer ${
                                                 isActive
-                                                    ? 'ring-1.5 ring-offset-1 ring-slate-800 scale-105 shadow-xs'
-                                                    : 'hover:scale-110 hover:border-slate-500 opacity-90 hover:opacity-100'
+                                                    ? 'ring-1 ring-offset-1 ring-black scale-110'
+                                                    : 'opacity-80 hover:opacity-100 hover:scale-105'
                                             }`}
                                             style={{ backgroundColor: color.hex }}
                                             title={color.name}
@@ -216,20 +204,16 @@ export default function ProductCard({
                         )}
                     </div>
 
-                    {/* Product Name (Bold & Easy to Read) */}
-                    <h3 className={`text-[14px] sm:text-[14.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[38px] mt-1 transition-colors ${
-                        isFlashSaleCard || (showDiscount && discount > 0)
-                            ? 'group-hover:text-[#dc2626]'
-                            : 'group-hover:text-[#1e40af]'
-                    }`}>
+                    {/* Product Name */}
+                    <h3 className="text-[13.5px] sm:text-[14px] font-medium text-neutral-900 leading-snug line-clamp-2 min-h-[36px] mt-1.5 group-hover:text-neutral-600 transition-colors">
                         {cleanProductTitle(product.name)}
                     </h3>
 
                     {/* Price Section */}
-                    <div className="flex flex-col mt-auto pt-1.5 w-full">
+                    <div className="flex flex-col mt-auto pt-2 w-full">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-baseline gap-1.5 flex-wrap">
-                                <span className={`text-[16.5px] sm:text-[17.5px] font-black tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-[#0f172a]'}`}>
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                                <span className="text-[15px] sm:text-[16px] font-black text-neutral-950 tracking-tight">
                                     {isUpcomingFlashSale ? (
                                         (() => {
                                             const str = Math.round(product.price).toString();
@@ -241,13 +225,13 @@ export default function ProductCard({
                                     )}
                                 </span>
                                 {showDiscount && (product.originalPrice || 0) > product.price && (
-                                    <span className="text-[13px] sm:text-[13.5px] font-normal text-gray-400 line-through">
+                                    <span className="text-xs text-neutral-400 line-through font-normal">
                                         {formatPrice(product.originalPrice || 0)}
                                     </span>
                                 )}
                             </div>
                             {!isFlashSaleCard && showSold && product.soldQuantity !== undefined && (
-                                <span className="text-[11px] text-gray-600 font-semibold bg-gray-100 px-2 py-0.5 rounded-md">
+                                <span className="text-[10px] text-neutral-400 font-medium">
                                     Đã bán {product.soldQuantity}
                                 </span>
                             )}

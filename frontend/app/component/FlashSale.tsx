@@ -159,24 +159,31 @@ export default function FlashSale() {
     const percentOverall = (rawStock + rawSold) > 0 ? Math.min(Math.round((rawSold / (rawStock + rawSold)) * 100), 100) : 15;
 
     return (
-        <section id="flash-sale" className="py-16 bg-white">
+        <section id="flash-sale" className="py-14 lg:py-18 bg-[#fafafa]">
             <div className="container-torano">
-                {/* Unified Premium Shopee-style Header Container */}
-                <div className="bg-gradient-to-r from-[#D32F2F] to-[#b71c1c] rounded-2xl p-4 md:p-6 mb-8 flex flex-col shadow-lg border border-red-700/20">
-                    
+                {/* Unified Luxury Enterprise Flash Sale Header */}
+                <div className="bg-[#09090b] rounded-2xl p-5 sm:p-7 mb-8 flex flex-col shadow-xl border border-neutral-800 text-white relative overflow-hidden">
+                    {/* Subtle luxury glow in corner */}
+                    <div className="absolute top-0 right-0 w-80 h-80 bg-red-900/15 rounded-full blur-3xl pointer-events-none" />
+
                     {/* Top Row: Title, Slots, Timer */}
-                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-2">
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 pb-2">
                         {/* Left: Brand / Title */}
-                        <div className="flex items-center gap-3 w-full lg:w-auto">
-                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#D32F2F] shadow-md shrink-0 animate-bounce">
-                                <Zap size={26} fill="currentColor" />
+                        <div className="flex items-center gap-3.5 w-full lg:w-auto">
+                            <div className="w-11 h-11 bg-white text-black rounded-xl flex items-center justify-center shrink-0 shadow-md">
+                                <Zap size={22} fill="currentColor" />
                             </div>
                             <div>
-                                <h2 className="text-2xl lg:text-3xl font-extrabold uppercase text-white tracking-tight leading-none" style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif" }}>
-                                    Flash Sale
-                                </h2>
-                                <p className="text-[10px] font-bold text-red-100 mt-1 uppercase tracking-wider">
-                                    Giá sốc hôm nay - săn ngay kẻo lỡ!
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
+                                        Flash Sale
+                                    </h2>
+                                    <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-extrabold uppercase tracking-widest rounded">
+                                        Limited
+                                    </span>
+                                </div>
+                                <p className="text-xs text-neutral-400 mt-0.5 tracking-wide">
+                                    Ưu đãi số lượng giới hạn hôm nay
                                 </p>
                             </div>
                         </div>
@@ -189,14 +196,14 @@ export default function FlashSale() {
                                     <button
                                         key={index}
                                         onClick={() => handleTabChange(slot.value)}
-                                        className={`flex flex-col items-center justify-center min-w-[90px] sm:min-w-[100px] py-1.5 px-3 rounded-xl transition-all ${
+                                        className={`flex flex-col items-center justify-center min-w-[95px] sm:min-w-[105px] py-2 px-3 rounded-xl transition-all cursor-pointer ${
                                             isActiveTab 
-                                                ? 'bg-white text-[#D32F2F] font-bold shadow-md scale-105 border-2 border-white' 
-                                                : 'bg-[#9C1C1C] text-red-100 hover:bg-[#8A1616] border-2 border-transparent'
+                                                ? 'bg-white text-neutral-950 font-bold shadow-md scale-102 border border-white' 
+                                                : 'bg-neutral-900/80 text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-800'
                                         }`}
                                     >
-                                        <span className="text-sm font-extrabold">{slot.label}</span>
-                                        <span className={`text-[9px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#D32F2F]/80' : 'text-red-200'}`}>
+                                        <span className="text-xs font-black uppercase tracking-wide">{slot.label}</span>
+                                        <span className={`text-[10px] mt-0.5 font-medium tracking-tight ${isActiveTab ? 'text-neutral-600' : 'text-neutral-500'}`}>
                                             {slot.subLabel}
                                         </span>
                                     </button>
@@ -205,8 +212,8 @@ export default function FlashSale() {
                         </div>
 
                         {/* Right: Countdown */}
-                        <div className="flex flex-col items-end w-full lg:w-auto border-t lg:border-t-0 border-red-800/50 pt-4 lg:pt-0">
-                            <span className="text-[9px] text-red-200 font-extrabold uppercase tracking-widest mb-1.5 pr-1 self-start lg:self-end">
+                        <div className="flex flex-col items-end w-full lg:w-auto border-t lg:border-t-0 border-neutral-800 pt-4 lg:pt-0">
+                            <span className="text-[10.5px] text-neutral-400 font-bold uppercase tracking-widest mb-1.5 pr-0.5 self-start lg:self-end">
                                 Kết thúc sau
                             </span>
                             <div className="flex items-center gap-2">
@@ -217,63 +224,60 @@ export default function FlashSale() {
                                 ].map((unit, i) => (
                                     <React.Fragment key={i}>
                                         <div className="flex flex-col items-center">
-                                            <div className="w-11 h-11 flex items-center justify-center bg-[#111111] text-white rounded-xl shadow-md border border-neutral-800">
-                                                <span className="text-lg font-bold font-mono">
+                                            <div className="w-10 h-10 flex items-center justify-center bg-neutral-900 text-white rounded-lg border border-neutral-700 shadow-inner">
+                                                <span className="text-base font-bold font-mono">
                                                     {String(unit.value).padStart(2, '0')}
                                                 </span>
                                             </div>
-                                            <span className="text-[9px] text-red-100 font-bold mt-1 uppercase tracking-wider">{unit.label}</span>
+                                            <span className="text-[9px] text-neutral-500 font-bold mt-1 uppercase tracking-wider">{unit.label}</span>
                                         </div>
-                                        {i < 2 && <span className="text-lg font-bold text-white mb-4">:</span>}
+                                        {i < 2 && <span className="text-base font-bold text-neutral-500 mb-3">:</span>}
                                     </React.Fragment>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* Bottom Row: Dark Red Info Sub-Bar (Responsive 2x2 on mobile, 4x1 on desktop) */}
-                    <div className="mt-4 sm:mt-5 bg-[#8A1616]/60 rounded-xl p-3 sm:p-4 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-center text-white border border-red-800/30">
+                    {/* Bottom Row: Minimalist Enterprise Info Bar */}
+                    <div className="relative z-10 mt-5 pt-4 border-t border-neutral-800 grid grid-cols-2 lg:grid-cols-4 gap-4 items-center text-neutral-300">
                         {/* Column 1: Fire icon + Sold orders */}
                         <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Flame size={16} className="text-amber-400" fill="currentColor" />
+                            <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center shrink-0 border border-neutral-800 text-amber-400">
+                                <Flame size={15} fill="currentColor" />
                             </div>
                             <div>
-                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Đã bán</div>
-                                <div className="text-xs sm:text-sm font-extrabold">{totalSoldItems} đơn</div>
+                                <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Đã đặt mua</div>
+                                <div className="text-xs sm:text-sm font-black text-white">{totalSoldItems} sản phẩm</div>
                             </div>
                         </div>
                         {/* Column 2: Box icon + Stock items */}
-                        <div className="flex items-center gap-2.5 pl-1 sm:pl-2 border-l border-red-800/40">
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Package size={16} className="text-amber-400" />
+                        <div className="flex items-center gap-2.5 pl-1 sm:pl-2 border-l border-neutral-800">
+                            <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center shrink-0 border border-neutral-800 text-neutral-300">
+                                <Package size={15} />
                             </div>
                             <div>
-                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Còn lại</div>
-                                <div className="text-xs sm:text-sm font-extrabold">{totalStockItems} món</div>
+                                <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Tồn kho ưu đãi</div>
+                                <div className="text-xs sm:text-sm font-black text-white">{totalStockItems} chiếc</div>
                             </div>
                         </div>
                         {/* Column 3: Truck icon + Free shipping */}
-                        <div className="flex items-center gap-2.5 border-t lg:border-t-0 lg:border-l border-red-800/40 pt-2.5 lg:pt-0 lg:pl-4">
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                <Truck size={16} className="text-amber-400" />
+                        <div className="flex items-center gap-2.5 border-t lg:border-t-0 lg:border-l border-neutral-800 pt-2.5 lg:pt-0 lg:pl-4">
+                            <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center shrink-0 border border-neutral-800 text-emerald-400">
+                                <Truck size={15} />
                             </div>
                             <div>
-                                <div className="text-[9px] text-red-200 font-bold uppercase tracking-wider">Freeship</div>
-                                <div className="text-[10.5px] sm:text-[11px] font-bold leading-tight">Từ 500.000đ</div>
+                                <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Giao hàng</div>
+                                <div className="text-xs sm:text-sm font-black text-emerald-400">Freeship từ 500K</div>
                             </div>
                         </div>
-                        {/* Column 4: Divider + Program Progress */}
-                        <div className="flex flex-col gap-1 border-t lg:border-t-0 lg:border-l border-red-800/40 pt-2.5 lg:pt-0 lg:pl-4">
-                            <div className="flex justify-between items-center text-[9px] text-red-200 font-bold uppercase tracking-wider">
-                                <span>Tiến trình</span>
-                                <span className="font-extrabold text-white">{percentOverall}%</span>
+                        {/* Column 4: Deal indicator */}
+                        <div className="flex items-center gap-2.5 border-t lg:border-t-0 lg:border-l border-neutral-800 pt-2.5 lg:pt-0 lg:pl-4">
+                            <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center shrink-0 border border-neutral-800 text-red-400">
+                                <Percent size={15} />
                             </div>
-                            <div className="relative w-full h-2 bg-red-950/60 rounded-full overflow-hidden border border-red-900/30">
-                                <div 
-                                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full transition-all duration-500" 
-                                    style={{ width: `${percentOverall}%` }}
-                                />
+                            <div>
+                                <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Mức giảm</div>
+                                <div className="text-xs sm:text-sm font-black text-red-400">Lên đến 50%</div>
                             </div>
                         </div>
                     </div>
