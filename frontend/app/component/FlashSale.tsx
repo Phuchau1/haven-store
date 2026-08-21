@@ -133,7 +133,7 @@ export default function FlashSale() {
                 <div className="container-torano">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                            <div key={i} className="aspect-[3/4] rounded-2xl shimmer bg-gray-100" />
+                            <div key={i} className="aspect-square rounded-2xl shimmer bg-gray-100" />
                         ))}
                     </div>
                 </div>
@@ -291,7 +291,7 @@ export default function FlashSale() {
                                 className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
                             >
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                                    <div key={i} className="aspect-[3/4] rounded-2xl shimmer bg-red-100/40" />
+                                    <div key={i} className="aspect-square rounded-2xl shimmer bg-red-100/40" />
                                 ))}
                             </motion.div>
                         ) : displayProducts.length === 0 ? (

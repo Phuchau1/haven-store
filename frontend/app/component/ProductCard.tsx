@@ -77,9 +77,9 @@ export default function ProductCard({
                 className="group block h-full flex flex-col transition-all duration-300 hover:-translate-y-1.5 bg-white border border-slate-200/90 hover:border-slate-900 rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.08)]"
                 onMouseLeave={() => setSelectedColor(null)}
             >
-                {/* ── PRODUCT IMAGE CONTAINER (FASHION 3:4 PORTRAIT RATIO) ── */}
+                {/* ── PRODUCT IMAGE CONTAINER (CLEAN 1:1 SQUARE RATIO) ── */}
                 <div
-                    className="relative aspect-[3/4] overflow-hidden bg-[#f8fafc] transition-all duration-500"
+                    className="relative aspect-square overflow-hidden bg-[#f8fafc] transition-all duration-300"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
@@ -88,7 +88,7 @@ export default function ProductCard({
                         src={displayedImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-700 ease-out ${isHovered ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}
+                        className={`object-cover transition-all duration-500 ease-out ${isHovered ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                     {/* Hover Image */}
@@ -96,7 +96,7 @@ export default function ProductCard({
                         src={hoverImage}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-all duration-700 ease-out ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                        className={`object-cover transition-all duration-500 ease-out ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
 
@@ -167,7 +167,7 @@ export default function ProductCard({
                     >
                         <button
                             onClick={handleQuickAdd}
-                            className="w-full flex items-center justify-center gap-1.5 h-9.5 bg-[#0a192f] hover:bg-[#1e40af] text-white text-xs font-extrabold uppercase tracking-wider transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
+                            className="w-full flex items-center justify-center gap-1.5 h-9 bg-[#0a192f] hover:bg-[#1e40af] text-white text-xs font-extrabold uppercase tracking-wider transition-all duration-300 rounded-xl shadow-lg cursor-pointer"
                         >
                             <ShoppingBag size={13} />
                             Thêm vào giỏ
@@ -176,10 +176,10 @@ export default function ProductCard({
                 </div>
 
                 {/* ── PRODUCT DETAILS ── */}
-                <div className="p-3.5 sm:p-4 flex-1 flex flex-col bg-white">
+                <div className="p-3 sm:p-3.5 flex-1 flex flex-col bg-white">
                     {/* Category & Swatches Row */}
-                    <div className="flex items-center justify-between gap-2 min-h-[22px]">
-                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                    <div className="flex items-center justify-between gap-2 min-h-[20px]">
+                        <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">
                             {product.categoryLabel || product.category || 'HAVEN'}
                         </p>
 
@@ -213,7 +213,7 @@ export default function ProductCard({
                     </div>
 
                     {/* Product Name */}
-                    <h3 className="text-[14px] sm:text-[14.5px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[38px] mt-1 group-hover:text-[#1e40af] transition-colors">
+                    <h3 className="text-[13.5px] sm:text-[14px] font-bold text-slate-900 leading-snug line-clamp-2 min-h-[36px] mt-1 group-hover:text-[#1e40af] transition-colors">
                         {cleanProductTitle(product.name)}
                     </h3>
 
@@ -221,7 +221,7 @@ export default function ProductCard({
                     <div className="flex flex-col mt-auto pt-2 w-full">
                         <div className="flex items-center justify-between">
                             <div className="flex items-baseline gap-1.5 flex-wrap">
-                                <span className={`text-[16.5px] sm:text-[17.5px] font-black tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-[#1e3a8a]'}`}>
+                                <span className={`text-[16px] sm:text-[17px] font-black tracking-tight ${isFlashSaleCard || (showDiscount && discount > 0) ? 'text-[#dc2626]' : 'text-[#1e3a8a]'}`}>
                                     {isUpcomingFlashSale ? (
                                         (() => {
                                             const str = Math.round(product.price).toString();
@@ -233,27 +233,27 @@ export default function ProductCard({
                                     )}
                                 </span>
                                 {showDiscount && (product.originalPrice || 0) > product.price && (
-                                    <span className="text-[12.5px] sm:text-[13px] font-medium text-slate-400 line-through">
+                                    <span className="text-[12px] sm:text-[12.5px] font-medium text-slate-400 line-through">
                                         {formatPrice(product.originalPrice || 0)}
                                     </span>
                                 )}
                             </div>
                             {!isFlashSaleCard && showSold && product.soldQuantity !== undefined && (
-                                <span className="text-[11px] text-slate-600 font-semibold bg-slate-100 px-2 py-0.5 rounded-md">
+                                <span className="text-[10.5px] text-slate-600 font-semibold bg-slate-100 px-2 py-0.5 rounded-md">
                                     Đã bán {product.soldQuantity}
                                 </span>
                             )}
                         </div>
 
-                        {/* Flash Sale Progress Pill */}
+                        {/* Flash Sale Clean Progress Bar */}
                         {isFlashSaleCard && (
                             (() => {
                                 if (isUpcomingFlashSale) {
                                     return (
-                                        <div className="mt-3 w-full">
-                                            <div className="relative w-full h-[22px] bg-[#fff2ec] border border-[#ff8b66]/60 rounded-full overflow-hidden flex items-center justify-center shadow-xs">
-                                                <span className="relative z-10 text-[10.5px] font-black uppercase text-[#ee4d2d] tracking-wider flex items-center gap-1">
-                                                    ⏰ SẮP MỞ BÁN
+                                        <div className="mt-2.5 w-full">
+                                            <div className="w-full h-5 bg-amber-50 border border-amber-200 rounded-full flex items-center justify-center">
+                                                <span className="text-[10px] font-bold uppercase text-amber-700 tracking-wider">
+                                                    ⏰ Sắp mở bán
                                                 </span>
                                             </div>
                                         </div>
@@ -266,30 +266,22 @@ export default function ProductCard({
                                 const displayPercent = Math.max(percentSold, 14);
 
                                 const label = soldCount > 0 
-                                    ? (percentSold >= 90 ? `🔥 SẮP CHÁY HÀNG (${soldCount})` : `ĐÃ BÁN ${soldCount}`)
-                                    : 'ĐANG BÁN CHẠY';
+                                    ? (percentSold >= 90 ? `Sắp cháy hàng (${soldCount})` : `Đã bán ${soldCount}`)
+                                    : 'Đang bán chạy';
 
                                 return (
-                                    <div className="mt-3 w-full">
-                                        <div className="relative w-full h-[18px] sm:h-[19px]">
-                                            {/* Background pill track */}
-                                            <div className="w-full h-full bg-[#ffc5b2] rounded-full overflow-hidden flex items-center justify-center shadow-inner relative">
-                                                {/* Red / Orange active sold progress gradient */}
-                                                <div 
-                                                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#e01424] via-[#f7431e] to-[#ff6b35] rounded-full transition-all duration-700 shadow-xs" 
-                                                    style={{ width: `${displayPercent}%` }}
-                                                />
-
-                                                {/* Centered Bold Text */}
-                                                <span className="relative z-10 text-[10.5px] font-black uppercase text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] pl-3.5">
-                                                    {label}
-                                                </span>
+                                    <div className="mt-2.5 w-full">
+                                        <div className="w-full h-4.5 bg-red-100 rounded-full overflow-hidden relative flex items-center justify-center">
+                                            {/* Progress fill */}
+                                            <div 
+                                                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-red-600 to-orange-500 rounded-full transition-all duration-500" 
+                                                style={{ width: `${displayPercent}%` }}
+                                            />
+                                            {/* Text & Icon */}
+                                            <div className="relative z-10 flex items-center gap-1 text-[10px] font-bold uppercase text-white tracking-wider px-2">
+                                                <Flame size={10} className="fill-white shrink-0" />
+                                                <span>{label}</span>
                                             </div>
-
-                                            {/* Prominent Large Fire Emoji protruding outside the top-left */}
-                                            <span className="absolute -left-1 -top-1.5 z-20 text-[17px] sm:text-[18px] leading-none select-none drop-shadow-[0_2px_4px_rgba(238,77,45,0.4)] pointer-events-none filter saturate-150">
-                                                🔥
-                                            </span>
                                         </div>
                                     </div>
                                 );
