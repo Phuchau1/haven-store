@@ -404,62 +404,86 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                         </div>
                     )}
 
-                    {/* ─── BẢN ĐỒ LỘ TRÌNH GIAO HÀNG TRỰC QUAN (TO & RÕ NÉT) ───────── */}
+                    {/* ─── BẢN ĐỒ VẬN CHUYỂN DI CHUYỂN ĐỘNG TRỰC QUAN (REAL-TIME ANIMATED CARRIER MAP) ───────── */}
                     {hasCarrier && !isCancelled && (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
-                            <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white flex items-center justify-between">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
-                                        <Navigation size={18} className="animate-pulse" />
+                        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
+                            {/* Map Header */}
+                            <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300 shadow-xs">
+                                        <Navigation size={20} className="animate-spin text-sky-400" style={{ animationDuration: '6s' }} />
                                     </div>
                                     <div>
-                                        <h4 className="font-extrabold text-white text-sm sm:text-base">Lộ Trình Vận Chuyển Trực Quan</h4>
-                                        <p className="text-[11px] text-slate-300 font-medium">Bản đồ điều phối thời gian thực</p>
+                                        <div className="flex items-center gap-2">
+                                            <h4 className="font-black text-white text-base">Lộ Trình Vận Chuyển GPS</h4>
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                        </div>
+                                        <p className="text-xs text-slate-300 font-medium">Bản đồ điều phối di chuyển thời gian thực</p>
                                     </div>
                                 </div>
-                                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shadow-xs">
-                                    {MAP_NODES[mapStep]?.label || 'Đang cập nhật'}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-mono bg-white/10 text-indigo-200 px-3 py-1 rounded-full border border-white/15">
+                                        {orderExt.shippingProvider || orderExt.carrierCode || 'GIAO HÀNG GHTK'}
+                                    </span>
+                                </div>
                             </div>
 
-                            <div className="p-5 sm:p-7">
-                                {/* Route progress track with horizontal scroll wrapper for mobile safety */}
-                                <div className="overflow-x-auto pb-4 pt-2 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-                                    <div className="relative min-w-[580px] px-4 py-2">
-                                        {/* Background connecting bar */}
-                                        <div className="absolute top-[32px] sm:top-[38px] left-10 right-10 h-2.5 bg-slate-100 rounded-full" />
-                                        {/* Active filled bar */}
+                            <div className="p-5 sm:p-7 space-y-6">
+                                {/* ─── ANIMATED TRACKING ROAD MAP ─────────────────── */}
+                                <div className="relative py-6 px-2 bg-gradient-to-b from-slate-50/80 to-indigo-50/30 rounded-2xl border border-slate-100 overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+                                    <div className="min-w-[620px] relative px-6">
+                                        
+                                        {/* Road line background */}
+                                        <div className="absolute top-[42px] left-12 right-12 h-3 bg-slate-200/80 rounded-full border border-slate-300/40 shadow-inner" />
+                                        
+                                        {/* Animated Active Progress Road */}
                                         <div 
-                                            className="absolute top-[32px] sm:top-[38px] left-10 h-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 via-sky-500 to-emerald-500 rounded-full transition-all duration-700 shadow-xs" 
-                                            style={{ width: `calc(${(mapStep / 4) * 100}% - 20px)` }}
+                                            className="absolute top-[42px] left-12 h-3 bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-500 rounded-full transition-all duration-1000 shadow-md" 
+                                            style={{ width: `calc(${(mapStep / 4) * 100}% - 24px)` }}
                                         />
 
-                                        {/* 5 Checkpoint Nodes (Spacious & Big) */}
-                                        <div className="relative grid grid-cols-5 gap-2 text-center">
+                                        {/* 🚚 MOVING VEHICLE MARKER (XE DI CHUYỂN ĐỘNG TRÊN BẢN ĐỒ) */}
+                                        <div 
+                                            className="absolute top-[18px] transition-all duration-1000 z-30 transform -translate-x-1/2"
+                                            style={{ left: `calc(48px + (${(mapStep / 4) * 100}% * 0.84))` }}
+                                        >
+                                            <div className="relative flex flex-col items-center">
+                                                {/* Vehicle bubble with pulse ring */}
+                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-400 text-white shadow-xl flex items-center justify-center text-xl border-2 border-white animate-bounce">
+                                                    <span>{isReturn ? '🛵' : (mapStep >= 2 ? '🚚' : '📦')}</span>
+                                                </div>
+                                                <div className="w-3 h-1.5 bg-black/20 rounded-full blur-[1px] mt-0.5" />
+                                            </div>
+                                        </div>
+
+                                        {/* 5 CHECKPOINT NODES */}
+                                        <div className="relative grid grid-cols-5 gap-3 text-center">
                                             {MAP_NODES.map((node, i) => {
                                                 const isPassed = i <= mapStep;
                                                 const isCurrent = i === mapStep;
                                                 return (
                                                     <div key={node.id} className="flex flex-col items-center">
-                                                        <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center text-2xl sm:text-3xl transition-all duration-300 ${
+                                                        {/* Node circle */}
+                                                        <div className={`relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ${
                                                             isCurrent
-                                                                ? 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white ring-4 ring-indigo-200 scale-110 shadow-xl z-20'
+                                                                ? 'bg-slate-900 text-white ring-4 ring-indigo-200 scale-110 shadow-xl z-20 border-2 border-indigo-500'
                                                                 : isPassed
-                                                                    ? 'bg-slate-900 text-white shadow-md z-10'
-                                                                    : 'bg-slate-50 text-slate-400 border border-slate-200'
+                                                                    ? 'bg-slate-800 text-white shadow-md z-10'
+                                                                    : 'bg-white text-slate-400 border border-slate-200 shadow-xs'
                                                         }`}>
                                                             <span>{node.emoji}</span>
                                                             {isCurrent && (
-                                                                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
+                                                                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
                                                             )}
                                                         </div>
 
-                                                        <p className={`text-xs sm:text-sm font-extrabold mt-3 max-w-[110px] leading-tight ${
-                                                            isCurrent ? 'text-indigo-600' : isPassed ? 'text-slate-900' : 'text-slate-400'
+                                                        {/* Node Title & Description */}
+                                                        <p className={`text-xs font-black mt-3 leading-snug text-center ${
+                                                            isCurrent ? 'text-indigo-600 font-extrabold scale-105' : isPassed ? 'text-slate-900' : 'text-slate-400'
                                                         }`}>
                                                             {node.label}
                                                         </p>
-                                                        <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-1 max-w-[110px] leading-tight">
+                                                        <p className="text-[10px] text-slate-500 font-medium mt-0.5 leading-tight text-center">
                                                             {node.desc}
                                                         </p>
                                                     </div>
@@ -469,18 +493,35 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                     </div>
                                 </div>
 
-                                {/* Live checkpoint info card */}
-                                <div className="mt-2 p-4 bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-purple-50/90 border border-indigo-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full bg-indigo-600 animate-ping shrink-0" />
-                                        <div>
-                                            <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px] block">Mốc Hiện Tại</span>
-                                            <strong className="text-indigo-950 font-black text-sm">{MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}</strong>
+                                {/* ─── LIVE LOCATION RADAR STATUS CARD (KHÔNG BỊ TRUYỀN NỐI XUỐNG DÒNG) ─── */}
+                                <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 rounded-2xl text-white shadow-lg">
+                                    <div className="flex flex-wrap items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3.5 min-w-0">
+                                            <div className="w-11 h-11 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 text-xl shadow-xs">
+                                                {MAP_NODES[mapStep]?.emoji || '📍'}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <span className="text-[10px] font-mono text-indigo-300 uppercase tracking-widest block font-bold">
+                                                    Mốc Hiện Tại (GPS Live Radar)
+                                                </span>
+                                                <h5 className="text-sm sm:text-base font-black text-white truncate mt-0.5">
+                                                    {MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}
+                                                </h5>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 shrink-0">
+                                            <div className="text-right hidden sm:block">
+                                                <span className="text-[10px] text-slate-400 block font-semibold">Tiến độ vận chuyển</span>
+                                                <span className="text-xs font-black text-emerald-400">
+                                                    {Math.round(((mapStep + 1) / 5) * 100)}% Hoàn thành
+                                                </span>
+                                            </div>
+                                            <span className="text-xs font-black text-emerald-300 bg-emerald-500/20 px-3.5 py-1.5 rounded-xl border border-emerald-500/30 whitespace-nowrap">
+                                                {mapStep === 4 ? '🎉 ĐÃ HOÀN TẤT (100%)' : `BƯỚC ${mapStep + 1}/5`}
+                                            </span>
                                         </div>
                                     </div>
-                                    <span className="text-xs font-black text-indigo-700 bg-white px-3.5 py-1.5 rounded-xl border border-indigo-200 shadow-xs shrink-0 self-end sm:self-center">
-                                        {mapStep === 4 ? '🎉 ĐÃ HOÀN TẤT (100%)' : `BƯỚC ${mapStep + 1}/5 (${Math.round(((mapStep + 1) / 5) * 100)}%)`}
-                                    </span>
                                 </div>
                             </div>
                         </div>
