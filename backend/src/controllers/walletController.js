@@ -5,23 +5,40 @@ const { OrderModel } = require('../models/Order');
 /**
  * Helper function: Hoàn tiền đơn hàng vào Ví của User & Lưu lịch sử giao dịch
  */
-const refundOrderToWallet = async ({ userId, userEmail, orderId, refundAmount, reason }) => {
+const refundOrderToWallet = async ({ userId, userEmail, userPhone, orderId, refundAmount, reason }) => {
     try {
-        if (!userId && !userEmail) {
-            throw new Error('Không tìm thấy thông tin tài khoản khách hàng để hoàn tiền vào ví');
+        let targetUserId = userId;
+        let targetEmail = userEmail;
+        let targetPhone = userPhone;
+
+        // Nếu thiếu info, tra cứu ngược từ đơn hàng OrderModel
+        if (orderId && (!targetUserId || !targetEmail)) {
+            const orderObj = await OrderModel.findOne({ id: orderId });
+            if (orderObj) {
+                if (!targetUserId) targetUserId = orderObj.userId;
+                if (!targetEmail) targetEmail = orderObj.email;
+                if (!targetPhone) targetPhone = orderObj.phone;
+            }
         }
 
-        // Tìm User theo ID hoặc Email
+        // Tìm User trong CSDL bằng ID, Email hoặc Phone
         let userDoc = null;
-        if (userId) {
-            userDoc = await UserModel.findOne({ id: userId });
+        if (targetUserId) {
+            userDoc = await UserModel.findOne({ id: targetUserId });
         }
-        if (!userDoc && userEmail) {
-            userDoc = await UserModel.findOne({ email: userEmail });
+        if (!userDoc && targetEmail) {
+            userDoc = await UserModel.findOne({ email: targetEmail });
+        }
+        if (!userDoc && targetPhone) {
+            userDoc = await UserModel.findOne({ phone: targetPhone });
+        }
+        // Fallback: Lấy user có email hoặc id tương tự
+        if (!userDoc && targetEmail) {
+            userDoc = await UserModel.findOne({ email: { $regex: new RegExp(`^${targetEmail.trim()}$`, 'i') } });
         }
 
         if (!userDoc) {
-            throw new Error('Không tìm thấy tài khoản người dùng tương ứng trong hệ thống');
+            throw new Error(`Không tìm thấy tài khoản người dùng tương ứng (${targetEmail || targetUserId || targetPhone}) để nạp tiền ví`);
         }
 
         // Kiểm tra xem đơn hàng đã từng được refund trùng lặp hay chưa

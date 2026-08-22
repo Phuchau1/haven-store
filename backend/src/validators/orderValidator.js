@@ -28,8 +28,14 @@ const validateOrder = (req, res, next) => {
         if (!id) {
             return res.status(400).json({ success: false, message: 'Thiếu ID đơn hàng' });
         }
-        if (!status || !['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
-            return res.status(400).json({ success: false, message: 'Trạng thái đơn hàng không hợp lệ' });
+        const validStatuses = [
+            'pending', 'processing', 'confirmed', 'waiting_pickup', 'picked_up', 
+            'shipped', 'in_transit', 'out_for_delivery', 'delivered', 'completed',
+            'return_requested', 'refund_requested', 'returning', 'return_received', 
+            'refunded', 'cancelled', 'dispute', 'delivery_failed', 'returned_to_seller'
+        ];
+        if (!status || !validStatuses.includes(status)) {
+            return res.status(400).json({ success: false, message: `Trạng thái đơn hàng '${status}' không hợp lệ` });
         }
     }
     next();

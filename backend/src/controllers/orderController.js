@@ -532,17 +532,18 @@ const updateOrderStatus = async (req, res, next) => {
         log(`Cập nhật đơn ${id} từ ${oldStatus} sang ${status}`);
 
         // ─────────────────────────────────────────────────────────────────
-        // TỰ ĐỘNG HOÀN TIỀN VÀO VÍ USER NẾU ĐỔI SANG REFUNDED HOẶC CANCELLED (Trả trước)
+        // TỰ ĐỘNG HOÀN TIỀN VÀO VÍ USER NẾU ĐỔI SANG REFUNDED HOẶC CANCELLED (MỌI PHƯƠNG THỨC THANH TOÁN)
         // ─────────────────────────────────────────────────────────────────
-        if (status === 'refunded' || (status === 'cancelled' && ['vnpay', 'momo', 'banking', 'wallet'].includes(currentOrder.paymentMethod?.toLowerCase()))) {
+        if (status === 'refunded' || status === 'cancelled') {
             try {
                 const refundAmt = currentOrder.finalAmount || currentOrder.totalAmount || 0;
                 await refundOrderToWallet({
                     userId: currentOrder.userId,
                     userEmail: currentOrder.email,
+                    userPhone: currentOrder.phone,
                     orderId: currentOrder.id,
                     refundAmount: refundAmt,
-                    reason: status === 'refunded' ? `Hoàn tiền hoàn hàng thành công cho đơn #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng trả trước #${currentOrder.id}`
+                    reason: status === 'refunded' ? `Hoàn tiền hoàn hàng thành công cho đơn #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng #${currentOrder.id}`
                 });
                 log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${id}`);
             } catch (wErr) {
