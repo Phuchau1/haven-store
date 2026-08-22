@@ -2,14 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Package, X, Plus, Trash2, Image as ImageIcon, Sparkles, DollarSign, Boxes,
+    Package, X, Plus, Trash2, Image as ImageIcon, DollarSign, Boxes,
     Search, Globe, Truck, Tag, Sliders, History, ShieldCheck, Eye, Save,
     FileText, CheckCircle2, AlertTriangle, Check, Loader2,
-    ArrowUp, ArrowDown, Layers, Store, Upload, Info
+    ArrowUp, ArrowDown, Layers, Store, Upload, Info, ChevronRight, ArrowLeft
 } from 'lucide-react';
 import { Product } from '@/types';
-import { toast } from 'react-hot-toast';
-import { useAuthStore } from '@/app/store/useAuthStore';
+import Image from 'next/image';
 
 interface EnterpriseEditProductModalProps {
     isOpen: boolean;
@@ -60,6 +59,18 @@ const DEFAULT_CATEGORIES = [
     }
 ];
 
+const PRESET_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '28', '29', '30', '31', '32', '34', 'Freesize'];
+const PRESET_COLORS = [
+    { name: 'Đen', hex: '#000000' },
+    { name: 'Trắng', hex: '#FFFFFF' },
+    { name: 'Xanh Navy', hex: '#1E3A8A' },
+    { name: 'Xám Ghi', hex: '#64748B' },
+    { name: 'Be (Kem)', hex: '#E2D9C8' },
+    { name: 'Nâu Đất', hex: '#78350F' },
+    { name: 'Xanh Rêu', hex: '#3F6212' },
+    { name: 'Đỏ Đô', hex: '#881337' }
+];
+
 export default function EnterpriseEditProductModal({
     isOpen,
     onClose,
@@ -70,173 +81,103 @@ export default function EnterpriseEditProductModal({
     showToast
 }: EnterpriseEditProductModalProps) {
     const activeCategories = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORIES;
-    // ── Active Tab State ──
-    const [activeTab, setActiveTab] = useState<
-        'overview' | 'media' | 'variants' | 'pricing' | 'inventory' | 'seo' |
-        'ai' | 'specs' | 'related' | 'shipping' | 'multilingual' | 'channels' |
-        'audit' | 'roles'
-    >('overview');
 
     // ── Form State ──
     const [formData, setFormData] = useState<any>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
-    const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'dirty'>('saved');
-    const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [uploadingImage, setUploadingImage] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
     const [newImageUrl, setNewImageUrl] = useState('');
-    const [aiGenerating, setAiGenerating] = useState<string | null>(null);
-
-    // Dynamic specification key-value inputs
+    const [customSizeInput, setCustomSizeInput] = useState('');
+    const [customColorName, setCustomColorName] = useState('');
+    const [customColorHex, setCustomColorHex] = useState('#000000');
+    const [bulkPrice, setBulkPrice] = useState<number | ''>('');
+    const [bulkStock, setBulkStock] = useState<number | ''>('');
     const [specKey, setSpecKey] = useState('');
     const [specValue, setSpecValue] = useState('');
 
-    // Bulk variant modifier values
-    const [bulkStock, setBulkStock] = useState<number | ''>('');
-    const [bulkPrice, setBulkPrice] = useState<number | ''>('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Audit logs simulation
-    const [auditLogs, setAuditLogs] = useState<any[]>([]);
-
-    // Form container ref for error scrolling
-    const formContainerRef = useRef<HTMLDivElement>(null);
-
-    // Initialize Form Data when modal opens or product changes
+    // Initialize Form Data
     useEffect(() => {
         if (!isOpen) return;
 
         if (product) {
             setFormData({
                 ...product,
-                sku: product.sku || `SKU-${product.id || 'HVN'}`,
-                barcode: product.barcode || `893850${Math.floor(100000 + Math.random() * 900000)}`,
-                productCode: product.productCode || `PROD-${product.id}`,
-                brand: product.brand || 'HAVEN',
-                costPrice: product.costPrice || Math.round((product.price || 0) * 0.5),
-                wholesalePrice: product.wholesalePrice || Math.round((product.price || 0) * 0.8),
-                shortDescription: product.shortDescription || product.description || '',
-                richContent: product.richContent || product.content || '',
-                specifications: product.specifications || {
-                    'Chất liệu': product.material || '100% Cotton Premium',
-                    'Độ co giãn': 'Co giãn 4 chiều',
-                    'Kiểu cổ': 'Cổ tròn',
-                    'Form dáng': product.fitType || 'Regular Fit',
-                    'Độ dày': 'Vừa phải'
+                subCategory: product.subCategory || '',
+                originalPrice: product.originalPrice || product.price || 0,
+                costPrice: (product as any).costPrice || Math.round((product.price || 0) * 0.5),
+                status: (product as any).status || ((product.inStock !== false) ? 'published' : 'draft'),
+                brand: (product as any).brand || 'HAVEN',
+                sku: (product as any).sku || `SKU-${product.id}`,
+                barcode: (product as any).barcode || `893${Math.floor(100000000 + Math.random() * 900000000)}`,
+                stock: (product as any).stock !== undefined ? (product as any).stock : 100,
+                shortDescription: (product as any).shortDescription || product.description || '',
+                highlights: (product as any).highlights || ['Chất liệu cao cấp, co giãn thoải mái', 'Thấm hút mồ hôi, thoáng mát cả ngày', 'Đường may tinh tế, form dáng chuẩn'],
+                specs: (product as any).specs || {
+                    'Chất liệu': '100% Cotton Compact cao cấp',
+                    'Kiểu dáng': 'Regular Fit tôn dáng',
+                    'Xuất xứ': 'Sản xuất tại Việt Nam',
+                    'Bảo quản': 'Giặt máy chế độ nhẹ, không sấy nhiệt cao'
                 },
-                tags: product.tags || [product.categoryLabel || 'Thời trang', product.gender || 'Unisex'],
-                seo: product.seo || {
+                seo: (product as any).seo || {
                     title: `${product.name} | HAVEN Store`,
-                    description: product.shortDescription || product.description || product.name,
-                    keywords: `${product.name}, áo quần cao cấp, thời trang haven`,
-                    slug: product.id ? `${product.id.toLowerCase()}` : ''
+                    description: product.description || `Mua sắm ${product.name} chính hãng giá tốt tại HAVEN Store.`,
+                    slug: product.id.toLowerCase()
                 },
-                status: product.status || (product.inStock !== false ? 'published' : 'draft'),
-                gender: product.gender || 'Unisex',
-                styleCategory: product.styleCategory || 'Casual',
-                season: product.season || 'All',
-                inventoryAlloc: { main: 100, branch: 30, online: 80, offline: 50, reserved: 5, incoming: 20, threshold: 10 },
-                shipping: { weight: 350, length: 30, width: 20, height: 5, packaging: 'Túi Niêm Phong HAVEN', codAllowed: true, insurance: true },
-                multilingual: { en: {}, jp: {}, kr: {} },
-                channels: { website: true, mobileApp: true, pos: true, facebook: true, tiktok: true, shopee: false, lazada: false }
+                gender: (product as any).gender || 'Nam',
+                styleCategory: (product as any).styleCategory || 'Tối giản (Minimalism)',
+                shipping: (product as any).shipping || { weight: 300, length: 25, width: 18, height: 4 }
             });
-
-            setAuditLogs([
-                {
-                    id: 1,
-                    user: 'Quản trị viên (Admin)',
-                    action: 'Mở bản ghi chỉnh sửa',
-                    field: 'Tất cả thông tin',
-                    time: new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN'),
-                    ip: '118.69.182.42',
-                    browser: 'Chrome 122 / Windows 11'
-                }
-            ]);
         } else {
-            // New product default
-            const newId = `LF-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+            const newId = `PRD-${Date.now().toString().slice(-6)}`;
             setFormData({
                 id: newId,
                 name: '',
-                sku: `SKU-${newId}`,
-                barcode: `893850${Math.floor(100000 + Math.random() * 900000)}`,
-                productCode: `PROD-${newId}`,
+                price: 0,
+                originalPrice: 0,
+                costPrice: 0,
+                description: '',
+                shortDescription: '',
+                category: 'Thời Trang Nam',
+                subCategory: 'ao-so-mi-nam',
                 brand: 'HAVEN',
-                price: 299000,
-                originalPrice: 399000,
-                costPrice: 150000,
-                wholesalePrice: 220000,
-                category: categories[0]?.id || 'cat-clothing',
-                categoryLabel: categories[0]?.name || 'Thời Trang Nam',
-                subCategory: '',
-                subCategoryLabel: '',
-                images: [
-                    'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop'
-                ],
-                colors: [
-                    { name: 'Đen', hex: '#000000', image: '' },
-                    { name: 'Trắng', hex: '#FFFFFF', image: '' }
-                ],
+                images: [],
                 sizes: ['S', 'M', 'L', 'XL'],
-                variants: [
-                    { color: 'Đen', size: 'S', stock: 50, price: 299000, originalPrice: 399000, costPrice: 150000, sku: `SKU-${newId}-BLK-S` },
-                    { color: 'Đen', size: 'M', stock: 50, price: 299000, originalPrice: 399000, costPrice: 150000, sku: `SKU-${newId}-BLK-M` },
-                    { color: 'Trắng', size: 'S', stock: 50, price: 299000, originalPrice: 399000, costPrice: 150000, sku: `SKU-${newId}-WHT-S` },
-                    { color: 'Trắng', size: 'M', stock: 50, price: 299000, originalPrice: 399000, costPrice: 150000, sku: `SKU-${newId}-WHT-M` }
-                ],
+                colors: [{ name: 'Đen', hex: '#000000' }, { name: 'Trắng', hex: '#FFFFFF' }],
+                variants: [],
+                stock: 100,
                 inStock: true,
                 status: 'published',
-                shortDescription: 'Áo thun cotton cao cấp thoáng mát, thiết kế thanh lịch sang trọng chuẩn phong cách HAVEN.',
-                richContent: '<h3>Đặc điểm nổi bật</h3><p>Sản phẩm chế tác từ 100% sợi dệt Cotton chải kỹ tự nhiên...</p>',
-                specifications: {
-                    'Chất liệu': '100% Cotton Premium',
-                    'Độ co giãn': 'Co giãn 4 chiều',
-                    'Kiểu cổ': 'Cổ tròn',
-                    'Form dáng': 'Regular Fit'
+                sku: `SKU-${newId}`,
+                barcode: `893${Math.floor(100000000 + Math.random() * 900000000)}`,
+                highlights: ['Chất liệu thoáng mát cao cấp', 'Form dáng chuẩn thời trang', 'Độ bền màu cao sau nhiều lần giặt'],
+                specs: {
+                    'Chất liệu': '100% Cotton cao cấp',
+                    'Kiểu dáng': 'Regular Fit',
+                    'Xuất xứ': 'Việt Nam'
                 },
-                tags: ['Áo thun', 'Thời trang', 'Cotton'],
                 seo: {
-                    title: 'Áo thun Cotton Cao Cấp | HAVEN Store',
-                    description: 'Áo thun cotton cao cấp thoáng mát chuẩn phong cách.',
-                    keywords: 'ao thun, thoi trang haven',
+                    title: '',
+                    description: '',
                     slug: newId.toLowerCase()
                 },
-                gender: 'Unisex',
-                styleCategory: 'Casual',
-                season: 'All',
-                inventoryAlloc: { main: 100, branch: 30, online: 70, offline: 30, reserved: 0, incoming: 0, threshold: 10 },
-                shipping: { weight: 300, length: 25, width: 18, height: 4, packaging: 'Túi Niêm Phong', codAllowed: true, insurance: true },
-                multilingual: { en: {}, jp: {}, kr: {} },
-                channels: { website: true, mobileApp: true, pos: true, facebook: true, tiktok: true, shopee: false, lazada: false }
+                gender: 'Nam',
+                styleCategory: 'Tối giản (Minimalism)',
+                shipping: { weight: 300, length: 25, width: 18, height: 4 }
             });
         }
         setErrors({});
-        setActiveTab('overview');
-    }, [isOpen, product, categories]);
+    }, [isOpen, product]);
 
-    // Auto-Save draft timer (every 30 seconds)
-    useEffect(() => {
-        if (!isOpen) return;
-        const timer = setInterval(() => {
-            if (autoSaveStatus === 'dirty') {
-                setAutoSaveStatus('saving');
-                setTimeout(() => {
-                    setLastSavedTime(new Date().toLocaleTimeString('vi-VN'));
-                    setAutoSaveStatus('saved');
-                }, 600);
-            }
-        }, 30000);
-        return () => clearInterval(timer);
-    }, [isOpen, autoSaveStatus]);
-
-    // Keyboard Shortcuts (Ctrl+S for save)
+    // Keyboard shortcut Ctrl + S
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
                 e.preventDefault();
-                handleFormSubmit(e as any, false);
+                handleSubmit(e as any, false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -258,12 +199,12 @@ export default function EnterpriseEditProductModal({
                     newVariants.push({
                         color: col.name,
                         size: sz,
-                        stock: existing ? existing.stock : 50,
+                        stock: existing ? existing.stock : 25,
                         price: existing?.price !== undefined ? existing.price : (formData.price || 0),
                         originalPrice: existing?.originalPrice !== undefined ? existing.originalPrice : (formData.originalPrice || 0),
                         costPrice: existing?.costPrice !== undefined ? existing.costPrice : (formData.costPrice || 0),
                         sku: existing?.sku || `${formData.sku || 'SKU'}-${col.name.substring(0, 3).toUpperCase()}-${sz}`,
-                        barcode: existing?.barcode || `${formData.barcode || '893'}${Math.floor(10 + Math.random() * 90)}`
+                        barcode: existing?.barcode || `${formData.barcode || '893'}`
                     });
                 }
             });
@@ -272,9 +213,33 @@ export default function EnterpriseEditProductModal({
         const sig = (vars: any[]) => vars.map(v => `${v.color}-${v.size}-${v.stock}-${v.price}`).join('|');
         if (sig(newVariants) !== sig(currentVariants)) {
             setFormData((prev: any) => ({ ...prev, variants: newVariants }));
-            setAutoSaveStatus('dirty');
         }
     }, [formData.colors, formData.sizes, formData.price, formData.originalPrice, formData.costPrice]);
+
+    // Update total stock based on variants
+    useEffect(() => {
+        if (formData.variants && formData.variants.length > 0) {
+            const sum = formData.variants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0);
+            if (sum !== formData.stock) {
+                setFormData((prev: any) => ({ ...prev, stock: sum }));
+            }
+        }
+    }, [formData.variants]);
+
+    // Auto generate SEO title & slug when name changes (if empty)
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        const currentSeo = formData.seo || {};
+        setFormData({
+            ...formData,
+            name: val,
+            seo: {
+                ...currentSeo,
+                title: currentSeo.title ? currentSeo.title : `${val} | HAVEN Store`,
+                slug: currentSeo.slug ? currentSeo.slug : val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+            }
+        });
+    };
 
     const validateForm = () => {
         const errs: Record<string, string> = {};
@@ -290,11 +255,11 @@ export default function EnterpriseEditProductModal({
         return Object.keys(errs).length === 0;
     };
 
-    const handleFormSubmit = async (e: React.FormEvent, isDraft = false) => {
+    const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
         if (e) e.preventDefault();
 
         if (!isDraft && !validateForm()) {
-            showToast('warning', 'Chưa đủ thông tin', 'Vui lòng kiểm tra các trường bắt buộc');
+            showToast('warning', 'Chưa đủ thông tin bắt buộc', 'Vui lòng kiểm tra lại tên, giá bán và hình ảnh sản phẩm');
             return;
         }
 
@@ -302,42 +267,33 @@ export default function EnterpriseEditProductModal({
         try {
             const finalPayload = {
                 ...formData,
-                description: formData.description || formData.shortDescription || '',
-                shortDescription: formData.shortDescription || formData.description || '',
-                categoryLabel: formData.categoryLabel || formData.category || 'Quần Áo',
                 status: isDraft ? 'draft' : (formData.status || 'published'),
-                inStock: isDraft ? false : (formData.inStock !== false)
+                inStock: isDraft ? false : (formData.inStock !== false && formData.stock > 0)
             };
             await onSave(finalPayload, isDraft);
-            setLastSavedTime(new Date().toLocaleTimeString('vi-VN'));
-            setAutoSaveStatus('saved');
-            showToast('success', isDraft ? 'Đã lưu nháp' : 'Cập nhật thành công', `Sản phẩm ID: ${formData.id}`);
+            showToast('success', isDraft ? 'Đã lưu bản nháp' : 'Lưu sản phẩm thành công', `Sản phẩm: ${formData.name}`);
             onClose();
         } catch (err: any) {
-            showToast('error', 'Không thể lưu sản phẩm', err?.message || 'Lỗi hệ thống');
+            showToast('error', 'Không thể lưu sản phẩm', err?.message || 'Vui lòng thử lại');
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    // Media Handlers
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setUploadingImage(true);
-        setUploadProgress(30);
-
         try {
             const uploadData = new FormData();
             uploadData.append('image', file);
 
             const res = await fetch('/api/upload', { method: 'POST', body: uploadData });
-            setUploadProgress(100);
-
             const data = await res.json();
             if (data.success && data.url) {
                 setFormData((prev: any) => ({ ...prev, images: [...(prev.images || []), data.url] }));
-                setAutoSaveStatus('dirty');
                 showToast('success', 'Tải ảnh lên thành công');
             } else {
                 const reader = new FileReader();
@@ -345,1570 +301,899 @@ export default function EnterpriseEditProductModal({
                     const localUrl = event.target?.result as string;
                     if (localUrl) {
                         setFormData((prev: any) => ({ ...prev, images: [...(prev.images || []), localUrl] }));
-                        setAutoSaveStatus('dirty');
                         showToast('success', 'Đã thêm ảnh xem trước');
                     }
                 };
                 reader.readAsDataURL(file);
             }
-        } catch {
-            showToast('error', 'Lỗi tải ảnh');
+        } catch (err) {
+            showToast('error', 'Lỗi khi tải ảnh');
         } finally {
-            setTimeout(() => setUploadingImage(false), 300);
+            setUploadingImage(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
     const handleAddImageUrl = () => {
-        if (!newImageUrl || !newImageUrl.trim()) return;
+        if (!newImageUrl.trim()) return;
         setFormData((prev: any) => ({ ...prev, images: [...(prev.images || []), newImageUrl.trim()] }));
         setNewImageUrl('');
-        setAutoSaveStatus('dirty');
-        showToast('success', 'Đã thêm URL hình ảnh');
-    };
-
-    const handleSetPrimaryImage = (index: number) => {
-        const imgs = [...(formData.images || [])];
-        const selected = imgs.splice(index, 1)[0];
-        imgs.unshift(selected);
-        setFormData((prev: any) => ({ ...prev, images: imgs }));
-        setAutoSaveStatus('dirty');
-        showToast('info', 'Đã đặt làm ảnh đại diện chính');
+        showToast('success', 'Đã thêm liên kết ảnh');
     };
 
     const handleRemoveImage = (index: number) => {
-        const imgs = [...(formData.images || [])];
-        imgs.splice(index, 1);
-        setFormData((prev: any) => ({ ...prev, images: imgs }));
-        setAutoSaveStatus('dirty');
-    };
-
-    const handleMoveImage = (index: number, direction: 'up' | 'down') => {
-        const imgs = [...(formData.images || [])];
-        const targetIdx = direction === 'up' ? index - 1 : index + 1;
-        if (targetIdx < 0 || targetIdx >= imgs.length) return;
-        const temp = imgs[index];
-        imgs[index] = imgs[targetIdx];
-        imgs[targetIdx] = temp;
-        setFormData((prev: any) => ({ ...prev, images: imgs }));
-        setAutoSaveStatus('dirty');
-    };
-
-    // ── Color Management ──
-    const handleAddColor = () => {
         setFormData((prev: any) => ({
             ...prev,
-            colors: [...(prev.colors || []), { name: 'Màu mới', hex: '#000000', image: '' }]
+            images: prev.images.filter((_: any, i: number) => i !== index)
         }));
-        setAutoSaveStatus('dirty');
+    };
+
+    const handleSetFeaturedImage = (index: number) => {
+        if (index === 0) return;
+        setFormData((prev: any) => {
+            const imgs = [...prev.images];
+            const [selected] = imgs.splice(index, 1);
+            imgs.unshift(selected);
+            return { ...prev, images: imgs };
+        });
+    };
+
+    // Size Handlers
+    const handleToggleSize = (size: string) => {
+        const currentSizes = formData.sizes || [];
+        if (currentSizes.includes(size)) {
+            setFormData({ ...formData, sizes: currentSizes.filter((s: string) => s !== size) });
+        } else {
+            setFormData({ ...formData, sizes: [...currentSizes, size] });
+        }
+    };
+
+    const handleAddCustomSize = () => {
+        if (!customSizeInput.trim()) return;
+        const s = customSizeInput.trim().toUpperCase();
+        if (!formData.sizes?.includes(s)) {
+            setFormData({ ...formData, sizes: [...(formData.sizes || []), s] });
+        }
+        setCustomSizeInput('');
+    };
+
+    // Color Handlers
+    const handleTogglePresetColor = (preset: { name: string; hex: string }) => {
+        const current = formData.colors || [];
+        const exists = current.some((c: any) => c.name === preset.name);
+        if (exists) {
+            setFormData({ ...formData, colors: current.filter((c: any) => c.name !== preset.name) });
+        } else {
+            setFormData({ ...formData, colors: [...current, preset] });
+        }
+    };
+
+    const handleAddCustomColor = () => {
+        if (!customColorName.trim()) return;
+        const newCol = { name: customColorName.trim(), hex: customColorHex };
+        setFormData({ ...formData, colors: [...(formData.colors || []), newCol] });
+        setCustomColorName('');
     };
 
     const handleRemoveColor = (index: number) => {
-        const colors = [...(formData.colors || [])];
-        colors.splice(index, 1);
-        setFormData((prev: any) => ({ ...prev, colors }));
-        setAutoSaveStatus('dirty');
+        setFormData({
+            ...formData,
+            colors: formData.colors.filter((_: any, i: number) => i !== index)
+        });
     };
 
-    const handleColorChange = (index: number, field: 'name' | 'hex' | 'image', value: string) => {
-        const colors = [...(formData.colors || [])];
-        const oldColorName = colors[index]?.name;
-        colors[index] = { ...colors[index], [field]: value };
-
-        let updatedImages = [...(formData.images || [])];
-        let updatedVariants = [...(formData.variants || [])];
-
-        if (field === 'image' && value && !updatedImages.includes(value)) {
-            updatedImages.push(value);
-        }
-
-        const colorName = colors[index].name;
-        if (field === 'image' || field === 'name') {
-            updatedVariants = updatedVariants.map((v: any) => {
-                if (v.color === oldColorName || v.color === colorName) {
-                    return {
-                        ...v,
-                        color: colorName,
-                        image: field === 'image' ? value : (v.image || value)
-                    };
-                }
-                return v;
-            });
-        }
-
-        setFormData((prev: any) => ({
-            ...prev,
-            colors,
-            images: updatedImages,
-            variants: updatedVariants
-        }));
-        setAutoSaveStatus('dirty');
+    // Bulk update variants
+    const handleApplyBulkPrice = () => {
+        if (bulkPrice === '' || bulkPrice < 0) return;
+        setFormData({
+            ...formData,
+            variants: formData.variants.map((v: any) => ({ ...v, price: Number(bulkPrice) }))
+        });
+        setBulkPrice('');
+        showToast('success', 'Đã cập nhật giá cho toàn bộ biến thể');
     };
 
-    // ── Size Management ──
-    const handleAddSize = () => {
-        setFormData((prev: any) => ({
-            ...prev,
-            sizes: [...(prev.sizes || []), '']
-        }));
-        setAutoSaveStatus('dirty');
+    const handleApplyBulkStock = () => {
+        if (bulkStock === '' || bulkStock < 0) return;
+        setFormData({
+            ...formData,
+            variants: formData.variants.map((v: any) => ({ ...v, stock: Number(bulkStock) }))
+        });
+        setBulkStock('');
+        showToast('success', 'Đã cập nhật tồn kho cho toàn bộ biến thể');
     };
 
-    const handleRemoveSize = (index: number) => {
-        const sizes = [...(formData.sizes || [])];
-        sizes.splice(index, 1);
-        setFormData((prev: any) => ({ ...prev, sizes }));
-        setAutoSaveStatus('dirty');
-    };
-
-    const handleSizeChange = (index: number, value: string) => {
-        const sizes = [...(formData.sizes || [])];
-        sizes[index] = value;
-        setFormData((prev: any) => ({ ...prev, sizes }));
-        setAutoSaveStatus('dirty');
-    };
-
-    const handleQuickAddSizes = (presetSizes: string[]) => {
-        setFormData((prev: any) => ({
-            ...prev,
-            sizes: Array.from(new Set([...(prev.sizes || []), ...presetSizes]))
-        }));
-        setAutoSaveStatus('dirty');
-        showToast('success', `Đã thêm nhanh kích thước: ${presetSizes.join(', ')}`);
-    };
-
+    // Specifications Key-Value
     const handleAddSpec = () => {
         if (!specKey.trim() || !specValue.trim()) return;
-        setFormData((prev: any) => ({
-            ...prev,
-            specifications: { ...(prev.specifications || {}), [specKey.trim()]: specValue.trim() }
-        }));
+        setFormData({
+            ...formData,
+            specs: {
+                ...(formData.specs || {}),
+                [specKey.trim()]: specValue.trim()
+            }
+        });
         setSpecKey('');
         setSpecValue('');
-        setAutoSaveStatus('dirty');
     };
 
-    const handleRemoveSpec = (keyToRemove: string) => {
-        const specs = { ...(formData.specifications || {}) };
-        delete specs[keyToRemove];
-        setFormData((prev: any) => ({ ...prev, specifications: specs }));
-        setAutoSaveStatus('dirty');
+    const handleRemoveSpec = (key: string) => {
+        const next = { ...(formData.specs || {}) };
+        delete next[key];
+        setFormData({ ...formData, specs: next });
     };
 
-    const handleRunAIAction = (actionType: string) => {
-        setAiGenerating(actionType);
-        setTimeout(() => {
-            if (actionType === 'description') {
-                setFormData((prev: any) => ({
-                    ...prev,
-                    shortDescription: `Sản phẩm ${prev.name || 'thời trang'} cao cấp với chất liệu tự nhiên mềm mại, thiết kế tinh tế giúp mang lại cảm giác thoải mái tự tin tuyệt đối.`,
-                    richContent: `<h3>Thiết kế & Chất liệu đỉnh cao</h3><p>Mẫu <strong>${prev.name}</strong> ứng dụng công nghệ dệt hiện đại kháng khuẩn, thoáng khí và bền màu qua nhiều lần giặt.</p>`
-                }));
-                showToast('success', 'AI đã hoàn tất viết mô tả sản phẩm!');
-            } else if (actionType === 'seo') {
-                setFormData((prev: any) => ({
-                    ...prev,
-                    seo: {
-                        title: `${prev.name || 'Sản phẩm'} - Thời Trang Cao Cấp HAVEN`,
-                        description: `Mua ngay ${prev.name || 'sản phẩm'} chính hãng chất lượng cao tại HAVEN. Giao hàng toàn quốc, miễn phí đổi trả 30 ngày.`,
-                        keywords: `${prev.name}, thoi trang haven, quan ao cao cap`,
-                        slug: (prev.name || 'san-pham').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '-')
-                    }
-                }));
-                showToast('success', 'AI đã tạo bộ thẻ Meta SEO!');
-            }
-            setAiGenerating(null);
-            setAutoSaveStatus('dirty');
-        }, 800);
-    };
-
-    const handleApplyBulkVariants = () => {
-        if (!formData.variants || formData.variants.length === 0) return;
-        const updated = formData.variants.map((v: any) => ({
-            ...v,
-            stock: bulkStock !== '' ? Number(bulkStock) : v.stock,
-            price: bulkPrice !== '' ? Number(bulkPrice) : v.price
-        }));
-        setFormData((prev: any) => ({ ...prev, variants: updated }));
-        setAutoSaveStatus('dirty');
-        showToast('success', `Áp dụng thay đổi cho ${updated.length} biến thể`);
-    };
+    // Calculated Profit Margin
+    const price = Number(formData.price) || 0;
+    const costPrice = Number(formData.costPrice) || 0;
+    const profit = price - costPrice;
+    const profitMargin = price > 0 ? ((profit / price) * 100).toFixed(1) : '0';
 
     if (!isOpen) return null;
 
-    const retailPrice = Number(formData.price || 0);
-    const costPrice = Number(formData.costPrice || 0);
-    const profitVal = retailPrice - costPrice;
-    const profitMargin = retailPrice > 0 ? Math.round((profitVal / retailPrice) * 100) : 0;
-
-    const calculateSeoScore = () => {
-        let score = 0;
-        if (formData.seo?.title && formData.seo.title.length >= 25) score += 35;
-        if (formData.seo?.description && formData.seo.description.length >= 60) score += 35;
-        if (formData.images && formData.images.length >= 2) score += 30;
-        return score;
-    };
-    const seoScore = calculateSeoScore();
-
-    const navTabs = [
-        { id: 'overview', label: 'Thông tin chung', icon: FileText, badge: errors.name ? '!' : null },
-        { id: 'media', label: 'Hình ảnh & Video', icon: ImageIcon, badge: formData.images?.length || 0 },
-        { id: 'variants', label: 'Biến thể & Phân loại', icon: Layers, badge: formData.variants?.length || 0 },
-        { id: 'pricing', label: 'Giá & Khuyến mãi', icon: DollarSign, badge: `${profitMargin}%` },
-        { id: 'inventory', label: 'Quản lý kho', icon: Boxes },
-        { id: 'seo', label: 'SEO & Marketing', icon: Search, badge: `${seoScore}%` },
-        { id: 'ai', label: 'Trợ lý AI Enterprise', icon: Sparkles, highlight: true },
-        { id: 'specs', label: 'Thông số kỹ thuật', icon: Sliders },
-        { id: 'shipping', label: 'Vận chuyển & Quy cách', icon: Truck },
-        { id: 'channels', label: 'Kênh bán hàng', icon: Store },
-        { id: 'audit', label: 'Lịch sử thay đổi', icon: History }
-    ];
-
     return (
-        <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-hidden font-sans">
-                {/* LARGER AND MORE SPACIOUS CONTAINER (98vw & 96vh) */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.98, y: 8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.98, y: 8 }}
-                    transition={{ duration: 0.16 }}
-                    className="w-[98vw] max-w-[1800px] h-[95vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 text-slate-900"
-                >
-                    {/* ───────────────────────────────────────────────────────────────────────────
-                        HEADER BAR - EXTRA CLEAR & PROMINENT
-                    ─────────────────────────────────────────────────────────────────────────── */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b-2 border-slate-200 bg-slate-100 flex-shrink-0">
-                        <div className="flex items-center gap-4 min-w-0">
-                            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md flex-shrink-0">
-                                <Package size={24} />
-                            </div>
-                            <div className="min-w-0">
-                                <div className="flex items-center gap-3 flex-wrap">
-                                    <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 truncate tracking-tight">
-                                        {formData.name || (product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới')}
-                                    </h2>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-extrabold tracking-wide uppercase ${
-                                        formData.status === 'published'
-                                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                            : 'bg-amber-100 text-amber-900 border border-amber-300'
-                                    }`}>
-                                        {formData.status === 'published' ? '● ĐANG BÁN' : '○ BẢN NHÁP'}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-4 text-xs font-semibold text-slate-600 mt-1">
-                                    <span>Mã ID: <strong className="text-slate-900 font-mono text-sm">{formData.id}</strong></span>
-                                    <span>SKU: <strong className="text-slate-900 font-mono text-sm">{formData.sku}</strong></span>
-                                    {lastSavedTime && (
-                                        <span className="text-emerald-700 font-bold flex items-center gap-1">
-                                            <CheckCircle2 size={14} /> Đã lưu lúc {lastSavedTime}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex flex-col justify-start">
+            {/* ════════════ HEADER BAR DOANH NGHIỆP CỐ ĐỊNH ════════════ */}
+            <div className="sticky top-0 z-40 bg-white border-b border-slate-200/90 shadow-xs px-4 sm:px-8 py-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="p-2 -ml-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Đóng / Quay lại"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2.5">
+                            <h1 className="text-base sm:text-lg font-black text-slate-900 truncate">
+                                {product ? `Chỉnh sửa: ${formData.name || 'Sản phẩm'}` : 'Thêm sản phẩm mới'}
+                            </h1>
+                            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                                formData.status === 'published' 
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : formData.status === 'draft'
+                                    ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                            }`}>
+                                {formData.status === 'published' ? 'Đang kinh doanh' : formData.status === 'draft' ? 'Bản nháp' : 'Ngừng bán'}
+                            </span>
                         </div>
-
-                        {/* Actions buttons */}
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                            <button
-                                type="button"
-                                onClick={(e) => handleFormSubmit(e, true)}
-                                disabled={isSubmitting}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white hover:bg-slate-200 text-slate-800 border-2 border-slate-300 transition-colors shadow-sm"
-                            >
-                                <Save size={16} /> Lưu nháp
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={(e) => handleFormSubmit(e, false)}
-                                disabled={isSubmitting}
-                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-lg transition-all disabled:opacity-50"
-                            >
-                                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
-                                Lưu sản phẩm (Ctrl+S)
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="p-2.5 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors ml-1"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
+                        <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                            Mã ID: <span className="font-mono text-slate-700 font-bold">{formData.id}</span> · SKU: <span className="font-mono text-slate-700 font-bold">{formData.sku || 'Chưa đặt'}</span>
+                        </p>
                     </div>
+                </div>
 
-                    {/* ───────────────────────────────────────────────────────────────────────────
-                        MAIN BODY LAYOUT
-                    ─────────────────────────────────────────────────────────────────────────── */}
-                    <div className="flex flex-1 overflow-hidden">
+                {/* Top Action Buttons */}
+                <div className="flex items-center gap-2.5 shrink-0">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="hidden sm:inline-flex px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        type="button"
+                        onClick={(e) => handleSubmit(e, true)}
+                        disabled={isSubmitting}
+                        className="px-3.5 sm:px-4 py-2 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                        Lưu nháp
+                    </button>
+                    <button
+                        type="button"
+                        onClick={(e) => handleSubmit(e, false)}
+                        disabled={isSubmitting}
+                        className="px-4 sm:px-6 py-2 bg-[#0f172a] hover:bg-[#1e293b] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" />
+                                <span>Đang lưu...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save size={16} />
+                                <span>Lưu sản phẩm (Ctrl+S)</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
 
-                        {/* ── LEFT SIDEBAR NAVIGATION (WIDER & LARGER FONTS) ── */}
-                        <div className="w-64 sm:w-72 border-r-2 border-slate-200 bg-slate-50 flex flex-col flex-shrink-0 overflow-y-auto p-4 space-y-1.5">
-                            {navTabs.map((tab) => {
-                                const Icon = tab.icon;
-                                const isActive = activeTab === tab.id;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        type="button"
-                                        onClick={() => setActiveTab(tab.id as any)}
-                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all text-left ${
-                                            isActive
-                                                ? 'bg-slate-900 text-white shadow-md'
-                                                : tab.highlight
-                                                ? 'bg-purple-100 text-purple-900 hover:bg-purple-200 border-2 border-purple-300 font-bold'
-                                                : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+            {/* ════════════ MAIN CONTAINER 2 CỘT ════════════ */}
+            <div className="max-w-7xl w-full mx-auto p-4 sm:p-8">
+                <form onSubmit={(e) => handleSubmit(e, false)} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    {/* ── CỘT TRÁI (8 / 12 CỘT): THÔNG TIN CHÍNH ── */}
+                    <div className="lg:col-span-8 space-y-6">
+                        
+                        {/* 1. THÔNG TIN CƠ BẢN */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-7">
+                            <h2 className="text-base font-bold text-slate-950 uppercase tracking-wider pb-4 mb-5 border-b border-slate-100 flex items-center gap-2">
+                                <FileText size={18} className="text-slate-800" />
+                                1. Thông tin sản phẩm cơ bản
+                            </h2>
+
+                            <div className="space-y-4">
+                                {/* Tên sản phẩm */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-900 mb-1.5">
+                                        Tên sản phẩm <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.name || ''}
+                                        onChange={handleNameChange}
+                                        placeholder="Ví dụ: Áo sơ mi nam Oxford tay dài cao cấp"
+                                        required
+                                        className={`w-full px-4 py-3 bg-white border rounded-xl text-base font-bold text-slate-950 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:font-normal placeholder:text-slate-400 ${
+                                            errors.name ? 'border-rose-500 bg-rose-50/20' : 'border-slate-300'
                                         }`}
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <Icon size={19} className={isActive ? 'text-white' : tab.highlight ? 'text-purple-700' : 'text-slate-500'} />
-                                            <span className="truncate">{tab.label}</span>
-                                        </div>
-                                        {tab.badge !== undefined && tab.badge !== null && (
-                                            <span className={`px-2.5 py-0.5 rounded-lg text-xs font-extrabold ${
-                                                isActive
-                                                    ? 'bg-white/20 text-white'
-                                                    : 'bg-slate-200 text-slate-800'
-                                            }`}>
-                                                {tab.badge}
-                                            </span>
-                                        )}
-                                    </button>
-                                );
-                            })}
+                                    />
+                                    {errors.name && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.name}</p>}
+                                </div>
+
+                                {/* Mô tả tóm tắt */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-900 mb-1.5">
+                                        Mô tả ngắn (Hiển thị đầu trang & thẻ sản phẩm)
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        value={formData.shortDescription || ''}
+                                        onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                                        placeholder="Tóm tắt điểm đặc biệt nhất của sản phẩm trong 1 - 2 câu..."
+                                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 outline-none resize-none placeholder:text-slate-400"
+                                    />
+                                </div>
+
+                                {/* Mô tả chi tiết */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-900 mb-1.5">
+                                        Mô tả chi tiết sản phẩm
+                                    </label>
+                                    <textarea
+                                        rows={5}
+                                        value={formData.description || ''}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        placeholder="Mô tả chất liệu, cảm giác mặc, tính năng, gợi ý phối đồ..."
+                                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 outline-none leading-relaxed placeholder:text-slate-400"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
-                        {/* ── RIGHT MAIN CONTENT AREA (MORE SPACIOUS PADDING & CLEAR BORDERS) ── */}
-                        <div ref={formContainerRef} className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 bg-white text-slate-900">
+                        {/* 2. HÌNH ẢNH SẢN PHẨM */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-7">
+                            <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+                                <h2 className="text-base font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
+                                    <ImageIcon size={18} className="text-slate-800" />
+                                    2. Hình ảnh sản phẩm ({formData.images?.length || 0})
+                                </h2>
+                                <span className="text-xs text-slate-500 font-medium">Ảnh đầu tiên là ảnh đại diện</span>
+                            </div>
 
-                            {/* ── TAB 1: THÔNG TIN CHUNG ── */}
-                            {activeTab === 'overview' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <FileText size={22} className="text-blue-600" /> Thông tin sản phẩm cơ bản
-                                        </h3>
-                                        <span className="text-xs font-semibold text-slate-500">Trường có dấu (*) là bắt buộc</span>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        <div className="sm:col-span-2">
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Tên sản phẩm <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.name || ''}
-                                                onChange={(e) => {
-                                                    setFormData({ ...formData, name: e.target.value });
-                                                    setAutoSaveStatus('dirty');
-                                                }}
-                                                placeholder="VD: Áo Khoác Nữ Regular Fit Cao Cấp"
-                                                className={`w-full px-4 py-3 rounded-xl bg-white border-2 text-sm sm:text-base font-semibold focus:outline-none focus:ring-2 ${
-                                                    errors.name ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-slate-900 focus:ring-slate-100'
-                                                }`}
-                                            />
-                                            {errors.name && <p className="text-xs font-bold text-red-500 mt-1">{errors.name}</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Mã SKU chính
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.sku || ''}
-                                                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Mã Vạch Barcode
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.barcode || ''}
-                                                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Danh mục chính <span className="text-red-500">*</span>
-                                            </label>
-                                            <select
-                                                value={formData.category || ''}
-                                                onChange={(e) => {
-                                                    const catId = e.target.value;
-                                                    const selectedCat = activeCategories.find(c => c.id === catId);
-                                                    const subList = selectedCat?.subCategories || [];
-                                                    const defaultSub = subList.length > 0 ? subList[0] : null;
-                                                    setFormData({
-                                                        ...formData,
-                                                        category: catId,
-                                                        categoryLabel: selectedCat?.name || '',
-                                                        subCategory: defaultSub ? defaultSub.id : '',
-                                                        subCategoryLabel: defaultSub ? defaultSub.name : ''
-                                                    });
-                                                    setAutoSaveStatus('dirty');
-                                                }}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            >
-                                                <option value="">-- Chọn danh mục chính --</option>
-                                                {activeCategories.map(cat => (
-                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Danh mục con (Phân loại chi tiết)
-                                            </label>
-                                            <select
-                                                value={formData.subCategory || ''}
-                                                onChange={(e) => {
-                                                    const subId = e.target.value;
-                                                    const selectedCat = activeCategories.find(c => c.id === formData.category);
-                                                    const subList = selectedCat?.subCategories || [];
-                                                    const foundSub = subList.find(s => s.id === subId);
-                                                    setFormData({
-                                                        ...formData,
-                                                        subCategory: subId,
-                                                        subCategoryLabel: foundSub ? foundSub.name : subId
-                                                    });
-                                                    setAutoSaveStatus('dirty');
-                                                }}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            >
-                                                <option value="">-- Chọn danh mục con --</option>
-                                                {(activeCategories.find(c => c.id === formData.category)?.subCategories || []).map(sub => (
-                                                    <option key={sub.id} value={sub.id}>{sub.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Thương hiệu
-                                            </label>
-                                            <select
-                                                value={formData.brand || 'HAVEN'}
-                                                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            >
-                                                {brands.map(b => (
-                                                    <option key={b} value={b}>{b}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Đối tượng (Gender)
-                                            </label>
-                                            <select
-                                                value={formData.gender || 'Unisex'}
-                                                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            >
-                                                <option value="Men">Nam</option>
-                                                <option value="Women">Nữ</option>
-                                                <option value="Unisex">Tất cả (Unisex)</option>
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Phong cách (Style)
-                                            </label>
-                                            <select
-                                                value={formData.styleCategory || 'Casual'}
-                                                onChange={(e) => setFormData({ ...formData, styleCategory: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            >
-                                                <option value="Casual">Casual Thường Ngày</option>
-                                                <option value="Minimal">Minimal Tối Giản</option>
-                                                <option value="Korean">Phong Cách Hàn Quốc</option>
-                                                <option value="Streetwear">Streetwear Đường Phố</option>
-                                                <option value="Business">Công Sở / Office</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* ── CLEAN HUMAN DESIGNED BADGES CARD ── */}
-                                    <div className="p-5 rounded-2xl bg-white border-2 border-slate-200 space-y-4 shadow-sm">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                                <Tag size={18} className="text-slate-700" />
-                                                Nhãn nổi bật sản phẩm
-                                            </label>
-                                            {formData.badge && (
-                                                <span className="px-3 py-1 rounded-lg bg-slate-900 text-white font-bold text-xs uppercase shadow-sm">
-                                                    Đang chọn: {formData.badge}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <span className="text-xs font-bold text-slate-600 block">Chọn nhanh nhãn hiển thị góc ảnh sản phẩm:</span>
-                                            <div className="flex items-center gap-2.5 flex-wrap">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, badge: 'Mới' })}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${
-                                                        formData.badge === 'Mới'
-                                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                                                            : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                                                    }`}
-                                                >
-                                                    ● Mới
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, badge: 'Hot' })}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${
-                                                        formData.badge === 'Hot'
-                                                            ? 'bg-orange-600 text-white border-orange-600 shadow-md'
-                                                            : 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100'
-                                                    }`}
-                                                >
-                                                    🔥 Hot
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, badge: 'Giảm giá' })}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${
-                                                        formData.badge === 'Giảm giá'
-                                                            ? 'bg-red-600 text-white border-red-600 shadow-md'
-                                                            : 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100'
-                                                    }`}
-                                                >
-                                                    🏷️ Giảm giá
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, badge: 'Bán chạy' })}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${
-                                                        formData.badge === 'Bán chạy'
-                                                            ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-                                                            : 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200'
-                                                    }`}
-                                                >
-                                                    ⭐ Bán chạy
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, badge: 'Freeship' })}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${
-                                                        formData.badge === 'Freeship'
-                                                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                                            : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
-                                                    }`}
-                                                >
-                                                    🚚 Freeship
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, badge: '' })}
-                                                    className="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-500 border-2 border-slate-300 hover:bg-slate-100"
-                                                >
-                                                    ✕ Không dùng nhãn
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 pt-3 border-t border-slate-200">
-                                            <span className="text-xs font-bold text-slate-700 flex-shrink-0">Tự nhập nhãn tùy chỉnh khác:</span>
-                                            <input
-                                                type="text"
-                                                value={formData.badge || ''}
-                                                onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                                                placeholder="VD: Mới, Hot, Giảm 50%, Bán chạy..."
-                                                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-300 text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                            Mô tả ngắn sản phẩm
-                                        </label>
-                                        <textarea
-                                            rows={3}
-                                            value={formData.shortDescription || ''}
-                                            onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                                            placeholder="Tóm tắt ngắn gọn 2-3 câu về sản phẩm..."
-                                            className="w-full p-4 rounded-xl bg-white border-2 border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-slate-900 font-medium"
+                            {/* Khu vực Upload & Nhập URL */}
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {/* Upload Button */}
+                                    <div 
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="border-2 border-dashed border-slate-300 hover:border-slate-900 rounded-xl p-5 text-center cursor-pointer transition-colors bg-slate-50/60 hover:bg-slate-50 flex flex-col items-center justify-center gap-2"
+                                    >
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileUpload}
+                                            className="hidden"
                                         />
+                                        {uploadingImage ? (
+                                            <>
+                                                <Loader2 size={24} className="animate-spin text-slate-800" />
+                                                <span className="text-xs font-bold text-slate-700">Đang tải ảnh lên...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={22} className="text-slate-700" />
+                                                <span className="text-sm font-bold text-slate-900">Tải ảnh từ máy tính</span>
+                                                <span className="text-xs text-slate-500">JPG, PNG, WEBP tối đa 5MB</span>
+                                            </>
+                                        )}
                                     </div>
 
-                                    <div>
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">
-                                                Bài viết chi tiết (Rich Content)
-                                            </label>
-                                            <button
-                                                type="button"
-                                                onClick={async () => {
-                                                    if (!formData.name) {
-                                                        toast.error('Vui lòng nhập tên sản phẩm trước khi dùng AI');
-                                                        return;
-                                                    }
-                                                    const toastId = toast.loading('✨ AI đang soạn bài viết...');
-                                                    try {
-                                                        const res = await fetch('/api/ai/generate', {
-                                                            method: 'POST',
-                                                            headers: {
-                                                                'Content-Type': 'application/json',
-                                                                'x-user-id': useAuthStore.getState().user?.id || ''
-                                                            },
-                                                            body: JSON.stringify({
-                                                                productName: formData.name,
-                                                                category: formData.category,
-                                                                shortDescription: formData.shortDescription
-                                                            })
-                                                        });
-                                                        const data = await res.json();
-                                                        if (data.success) {
-                                                            setFormData({ ...formData, richContent: data.data });
-                                                            toast.success('✨ Đã tạo bài viết bằng AI!', { id: toastId });
-                                                        } else {
-                                                            toast.error(data.message || 'Lỗi tạo AI', { id: toastId });
-                                                        }
-                                                    } catch (err) {
-                                                        toast.error('Không thể kết nối AI', { id: toastId });
-                                                    }
-                                                }}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity"
-                                            >
-                                                <span>✨</span> AI Viết Giùm
-                                            </button>
-                                        </div>
-                                        <textarea
-                                            rows={6}
-                                            value={formData.richContent || ''}
-                                            onChange={(e) => setFormData({ ...formData, richContent: e.target.value })}
-                                            placeholder="Mô tả kỹ lưỡng chất liệu, thiết kế, hướng dẫn giặt sấy..."
-                                            className="w-full p-4 rounded-xl bg-white border-2 border-slate-300 text-sm font-mono text-slate-900 focus:outline-none focus:border-slate-900"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ── TAB 2: HÌNH ẢNH ── */}
-                            {activeTab === 'media' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <div>
-                                            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                                <ImageIcon size={22} className="text-blue-600" /> Thư viện hình ảnh sản phẩm
-                                            </h3>
-                                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                                                Ảnh đầu tiên sẽ làm **Ảnh đại diện chính**. Hỗ trợ định dạng JPG, PNG, WEBP.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Upload controls */}
-                                    <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
-                                        <label className="cursor-pointer px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-colors shadow-md">
-                                            <Upload size={18} /> Tải ảnh từ máy
-                                            <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                                        </label>
-
-                                        <div className="flex items-center gap-2 flex-1 min-w-[300px]">
+                                    {/* Add via URL */}
+                                    <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/40 flex flex-col justify-center gap-2">
+                                        <label className="text-xs font-bold text-slate-800">Hoặc dán liên kết URL hình ảnh:</label>
+                                        <div className="flex gap-2">
                                             <input
-                                                type="text"
+                                                type="url"
                                                 value={newImageUrl}
                                                 onChange={(e) => setNewImageUrl(e.target.value)}
-                                                placeholder="Dán URL hình ảnh mới..."
-                                                className="flex-1 px-4 py-2.5 rounded-xl bg-white border-2 border-slate-300 text-xs sm:text-sm font-mono text-slate-900 focus:outline-none focus:border-slate-900"
+                                                placeholder="https://..."
+                                                className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 outline-none"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleAddImageUrl}
-                                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs sm:text-sm font-extrabold border-2 border-slate-300 shadow-sm"
+                                                className="px-3 py-2 bg-[#0f172a] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
                                             >
-                                                <Plus size={16} /> Thêm URL
+                                                Thêm
                                             </button>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* Image List (LARGER THUMBNAILS) */}
-                                    <div className="space-y-4">
-                                        {(formData.images || []).map((imgUrl: string, idx: number) => (
-                                            <div
-                                                key={`img-${idx}`}
-                                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
-                                                    idx === 0
-                                                        ? 'bg-blue-50/70 border-blue-300 shadow-sm'
-                                                        : 'bg-white border-slate-200'
-                                                }`}
+                                {/* Gallery Grid */}
+                                {formData.images && formData.images.length > 0 ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2">
+                                        {formData.images.map((imgUrl: string, idx: number) => (
+                                            <div 
+                                                key={idx} 
+                                                className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-2xs"
                                             >
-                                                {/* FIXED Direct image with referrerPolicy & LARGER SIZE (24x24) */}
-                                                <div className="w-20 h-20 sm:w-24 sm:h-24 relative rounded-xl overflow-hidden border-2 border-slate-300 bg-slate-100 flex-shrink-0 flex items-center justify-center shadow">
-                                                    <img
-                                                        src={imgUrl}
-                                                        alt={`Product ${idx + 1}`}
-                                                        referrerPolicy="no-referrer"
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300';
-                                                        }}
-                                                    />
-                                                    {idx === 0 && (
-                                                        <span className="absolute top-1 left-1 px-2 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow">
-                                                            Ảnh chính
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                    src={imgUrl}
+                                                    alt={`Ảnh sản phẩm ${idx + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
 
-                                                <div className="flex-1 min-w-0">
-                                                    <input
-                                                        type="text"
-                                                        value={imgUrl}
-                                                        onChange={(e) => {
-                                                            const newImgs = [...formData.images];
-                                                            newImgs[idx] = e.target.value;
-                                                            setFormData({ ...formData, images: newImgs });
-                                                            setAutoSaveStatus('dirty');
-                                                        }}
-                                                        className="w-full px-3.5 py-2 rounded-lg bg-slate-50 border border-slate-300 text-xs sm:text-sm font-mono text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900"
-                                                    />
-                                                    <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 mt-2">
-                                                        <span>Kích thước: 1200x1500px</span>
-                                                        <span>Chuẩn WebP</span>
-                                                    </div>
-                                                </div>
+                                                {/* Featured Badge */}
+                                                {idx === 0 && (
+                                                    <span className="absolute top-2 left-2 text-[10px] font-extrabold bg-[#0f172a] text-white px-2 py-0.5 rounded-md shadow-sm">
+                                                        Ảnh bìa
+                                                    </span>
+                                                )}
 
-                                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                {/* Overlay Actions */}
+                                                <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                                     {idx !== 0 && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleSetPrimaryImage(idx)}
-                                                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 border border-blue-300"
+                                                            onClick={() => handleSetFeaturedImage(idx)}
+                                                            className="p-1.5 bg-white text-slate-900 text-[11px] font-bold rounded-lg hover:bg-slate-100 transition-colors"
+                                                            title="Đặt làm ảnh bìa"
                                                         >
-                                                            Đặt làm ảnh chính
+                                                            Đặt làm bìa
                                                         </button>
                                                     )}
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleMoveImage(idx, 'up')}
-                                                        disabled={idx === 0}
-                                                        className="p-2 text-slate-600 hover:text-slate-900 disabled:opacity-30"
-                                                    >
-                                                        <ArrowUp size={16} />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleMoveImage(idx, 'down')}
-                                                        disabled={idx === (formData.images.length - 1)}
-                                                        className="p-2 text-slate-600 hover:text-slate-900 disabled:opacity-30"
-                                                    >
-                                                        <ArrowDown size={16} />
-                                                    </button>
-                                                    <button
-                                                        type="button"
                                                         onClick={() => handleRemoveImage(idx)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                                        className="p-1.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+                                                        title="Xóa ảnh này"
                                                     >
-                                                        <Trash2 size={18} />
+                                                        <Trash2 size={15} />
                                                     </button>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
+                                ) : (
+                                    <p className="text-xs text-rose-500 font-semibold text-center py-4 bg-rose-50/50 rounded-xl border border-dashed border-rose-200">
+                                        Chưa có hình ảnh nào. Vui lòng tải lên ít nhất 1 ảnh.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 3. GIÁ BÁN & BIÊN LỢI NHUẬN */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-7">
+                            <h2 className="text-base font-bold text-slate-950 uppercase tracking-wider pb-4 mb-5 border-b border-slate-100 flex items-center gap-2">
+                                <DollarSign size={18} className="text-slate-800" />
+                                3. Giá bán & Chi phí
+                            </h2>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {/* Giá bán */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-900 mb-1.5">
+                                        Giá bán lẻ (VNĐ) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1000"
+                                        value={formData.price || 0}
+                                        onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                                        required
+                                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-base font-bold text-slate-950 focus:border-slate-950 outline-none"
+                                    />
                                 </div>
-                            )}
 
-                            {/* ── TAB 3: BIẾN THỂ (VARIANTS & COLORS/SIZES) ── */}
-                            {activeTab === 'variants' && (
-                                <div className="space-y-8 max-w-6xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <div>
-                                            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                                <Layers size={22} className="text-blue-600" /> Quản lý Màu sắc, Kích thước & Biến thể
-                                            </h3>
-                                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                                                Thêm bớt màu sắc (gán ảnh mẫu theo màu), kích thước và điều chỉnh giá/kho riêng biệt.
-                                            </p>
-                                        </div>
-                                    </div>
+                                {/* Giá so sánh / Giá gốc */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-900 mb-1.5">
+                                        Giá gốc / So sánh (VNĐ)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1000"
+                                        value={formData.originalPrice || 0}
+                                        onChange={(e) => setFormData({ ...formData, originalPrice: Number(e.target.value) })}
+                                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-base font-medium text-slate-900 focus:border-slate-950 outline-none"
+                                    />
+                                </div>
 
-                                    {/* ── SECTION 1: COLORS & SIZES MANAGEMENT SIDE-BY-SIDE ── */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        
-                                        {/* 1. COLOR MANAGEMENT CARD */}
-                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-4 shadow-sm">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                                    <span className="w-3 h-3 rounded-full bg-blue-600 inline-block" />
-                                                    Danh sách Màu sắc ({formData.colors?.length || 0})
-                                                </label>
-                                                <button
-                                                    type="button"
-                                                    onClick={handleAddColor}
-                                                    className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md"
-                                                >
-                                                    <Plus size={15} /> Thêm màu
-                                                </button>
-                                            </div>
+                                {/* Giá vốn */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-900 mb-1.5">
+                                        Giá vốn nhập hàng (VNĐ)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1000"
+                                        value={formData.costPrice || 0}
+                                        onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
+                                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-base font-medium text-slate-900 focus:border-slate-950 outline-none"
+                                    />
+                                </div>
+                            </div>
 
-                                            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                                                {(formData.colors || []).map((color: any, idx: number) => (
-                                                    <div key={`col-${idx}`} className="p-3.5 rounded-xl bg-white border-2 border-slate-200 space-y-2.5 shadow-sm">
-                                                        <div className="flex items-center gap-3">
-                                                            {/* Color Picker Dot */}
-                                                            <input
-                                                                type="color"
-                                                                value={color.hex || '#000000'}
-                                                                onChange={(e) => handleColorChange(idx, 'hex', e.target.value)}
-                                                                className="w-10 h-10 rounded-xl border-2 border-slate-300 cursor-pointer p-0.5 bg-white flex-shrink-0 shadow-sm"
-                                                                title="Chọn mã màu HEX"
-                                                            />
+                            {/* Profit Margin indicator */}
+                            <div className="mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs sm:text-sm">
+                                <div className="text-slate-600 font-medium">
+                                    Lợi nhuận ước tính: <span className="font-bold text-slate-900">{profit.toLocaleString('vi-VN')} đ</span> / sản phẩm
+                                </div>
+                                <div className="text-slate-600 font-medium">
+                                    Biên lợi nhuận: <span className={`font-bold ${Number(profitMargin) > 30 ? 'text-emerald-700' : 'text-slate-900'}`}>{profitMargin}%</span>
+                                </div>
+                            </div>
+                        </div>
 
-                                                            {/* Color Name */}
-                                                            <input
-                                                                type="text"
-                                                                value={color.name || ''}
-                                                                onChange={(e) => handleColorChange(idx, 'name', e.target.value)}
-                                                                placeholder="Tên màu (Đen, Trắng, Tím...)"
-                                                                className="flex-1 px-3 py-2 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
-                                                            />
+                        {/* 4. BIẾN THỂ: KÍCH CỠ & MÀU SẮC */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-7">
+                            <h2 className="text-base font-bold text-slate-950 uppercase tracking-wider pb-4 mb-5 border-b border-slate-100 flex items-center gap-2">
+                                <Boxes size={18} className="text-slate-800" />
+                                4. Phiên bản phân loại (Size & Màu sắc)
+                            </h2>
 
-                                                            {/* Delete Color */}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveColor(idx)}
-                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-xl flex-shrink-0"
-                                                                title="Xóa màu này"
-                                                            >
-                                                                <Trash2 size={18} />
-                                                            </button>
-                                                        </div>
+                            {/* Kích thước */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-bold text-slate-900 mb-2">
+                                    Kích thước (Size):
+                                </label>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {PRESET_SIZES.map(sz => {
+                                        const isSelected = formData.sizes?.includes(sz);
+                                        return (
+                                            <button
+                                                key={sz}
+                                                type="button"
+                                                onClick={() => handleToggleSize(sz)}
+                                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                                                    isSelected
+                                                        ? 'bg-[#0f172a] text-white border-slate-950'
+                                                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                                                }`}
+                                            >
+                                                {sz}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex gap-2 max-w-xs">
+                                    <input
+                                        type="text"
+                                        value={customSizeInput}
+                                        onChange={(e) => setCustomSizeInput(e.target.value)}
+                                        placeholder="Thêm size khác..."
+                                        className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddCustomSize}
+                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg border border-slate-300 transition-colors cursor-pointer"
+                                    >
+                                        + Thêm
+                                    </button>
+                                </div>
+                            </div>
 
-                                                        {/* Color Specific Image Selection - Clean Stacked Layout */}
-                                                        <div className="space-y-1.5 pt-2.5 border-t border-slate-100">
-                                                            <label className="text-xs text-slate-600 font-bold block">Ảnh theo màu:</label>
-                                                            <div className="flex items-center gap-2.5">
-                                                                {color.image ? (
-                                                                    <img
-                                                                        src={color.image}
-                                                                        alt={color.name}
-                                                                        referrerPolicy="no-referrer"
-                                                                        className="w-9 h-9 rounded-lg border-2 border-slate-300 object-cover flex-shrink-0 shadow-sm"
-                                                                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
-                                                                    />
-                                                                ) : (
-                                                                    <div className="w-9 h-9 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400 font-bold flex-shrink-0">
-                                                                        Chưa chọn
-                                                                    </div>
-                                                                )}
+                            {/* Màu sắc */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-bold text-slate-900 mb-2">
+                                    Màu sắc:
+                                </label>
+                                <div className="flex flex-wrap gap-2.5 mb-3">
+                                    {PRESET_COLORS.map(col => {
+                                        const isSelected = formData.colors?.some((c: any) => c.name === col.name);
+                                        return (
+                                            <button
+                                                key={col.name}
+                                                type="button"
+                                                onClick={() => handleTogglePresetColor(col)}
+                                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                                                    isSelected
+                                                        ? 'bg-slate-900 text-white border-slate-950'
+                                                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                                                }`}
+                                            >
+                                                <span className="w-3.5 h-3.5 rounded-full border border-slate-300" style={{ backgroundColor: col.hex }} />
+                                                <span>{col.name}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex items-center gap-2 max-w-sm">
+                                    <input
+                                        type="color"
+                                        value={customColorHex}
+                                        onChange={(e) => setCustomColorHex(e.target.value)}
+                                        className="w-8 h-8 rounded border border-slate-300 cursor-pointer p-0"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={customColorName}
+                                        onChange={(e) => setCustomColorName(e.target.value)}
+                                        placeholder="Tên màu mới (VD: Xanh Mint)..."
+                                        className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddCustomColor}
+                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg border border-slate-300 transition-colors cursor-pointer"
+                                    >
+                                        + Thêm
+                                    </button>
+                                </div>
+                            </div>
 
-                                                                <select
-                                                                    value={color.image || ''}
-                                                                    onChange={(e) => handleColorChange(idx, 'image', e.target.value)}
-                                                                    className="flex-1 w-full truncate px-3 py-2 rounded-lg bg-slate-50 border-2 border-slate-300 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-900"
-                                                                >
-                                                                    <option value="">-- Chọn ảnh đại diện cho màu --</option>
-                                                                    {(formData.images || []).map((imgUrl: string, imgIdx: number) => (
-                                                                        <option key={`opt-img-${imgIdx}`} value={imgUrl}>
-                                                                            Ảnh {imgIdx + 1}: {imgUrl.substring(0, 45)}...
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                            {/* Bảng ma trận biến thể */}
+                            {formData.variants && formData.variants.length > 0 && (
+                                <div className="pt-4 border-t border-slate-100">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+                                        <h3 className="text-sm font-bold text-slate-900">
+                                            Danh sách biến thể ({formData.variants.length} phân loại)
+                                        </h3>
 
-                                        {/* 2. SIZE MANAGEMENT CARD */}
-                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-4 shadow-sm">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                                    <span className="w-3 h-3 rounded-full bg-emerald-600 inline-block" />
-                                                    Danh sách Kích thước ({formData.sizes?.length || 0})
-                                                </label>
-                                                <button
-                                                    type="button"
-                                                    onClick={handleAddSize}
-                                                    className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md"
-                                                >
-                                                    <Plus size={15} /> Thêm size
-                                                </button>
-                                            </div>
-
-                                            {/* Quick Add Presets */}
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <span className="text-xs font-bold text-slate-600">Thêm nhanh:</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleQuickAddSizes(['S', 'M', 'L', 'XL', 'XXL'])}
-                                                    className="px-3 py-1 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-bold text-slate-800 shadow-sm"
-                                                >
-                                                    + S, M, L, XL, XXL
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleQuickAddSizes(['28', '29', '30', '31', '32', '34'])}
-                                                    className="px-3 py-1 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-bold text-slate-800 shadow-sm"
-                                                >
-                                                    + Quần (28-34)
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleQuickAddSizes(['Freesize'])}
-                                                    className="px-3 py-1 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-bold text-slate-800 shadow-sm"
-                                                >
-                                                    + Freesize
-                                                </button>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-1">
-                                                {(formData.sizes || []).map((size: string, idx: number) => (
-                                                    <div key={`sz-${idx}`} className="flex items-center gap-2 p-2 rounded-xl bg-white border-2 border-slate-200 shadow-sm">
-                                                        <input
-                                                            type="text"
-                                                            value={size}
-                                                            onChange={(e) => handleSizeChange(idx, e.target.value)}
-                                                            placeholder="S, M, L..."
-                                                            className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm font-extrabold uppercase text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveSize(idx)}
-                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0"
-                                                            title="Xóa size này"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                    </div>
-
-                                    {/* ── SECTION 2: BULK UPDATER & MATRIX VARIANT TABLE ── */}
-                                    <div className="space-y-4 pt-3 border-t-2 border-slate-200">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-                                                Ma trận Biến thể chi tiết ({formData.variants?.length || 0} biến thể)
-                                            </span>
-                                            <span className="text-xs text-slate-600 font-bold">
-                                                Tự động tạo từ {formData.colors?.length || 0} màu × {formData.sizes?.length || 0} size
-                                            </span>
-                                        </div>
-
-                                        {/* Bulk update bar */}
-                                        <div className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-wrap items-center gap-4 shadow-sm">
-                                            <span className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-wider">
-                                                Cập nhật hàng loạt:
-                                            </span>
+                                        {/* Bulk edit buttons */}
+                                        <div className="flex items-center gap-2 text-xs">
                                             <input
                                                 type="number"
-                                                placeholder="Tồn kho chung (VD: 50)"
-                                                value={bulkStock}
-                                                onChange={(e) => setBulkStock(e.target.value ? Number(e.target.value) : '')}
-                                                className="px-4 py-2 rounded-xl bg-white border-2 border-slate-300 text-xs sm:text-sm font-bold w-44 focus:outline-none focus:border-slate-900"
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Giá bán chung (VD: 299000)"
+                                                placeholder="Giá chung..."
                                                 value={bulkPrice}
                                                 onChange={(e) => setBulkPrice(e.target.value ? Number(e.target.value) : '')}
-                                                className="px-4 py-2 rounded-xl bg-white border-2 border-slate-300 text-xs sm:text-sm font-bold w-48 focus:outline-none focus:border-slate-900"
+                                                className="w-24 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-medium"
                                             />
                                             <button
                                                 type="button"
-                                                onClick={handleApplyBulkVariants}
-                                                className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-extrabold transition-all shadow-md"
+                                                onClick={handleApplyBulkPrice}
+                                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg border border-slate-300"
                                             >
-                                                Áp dụng tất cả
+                                                Áp giá
+                                            </button>
+
+                                            <input
+                                                type="number"
+                                                placeholder="Kho chung..."
+                                                value={bulkStock}
+                                                onChange={(e) => setBulkStock(e.target.value ? Number(e.target.value) : '')}
+                                                className="w-24 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-medium"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleApplyBulkStock}
+                                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg border border-slate-300"
+                                            >
+                                                Áp kho
                                             </button>
                                         </div>
+                                    </div>
 
-                                        {/* Matrix Variant Table (LARGE, CLEAR & HIGH CONTRAST) */}
-                                        <div className="overflow-x-auto rounded-2xl border-2 border-slate-200 bg-white shadow-md">
-                                            <table className="w-full text-left text-xs sm:text-sm">
-                                                <thead className="bg-slate-100 uppercase text-xs font-extrabold text-slate-800 border-b-2 border-slate-200">
-                                                    <tr>
-                                                        <th className="p-4">Màu sắc & Ảnh mẫu</th>
-                                                        <th className="p-4">Kích thước</th>
-                                                        <th className="p-4">Mã SKU riêng</th>
-                                                        <th className="p-4">Giá bán riêng (VND)</th>
-                                                        <th className="p-4">Tồn kho (Cái)</th>
+                                    <div className="border border-slate-200 rounded-xl overflow-hidden overflow-x-auto">
+                                        <table className="w-full text-left text-xs">
+                                            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase">
+                                                <tr>
+                                                    <th className="px-3.5 py-2.5">Phân loại</th>
+                                                    <th className="px-3.5 py-2.5">Mã SKU</th>
+                                                    <th className="px-3.5 py-2.5">Giá bán (VNĐ)</th>
+                                                    <th className="px-3.5 py-2.5">Tồn kho</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100">
+                                                {formData.variants.map((v: any, idx: number) => (
+                                                    <tr key={idx} className="hover:bg-slate-50/50">
+                                                        <td className="px-3.5 py-2.5 font-bold text-slate-900">
+                                                            {v.color} · {v.size}
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            <input
+                                                                type="text"
+                                                                value={v.sku}
+                                                                onChange={(e) => {
+                                                                    const copy = [...formData.variants];
+                                                                    copy[idx].sku = e.target.value;
+                                                                    setFormData({ ...formData, variants: copy });
+                                                                }}
+                                                                className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-mono font-medium"
+                                                            />
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            <input
+                                                                type="number"
+                                                                value={v.price}
+                                                                onChange={(e) => {
+                                                                    const copy = [...formData.variants];
+                                                                    copy[idx].price = Number(e.target.value);
+                                                                    setFormData({ ...formData, variants: copy });
+                                                                }}
+                                                                className="w-28 px-2 py-1 bg-white border border-slate-200 rounded text-xs font-bold text-slate-900"
+                                                            />
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            <input
+                                                                type="number"
+                                                                value={v.stock}
+                                                                onChange={(e) => {
+                                                                    const copy = [...formData.variants];
+                                                                    copy[idx].stock = Number(e.target.value);
+                                                                    setFormData({ ...formData, variants: copy });
+                                                                }}
+                                                                className="w-20 px-2 py-1 bg-white border border-slate-200 rounded text-xs font-bold text-slate-900"
+                                                            />
+                                                        </td>
                                                     </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-100">
-                                                    {(formData.variants || []).map((variant: any, idx: number) => {
-                                                        const colorObj = (formData.colors || []).find((c: any) => c.name === variant.color);
-                                                        const displayImg = colorObj?.image || formData.images?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100';
-
-                                                        return (
-                                                            <tr key={`v-${idx}`} className="hover:bg-slate-50 transition-colors">
-                                                                <td className="p-4 font-bold text-slate-900">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span
-                                                                            className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0 shadow-sm"
-                                                                            style={{ background: colorObj?.hex || '#000000' }}
-                                                                        />
-                                                                        <img
-                                                                            src={displayImg}
-                                                                            alt={variant.color}
-                                                                            referrerPolicy="no-referrer"
-                                                                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-slate-300 object-cover flex-shrink-0 shadow-sm"
-                                                                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=100'; }}
-                                                                        />
-                                                                        <span className="text-sm font-extrabold">{variant.color}</span>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4 font-extrabold text-blue-700 text-base">{variant.size}</td>
-                                                                <td className="p-4">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={variant.sku || ''}
-                                                                        onChange={(e) => {
-                                                                            const updated = [...formData.variants];
-                                                                            updated[idx].sku = e.target.value;
-                                                                            setFormData({ ...formData, variants: updated });
-                                                                        }}
-                                                                        className="px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 font-mono text-xs sm:text-sm font-bold w-40 focus:bg-white focus:border-slate-900"
-                                                                    />
-                                                                </td>
-                                                                <td className="p-4">
-                                                                    <input
-                                                                        type="number"
-                                                                        value={variant.price || 0}
-                                                                        onChange={(e) => {
-                                                                            const updated = [...formData.variants];
-                                                                            updated[idx].price = Number(e.target.value);
-                                                                            setFormData({ ...formData, variants: updated });
-                                                                        }}
-                                                                        className="px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm sm:text-base font-extrabold text-blue-700 w-32 focus:bg-white focus:border-slate-900"
-                                                                    />
-                                                                </td>
-                                                                <td className="p-4">
-                                                                    <input
-                                                                        type="number"
-                                                                        value={variant.stock || 0}
-                                                                        onChange={(e) => {
-                                                                            const updated = [...formData.variants];
-                                                                            updated[idx].stock = Number(e.target.value);
-                                                                            setFormData({ ...formData, variants: updated });
-                                                                        }}
-                                                                        className="px-3 py-1.5 rounded-lg bg-slate-50 border-2 border-slate-300 text-sm sm:text-base font-extrabold text-emerald-700 w-24 focus:bg-white focus:border-slate-900"
-                                                                    />
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             )}
+                        </div>
 
-                            {/* ── TAB 4: GIÁ & LỢI NHUẬN (PRICING) ── */}
-                            {activeTab === 'pricing' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <DollarSign size={22} className="text-blue-600" /> Thiết lập giá & Tỷ suất lợi nhuận
-                                        </h3>
-                                    </div>
+                        {/* 5. TỐI ƯU SEO & GOOGLE PREVIEW */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-7">
+                            <h2 className="text-base font-bold text-slate-950 uppercase tracking-wider pb-4 mb-5 border-b border-slate-100 flex items-center gap-2">
+                                <Globe size={18} className="text-slate-800" />
+                                5. Tối ưu SEO (Google Search Engine)
+                            </h2>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Giá bán lẻ (VND) <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={formData.price || 0}
-                                                onChange={(e) => {
-                                                    const newPrice = Number(e.target.value);
-                                                    const updatedVariants = (formData.variants || []).map((v: any) => ({
-                                                        ...v,
-                                                        price: newPrice
-                                                    }));
-                                                    setFormData({ ...formData, price: newPrice, variants: updatedVariants });
-                                                    setAutoSaveStatus('dirty');
-                                                }}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-lg font-extrabold text-blue-700 focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Giá gốc niêm yết
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={formData.originalPrice || 0}
-                                                onChange={(e) => {
-                                                    const newOrig = Number(e.target.value);
-                                                    const updatedVariants = (formData.variants || []).map((v: any) => ({
-                                                        ...v,
-                                                        originalPrice: newOrig
-                                                    }));
-                                                    setFormData({ ...formData, originalPrice: newOrig, variants: updatedVariants });
-                                                    setAutoSaveStatus('dirty');
-                                                }}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Giá nhập / Giá vốn
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={formData.costPrice || 0}
-                                                onChange={(e) => {
-                                                    const newCost = Number(e.target.value);
-                                                    const updatedVariants = (formData.variants || []).map((v: any) => ({
-                                                        ...v,
-                                                        costPrice: newCost
-                                                    }));
-                                                    setFormData({ ...formData, costPrice: newCost, variants: updatedVariants });
-                                                    setAutoSaveStatus('dirty');
-                                                }}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* ── QUICK DISCOUNT GENERATOR ── */}
-                                    <div className="p-5 rounded-2xl bg-red-50/60 border-2 border-red-200 space-y-3 shadow-sm">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-xs sm:text-sm font-extrabold text-red-900 uppercase tracking-wider flex items-center gap-2">
-                                                <span className="w-3 h-3 rounded-full bg-red-600 inline-block animate-bounce" />
-                                                Công cụ Tính nhanh Giảm Giá (% OFF & Badge)
-                                            </label>
-                                            <span className="text-xs font-bold text-red-700">
-                                                Tự động tính Giá bán & Gán Nhãn Giảm Giá
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            {[10, 15, 20, 25, 30, 40, 50].map((pct) => (
-                                                <button
-                                                    key={`disc-btn-${pct}`}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const orig = Number(formData.originalPrice || formData.price || 0);
-                                                        if (orig > 0) {
-                                                            const newPrice = Math.round(orig * (1 - pct / 100));
-                                                            const updatedVariants = (formData.variants || []).map((v: any) => ({
-                                                                ...v,
-                                                                price: newPrice,
-                                                                originalPrice: orig
-                                                            }));
-                                                            setFormData({
-                                                                ...formData,
-                                                                originalPrice: orig,
-                                                                price: newPrice,
-                                                                badge: `SALE ${pct}%`,
-                                                                variants: updatedVariants
-                                                            });
-                                                            setAutoSaveStatus('dirty');
-                                                            showToast('success', `Áp dụng giảm ${pct}%! Giá mới: ${newPrice.toLocaleString('vi-VN')}đ`);
-                                                        } else {
-                                                            showToast('warning', 'Vui lòng nhập Giá gốc niêm yết trước');
-                                                        }
-                                                    }}
-                                                    className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-red-600 hover:text-white border-2 border-red-300 text-xs font-extrabold text-red-700 shadow-sm transition-all"
-                                                >
-                                                    🔥 Giảm {pct}%
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Profit Card */}
-                                    <div className="p-6 rounded-2xl bg-slate-50 border-2 border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center shadow-sm">
-                                        <div className="p-4 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
-                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Lợi nhuận / sản phẩm</span>
-                                            <span className={`text-xl font-extrabold ${profitVal >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-                                                {profitVal.toLocaleString('vi-VN')} đ
-                                            </span>
-                                        </div>
-                                        <div className="p-4 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
-                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Tỷ suất lợi nhuận Margin</span>
-                                            <span className={`text-xl font-extrabold ${profitMargin >= 30 ? 'text-emerald-700' : 'text-amber-600'}`}>
-                                                {profitMargin}%
-                                            </span>
-                                        </div>
-                                        <div className="p-4 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
-                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Mức giảm so với niêm yết</span>
-                                            <span className="text-xl font-extrabold text-blue-700">
-                                                {formData.originalPrice > formData.price
-                                                    ? `-${Math.round((1 - formData.price / formData.originalPrice) * 100)}%`
-                                                    : '0%'}
-                                            </span>
-                                        </div>
-                                    </div>
+                            {/* Google Search Snippet Preview */}
+                            <div className="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                <p className="text-xs text-slate-500 font-bold mb-2 uppercase">Xem trước kết quả tìm kiếm Google:</p>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-semibold text-blue-800 hover:underline cursor-pointer truncate">
+                                        {formData.seo?.title || `${formData.name || 'Tên sản phẩm'} | HAVEN Store`}
+                                    </p>
+                                    <p className="text-xs text-emerald-700 font-mono truncate">
+                                        https://havenstore.io.vn/product/{formData.seo?.slug || formData.id?.toLowerCase()}
+                                    </p>
+                                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                                        {formData.seo?.description || formData.shortDescription || formData.description || 'Mua sắm các sản phẩm thời trang chính hãng, cao cấp tại HAVEN Store.'}
+                                    </p>
                                 </div>
-                            )}
+                            </div>
 
-                            {/* ── TAB 5: QUẢN LÝ KHO (INVENTORY) ── */}
-                            {activeTab === 'inventory' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <Boxes size={22} className="text-blue-600" /> Quản lý phân bổ kho
-                                        </h3>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
-                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Kho tổng trung tâm</span>
-                                            <input
-                                                type="number"
-                                                value={formData.inventoryAlloc?.main || 100}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    inventoryAlloc: { ...formData.inventoryAlloc, main: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-slate-900 border-2 border-slate-300"
-                                            />
-                                        </div>
-                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
-                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Kho Online E-commerce</span>
-                                            <input
-                                                type="number"
-                                                value={formData.inventoryAlloc?.online || 80}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    inventoryAlloc: { ...formData.inventoryAlloc, online: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-blue-700 border-2 border-slate-300"
-                                            />
-                                        </div>
-                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
-                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Kho POS Cửa hàng</span>
-                                            <input
-                                                type="number"
-                                                value={formData.inventoryAlloc?.offline || 50}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    inventoryAlloc: { ...formData.inventoryAlloc, offline: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-purple-700 border-2 border-slate-300"
-                                            />
-                                        </div>
-                                        <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200">
-                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">Ngưỡng cảnh báo hết</span>
-                                            <input
-                                                type="number"
-                                                value={formData.inventoryAlloc?.threshold || 10}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    inventoryAlloc: { ...formData.inventoryAlloc, threshold: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-2.5 rounded-xl bg-white text-base font-extrabold text-amber-700 border-2 border-slate-300"
-                                            />
-                                        </div>
-                                    </div>
+                            <div className="space-y-3.5">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1">Tiêu đề trang SEO</label>
+                                    <input
+                                        type="text"
+                                        value={formData.seo?.title || ''}
+                                        onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), title: e.target.value } })}
+                                        placeholder="Tiêu đề hiển thị trên thanh tiêu đề trình duyệt và Google..."
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 outline-none"
+                                    />
                                 </div>
-                            )}
-
-                            {/* ── TAB 6: SEO ── */}
-                            {activeTab === 'seo' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <Search size={22} className="text-blue-600" /> Tối ưu hóa SEO Google
-                                        </h3>
-                                        <span className="px-4 py-1.5 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 border border-blue-300">
-                                            Điểm SEO: {seoScore}/100
-                                        </span>
-                                    </div>
-
-                                    {/* Google Live Snippet Preview */}
-                                    <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-2">
-                                        <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                                            Xem trước kết quả trên Google
-                                        </span>
-                                        <div className="text-blue-700 text-base font-bold hover:underline cursor-pointer">
-                                            {formData.seo?.title || `${formData.name} - HAVEN Store`}
-                                        </div>
-                                        <div className="text-xs text-emerald-700 font-mono font-bold">
-                                            https://haven-store-web-green.vercel.app/products/{formData.seo?.slug || 'san-pham'}
-                                        </div>
-                                        <div className="text-xs sm:text-sm text-slate-700 line-clamp-2">
-                                            {formData.seo?.description || formData.shortDescription || 'Mô tả hiển thị khi người dùng tìm kiếm trên Google...'}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Meta Title
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.seo?.title || ''}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    seo: { ...formData.seo, title: e.target.value }
-                                                })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">
-                                                Meta Description
-                                            </label>
-                                            <textarea
-                                                rows={3}
-                                                value={formData.seo?.description || ''}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    seo: { ...formData.seo, description: e.target.value }
-                                                })}
-                                                className="w-full p-4 rounded-xl bg-white border-2 border-slate-300 text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-900"
-                                            />
-                                        </div>
-                                    </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1">Mô tả Meta (Meta Description)</label>
+                                    <textarea
+                                        rows={2}
+                                        value={formData.seo?.description || ''}
+                                        onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), description: e.target.value } })}
+                                        placeholder="Mô tả tóm tắt sản phẩm để Google hiển thị khi người dùng tìm kiếm..."
+                                        className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 outline-none resize-none"
+                                    />
                                 </div>
-                            )}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1">Đường dẫn URL Slug</label>
+                                    <input
+                                        type="text"
+                                        value={formData.seo?.slug || ''}
+                                        onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), slug: e.target.value } })}
+                                        placeholder="duong-dan-url-san-pham"
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono font-medium text-slate-900 outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-                            {/* ── TAB 7: AI ENTERPRISE ── */}
-                            {activeTab === 'ai' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-purple-200 pb-4">
-                                        <h3 className="text-lg font-extrabold text-purple-900 flex items-center gap-2">
-                                            <Sparkles size={22} className="text-purple-600" /> Trợ lý AI Enterprise
-                                        </h3>
-                                    </div>
+                    </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* ── CỘT PHẢI (4 / 12 CỘT): PHÂN LOẠI & THUỘC TÍNH ── */}
+                    <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-20">
+                        
+                        {/* 1. TRẠNG THÁI & KÊNH BÁN HÀNG */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6">
+                            <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider pb-3 mb-4 border-b border-slate-100 flex items-center gap-2">
+                                <ShieldCheck size={16} className="text-slate-800" />
+                                Trạng thái & Kênh bán
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">Trạng thái sản phẩm</label>
+                                    <select
+                                        value={formData.status || 'published'}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:border-slate-950 outline-none"
+                                    >
+                                        <option value="published">Đang kinh doanh (Active)</option>
+                                        <option value="draft">Bản nháp (Draft)</option>
+                                        <option value="archived">Ngừng bán (Archived)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">Tổng số lượng tồn kho</label>
+                                    <input
+                                        type="number"
+                                        value={formData.stock || 0}
+                                        onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+                                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-900 outline-none"
+                                    />
+                                    <p className="text-[11px] text-slate-500 mt-1">Tự động đồng bộ từ các biến thể nếu có.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. PHÂN LOẠI DANH MỤC */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6">
+                            <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider pb-3 mb-4 border-b border-slate-100 flex items-center gap-2">
+                                <Tag size={16} className="text-slate-800" />
+                                Phân loại & Tổ chức
+                            </h3>
+
+                            <div className="space-y-4">
+                                {/* Danh mục chính */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                                        Danh mục chính <span className="text-rose-500">*</span>
+                                    </label>
+                                    <select
+                                        value={formData.category || 'Thời Trang Nam'}
+                                        onChange={(e) => {
+                                            const catName = e.target.value;
+                                            const catObj = activeCategories.find(c => c.name === catName);
+                                            const firstSub = catObj?.subCategories?.[0]?.id || '';
+                                            setFormData({ ...formData, category: catName, subCategory: firstSub });
+                                        }}
+                                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-900 outline-none"
+                                    >
+                                        {activeCategories.map(c => (
+                                            <option key={c.id} value={c.name}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Danh mục con */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                                        Danh mục con (Chi tiết) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <select
+                                        value={formData.subCategory || ''}
+                                        onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
+                                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 outline-none"
+                                    >
+                                        {activeCategories.find(c => c.name === formData.category)?.subCategories?.map(sub => (
+                                            <option key={sub.id} value={sub.id}>{sub.name}</option>
+                                        )) || (
+                                            <option value="">Không có danh mục con</option>
+                                        )}
+                                    </select>
+                                </div>
+
+                                {/* Thương hiệu */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">Thương hiệu</label>
+                                    <select
+                                        value={formData.brand || 'HAVEN'}
+                                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 outline-none"
+                                    >
+                                        {brands.map(b => (
+                                            <option key={b} value={b}>{b}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Đối tượng (Gender) */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">Đối tượng (Gender)</label>
+                                    <select
+                                        value={formData.gender || 'Nam'}
+                                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 outline-none"
+                                    >
+                                        <option value="Nam">Nam giới</option>
+                                        <option value="Nữ">Nữ giới</option>
+                                        <option value="Unisex">Unisex (Cả nam & nữ)</option>
+                                    </select>
+                                </div>
+
+                                {/* Phong cách */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">Phong cách</label>
+                                    <select
+                                        value={formData.styleCategory || 'Tối giản (Minimalism)'}
+                                        onChange={(e) => setFormData({ ...formData, styleCategory: e.target.value })}
+                                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 outline-none"
+                                    >
+                                        <option value="Tối giản (Minimalism)">Tối giản (Minimalism)</option>
+                                        <option value="Công sở (Smart Casual)">Công sở (Smart Casual)</option>
+                                        <option value="Đường phố (Streetwear)">Đường phố (Streetwear)</option>
+                                        <option value="Thể thao (Sportswear)">Thể thao (Sportswear)</option>
+                                        <option value="Cổ điển (Classic)">Cổ điển (Classic)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. THÔNG SỐ KỸ THUẬT */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6">
+                            <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider pb-3 mb-4 border-b border-slate-100 flex items-center gap-2">
+                                <Sliders size={16} className="text-slate-800" />
+                                Thông số kỹ thuật
+                            </h3>
+
+                            <div className="space-y-3">
+                                {Object.entries(formData.specs || {}).map(([k, v]: [string, any]) => (
+                                    <div key={k} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                                        <div>
+                                            <span className="font-bold text-slate-900 block">{k}:</span>
+                                            <span className="text-slate-600 font-medium">{String(v)}</span>
+                                        </div>
                                         <button
                                             type="button"
-                                            onClick={() => handleRunAIAction('description')}
-                                            disabled={!!aiGenerating}
-                                            className="p-5 rounded-2xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 text-left space-y-2 transition-all shadow-sm"
+                                            onClick={() => handleRemoveSpec(k)}
+                                            className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-base font-extrabold text-purple-950">AI Viết mô tả Rich Text</span>
-                                                <Sparkles size={20} className="text-purple-600" />
-                                            </div>
-                                            <p className="text-xs sm:text-sm font-medium text-slate-700">Tự động viết bài giới thiệu thu hút và chuyên nghiệp.</p>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRunAIAction('seo')}
-                                            disabled={!!aiGenerating}
-                                            className="p-5 rounded-2xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 text-left space-y-2 transition-all shadow-sm"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-base font-extrabold text-purple-950">AI Tối ưu thẻ SEO</span>
-                                                <Search size={20} className="text-purple-600" />
-                                            </div>
-                                            <p className="text-xs sm:text-sm font-medium text-slate-700">Tự động tạo Title & Description chuẩn SEO.</p>
+                                            <X size={14} />
                                         </button>
                                     </div>
-                                </div>
-                            )}
+                                ))}
 
-                            {/* ── TAB 8: THUỘC TÍNH (SPECS) ── */}
-                            {activeTab === 'specs' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <Sliders size={22} className="text-blue-600" /> Thông số kỹ thuật
-                                        </h3>
-                                    </div>
-
-                                    <div className="flex gap-3">
+                                {/* Add Custom Spec */}
+                                <div className="pt-2 flex flex-col gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Tên thuộc tính (VD: Chất liệu)..."
+                                        value={specKey}
+                                        onChange={(e) => setSpecKey(e.target.value)}
+                                        className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium outline-none"
+                                    />
+                                    <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            placeholder="Tên thông số (VD: Độ co giãn)"
-                                            value={specKey}
-                                            onChange={(e) => setSpecKey(e.target.value)}
-                                            className="flex-1 px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-semibold"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Giá trị (VD: Co giãn 4 chiều)"
+                                            placeholder="Giá trị (VD: 100% Cotton)..."
                                             value={specValue}
                                             onChange={(e) => setSpecValue(e.target.value)}
-                                            className="flex-1 px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-sm font-semibold"
+                                            className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium outline-none"
                                         />
                                         <button
                                             type="button"
                                             onClick={handleAddSpec}
-                                            className="px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-extrabold shadow-md"
+                                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg border border-slate-300"
                                         >
                                             Thêm
                                         </button>
                                     </div>
-
-                                    <div className="divide-y-2 divide-slate-100 rounded-2xl border-2 border-slate-200 bg-white overflow-hidden shadow-sm">
-                                        {Object.entries(formData.specifications || {}).map(([key, val]: any) => (
-                                            <div key={key} className="flex items-center justify-between p-4 text-sm font-medium">
-                                                <span className="font-extrabold text-slate-900 w-1/3">{key}</span>
-                                                <span className="text-slate-700 flex-1">{val}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleRemoveSpec(key)}
-                                                    className="text-red-600 p-2 hover:bg-red-50 rounded-xl"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
                                 </div>
-                            )}
-
-                            {/* ── TAB 10: VẬN CHUYỂN ── */}
-                            {activeTab === 'shipping' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <Truck size={22} className="text-blue-600" /> Kích thước & Đóng gói
-                                        </h3>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Khối lượng (gam)</label>
-                                            <input
-                                                type="number"
-                                                value={formData.shipping?.weight || 350}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    shipping: { ...formData.shipping, weight: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-extrabold"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Dài (cm)</label>
-                                            <input
-                                                type="number"
-                                                value={formData.shipping?.length || 30}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    shipping: { ...formData.shipping, length: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Rộng (cm)</label>
-                                            <input
-                                                type="number"
-                                                value={formData.shipping?.width || 20}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    shipping: { ...formData.shipping, width: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs sm:text-sm font-bold text-slate-800 uppercase mb-2">Cao (cm)</label>
-                                            <input
-                                                type="number"
-                                                value={formData.shipping?.height || 5}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    shipping: { ...formData.shipping, height: Number(e.target.value) }
-                                                })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border-2 border-slate-300 text-base font-bold"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ── TAB 12: KÊNH BÁN HÀNG ── */}
-                            {activeTab === 'channels' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <Store size={22} className="text-blue-600" /> Kênh phân phối
-                                        </h3>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {[
-                                            { key: 'website', label: 'Website HAVEN Store (Chính)' },
-                                            { key: 'mobileApp', label: 'Ứng dụng HAVEN Mobile' },
-                                            { key: 'pos', label: 'POS Cửa hàng trực tiếp' },
-                                            { key: 'facebook', label: 'Facebook Meta Shop' },
-                                            { key: 'tiktok', label: 'TikTok Shop' },
-                                            { key: 'shopee', label: 'Shopee Mall' }
-                                        ].map((ch) => (
-                                            <label key={ch.key} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 cursor-pointer">
-                                                <span className="text-sm font-extrabold text-slate-900">{ch.label}</span>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.channels?.[ch.key] !== false}
-                                                    onChange={(e) => setFormData({
-                                                        ...formData,
-                                                        channels: { ...formData.channels, [ch.key]: e.target.checked }
-                                                    })}
-                                                    className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"
-                                                />
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ── TAB 13: LỊCH SỬ CHỈNH SỬA ── */}
-                            {activeTab === 'audit' && (
-                                <div className="space-y-6 max-w-5xl">
-                                    <div className="border-b-2 border-slate-200 pb-4 flex items-center justify-between">
-                                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                                            <History size={22} className="text-blue-600" /> Lịch sử chỉnh sửa
-                                        </h3>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {auditLogs.map((log) => (
-                                            <div key={log.id} className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm space-y-1">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-extrabold text-blue-700">{log.user}</span>
-                                                    <span className="text-xs font-semibold text-slate-500">{log.time}</span>
-                                                </div>
-                                                <div className="text-slate-800 font-medium">
-                                                    Hành động: <strong>{log.action}</strong>
-                                                </div>
-                                                <div className="text-xs text-slate-500 font-mono">
-                                                    IP: {log.ip} | Trình duyệt: {log.browser}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
+                            </div>
                         </div>
+
                     </div>
-                </motion.div>
+                </form>
             </div>
-        </AnimatePresence>
+        </div>
     );
 }

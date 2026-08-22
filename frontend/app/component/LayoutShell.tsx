@@ -18,7 +18,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
       <main className="min-h-screen">{children}</main>
       {!isAdmin && <Footer />}
       {!isAdmin && <LuckyWheel />}
-      <ChatSupport />
+      {!isAdmin && <ChatSupport />}
     </>
   );
 }
