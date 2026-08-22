@@ -536,7 +536,7 @@ const updateOrderStatus = async (req, res, next) => {
         // ─────────────────────────────────────────────────────────────────
         // TỰ ĐỘNG HOÀN TIỀN VÀO VÍ USER NẾU ĐỔI SANG REFUNDED HOẶC CANCELLED (Trả trước)
         // ─────────────────────────────────────────────────────────────────
-        if (status === 'refunded' || (status === 'cancelled' && ['vnpay', 'momo', 'banking', 'wallet'].includes(currentOrder.paymentMethod?.toLowerCase()))) {
+        if (status === 'refunded' || status === 'return_received' || (status === 'cancelled' && ['vnpay', 'momo', 'banking', 'wallet'].includes(currentOrder.paymentMethod?.toLowerCase()))) {
             try {
                 const refundAmt = currentOrder.finalAmount || currentOrder.totalAmount || 0;
                 await refundOrderToWallet({
@@ -544,7 +544,7 @@ const updateOrderStatus = async (req, res, next) => {
                     userEmail: currentOrder.email,
                     orderId: currentOrder.id,
                     refundAmount: refundAmt,
-                    reason: status === 'refunded' ? `Hoàn tiền thành công cho đơn hàng #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng trả trước #${currentOrder.id}`
+                    reason: ['refunded', 'return_received'].includes(status) ? `Hoàn tiền hoàn hàng thành công cho đơn #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng trả trước #${currentOrder.id}`
                 });
                 log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${id}`);
             } catch (wErr) {
@@ -846,18 +846,42 @@ const confirmReturnReceived = async (req, res, next) => {
         order.status = 'refunded';
         order.shippingTimeline.push({
             status: 'refunded',
-            title: 'Đã hoàn tiền thành công',
-            note: `Shop đã nhận hàng trả và thực hiện hoàn tiền. Xác nhận bởi: ${adminName || 'Admin'}`,
+            title: 'Đã nhận hàng trả & Hoàn tiền vào ví thành công',
+            note: `Shop đã nhận lại hàng trả. Số tiền ${order.finalAmount || order.totalAmount} đ đã tự động chuyển vào Ví HAVEN của khách hàng. Xác nhận bởi: ${adminName || 'Admin'}`,
             timestamp: now,
             isCustomerVisible: true
         });
 
         await order.save();
 
+        // 1. Nhập lại tồn kho vật lý cho sản phẩm hoàn về
+        if (order.items && order.items.length > 0) {
+            await returnExportedStock(order.items, orderId);
+        }
+
+        // 2. Tự động chuyển toàn bộ số tiền đơn hàng về Ví HAVEN của User
+        const refundAmt = order.finalAmount || order.totalAmount || 0;
+        try {
+            await refundOrderToWallet({
+                userId: order.userId,
+                userEmail: order.email,
+                orderId: order.id,
+                refundAmount: refundAmt,
+                reason: `Hoàn tiền hoàn hàng thành công cho đơn #${order.id}`
+            });
+            log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn hoàn hàng ${orderId}`);
+        } catch (wErr) {
+            log(`[Wallet Sync Warning] Lỗi hoàn tiền vào ví: ${wErr.message}`);
+        }
+
         const io = req.app.get('io');
         if (io) io.emit('order_status_changed', { orderId, status: order.status });
 
-        res.json({ success: true, message: 'Đã xác nhận nhận hàng & hoàn tiền thành công', order });
+        res.json({ 
+            success: true, 
+            message: `Đã xác nhận nhận hàng & hoàn thành công ${refundAmt.toLocaleString('vi-VN')} đ vào Ví HAVEN của khách hàng`, 
+            order 
+        });
     } catch (error) {
         next(error);
     }
