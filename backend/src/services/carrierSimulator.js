@@ -7,6 +7,8 @@
  */
 const { OrderModel } = require('../models/Order');
 const { ShippingEventModel } = require('../models/ShippingEvent');
+const { refundOrderToWallet } = require('../controllers/walletController');
+const { ProductVariantModel } = require('../models/ProductVariant');
 
 const logger = require('../utils/logger');
 
@@ -177,6 +179,94 @@ async function advanceShippingStep(orderId, adminName = 'Admin') {
 
     // Tìm bước hiện tại trong template
     const currentStatus = order.status;
+
+    // ─────────────────────────────────────────────────────────────────
+    // XỬ LÝ NẾU ĐƠN ĐANG TRONG TIẾN TRÌNH HOÀN TRẢ (RETURN FLOW)
+    // ─────────────────────────────────────────────────────────────────
+    if (['return_requested', 'returning', 'return_received'].includes(currentStatus)) {
+        let nextReturnStatus = 'returning';
+        let returnTitle = 'Khách gửi hàng trả về shop';
+        let returnNote = 'Đơn vị vận chuyển đang trung chuyển hàng trả về kho Shop';
+
+        if (currentStatus === 'return_requested') {
+            nextReturnStatus = 'returning';
+            returnTitle = 'Duyệt hoàn hàng — Đang gửi hàng trả về shop';
+            returnNote = 'Shop đã chấp thuận. Khách hàng đang gửi lại sản phẩm về kho.';
+        } else if (currentStatus === 'returning') {
+            nextReturnStatus = 'return_received';
+            returnTitle = 'Shop lấy / nhận hàng trả về kho thành công';
+            returnNote = 'Kiện hàng hoàn trả đã đến kho Shop và kiểm kê đầy đủ.';
+        } else if (currentStatus === 'return_received') {
+            nextReturnStatus = 'refunded';
+            returnTitle = 'Đã hoàn tiền thành công vào Ví HAVEN';
+            returnNote = `Tiền hoàn ${(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của người dùng.`;
+        }
+
+        const timestamp = new Date();
+        const timelineEvent = {
+            status: nextReturnStatus,
+            title: returnTitle,
+            location: 'Kho HAVEN Store',
+            note: returnNote,
+            timestamp,
+            isCustomerVisible: true
+        };
+
+        await OrderModel.findOneAndUpdate(
+            { id: orderId },
+            {
+                status: nextReturnStatus,
+                $push: { shippingTimeline: timelineEvent }
+            }
+        );
+
+        await ShippingEventModel.create({
+            orderId,
+            status: nextReturnStatus,
+            title: returnTitle,
+            location: 'Kho HAVEN Store',
+            note: returnNote,
+            timestamp,
+            performedBy: adminName,
+            carrierCode
+        });
+
+        // 🟢 NẾU TIẾN ĐẾN REFUNDED -> THỰC HIỆN CỘNG TIỀN VÀO VÍ NGƯỜI DÙNG & HOÀN KHO VẬT LÝ
+        if (nextReturnStatus === 'refunded') {
+            const refundAmt = order.finalAmount || order.totalAmount || 0;
+            try {
+                // Restock vật lý
+                if (order.items && order.items.length > 0) {
+                    for (const item of order.items) {
+                        await ProductVariantModel.findOneAndUpdate(
+                            { product_id: item.product.id, size_id: item.selectedSize, color_id: item.selectedColor.name },
+                            { $inc: { stock: item.quantity } }
+                        );
+                    }
+                }
+                // Cộng tiền vào ví
+                await refundOrderToWallet({
+                    userId: order.userId,
+                    userEmail: order.email,
+                    orderId: order.id,
+                    refundAmount: refundAmt,
+                    reason: `Hoàn tiền hoàn hàng thành công cho đơn #${order.id}`
+                });
+                logger.info(`[Carrier Engine] Đã hoàn thành nạp ${refundAmt} VNĐ vào Ví User cho đơn ${orderId}`);
+            } catch (wErr) {
+                logger.error(`[Carrier Engine Wallet Error] ${wErr.message}`);
+            }
+        }
+
+        return {
+            done: nextReturnStatus === 'refunded',
+            nextStep: { status: nextReturnStatus, title: returnTitle, location: 'Kho HAVEN Store', note: returnNote },
+            status: nextReturnStatus,
+            totalSteps: 4,
+            completedSteps: 4
+        };
+    }
+
     const completedCount = (order.shippingTimeline || []).length;
     const steps = carrier.trackingSteps;
 
