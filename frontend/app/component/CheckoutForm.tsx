@@ -566,21 +566,14 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             {/* ════════════ CỘT TRÁI: FORM ĐIỀN THÔNG TIN (7 PHẦN) ════════════ */}
             <div className="lg:col-span-7 space-y-6">
                 
-                {/* ── BƯỚC 1: SỔ ĐỊA CHỈ & THÔNG TIN GIAO HÀNG ── */}
-                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs">
+                {/* ── BƯỚC 1: THÔNG TIN GIAO HÀNG ── */}
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
                     <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
-                        <div className="flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-sm flex items-center justify-center shadow-xs">
-                                1
-                            </span>
-                            <div>
-                                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                                    Thông tin người nhận & Địa chỉ
-                                </h2>
-                                <p className="text-xs text-slate-500 font-medium">
-                                    Giao hàng tận nơi toàn quốc
-                                </p>
-                            </div>
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
+                            <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
+                                1. Thông tin giao hàng
+                            </h2>
                         </div>
 
                         {user && savedAddresses.length > 0 && (
@@ -589,7 +582,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 onClick={() => setIsManualAddress(!isManualAddress)}
                                 className="text-xs font-bold text-[#1e40af] hover:underline cursor-pointer"
                             >
-                                {isManualAddress ? '← Chọn từ sổ địa chỉ' : '+ Nhập địa chỉ mới'}
+                                {isManualAddress ? '← Chọn từ sổ địa chỉ' : '+ Thêm địa chỉ mới'}
                             </button>
                         )}
                     </div>
@@ -597,9 +590,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     {/* Sổ địa chỉ đã lưu */}
                     {user && savedAddresses.length > 0 && !isManualAddress && (
                         <div className="mb-5">
-                            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                                <MapPin size={13} className="text-[#1e40af]" />
-                                Địa chỉ nhận hàng đã lưu:
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                <MapPin size={14} className="text-slate-800" />
+                                Địa chỉ nhận hàng đã lưu
                             </p>
                             {loadingAddresses ? (
                                 <div className="animate-pulse h-16 bg-slate-100 rounded-xl" />
@@ -613,25 +606,25 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                                 onClick={() => handleSelectAddress(addr)}
                                                 className={`p-3.5 rounded-xl cursor-pointer border transition-all relative ${
                                                     isSelected 
-                                                        ? 'border-slate-900 bg-slate-50/70 shadow-xs' 
-                                                        : 'border-slate-200 bg-white hover:border-slate-300'
+                                                        ? 'border-slate-950 bg-slate-50/70 shadow-xs' 
+                                                        : 'border-slate-200 bg-white hover:border-slate-400'
                                                 }`}
                                             >
-                                                <div className="flex items-center justify-between gap-2 mb-1">
-                                                    <span className="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                                                <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                    <span className="font-bold text-slate-900 text-sm truncate">
                                                         {addr.full_name}
                                                     </span>
                                                     {addr.is_default && (
-                                                        <span className="text-[9.5px] font-bold bg-slate-900 text-white px-1.5 py-0.2 rounded">
+                                                        <span className="text-[10px] font-bold bg-[#0f172a] text-white px-2 py-0.5 rounded-md">
                                                             Mặc định
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[11.5px] text-slate-600 font-medium mb-0.5">
-                                                    📞 {addr.phone}
+                                                <p className="text-xs text-slate-700 font-semibold mb-1">
+                                                    {addr.phone}
                                                 </p>
-                                                <p className="text-[11.5px] text-slate-500 line-clamp-2 leading-relaxed">
-                                                    📍 {addr.street}, {addr.ward}, {addr.district}, {addr.city}
+                                                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                    {addr.street}, {addr.ward}, {addr.district}, {addr.city}
                                                 </p>
                                             </div>
                                         );
@@ -642,64 +635,55 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     )}
 
                     {/* Form nhập thông tin chi tiết */}
-                    <div className="space-y-3.5">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Họ tên */}
-                            <div className="relative">
-                                <label className="block text-xs font-bold text-slate-700 mb-1">
-                                    Họ và tên người nhận <span className="text-red-500">*</span>
+                            <div>
+                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                    Họ và tên người nhận <span className="text-rose-500">*</span>
                                 </label>
-                                <div className="relative">
-                                    <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        name="customerName"
-                                        value={formData.customerName}
-                                        onChange={handleChange}
-                                        placeholder="Ví dụ: Nguyễn Văn A"
-                                        required
-                                        className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    name="customerName"
+                                    value={formData.customerName}
+                                    onChange={handleChange}
+                                    placeholder="Ví dụ: Nguyễn Văn A"
+                                    required
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
+                                />
                             </div>
 
                             {/* Số điện thoại */}
-                            <div className="relative">
-                                <label className="block text-xs font-bold text-slate-700 mb-1">
-                                    Số điện thoại <span className="text-red-500">*</span>
+                            <div>
+                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                    Số điện thoại <span className="text-rose-500">*</span>
                                 </label>
-                                <div className="relative">
-                                    <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        placeholder="0987654321"
-                                        required
-                                        className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
-                                    />
-                                </div>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="0987 654 321"
+                                    required
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
+                                />
                             </div>
                         </div>
 
                         {/* Email nhận xác nhận đơn */}
-                        <div className="relative">
-                            <label className="block text-xs font-bold text-slate-700 mb-1">
-                                Email nhận thông báo đơn hàng <span className="text-red-500">*</span>
+                        <div>
+                            <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                Email nhận thông báo đơn hàng <span className="text-rose-500">*</span>
                             </label>
-                            <div className="relative">
-                                <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="email@example.com"
-                                    required
-                                    className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
-                                />
-                            </div>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="name@example.com"
+                                required
+                                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
+                            />
                         </div>
 
                         {/* 3 Dropdowns Tỉnh / Quận / Phường khi nhập mới hoặc sửa */}
@@ -707,19 +691,19 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                             <motion.div 
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="space-y-3 pt-1"
+                                className="space-y-3.5 pt-1"
                             >
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     {/* Tỉnh / Thành */}
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                                            Tỉnh / Thành phố <span className="text-red-500">*</span>
+                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                            Tỉnh / Thành phố <span className="text-rose-500">*</span>
                                         </label>
                                         <select 
                                             required 
                                             value={selectedProvinceCode || ''} 
                                             onChange={handleProvinceChange}
-                                            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-slate-900 outline-none"
+                                            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none"
                                         >
                                             <option value="" disabled>Chọn Tỉnh/Thành</option>
                                             {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
@@ -728,15 +712,15 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
                                     {/* Quận / Huyện */}
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                                            Quận / Huyện <span className="text-red-500">*</span>
+                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                            Quận / Huyện <span className="text-rose-500">*</span>
                                         </label>
                                         <select 
                                             required 
                                             disabled={!selectedProvinceCode} 
                                             value={selectedDistrictCode || ''} 
                                             onChange={handleDistrictChange}
-                                            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-slate-900 outline-none disabled:opacity-50"
+                                            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
                                         >
                                             <option value="" disabled>Chọn Quận/Huyện</option>
                                             {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
@@ -745,15 +729,15 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
                                     {/* Phường / Xã */}
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                                            Phường / Xã <span className="text-red-500">*</span>
+                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                            Phường / Xã <span className="text-rose-500">*</span>
                                         </label>
                                         <select 
                                             required 
                                             disabled={!selectedDistrictCode} 
                                             value={localAddress.ward ? wards.find(w=>w.name===localAddress.ward)?.code || '' : ''} 
                                             onChange={handleWardChange}
-                                            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-slate-900 outline-none disabled:opacity-50"
+                                            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
                                         >
                                             <option value="" disabled>Chọn Phường/Xã</option>
                                             {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
@@ -763,58 +747,45 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
                                 {/* Số nhà, tên đường */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                                        Số nhà, tên đường chi tiết <span className="text-red-500">*</span>
+                                    <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                        Địa chỉ cụ thể (Số nhà, tên đường, tòa nhà) <span className="text-rose-500">*</span>
                                     </label>
-                                    <div className="relative">
-                                        <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                        <input
-                                            type="text"
-                                            value={localAddress.street}
-                                            onChange={e => setLocalAddress({...localAddress, street: e.target.value})}
-                                            placeholder="Ví dụ: Tầng 4, Số 123 Đường Nguyễn Trãi..."
-                                            required
-                                            className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
-                                        />
-                                    </div>
+                                    <input
+                                        type="text"
+                                        value={localAddress.street}
+                                        onChange={e => setLocalAddress({...localAddress, street: e.target.value})}
+                                        placeholder="Ví dụ: Tầng 4, Số 123 Đường Nguyễn Trãi..."
+                                        required
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
+                                    />
                                 </div>
                             </motion.div>
                         )}
 
                         {/* Ghi chú đơn hàng */}
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">
-                                Ghi chú cho người giao hàng (Tùy chọn)
+                            <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                Ghi chú đơn hàng (Tùy chọn)
                             </label>
-                            <div className="relative">
-                                <FileText size={15} className="absolute left-3.5 top-3 text-slate-400" />
-                                <textarea
-                                    name="note"
-                                    value={formData.note}
-                                    onChange={handleChange}
-                                    placeholder="Giao giờ hành chính, gọi trước khi đến..."
-                                    rows={2}
-                                    className="w-full pl-9 pr-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all resize-none"
-                                />
-                            </div>
+                            <textarea
+                                name="note"
+                                value={formData.note}
+                                onChange={handleChange}
+                                placeholder="Ghi chú thêm về thời gian nhận hàng hoặc hướng dẫn giao..."
+                                rows={2}
+                                className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all resize-none placeholder:text-slate-400"
+                            />
                         </div>
                     </div>
                 </div>
 
                 {/* ── BƯỚC 2: PHƯƠNG THỨC VẬN CHUYỂN ── */}
-                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs">
-                    <div className="flex items-center gap-3 pb-3.5 mb-4 border-b border-slate-100">
-                        <span className="w-7 h-7 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                            2
-                        </span>
-                        <div>
-                            <h2 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                                Đơn vị vận chuyển
-                            </h2>
-                            <p className="text-[11.5px] text-slate-500 font-medium">
-                                Chọn đơn vị giao hàng phù hợp nhất
-                            </p>
-                        </div>
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
+                    <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
+                        <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
+                        <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
+                            2. Phương thức vận chuyển
+                        </h2>
                     </div>
 
                     {isCalculatingShipping ? (
@@ -834,54 +805,48 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 return (
                                     <label
                                         key={sm.id}
-                                        className={`flex items-center gap-3 sm:gap-3.5 py-3 px-3.5 sm:px-4 rounded-xl border transition-all cursor-pointer ${
+                                        className={`flex items-center justify-between gap-3.5 py-3.5 px-4 rounded-xl border transition-all cursor-pointer ${
                                             isSelected
-                                                ? 'border-slate-900 bg-slate-50/70 shadow-xs'
+                                                ? 'border-slate-950 bg-slate-50/70 shadow-2xs'
                                                 : 'border-slate-200 hover:border-slate-300 bg-white'
                                         }`}
                                     >
-                                        <input
-                                            type="radio"
-                                            name="shippingMethod"
-                                            value={sm.id}
-                                            checked={isSelected}
-                                            onChange={(e) => setSelectedShippingMethodId(e.target.value)}
-                                            className="sr-only"
-                                        />
-                                        
-                                        {/* Delicate Radio Indicator */}
-                                        <div className={`w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
-                                            isSelected ? 'border-slate-900 bg-white ring-1 ring-slate-900' : 'border-slate-300 bg-white'
-                                        }`}>
-                                            {isSelected && <div className="w-2 h-2 rounded-full bg-slate-900" />}
-                                        </div>
+                                        <div className="flex items-center gap-3.5 min-w-0">
+                                            <input
+                                                type="radio"
+                                                name="shippingMethod"
+                                                value={sm.id}
+                                                checked={isSelected}
+                                                onChange={(e) => setSelectedShippingMethodId(e.target.value)}
+                                                className="sr-only"
+                                            />
+                                            
+                                            {/* Minimalist Radio Indicator */}
+                                            <div className={`w-4.5 h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
+                                                isSelected ? 'border-slate-950 bg-white ring-2 ring-slate-950' : 'border-slate-300 bg-white'
+                                            }`}>
+                                                {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-slate-950" />}
+                                            </div>
 
-                                        {/* Carrier Icon */}
-                                        <div className="w-8.5 h-8.5 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-700 font-bold">
-                                            <Truck size={17} />
-                                        </div>
-
-                                        {/* Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                {sm.name_methond}
-                                                <span className="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[9.5px] font-bold uppercase">
-                                                    {sm.id}
-                                                </span>
-                                            </p>
-                                            <p className="text-[11px] text-slate-500 font-medium">
-                                                Thời gian dự kiến: {sm.estimated_time || '2-3 ngày'}
-                                            </p>
+                                            {/* Info */}
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                    {sm.name_methond}
+                                                </p>
+                                                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                                    Dự kiến giao hàng: {sm.estimated_time || '2 - 3 ngày làm việc'}
+                                                </p>
+                                            </div>
                                         </div>
 
                                         {/* Price / Free Badge */}
                                         <div className="text-right shrink-0">
                                             {isFree ? (
-                                                <span className="text-[11px] sm:text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
+                                                <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md">
                                                     MIỄN PHÍ
                                                 </span>
                                             ) : (
-                                                <span className="text-xs sm:text-sm font-bold text-slate-900">
+                                                <span className="text-sm font-bold text-slate-900">
                                                     {formatPrice(sm.cost)}
                                                 </span>
                                             )}
@@ -894,19 +859,12 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 </div>
 
                 {/* ── BƯỚC 3: PHƯƠNG THỨC THANH TOÁN ── */}
-                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs">
-                    <div className="flex items-center gap-3 pb-3.5 mb-4 border-b border-slate-100">
-                        <span className="w-7 h-7 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                            3
-                        </span>
-                        <div>
-                            <h2 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                                Phương thức thanh toán
-                            </h2>
-                            <p className="text-[11.5px] text-slate-500 font-medium">
-                                Đảm bảo an toàn và bảo mật 100%
-                            </p>
-                        </div>
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
+                    <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
+                        <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
+                        <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
+                            3. Phương thức thanh toán
+                        </h2>
                     </div>
 
                     <div className="space-y-2.5">
@@ -919,9 +877,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 return (
                                     <label
                                         key={pm.id}
-                                        className={`flex items-center gap-3 sm:gap-3.5 py-3 px-3.5 sm:px-4 rounded-xl border transition-all cursor-pointer ${
+                                        className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl border transition-all cursor-pointer ${
                                             isSelected
-                                                ? 'border-slate-900 bg-slate-50/70 shadow-xs'
+                                                ? 'border-slate-950 bg-slate-50/70 shadow-2xs'
                                                 : 'border-slate-200 hover:border-slate-300 bg-white'
                                         }`}
                                     >
@@ -935,10 +893,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         />
 
                                         {/* Delicate Radio Indicator */}
-                                        <div className={`w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
-                                            isSelected ? 'border-slate-900 bg-white ring-1 ring-slate-900' : 'border-slate-300 bg-white'
+                                        <div className={`w-4.5 h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
+                                            isSelected ? 'border-slate-950 bg-white ring-2 ring-slate-950' : 'border-slate-300 bg-white'
                                         }`}>
-                                            {isSelected && <div className="w-2 h-2 rounded-full bg-slate-900" />}
+                                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-slate-950" />}
                                         </div>
 
                                         {/* Payment Method Badge */}
@@ -961,57 +919,17 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         )}
 
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-xs sm:text-sm font-bold text-slate-900">
+                                            <p className="text-sm font-bold text-slate-900">
                                                 {pm.name_methond}
                                             </p>
-                                            <p className="text-[11px] text-slate-500 font-medium truncate">
-                                                {pm.description || 'Thanh toán trực tiếp, thuận tiện và an toàn.'}
+                                            <p className="text-xs text-slate-500 font-medium truncate">
+                                                {pm.description || 'Thanh toán an toàn và tiện lợi.'}
                                             </p>
                                         </div>
-
-                                        {(isVNPay || isMoMo) && (
-                                            <span className="text-[9px] font-extrabold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/80 shrink-0">
-                                                TỰ ĐỘNG
-                                            </span>
-                                        )}
                                     </label>
                                 );
                             })
-                        ) : (
-                            /* Fallback payments */
-                            [
-                                { id: 'cod', name: 'Thanh toán khi nhận hàng (COD)', desc: 'Thanh toán tiền mặt cho shipper khi nhận hàng' },
-                                { id: 'vnpay', name: 'Thanh toán qua Cổng VNPAY', desc: 'Quét VNPAY QR, thẻ ATM nội địa & thẻ Visa/Mastercard' },
-                                { id: 'momo', name: 'Thanh toán qua Ví MoMo', desc: 'Mở ứng dụng MoMo để thanh toán tức thì' },
-                            ].map(pm => (
-                                <label
-                                    key={pm.id}
-                                    className={`flex items-center gap-3 sm:gap-3.5 py-3 px-3.5 sm:px-4 rounded-xl border transition-all cursor-pointer ${
-                                        formData.paymentMethod === pm.id
-                                            ? 'border-slate-900 bg-slate-50/70 shadow-xs'
-                                            : 'border-slate-200 hover:border-slate-300 bg-white'
-                                    }`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="paymentMethod"
-                                        value={pm.id}
-                                        checked={formData.paymentMethod === pm.id}
-                                        onChange={handleChange}
-                                        className="sr-only"
-                                    />
-                                    <div className={`w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
-                                        formData.paymentMethod === pm.id ? 'border-slate-900 bg-white ring-1 ring-slate-900' : 'border-slate-300 bg-white'
-                                    }`}>
-                                        {formData.paymentMethod === pm.id && <div className="w-2 h-2 rounded-full bg-slate-900" />}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs sm:text-sm font-bold text-slate-900">{pm.name}</p>
-                                        <p className="text-[11px] text-slate-500">{pm.desc}</p>
-                                    </div>
-                                </label>
-                            ))
-                        )}
+                        ) : null}
                     </div>
 
                     {/* Hướng dẫn chuyển khoản chi tiết nếu chọn Chuyển khoản */}
@@ -1019,30 +937,30 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
-                            className="mt-4 p-4 sm:p-5 bg-blue-50/70 border border-blue-200 rounded-2xl flex flex-col md:flex-row gap-5 items-center"
+                            className="mt-4 p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row gap-5 items-center"
                         >
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-black uppercase text-blue-900 tracking-wider mb-2">
-                                    Thông tin tài khoản nhận chuyển khoản:
+                                <p className="text-xs font-bold uppercase text-slate-900 tracking-wider mb-2">
+                                    Thông tin tài khoản nhận thanh toán:
                                 </p>
-                                <div className="text-xs text-blue-950 font-medium space-y-1.5 whitespace-pre-line leading-relaxed">
+                                <div className="text-xs text-slate-800 font-medium space-y-1.5 whitespace-pre-line leading-relaxed">
                                     {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.bank_info}
                                 </div>
                                 
                                 {/* Khung cú pháp chuyển khoản có nút Copy */}
-                                <div className="mt-3.5 p-3 bg-white rounded-xl border border-blue-200 flex items-center justify-between shadow-2xs">
+                                <div className="mt-3.5 p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
                                     <div>
-                                        <p className="text-[10px] uppercase font-bold text-slate-500">
+                                        <p className="text-[10.5px] uppercase font-bold text-slate-500">
                                             Cú pháp chuyển khoản:
                                         </p>
-                                        <p className="text-sm font-mono font-black text-[#1e40af]">
+                                        <p className="text-sm font-mono font-black text-[#0f172a]">
                                             {orderId}
                                         </p>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => copyToClipboard(orderId, 'orderId')}
-                                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1e40af] text-xs font-bold rounded-lg border border-blue-200 transition-colors flex items-center gap-1 cursor-pointer"
+                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold rounded-lg border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
                                     >
                                         {copiedField === 'orderId' ? <Check size={14} /> : <Copy size={14} />}
                                         {copiedField === 'orderId' ? 'Đã sao chép' : 'Sao chép'}
@@ -1056,10 +974,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                     <img 
                                         src={paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url as string} 
                                         alt="VietQR Chuyển khoản" 
-                                        className="w-32 h-32 object-contain bg-white p-1 rounded-xl shadow-xs border border-blue-200" 
+                                        className="w-32 h-32 object-contain bg-white p-1 rounded-xl shadow-2xs border border-slate-200" 
                                     />
-                                    <span className="text-[10px] font-bold text-blue-700 mt-1.5">
-                                        Quét VietQR để chuyển tiền
+                                    <span className="text-[11px] font-bold text-slate-700 mt-1.5">
+                                        Quét VietQR tự động
                                     </span>
                                 </div>
                             )}
@@ -1068,7 +986,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 </div>
 
                 {/* ── BƯỚC 4: XUẤT HÓA ĐƠN VAT DOANH NGHIỆP (TÙY CHỌN) ── */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs">
+                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs">
                     <label className="flex items-center gap-3 cursor-pointer select-none">
                         <input
                             type="checkbox"
@@ -1077,9 +995,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                             onChange={handleChange}
                             className="w-4.5 h-4.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
                         />
-                        <span className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                            <Building2 size={16} className="text-slate-600" />
-                            Yêu cầu xuất hóa đơn công ty (Hóa đơn điện tử VAT)
+                        <span className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <Building2 size={16} className="text-slate-700" />
+                            Yêu cầu xuất hóa đơn điện tử VAT (Doanh nghiệp)
                         </span>
                     </label>
 
@@ -1087,10 +1005,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="mt-4 space-y-3 pt-3 border-t border-slate-100"
+                            className="mt-4 space-y-3.5 pt-3.5 border-t border-slate-100"
                         >
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1">Tên công ty *</label>
+                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Tên công ty *</label>
                                 <input
                                     type="text"
                                     name="companyName"
@@ -1098,12 +1016,12 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                     onChange={handleChange}
                                     placeholder="Công ty TNHH / Cổ phần..."
                                     required={formData.wantVAT}
-                                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
                                 />
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">Mã số thuế *</label>
+                                    <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Mã số thuế *</label>
                                     <input
                                         type="text"
                                         name="companyTaxId"
@@ -1111,11 +1029,11 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         onChange={handleChange}
                                         placeholder="0123456789..."
                                         required={formData.wantVAT}
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">Địa chỉ công ty *</label>
+                                    <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Địa chỉ công ty *</label>
                                     <input
                                         type="text"
                                         name="companyAddress"
@@ -1123,7 +1041,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         onChange={handleChange}
                                         placeholder="Địa chỉ trụ sở chính..."
                                         required={formData.wantVAT}
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
                                     />
                                 </div>
                             </div>
@@ -1143,28 +1061,27 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 )}
             </div>
 
-            {/* ════════════ CỘT PHẢI: TÓM TẮT ĐƠN HÀNG & NÚT ĐẶT HÀNG (5 PHẦN) ════════════ */}
+            {/* ════════════ CỘT PHẢI: TÓM TẮT ĐƠN HÀNG & NÚT ĐẶT HÀNG ════════════ */}
             <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
-                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-sm">
-                    <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100">
-                        <h3 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-                            <ShoppingBag size={16} />
-                            Đơn hàng của bạn ({items.reduce((s, i) => s + i.quantity, 0)})
-                        </h3>
-                        <span className="text-[11px] text-slate-400 font-medium">
-                            Mã: #{orderId}
-                        </span>
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
+                    <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
+                            <h3 className="text-base font-bold uppercase tracking-wider text-slate-950">
+                                Đơn hàng ({items.reduce((s, i) => s + i.quantity, 0)})
+                            </h3>
+                        </div>
                     </div>
 
-                    {/* Danh sách sản phẩm trong giỏ (Số lượng không bị che) */}
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-0.5 hide-scrollbar" style={{ scrollbarWidth: 'none' }}>
+                    {/* Danh sách sản phẩm trong giỏ */}
+                    <div className="space-y-3.5 max-h-[320px] overflow-y-auto pr-1 hide-scrollbar" style={{ scrollbarWidth: 'none' }}>
                         {items.map((item) => (
                             <div
                                 key={`${item.product.id}-${item.selectedSize}-${item.selectedColor.name}`}
-                                className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors"
+                                className="flex items-center gap-3.5 py-1.5"
                             >
-                                {/* Wrapper ảnh có badge số lượng bên ngoài */}
-                                <div className="relative w-15 h-17 flex-shrink-0">
+                                {/* Wrapper ảnh có badge số lượng */}
+                                <div className="relative w-16 h-18 flex-shrink-0">
                                     <div className="relative w-full h-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                                         <Image
                                             src={item.product.images[0]}
@@ -1174,19 +1091,19 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                             sizes="64px"
                                         />
                                     </div>
-                                    <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-slate-900 text-white text-[10px] rounded-full flex items-center justify-center font-bold border-2 border-white shadow-xs z-10">
+                                    <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 bg-[#0f172a] text-white text-[10px] rounded-full flex items-center justify-center font-bold border-2 border-white shadow-2xs z-10">
                                         {item.quantity}
                                     </span>
                                 </div>
 
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-xs sm:text-[13px] font-semibold text-slate-800 line-clamp-1">
+                                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
                                         {item.product.name}
                                     </h4>
-                                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                                        Size: {item.selectedSize} · Màu: {item.selectedColor.name}
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                        Phân loại: {item.selectedSize} · {item.selectedColor.name}
                                     </p>
-                                    <p className="text-xs sm:text-[13px] font-bold text-slate-900 mt-0.5">
+                                    <p className="text-sm font-bold text-slate-950 mt-1">
                                         {formatPrice(item.product.price * item.quantity)}
                                     </p>
                                 </div>
@@ -1194,8 +1111,8 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         ))}
                     </div>
 
-                    {/* ── MÃ GIẢM GIÁ / VOUCHER (RÕ RÀNG, DỄ THAO TÁC) ── */}
-                    <div className="pt-3.5 mt-3.5 border-t border-slate-100">
+                    {/* ── MÃ GIẢM GIÁ / VOUCHER ── */}
+                    <div className="pt-4 mt-4 border-t border-slate-100">
                         {/* Khi đã áp voucher */}
                         <AnimatePresence>
                             {appliedCoupon && (
@@ -1205,13 +1122,13 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                     exit={{ opacity: 0, y: -6 }}
                                     className="mb-3 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2.5"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white shrink-0">
                                             <Check size={13} />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-emerald-900">{appliedCoupon.code}</p>
-                                            <p className="text-[11px] text-emerald-700">
+                                            <p className="text-xs font-bold text-emerald-950">{appliedCoupon.code}</p>
+                                            <p className="text-[11px] text-emerald-800 font-medium">
                                                 Tiết kiệm {formatPrice(appliedCoupon.discountAmount)}
                                             </p>
                                         </div>
@@ -1219,8 +1136,8 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                     <button
                                         type="button"
                                         onClick={removeVoucher}
-                                        className="text-slate-400 hover:text-red-500 p-1 cursor-pointer"
-                                        title="Xóa voucher"
+                                        className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer transition-colors"
+                                        title="Gỡ mã giảm giá"
                                     >
                                         <X size={16} />
                                     </button>
@@ -1230,23 +1147,20 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
                         {/* Ô nhập mã Voucher */}
                         {!appliedCoupon && (
-                            <div className="flex gap-2 mb-2">
-                                <div className="relative flex-1">
-                                    <Ticket size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        value={voucherInput}
-                                        onChange={e => { setVoucherInput(e.target.value); setVoucherError(''); }}
-                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyVoucher(voucherInput); } }}
-                                        placeholder="Nhập mã voucher..."
-                                        className="w-full pl-8.5 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold uppercase text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-900 outline-none"
-                                    />
-                                </div>
+                            <div className="flex gap-2 mb-2.5">
+                                <input
+                                    type="text"
+                                    value={voucherInput}
+                                    onChange={e => { setVoucherInput(e.target.value); setVoucherError(''); }}
+                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyVoucher(voucherInput); } }}
+                                    placeholder="Nhập mã ưu đãi / voucher..."
+                                    className="flex-1 px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold uppercase text-slate-900 placeholder:normal-case placeholder:font-normal placeholder:text-slate-400 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
+                                />
                                 <button
                                     type="button"
-                                    disabled={voucherLoading}
+                                    disabled={voucherLoading || !voucherInput.trim()}
                                     onClick={() => applyVoucher(voucherInput)}
-                                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl disabled:opacity-50 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                                    className="px-4 py-2.5 bg-[#0f172a] hover:bg-[#1e293b] text-white text-xs font-bold uppercase rounded-xl disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
                                 >
                                     {voucherLoading ? <Loader2 size={13} className="animate-spin" /> : 'Áp dụng'}
                                 </button>
@@ -1254,7 +1168,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         )}
 
                         {voucherError && (
-                            <p className="text-xs text-red-500 mb-2 flex items-center gap-1 font-medium">
+                            <p className="text-xs text-rose-600 mb-2 flex items-center gap-1 font-semibold">
                                 <X size={12} /> {voucherError}
                             </p>
                         )}
@@ -1265,12 +1179,12 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                             onClick={handleToggleVoucherList}
                             className="text-xs font-bold text-[#1e40af] hover:underline flex items-center gap-1.5 cursor-pointer mt-1"
                         >
-                            <Gift size={13} />
-                            <span>{showVoucherList ? 'Thu gọn danh sách voucher' : 'Xem voucher & ưu đãi có sẵn'}</span>
+                            <Gift size={14} />
+                            <span>{showVoucherList ? 'Thu gọn voucher' : 'Xem voucher & ưu đãi có sẵn'}</span>
                             <ChevronDown size={13} className={`transition-transform duration-200 ${showVoucherList ? 'rotate-180' : ''}`} />
                         </button>
 
-                        {/* Danh sách voucher có sẵn (Rõ ràng, không bị chèn thanh cuộn xám) */}
+                        {/* Danh sách voucher có sẵn */}
                         <AnimatePresence>
                             {showVoucherList && (
                                 <motion.div
@@ -1279,7 +1193,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                     exit={{ height: 0, opacity: 0 }}
                                     className="overflow-hidden"
                                 >
-                                    <div className="mt-2.5 space-y-2 max-h-[260px] overflow-y-auto pr-0.5 hide-scrollbar" style={{ scrollbarWidth: 'none' }}>
+                                    <div className="mt-3 space-y-2 max-h-[260px] overflow-y-auto pr-0.5 hide-scrollbar" style={{ scrollbarWidth: 'none' }}>
                                         {couponsLoading ? (
                                             <div className="py-4 text-center text-xs text-slate-400">Đang tải mã giảm giá...</div>
                                         ) : availableCoupons.length === 0 ? (
@@ -1297,9 +1211,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                                     >
                                                         <div className="min-w-0 flex-1">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="font-mono font-bold text-xs sm:text-sm text-slate-900 tracking-wide">{coupon.code}</span>
+                                                                <span className="font-mono font-bold text-sm text-slate-900 tracking-wide">{coupon.code}</span>
                                                                 {coupon.isPersonal && (
-                                                                    <span className="text-[9.5px] bg-amber-500 text-white px-2 py-0.5 rounded font-bold">Vòng quay</span>
+                                                                    <span className="text-[10px] bg-amber-500 text-white px-2 py-0.5 rounded font-bold">Vòng quay</span>
                                                                 )}
                                                             </div>
                                                             <p className="text-xs text-slate-600 font-medium mt-0.5">
@@ -1309,7 +1223,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                                         <button
                                                             type="button"
                                                             className={`px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-colors ${
-                                                                isApplied ? 'bg-emerald-600 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
+                                                                isApplied ? 'bg-emerald-600 text-white' : 'bg-[#0f172a] hover:bg-[#1e293b] text-white'
                                                             }`}
                                                         >
                                                             {isApplied ? 'Đang dùng' : 'Dùng mã'}
@@ -1324,34 +1238,34 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         </AnimatePresence>
                     </div>
 
-                    {/* ── BẢNG TỔNG KẾT CHI PHÍ (CÂN ĐỐI, THANH LỊCH) ── */}
-                    <div className="pt-3.5 mt-3.5 border-t border-slate-100 space-y-2">
-                        <div className="flex justify-between text-xs sm:text-sm text-slate-600 font-medium">
-                            <span>Tạm tính tiền hàng:</span>
+                    {/* ── BẢNG TỔNG KẾT CHI PHÍ ── */}
+                    <div className="pt-4 mt-4 border-t border-slate-100 space-y-2.5">
+                        <div className="flex justify-between text-sm text-slate-600 font-medium">
+                            <span>Tạm tính tiền hàng</span>
                             <span className="text-slate-900 font-bold">{formatPrice(totalAmount)}</span>
                         </div>
 
-                        <div className="flex justify-between text-xs sm:text-sm text-slate-600 font-medium">
-                            <span>Phí vận chuyển:</span>
-                            <span className={shippingFee === 0 ? 'text-emerald-600 font-bold' : 'text-slate-900 font-bold'}>
+                        <div className="flex justify-between text-sm text-slate-600 font-medium">
+                            <span>Phí vận chuyển</span>
+                            <span className={shippingFee === 0 ? 'text-emerald-700 font-bold' : 'text-slate-900 font-bold'}>
                                 {shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}
                             </span>
                         </div>
 
                         {appliedCoupon && (
-                            <div className="flex justify-between text-xs sm:text-sm text-rose-600 font-bold">
-                                <span>Giảm giá Voucher:</span>
+                            <div className="flex justify-between text-sm text-rose-600 font-bold">
+                                <span>Giảm giá Voucher</span>
                                 <span>-{formatPrice(appliedCoupon.discountAmount)}</span>
                             </div>
                         )}
 
-                        <div className="pt-3 mt-3 border-t border-slate-200 flex justify-between items-baseline">
+                        <div className="pt-3.5 mt-3.5 border-t border-slate-200 flex justify-between items-baseline">
                             <div>
-                                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
-                                    Tổng thanh toán:
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+                                    Tổng thanh toán
                                 </span>
-                                <span className="text-[10.5px] text-slate-400 font-normal">
-                                    (Đã bao gồm thuế VAT nếu có)
+                                <span className="text-[11px] text-slate-400 font-normal">
+                                    (Đã bao gồm VAT)
                                 </span>
                             </div>
                             <div className="text-right">
@@ -1360,19 +1274,19 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         {formatPrice(totalAmount + shippingFee)}
                                     </span>
                                 )}
-                                <span className="text-lg sm:text-xl font-extrabold text-slate-950 tracking-tight">
+                                <span className="text-xl sm:text-2xl font-black text-[#0f172a] tracking-tight">
                                     {formatPrice(finalTotal)}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* ── NÚT ĐẶT HÀNG NGAY (VỪA VẶN, SANG TRỌNG) ── */}
-                    <div className="pt-4 mt-4 border-t border-slate-100">
+                    {/* ── NÚT ĐẶT HÀNG NGAY ── */}
+                    <div className="pt-5 mt-4 border-t border-slate-100">
                         <button
                             type="submit"
                             disabled={isLoading || items.length === 0}
-                            className="w-full py-3.5 px-5 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-xl text-sm font-bold uppercase tracking-wider shadow-md active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-4 px-6 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-xl text-sm font-bold uppercase tracking-wider shadow-md active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                         >
                             {isLoading ? (
                                 <>
@@ -1381,26 +1295,26 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 </>
                             ) : (
                                 <>
-                                    <span>ĐẶT HÀNG NGAY · {formatPrice(finalTotal)}</span>
+                                    <span>XÁC NHẬN ĐẶT HÀNG · {formatPrice(finalTotal)}</span>
                                     <ArrowRight size={16} />
                                 </>
                             )}
                         </button>
                     </div>
 
-                    {/* ── HỘP CAM KẾT DOANH NGHIỆP (TRUST BADGES) ── */}
-                    <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 gap-2 text-xs text-slate-500 font-medium">
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck size={15} className="text-emerald-600 shrink-0" />
-                            <span>Bảo mật giao dịch thanh toán chuẩn SSL 256-bit</span>
+                    {/* ── CAM KẾT CHÍNH HÃNG ── */}
+                    <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 gap-2.5 text-xs text-slate-600 font-medium">
+                        <div className="flex items-center gap-2.5">
+                            <ShieldCheck size={16} className="text-emerald-700 shrink-0" />
+                            <span>Bảo mật giao dịch thanh toán SSL 256-bit</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Truck size={15} className="text-[#1e40af] shrink-0" />
-                            <span>Kiểm tra hàng thoải mái trước khi thanh toán</span>
+                        <div className="flex items-center gap-2.5">
+                            <Truck size={16} className="text-[#0f172a] shrink-0" />
+                            <span>Kiểm tra hàng trước khi thanh toán</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Check size={15} className="text-amber-600 shrink-0" />
-                            <span>Bảo hành & đổi hàng chính hãng trong vòng 30 ngày</span>
+                        <div className="flex items-center gap-2.5">
+                            <Check size={16} className="text-amber-600 shrink-0" />
+                            <span>Đổi trả chính hãng trong vòng 30 ngày</span>
                         </div>
                     </div>
                 </div>

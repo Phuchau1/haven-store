@@ -79,53 +79,47 @@ export default function CheckoutPage() {
         <div className="min-h-screen bg-[#f8fafc] pb-24 lg:pb-16">
             {/* ── HEADER DOANH NGHIỆP & TIẾN TRÌNH THANH TOÁN ── */}
             <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-2xs backdrop-blur-md bg-white/95">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-950 transition-colors cursor-pointer py-1.5 px-2.5 -ml-2.5 rounded-xl hover:bg-slate-100"
+                        className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-950 transition-colors cursor-pointer py-1 px-2 -ml-2 rounded-lg hover:bg-slate-100"
                     >
-                        <ChevronLeft size={18} />
-                        <span>Quay lại</span>
+                        <ChevronLeft size={17} />
+                        <span>Giỏ hàng</span>
                     </button>
 
                     {/* Progress Steps (Desktop) */}
                     <div className="hidden md:flex items-center gap-3 text-xs font-bold">
-                        <span className="flex items-center gap-1.5 text-slate-400">
-                            <CheckCircle2 size={15} className="text-emerald-600" />
-                            1. Giỏ hàng
+                        <span className="text-slate-400">1. Giỏ hàng</span>
+                        <span className="text-slate-300">›</span>
+                        <span className="text-[#0f172a] font-extrabold flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full">
+                            2. Thanh toán
                         </span>
-                        <span className="text-slate-300">/</span>
-                        <span className="flex items-center gap-1.5 text-[#1e40af] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                            <span className="w-4 h-4 rounded-full bg-[#1e40af] text-white text-[10px] flex items-center justify-center">2</span>
-                            2. Thông tin & Thanh toán
-                        </span>
-                        <span className="text-slate-300">/</span>
-                        <span className="text-slate-400">
-                            3. Hoàn tất đơn
-                        </span>
+                        <span className="text-slate-300">›</span>
+                        <span className="text-slate-400">3. Hoàn tất</span>
                     </div>
 
                     {/* Secure Badge */}
-                    <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
                         <Lock size={12} />
-                        <span>BẢO MẬT SSL</span>
+                        <span>BẢO MẬT SSL 256-BIT</span>
                     </div>
                 </div>
             </header>
 
             {/* ── TIÊU ĐỀ TRANG ── */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-3">
                 <motion.div
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
+                    transition={{ duration: 0.3 }}
                 >
-                    <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                        Thanh toán đơn hàng
-                    </h1>
-                    <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-                        Vui lòng kiểm tra thông tin giao hàng và chọn phương thức thanh toán thuận tiện nhất.
-                    </p>
+                    <div className="flex items-center gap-2.5">
+                        <span className="w-1.5 h-6 sm:h-7 bg-[#0f172a] rounded-full" />
+                        <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-slate-950">
+                            Thanh toán đơn hàng
+                        </h1>
+                    </div>
                 </motion.div>
             </div>
 
