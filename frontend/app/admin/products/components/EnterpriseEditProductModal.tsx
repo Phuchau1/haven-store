@@ -569,366 +569,348 @@ export default function EnterpriseEditProductModal({
                 </div>
             </div>
 
-            {/* ════════════ MAIN CONTAINER CÂN BẰNG TỪNG HÀNG 1 -> 2 -> 3 ════════════ */}
-            <div className="max-w-[1520px] w-full mx-auto px-4 sm:px-8 pt-6 space-y-6">
-                <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
+            {/* ════════════ MAIN CONTAINER 1 CỘT XẾP DỌC TRÊN XUỐNG DƯỚI ════════════ */}
+            <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 pt-6">
+                <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col space-y-6 w-full">
                     
-                    {/* ── HÀNG 1: THÔNG TIN CƠ BẢN (7 CỘT) + TRẠNG THÁI & PHÂN LOẠI (5 CỘT) ── */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                        
-                        {/* 1. THÔNG TIN SẢN PHẨM CƠ BẢN */}
-                        <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between">
+                    {/* 1. THÔNG TIN SẢN PHẨM CƠ BẢN */}
+                    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
+                        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
+                            <FileText size={16} className="text-slate-700" />
+                            1. Thông tin sản phẩm cơ bản
+                        </h2>
+
+                        <div className="space-y-4">
+                            {/* Tên sản phẩm */}
                             <div>
-                                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
-                                    <FileText size={16} className="text-slate-700" />
-                                    1. Thông tin sản phẩm cơ bản
-                                </h2>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Tên sản phẩm <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.name || ''}
+                                    onChange={handleNameChange}
+                                    placeholder="Ví dụ: Áo Sơ Mi Nữ Crop Tay Dài Thêu Trái Tim Form Loose"
+                                    required
+                                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-sm font-semibold text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all placeholder:font-normal placeholder:text-slate-400 ${
+                                        errors.name ? 'border-rose-500 bg-rose-50/20' : 'border-slate-300'
+                                    }`}
+                                />
+                                {errors.name && <p className="text-xs text-rose-600 font-medium mt-1">{errors.name}</p>}
+                            </div>
 
-                                <div className="space-y-4">
-                                    {/* Tên sản phẩm */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Tên sản phẩm <span className="text-rose-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.name || ''}
-                                            onChange={handleNameChange}
-                                            placeholder="Ví dụ: Áo Sơ Mi Nữ Crop Tay Dài Thêu Trái Tim Form Loose"
-                                            required
-                                            className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-sm font-semibold text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all placeholder:font-normal placeholder:text-slate-400 ${
-                                                errors.name ? 'border-rose-500 bg-rose-50/20' : 'border-slate-300'
-                                            }`}
-                                        />
-                                        {errors.name && <p className="text-xs text-rose-600 font-medium mt-1">{errors.name}</p>}
-                                    </div>
+                            {/* Mô tả tóm tắt */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Mô tả ngắn (Hiển thị đầu trang & thẻ sản phẩm)
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    value={formData.shortDescription || ''}
+                                    onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                                    placeholder="Tóm tắt điểm đặc biệt nhất của sản phẩm trong 1 - 2 câu ngắn gọn..."
+                                    className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-normal text-slate-900 focus:border-slate-900 outline-none resize-none placeholder:text-slate-400 leading-relaxed"
+                                />
+                            </div>
 
-                                    {/* Mô tả tóm tắt */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Mô tả ngắn (Hiển thị đầu trang & thẻ sản phẩm)
-                                        </label>
-                                        <textarea
-                                            rows={2}
-                                            value={formData.shortDescription || ''}
-                                            onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                                            placeholder="Tóm tắt điểm đặc biệt nhất của sản phẩm trong 1 - 2 câu ngắn gọn..."
-                                            className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-normal text-slate-900 focus:border-slate-900 outline-none resize-none placeholder:text-slate-400 leading-relaxed"
-                                        />
-                                    </div>
-
-                                    {/* Mô tả chi tiết */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Mô tả chi tiết sản phẩm
-                                        </label>
-                                        <textarea
-                                            rows={4}
-                                            value={formData.description || ''}
-                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                            placeholder="Mô tả chi tiết chất liệu, cảm giác mặc, tính năng, gợi ý phối đồ..."
-                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-normal text-slate-900 focus:border-slate-900 outline-none leading-relaxed resize-y placeholder:text-slate-400"
-                                        />
-                                    </div>
-                                </div>
+                            {/* Mô tả chi tiết */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Mô tả chi tiết sản phẩm
+                                </label>
+                                <textarea
+                                    rows={4}
+                                    value={formData.description || ''}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Mô tả chi tiết chất liệu, cảm giác mặc, tính năng, gợi ý phối đồ..."
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-normal text-slate-900 focus:border-slate-900 outline-none leading-relaxed resize-y placeholder:text-slate-400"
+                                />
                             </div>
                         </div>
-
-                        {/* TRẠNG THÁI & PHÂN LOẠI TỔ CHỨC */}
-                        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
-                                    <Tag size={16} className="text-slate-700" />
-                                    Phân loại & Tổ chức cửa hàng
-                                </h3>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                    {/* Trạng thái */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Trạng thái bán</label>
-                                        <select
-                                            value={formData.status || 'published'}
-                                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-slate-900 focus:border-slate-900 outline-none"
-                                        >
-                                            <option value="published">Đang kinh doanh (Active)</option>
-                                            <option value="draft">Bản nháp (Draft)</option>
-                                            <option value="archived">Ngừng bán (Archived)</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Tổng kho */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Tổng số lượng kho</label>
-                                        <input
-                                            type="number"
-                                            value={formData.stock || 0}
-                                            onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
-                                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-slate-900 outline-none"
-                                        />
-                                    </div>
-
-                                    {/* Danh mục chính */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Danh mục chính <span className="text-rose-500">*</span>
-                                        </label>
-                                        <select
-                                            value={formData.category || 'Thời Trang Nam'}
-                                            onChange={(e) => {
-                                                const catName = e.target.value;
-                                                const catObj = activeCategories.find(c => c.name === catName);
-                                                const firstSub = catObj?.subCategories?.[0]?.id || '';
-                                                setFormData({ ...formData, category: catName, subCategory: firstSub });
-                                            }}
-                                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-slate-900 outline-none"
-                                        >
-                                            {activeCategories.map(c => (
-                                                <option key={c.id} value={c.name}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Danh mục con */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Danh mục con (Chi tiết) <span className="text-rose-500">*</span>
-                                        </label>
-                                        <select
-                                            value={formData.subCategory || ''}
-                                            onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
-                                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium text-slate-900 outline-none"
-                                        >
-                                            {activeCategories.find(c => c.name === formData.category)?.subCategories?.map(sub => (
-                                                <option key={sub.id} value={sub.id}>{sub.name}</option>
-                                            )) || (
-                                                <option value="">Không có danh mục con</option>
-                                            )}
-                                        </select>
-                                    </div>
-
-                                    {/* Thương hiệu */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Thương hiệu</label>
-                                        <select
-                                            value={formData.brand || 'HAVEN'}
-                                            onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium text-slate-900 outline-none"
-                                        >
-                                            {brands.map(b => (
-                                                <option key={b} value={b}>{b}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Đối tượng */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Đối tượng (Gender)</label>
-                                        <select
-                                            value={formData.gender || 'Nam'}
-                                            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium text-slate-900 outline-none"
-                                        >
-                                            <option value="Nam">Nam giới</option>
-                                            <option value="Nữ">Nữ giới</option>
-                                            <option value="Unisex">Unisex (Cả nam & nữ)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
 
-                    {/* ── HÀNG 2: HÌNH ẢNH SẢN PHẨM (6 CỘT) + GIÁ BÁN & CHI PHÍ (6 CỘT) ── */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                        
-                        {/* 2. HÌNH ẢNH SẢN PHẨM */}
-                        <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between">
+                    {/* 2. PHÂN LOẠI & TỔ CHỨC CỬA HÀNG */}
+                    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
+                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
+                            <Tag size={16} className="text-slate-700" />
+                            2. Phân loại & Trạng thái bán hàng
+                        </h3>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
+                            {/* Trạng thái */}
                             <div>
-                                <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-slate-100">
-                                    <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                                        <ImageIcon size={16} className="text-slate-700" />
-                                        2. Thư viện hình ảnh ({formData.images?.length || 0})
-                                    </h2>
-                                    <span className="text-[11px] text-slate-400">Ảnh đầu tiên là ảnh bìa</span>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Trạng thái bán</label>
+                                <select
+                                    value={formData.status || 'published'}
+                                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-slate-900 focus:border-slate-900 outline-none"
+                                >
+                                    <option value="published">Đang kinh doanh (Active)</option>
+                                    <option value="draft">Bản nháp (Draft)</option>
+                                    <option value="archived">Ngừng bán (Archived)</option>
+                                </select>
+                            </div>
+
+                            {/* Tổng kho */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Tổng số lượng kho</label>
+                                <input
+                                    type="number"
+                                    value={formData.stock || 0}
+                                    onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-slate-900 outline-none"
+                                />
+                            </div>
+
+                            {/* Danh mục chính */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Danh mục chính <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.category || 'Thời Trang Nam'}
+                                    onChange={(e) => {
+                                        const catName = e.target.value;
+                                        const catObj = activeCategories.find(c => c.name === catName);
+                                        const firstSub = catObj?.subCategories?.[0]?.id || '';
+                                        setFormData({ ...formData, category: catName, subCategory: firstSub });
+                                    }}
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-slate-900 outline-none"
+                                >
+                                    {activeCategories.map(c => (
+                                        <option key={c.id} value={c.name}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Danh mục con */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Danh mục con <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.subCategory || ''}
+                                    onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium text-slate-900 outline-none"
+                                >
+                                    {activeCategories.find(c => c.name === formData.category)?.subCategories?.map(sub => (
+                                        <option key={sub.id} value={sub.id}>{sub.name}</option>
+                                    )) || (
+                                        <option value="">Không có danh mục con</option>
+                                    )}
+                                </select>
+                            </div>
+
+                            {/* Thương hiệu */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Thương hiệu</label>
+                                <select
+                                    value={formData.brand || 'HAVEN'}
+                                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium text-slate-900 outline-none"
+                                >
+                                    {brands.map(b => (
+                                        <option key={b} value={b}>{b}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Đối tượng */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Đối tượng (Gender)</label>
+                                <select
+                                    value={formData.gender || 'Nam'}
+                                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium text-slate-900 outline-none"
+                                >
+                                    <option value="Nam">Nam giới</option>
+                                    <option value="Nữ">Nữ giới</option>
+                                    <option value="Unisex">Unisex (Cả nam & nữ)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 3. HÌNH ẢNH SẢN PHẨM */}
+                    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
+                        <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-slate-100">
+                            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                <ImageIcon size={16} className="text-slate-700" />
+                                3. Thư viện hình ảnh ({formData.images?.length || 0})
+                            </h2>
+                            <span className="text-[11px] text-slate-400">Ảnh đầu tiên là ảnh bìa chính</span>
+                        </div>
+
+                        <div className="space-y-3.5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {/* Upload Button */}
+                                <div 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="border border-dashed border-slate-300 hover:border-slate-900 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-50/60 hover:bg-slate-50 flex flex-col items-center justify-center gap-1.5"
+                                >
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                    />
+                                    {uploadingImage ? (
+                                        <>
+                                            <Loader2 size={20} className="animate-spin text-slate-800" />
+                                            <span className="text-xs font-semibold text-slate-700">Đang tải ảnh...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload size={20} className="text-slate-600" />
+                                            <span className="text-xs font-bold text-slate-800">Tải ảnh từ máy tính</span>
+                                            <span className="text-[10px] text-slate-400">JPG, PNG, WEBP</span>
+                                        </>
+                                    )}
                                 </div>
 
-                                <div className="space-y-3.5">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {/* Upload Button */}
-                                        <div 
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="border border-dashed border-slate-300 hover:border-slate-900 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-50/60 hover:bg-slate-50 flex flex-col items-center justify-center gap-1.5"
+                                {/* Add via URL */}
+                                <div className="border border-slate-200 rounded-xl p-3.5 bg-slate-50/40 flex flex-col justify-center gap-2">
+                                    <label className="text-[11px] font-semibold text-slate-700">Dán liên kết URL hình ảnh:</label>
+                                    <div className="flex gap-1.5">
+                                        <input
+                                            type="url"
+                                            value={newImageUrl}
+                                            onChange={(e) => setNewImageUrl(e.target.value)}
+                                            placeholder="https://..."
+                                            className="flex-1 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddImageUrl}
+                                            className="px-3 py-1.5 bg-[#0f172a] text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
                                         >
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleFileUpload}
-                                                className="hidden"
-                                            />
-                                            {uploadingImage ? (
-                                                <>
-                                                    <Loader2 size={20} className="animate-spin text-slate-800" />
-                                                    <span className="text-xs font-semibold text-slate-700">Đang tải ảnh...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Upload size={20} className="text-slate-600" />
-                                                    <span className="text-xs font-bold text-slate-800">Tải ảnh từ máy</span>
-                                                    <span className="text-[10px] text-slate-400">JPG, PNG, WEBP</span>
-                                                </>
-                                            )}
-                                        </div>
+                                            Thêm
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
-                                        {/* Add via URL */}
-                                        <div className="border border-slate-200 rounded-xl p-3.5 bg-slate-50/40 flex flex-col justify-center gap-2">
-                                            <label className="text-[11px] font-semibold text-slate-700">Dán URL hình ảnh:</label>
-                                            <div className="flex gap-1.5">
-                                                <input
-                                                    type="url"
-                                                    value={newImageUrl}
-                                                    onChange={(e) => setNewImageUrl(e.target.value)}
-                                                    placeholder="https://..."
-                                                    className="flex-1 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none"
-                                                />
+                            {/* Gallery Grid */}
+                            {formData.images && formData.images.length > 0 && (
+                                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 pt-1">
+                                    {formData.images.map((imgUrl: string, idx: number) => (
+                                        <div 
+                                            key={idx} 
+                                            className="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-2xs"
+                                        >
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={imgUrl}
+                                                alt={`Ảnh ${idx + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+
+                                            {idx === 0 && (
+                                                <span className="absolute top-1 left-1 text-[9px] font-bold bg-[#0f172a] text-white px-1.5 py-0.5 rounded shadow-xs">
+                                                    Bìa
+                                                </span>
+                                            )}
+
+                                            <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                                                {idx !== 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleSetFeaturedImage(idx)}
+                                                        className="px-1.5 py-1 bg-white text-slate-900 text-[10px] font-bold rounded hover:bg-slate-100 transition-colors"
+                                                        title="Đặt làm bìa"
+                                                    >
+                                                        Bìa
+                                                    </button>
+                                                )}
                                                 <button
                                                     type="button"
-                                                    onClick={handleAddImageUrl}
-                                                    className="px-3 py-1.5 bg-[#0f172a] text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                                                    onClick={() => handleRemoveImage(idx)}
+                                                    className="p-1 bg-rose-600 text-white rounded hover:bg-rose-700 transition-colors"
+                                                    title="Xóa"
                                                 >
-                                                    Thêm
+                                                    <Trash2 size={13} />
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Gallery Grid */}
-                                    {formData.images && formData.images.length > 0 && (
-                                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5 pt-1">
-                                            {formData.images.map((imgUrl: string, idx: number) => (
-                                                <div 
-                                                    key={idx} 
-                                                    className="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-2xs"
-                                                >
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img
-                                                        src={imgUrl}
-                                                        alt={`Ảnh ${idx + 1}`}
-                                                        className="w-full h-full object-cover"
-                                                    />
-
-                                                    {idx === 0 && (
-                                                        <span className="absolute top-1 left-1 text-[9px] font-bold bg-[#0f172a] text-white px-1.5 py-0.5 rounded shadow-xs">
-                                                            Bìa
-                                                        </span>
-                                                    )}
-
-                                                    <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-                                                        {idx !== 0 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleSetFeaturedImage(idx)}
-                                                                className="px-1.5 py-1 bg-white text-slate-900 text-[10px] font-bold rounded hover:bg-slate-100 transition-colors"
-                                                                title="Đặt làm bìa"
-                                                            >
-                                                                Bìa
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveImage(idx)}
-                                                            className="p-1 bg-rose-600 text-white rounded hover:bg-rose-700 transition-colors"
-                                                            title="Xóa"
-                                                        >
-                                                            <Trash2 size={13} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    ))}
                                 </div>
-                            </div>
+                            )}
                         </div>
-
-                        {/* 3. GIÁ BÁN & CHI PHÍ */}
-                        <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between">
-                            <div>
-                                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
-                                    <DollarSign size={16} className="text-slate-700" />
-                                    3. Giá bán & Chi phí lợi nhuận
-                                </h2>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                                    {/* Giá bán lẻ */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Giá bán lẻ (VNĐ) <span className="text-rose-500">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="1000"
-                                            value={formData.price || 0}
-                                            onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                                            required
-                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-900 focus:border-slate-900 outline-none"
-                                        />
-                                    </div>
-
-                                    {/* Giá gốc */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Giá gốc / So sánh
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="1000"
-                                            value={formData.originalPrice || 0}
-                                            onChange={(e) => setFormData({ ...formData, originalPrice: Number(e.target.value) })}
-                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:border-slate-900 outline-none"
-                                        />
-                                    </div>
-
-                                    {/* Giá vốn */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                            Giá vốn nhập hàng
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="1000"
-                                            value={formData.costPrice || 0}
-                                            onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
-                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:border-slate-900 outline-none"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Profit Margin Indicator */}
-                                <div className="mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs sm:text-sm">
-                                    <div className="text-slate-600 font-medium">
-                                        Lợi nhuận ước tính: <span className="font-bold text-slate-900">{profit.toLocaleString('vi-VN')} đ</span> / sản phẩm
-                                    </div>
-                                    <div className="text-slate-600 font-medium">
-                                        Biên lợi nhuận: <span className={`font-bold ${Number(profitMargin) > 30 ? 'text-emerald-700' : 'text-slate-900'}`}>{profitMargin}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
 
-                    {/* ── HÀNG 3: PHIÊN BẢN PHÂN LOẠI, SIZE, MÀU SẮC & MA TRẬN BIẾN THỂ (TOÀN BỘ 12 CỘT) ── */}
-                    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 w-full">
+                    {/* 4. GIÁ BÁN & CHI PHÍ */}
+                    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
+                        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
+                            <DollarSign size={16} className="text-slate-700" />
+                            4. Giá bán & Chi phí lợi nhuận
+                        </h2>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {/* Giá bán lẻ */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Giá bán lẻ (VNĐ) <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={formData.price || 0}
+                                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                                    required
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-900 focus:border-slate-900 outline-none"
+                                />
+                            </div>
+
+                            {/* Giá gốc */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Giá gốc / So sánh (VNĐ)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={formData.originalPrice || 0}
+                                    onChange={(e) => setFormData({ ...formData, originalPrice: Number(e.target.value) })}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:border-slate-900 outline-none"
+                                />
+                            </div>
+
+                            {/* Giá vốn */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Giá vốn nhập hàng (VNĐ)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={formData.costPrice || 0}
+                                    onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:border-slate-900 outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Profit Margin Indicator */}
+                        <div className="mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs sm:text-sm">
+                            <div className="text-slate-600 font-medium">
+                                Lợi nhuận ước tính: <span className="font-bold text-slate-900">{profit.toLocaleString('vi-VN')} đ</span> / sản phẩm
+                            </div>
+                            <div className="text-slate-600 font-medium">
+                                Biên lợi nhuận: <span className={`font-bold ${Number(profitMargin) > 30 ? 'text-emerald-700' : 'text-slate-900'}`}>{profitMargin}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 5. PHIÊN BẢN PHÂN LOẠI, SIZE, MÀU SẮC & MA TRẬN BIẾN THỂ */}
+                    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
                         <div className="flex items-center justify-between pb-2.5 mb-5 border-b border-slate-100">
                             <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                 <Boxes size={16} className="text-slate-700" />
-                                4. Phiên bản phân loại (Kích cỡ, Màu sắc & Gán ảnh theo màu)
+                                5. Phiên bản phân loại (Kích cỡ, Màu sắc & Gán ảnh theo màu)
                             </h2>
                             <span className="text-[11px] text-slate-400">Tự động tạo ma trận SKU và tồn kho</span>
                         </div>
@@ -1188,120 +1170,109 @@ export default function EnterpriseEditProductModal({
                         )}
                     </div>
 
-                    {/* ── HÀNG 4: THÔNG SỐ KỸ THUẬT (6 CỘT) + TỐI ƯU SEO GOOGLE (6 CỘT) ── */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                        
-                        {/* THÔNG SỐ KỸ THUẬT */}
-                        <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
-                                    <Sliders size={16} className="text-slate-700" />
-                                    5. Thông số kỹ thuật sản phẩm
-                                </h3>
+                    {/* 6. THÔNG SỐ KỸ THUẬT */}
+                    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
+                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
+                            <Sliders size={16} className="text-slate-700" />
+                            6. Thông số kỹ thuật sản phẩm
+                        </h3>
 
-                                <div className="space-y-2.5 mb-4">
-                                    {Object.entries(formData.specs || {}).map(([k, v]: [string, any]) => (
-                                        <div key={k} className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between text-xs">
-                                            <div>
-                                                <span className="font-semibold text-slate-900 mr-2">{k}:</span>
-                                                <span className="text-slate-600">{String(v)}</span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveSpec(k)}
-                                                className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Add Custom Spec */}
-                                <div className="pt-2 flex flex-col gap-2 border-t border-slate-100">
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Tên thuộc tính (VD: Chất liệu)..."
-                                            value={specKey}
-                                            onChange={(e) => setSpecKey(e.target.value)}
-                                            className="w-1/2 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Giá trị (VD: 100% Cotton)..."
-                                            value={specValue}
-                                            onChange={(e) => setSpecValue(e.target.value)}
-                                            className="w-1/2 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none"
-                                        />
+                        <div className="space-y-2.5 mb-4">
+                            {Object.entries(formData.specs || {}).map(([k, v]: [string, any]) => (
+                                <div key={k} className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between text-xs">
+                                    <div>
+                                        <span className="font-semibold text-slate-900 mr-2">{k}:</span>
+                                        <span className="text-slate-600">{String(v)}</span>
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={handleAddSpec}
-                                        className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 cursor-pointer"
+                                        onClick={() => handleRemoveSpec(k)}
+                                        className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
                                     >
-                                        + Thêm thông số
+                                        <X size={14} />
                                     </button>
                                 </div>
-                            </div>
+                            ))}
                         </div>
 
-                        {/* TỐI ƯU TÌM KIẾM SEO */}
-                        <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between">
+                        {/* Add Custom Spec */}
+                        <div className="pt-2 flex flex-col sm:flex-row gap-2 border-t border-slate-100">
+                            <input
+                                type="text"
+                                placeholder="Tên thuộc tính (VD: Chất liệu)..."
+                                value={specKey}
+                                onChange={(e) => setSpecKey(e.target.value)}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none"
+                            />
+                            <input
+                                type="text"
+                                placeholder="Giá trị (VD: 100% Cotton)..."
+                                value={specValue}
+                                onChange={(e) => setSpecValue(e.target.value)}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddSpec}
+                                className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 cursor-pointer"
+                            >
+                                + Thêm thông số
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 7. TỐI ƯU TÌM KIẾM SEO */}
+                    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
+                        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
+                            <Globe size={16} className="text-slate-700" />
+                            7. Tối ưu tìm kiếm SEO (Google Search Engine)
+                        </h2>
+
+                        {/* Google Snippet Preview */}
+                        <div className="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                            <p className="text-xs font-semibold text-blue-800 truncate">
+                                {formData.seo?.title || `${formData.name || 'Tên sản phẩm'} | HAVEN Store`}
+                            </p>
+                            <p className="text-[11px] text-emerald-700 font-mono truncate">
+                                https://havenstore.io.vn/product/{formData.seo?.slug || formData.id?.toLowerCase()}
+                            </p>
+                            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mt-0.5">
+                                {formData.seo?.description || formData.shortDescription || formData.description || 'Mua sắm các sản phẩm thời trang chính hãng tại HAVEN Store.'}
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
                             <div>
-                                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
-                                    <Globe size={16} className="text-slate-700" />
-                                    6. Tối ưu tìm kiếm SEO (Google Preview)
-                                </h2>
-
-                                {/* Google Snippet Preview */}
-                                <div className="mb-3.5 p-3.5 bg-slate-50 rounded-lg border border-slate-200">
-                                    <p className="text-[11px] font-semibold text-blue-800 truncate">
-                                        {formData.seo?.title || `${formData.name || 'Tên sản phẩm'} | HAVEN Store`}
-                                    </p>
-                                    <p className="text-[10px] text-emerald-700 font-mono truncate">
-                                        https://havenstore.io.vn/product/{formData.seo?.slug || formData.id?.toLowerCase()}
-                                    </p>
-                                    <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed mt-0.5">
-                                        {formData.seo?.description || formData.shortDescription || formData.description || 'Mua sắm các sản phẩm thời trang chính hãng tại HAVEN Store.'}
-                                    </p>
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    <div>
-                                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">Tiêu đề SEO</label>
-                                        <input
-                                            type="text"
-                                            value={formData.seo?.title || ''}
-                                            onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), title: e.target.value } })}
-                                            placeholder="Tiêu đề hiển thị trên Google..."
-                                            className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">Mô tả Meta (Meta Description)</label>
-                                        <textarea
-                                            rows={2}
-                                            value={formData.seo?.description || ''}
-                                            onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), description: e.target.value } })}
-                                            placeholder="Mô tả tóm tắt..."
-                                            className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 outline-none resize-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">Đường dẫn URL Slug</label>
-                                        <input
-                                            type="text"
-                                            value={formData.seo?.slug || ''}
-                                            onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), slug: e.target.value } })}
-                                            placeholder="duong-dan-url"
-                                            className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-900 outline-none"
-                                        />
-                                    </div>
-                                </div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">Tiêu đề SEO</label>
+                                <input
+                                    type="text"
+                                    value={formData.seo?.title || ''}
+                                    onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), title: e.target.value } })}
+                                    placeholder="Tiêu đề hiển thị trên Google..."
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">Mô tả Meta (Meta Description)</label>
+                                <textarea
+                                    rows={2}
+                                    value={formData.seo?.description || ''}
+                                    onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), description: e.target.value } })}
+                                    placeholder="Mô tả tóm tắt sản phẩm để Google hiển thị khi người dùng tìm kiếm..."
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 outline-none resize-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">Đường dẫn URL Slug</label>
+                                <input
+                                    type="text"
+                                    value={formData.seo?.slug || ''}
+                                    onChange={(e) => setFormData({ ...formData, seo: { ...(formData.seo || {}), slug: e.target.value } })}
+                                    placeholder="duong-dan-url-san-pham"
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-900 outline-none"
+                                />
                             </div>
                         </div>
-
                     </div>
 
                 </form>
@@ -1363,7 +1334,7 @@ export default function EnterpriseEditProductModal({
                                     </div>
                                 ) : (
                                     <p className="text-xs text-slate-500 text-center py-6">
-                                        Chưa có hình ảnh nào trong thư viện sản phẩm. Vui lòng tải ảnh lên ở mục "2. Thư viện hình ảnh" trước.
+                                        Chưa có hình ảnh nào trong thư viện sản phẩm. Vui lòng tải ảnh lên ở mục "3. Thư viện hình ảnh" trước.
                                     </p>
                                 )}
                             </div>
