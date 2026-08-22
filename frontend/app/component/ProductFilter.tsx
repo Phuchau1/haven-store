@@ -64,10 +64,12 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                 const res = await fetch('/api/categories');
                 const data = await res.json();
                 if (data.success && Array.isArray(data.categories)) {
-                    const opts = data.categories.map((c: { id: string; name: string }) => ({
-                        value: c.id,
-                        label: c.name,
-                    }));
+                    const opts = data.categories
+                        .filter((c: { id: string; name: string }) => c.id !== 'ao-nam' && (c.id.startsWith('cat-') || c.name.toLowerCase().includes('thời trang')))
+                        .map((c: { id: string; name: string }) => ({
+                            value: c.id,
+                            label: c.name,
+                        }));
                     setCategories([{ value: '', label: 'Tất cả' }, ...opts]);
                 }
             } catch {
