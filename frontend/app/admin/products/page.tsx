@@ -514,6 +514,42 @@ export default function AdminProducts() {
     const selectCls =
         'adm-select w-full min-h-[50px] text-sm px-4 rounded-xl';
 
+    if (isModalOpen) {
+        return (
+            <EnterpriseEditProductModal
+                isOpen={true}
+                onClose={() => setIsModalOpen(false)}
+                product={editingProduct}
+                onSave={async (productPayload) => {
+                    const method = editingProduct ? 'PUT' : 'POST';
+                    const payload = {
+                        ...productPayload,
+                        _id: productPayload._id || (editingProduct as any)?._id,
+                        image: productPayload.images?.[0] || productPayload.image || '',
+                        images: productPayload.images || [],
+                    };
+                    const res = await fetch('/api/products', {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const productsRes = await fetch(`/api/products?includeHidden=true&_t=${Date.now()}`, { cache: 'no-store' });
+                        if (productsRes.ok) {
+                            const d = await productsRes.json();
+                            if (d.success) setProducts(d.products);
+                        }
+                    } else {
+                        throw new Error(data.message || 'Không thể lưu sản phẩm');
+                    }
+                }}
+                categories={categories}
+                showToast={showToast}
+            />
+        );
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     return (
         <div className="space-y-5">
@@ -948,39 +984,6 @@ export default function AdminProducts() {
                     />
                 )}
             </div>
-
-            {/* ── Enterprise Edit Product Modal ─────────────────────────────── */}
-            <EnterpriseEditProductModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                product={editingProduct}
-                onSave={async (productPayload) => {
-                    const method = editingProduct ? 'PUT' : 'POST';
-                    const payload = {
-                        ...productPayload,
-                        _id: productPayload._id || (editingProduct as any)?._id,
-                        image: productPayload.images?.[0] || productPayload.image || '',
-                        images: productPayload.images || [],
-                    };
-                    const res = await fetch('/api/products', {
-                        method,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        const productsRes = await fetch(`/api/products?includeHidden=true&_t=${Date.now()}`, { cache: 'no-store' });
-                        if (productsRes.ok) {
-                            const d = await productsRes.json();
-                            if (d.success) setProducts(d.products);
-                        }
-                    } else {
-                        throw new Error(data.message || 'Không thể lưu sản phẩm');
-                    }
-                }}
-                categories={categories}
-                showToast={showToast}
-            />
 
             {/* ── SweetAlert Style Confirm Modal ── */}
             <ConfirmModal
