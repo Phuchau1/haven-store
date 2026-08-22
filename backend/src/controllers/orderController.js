@@ -690,8 +690,8 @@ const requestRefund = async (req, res, next) => {
 const submitReturnRequest = async (req, res, next) => {
     try {
         const { orderId, reason, images } = req.body;
-        if (!orderId || !reason || reason.trim().length < 10) {
-            return res.status(400).json({ success: false, message: 'Cần cung cấp mã đơn và lý do ít nhất 10 ký tự' });
+        if (!orderId || !reason || reason.trim().length < 3) {
+            return res.status(400).json({ success: false, message: 'Cần cung cấp mã đơn hàng và lý do hoàn hàng chi tiết' });
         }
 
         const order = await OrderModel.findOne({ id: orderId });

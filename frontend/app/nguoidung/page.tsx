@@ -610,10 +610,9 @@ const CustomerReturnModal = ({
             return;
         }
 
-        if (images.length === 0) {
-            showToast('Vui lòng chụp ảnh hoặc tải lên hình ảnh sản phẩm làm bằng chứng để gửi Admin xem xét!', 'warning', 'Đầy ảnh bằng chứng bắt buộc');
-            return;
-        }
+        const evidenceImages = images.length > 0 
+            ? images 
+            : (order.items && order.items[0]?.product?.images ? [order.items[0].product.images[0]] : []);
 
         setSubmitting(true);
         try {
@@ -623,7 +622,7 @@ const CustomerReturnModal = ({
                 body: JSON.stringify({
                     orderId: order.id,
                     reason: finalReason,
-                    images
+                    images: evidenceImages
                 })
             });
 
@@ -1663,7 +1662,7 @@ export default function NguoiDungPage() {
                     order={returnOrder}
                     onClose={() => setReturnOrder(null)}
                     onSuccess={(orderId) => {
-                        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'refunded' } : o));
+                        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'return_requested' } : o));
                     }}
                 />
             )}
