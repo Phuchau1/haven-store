@@ -534,7 +534,7 @@ const updateOrderStatus = async (req, res, next) => {
         // ─────────────────────────────────────────────────────────────────
         // TỰ ĐỘNG HOÀN TIỀN VÀO VÍ USER NẾU ĐỔI SANG REFUNDED HOẶC CANCELLED (Trả trước)
         // ─────────────────────────────────────────────────────────────────
-        if (status === 'refunded' || status === 'return_received' || (status === 'cancelled' && ['vnpay', 'momo', 'banking', 'wallet'].includes(currentOrder.paymentMethod?.toLowerCase()))) {
+        if (status === 'refunded' || (status === 'cancelled' && ['vnpay', 'momo', 'banking', 'wallet'].includes(currentOrder.paymentMethod?.toLowerCase()))) {
             try {
                 const refundAmt = currentOrder.finalAmount || currentOrder.totalAmount || 0;
                 await refundOrderToWallet({
@@ -542,7 +542,7 @@ const updateOrderStatus = async (req, res, next) => {
                     userEmail: currentOrder.email,
                     orderId: currentOrder.id,
                     refundAmount: refundAmt,
-                    reason: ['refunded', 'return_received'].includes(status) ? `Hoàn tiền hoàn hàng thành công cho đơn #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng trả trước #${currentOrder.id}`
+                    reason: status === 'refunded' ? `Hoàn tiền hoàn hàng thành công cho đơn #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng trả trước #${currentOrder.id}`
                 });
                 log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${id}`);
             } catch (wErr) {
@@ -836,8 +836,8 @@ const confirmReturnReceived = async (req, res, next) => {
 
         const order = await OrderModel.findOne({ id: orderId });
         if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
-        if (order.status !== 'returning') {
-            return res.status(400).json({ success: false, message: 'Đơn hàng chưa ở trạng thái đang hoàn hàng' });
+        if (!['returning', 'return_received', 'return_requested'].includes(order.status)) {
+            return res.status(400).json({ success: false, message: 'Đơn hàng chưa ở trạng thái hoàn hàng' });
         }
 
         const now = new Date();
