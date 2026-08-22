@@ -79,40 +79,40 @@ export default function CheckoutPage() {
         <div className="min-h-screen bg-[#f8fafc] pb-24 lg:pb-16">
             {/* ── HEADER DOANH NGHIỆP & TIẾN TRÌNH THANH TOÁN ── */}
             <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-2xs backdrop-blur-md bg-white/95">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-950 transition-colors cursor-pointer py-1 px-2 -ml-2 rounded-lg hover:bg-slate-100"
+                        className="flex items-center gap-2 text-sm sm:text-base font-bold text-slate-800 hover:text-slate-950 transition-colors cursor-pointer py-1.5 px-3 -ml-2 rounded-xl hover:bg-slate-100"
                     >
-                        <ChevronLeft size={17} />
+                        <ChevronLeft size={20} />
                         <span>Giỏ hàng</span>
                     </button>
 
                     {/* Progress Steps (Desktop) */}
-                    <div className="hidden md:flex items-center gap-3 text-xs font-bold">
+                    <div className="hidden md:flex items-center gap-3 text-sm sm:text-base font-bold">
                         <span className="text-slate-400">1. Giỏ hàng</span>
                         <span className="text-slate-300">›</span>
-                        <span className="text-[#0f172a] font-extrabold flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full">
+                        <span className="text-[#0f172a] font-black flex items-center gap-1.5 bg-slate-100 px-3.5 py-1.5 rounded-full">
                             2. Thanh toán
                         </span>
                         <span className="text-slate-300">›</span>
                         <span className="text-slate-400">3. Hoàn tất</span>
                     </div>
 
-                    <div className="w-16" />
+                    <div className="w-20" />
                 </div>
             </header>
 
             {/* ── TIÊU ĐỀ TRANG ── */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-3">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-7 sm:pt-9 pb-4">
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                 >
-                    <div className="flex items-center gap-2.5">
-                        <span className="w-1.5 h-6 sm:h-7 bg-[#0f172a] rounded-full" />
-                        <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-slate-950">
+                    <div className="flex items-center gap-3">
+                        <span className="w-2 h-7 sm:h-8 bg-[#0f172a] rounded-full" />
+                        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-slate-950">
                             Thanh toán đơn hàng
                         </h1>
                     </div>
