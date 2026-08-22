@@ -61,9 +61,9 @@ export default function Footer() {
                         <ul className="space-y-2.5">
                             {[
                                 { href: '/products', label: 'Tất cả sản phẩm' },
-                                { href: '/products?category=quan-ao', label: 'Quần áo' },
-                                { href: '/products?category=giay', label: 'Giày dép' },
-                                { href: '/products?category=phu-kien', label: 'Phụ kiện' },
+                                { href: '/collections/nam', label: 'Thời trang Nam' },
+                                { href: '/collections/do-nu', label: 'Thời trang Nữ' },
+                                { href: '/collections/sale', label: 'Khuyến mãi & Sale' },
                                 { href: '/about', label: 'Về chúng tôi' },
                                 { href: '/contact', label: 'Liên hệ' },
                             ].map((link) => (
@@ -81,25 +81,25 @@ export default function Footer() {
                     </div>
 
                     {/* Col 3: Policies (2.5 -> 2/12) */}
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-3">
                         <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4 whitespace-nowrap">
                             CHÍNH SÁCH
                         </h3>
                         <ul className="space-y-2.5">
                             {[
-                                'Chính sách đổi trả',
-                                'Chính sách bảo mật',
-                                'Điều khoản sử dụng',
-                                'Hướng dẫn mua hàng',
-                                'Câu hỏi thường gặp',
+                                { href: '/about/chinh-sach-doi-tra', label: 'Chính sách đổi trả' },
+                                { href: '/about/chinh-sach-bao-mat', label: 'Chính sách bảo mật' },
+                                { href: '/about/dieu-khoan-su-dung', label: 'Điều khoản sử dụng' },
+                                { href: '/about/huong-dan-mua-hang', label: 'Hướng dẫn mua hàng' },
+                                { href: '/about/cau-hoi-thuong-gap', label: 'Câu hỏi thường gặp' },
                             ].map((item) => (
-                                <li key={item}>
+                                <li key={item.label}>
                                     <Link 
-                                        href="#" 
+                                        href={item.href} 
                                         className="group inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors whitespace-nowrap"
                                     >
                                         <span className="text-slate-400 group-hover:text-slate-950 text-xs transition-colors">›</span>
-                                        <span>{item}</span>
+                                        <span>{item.label}</span>
                                     </Link>
                                 </li>
                             ))}
@@ -120,15 +120,15 @@ export default function Footer() {
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone size={16} className="text-slate-500 shrink-0" />
-                                <span className="text-sm text-slate-600 font-medium">
+                                <a href="tel:19008888" className="text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors">
                                     1900 8888
-                                </span>
+                                </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail size={16} className="text-slate-500 shrink-0" />
-                                <span className="text-sm text-slate-600 font-medium">
-                                    support@phstore.vn
-                                </span>
+                                <a href="mailto:support@havenstore.vn" className="text-sm text-slate-600 hover:text-slate-950 font-medium transition-colors">
+                                    support@havenstore.vn
+                                </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Clock size={16} className="text-slate-500 shrink-0" />
