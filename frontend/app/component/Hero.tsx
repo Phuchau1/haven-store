@@ -172,17 +172,16 @@ export default function Hero() {
                 >
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/15"
                          style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(12px)' }}>
-                        {/* Accent icon đổi màu theo theme */}
-                        <Sparkles size={12} style={{ color: t.accent, transition: 'color 0.7s' }} />
-                        <span className="text-white/75 text-[10px] uppercase"
-                              style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.3em' }}>
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.accent }} />
+                        <span className="text-white/90 text-[11px] font-semibold uppercase tracking-[0.25em]"
+                              style={{ fontFamily: "var(--font-be-vietnam), sans-serif" }}>
                             Bộ Sưu Tập Mới · 2026
                         </span>
                     </div>
                     <div className="h-px w-12 bg-white/20" />
                 </motion.div>
 
-                {/* ── Heading — cả 2 dòng cùng phông Inter 900 ── */}
+                {/* ── Heading ── */}
                 <div className="overflow-visible space-y-1">
                     {headingLines.map((line, i) => (
                         <motion.div
@@ -192,10 +191,10 @@ export default function Hero() {
                             transition={{ duration: 0.9, delay: 0.35 + i * 0.15, ease: [0.16, 1, 0.3, 1] }}
                         >
                             <h1
-                                className="font-black text-white leading-[1.15] tracking-[-0.02em] uppercase"
+                                className="font-black text-white leading-[1.15] tracking-tight uppercase"
                                 style={{
-                                    fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif",
-                                    fontWeight: 800,
+                                    fontFamily: "var(--font-be-vietnam), sans-serif",
+                                    fontWeight: 900,
                                     fontSize: 'clamp(2.5rem, 5.5vw, 5.5rem)',
                                 }}
                             >
@@ -228,7 +227,7 @@ export default function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.85 }}
                     className="text-white/90 max-w-lg leading-[1.7] whitespace-pre-line mt-2"
-                    style={{ fontFamily: "'Be Vietnam Pro', 'Inter', sans-serif", fontSize: 'clamp(0.95rem, 1.2vw, 1.1rem)', fontWeight: 400 }}
+                    style={{ fontFamily: "var(--font-be-vietnam), sans-serif", fontSize: 'clamp(0.95rem, 1.2vw, 1.1rem)', fontWeight: 400 }}
                 >
                     {settings.heroSubtitle}
                 </motion.p>
@@ -275,12 +274,12 @@ export default function Hero() {
                     {stats.map((stat, i) => (
                         <div key={i} className="flex flex-col">
                             <span className="text-white font-bold transition-colors duration-700 text-sm sm:text-base lg:text-lg"
-                                  style={{ fontFamily: 'Inter, sans-serif',
+                                  style={{ fontFamily: 'var(--font-be-vietnam), sans-serif',
                                            color: i === 0 ? t.accent : 'white' }}>
                                 {stat.value}
                             </span>
-                            <span className="text-white/60 uppercase text-[9.5px] sm:text-[10px] tracking-wider"
-                                  style={{ fontFamily: 'Inter, sans-serif' }}>
+                            <span className="text-white/60 uppercase text-[10px] font-medium tracking-wider"
+                                  style={{ fontFamily: 'var(--font-be-vietnam), sans-serif' }}>
                                 {stat.label}
                             </span>
                         </div>
@@ -301,8 +300,8 @@ export default function Hero() {
                     transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                     className="flex flex-col items-center gap-2"
                 >
-                    <span className="text-white/35 uppercase"
-                          style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', letterSpacing: '0.35em' }}>
+                    <span className="text-white/40 uppercase font-medium"
+                          style={{ fontFamily: 'var(--font-be-vietnam), sans-serif', fontSize: '0.65rem', letterSpacing: '0.25em' }}>
                         Cuộn xuống
                     </span>
                     <div className="w-px h-8 bg-gradient-to-b from-white/40 to-transparent" />
