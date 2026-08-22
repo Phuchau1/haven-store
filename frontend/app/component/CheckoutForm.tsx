@@ -1307,10 +1307,6 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     {/* ── CAM KẾT CHÍNH HÃNG ── */}
                     <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 gap-2.5 text-xs text-slate-600 font-medium">
                         <div className="flex items-center gap-2.5">
-                            <ShieldCheck size={16} className="text-emerald-700 shrink-0" />
-                            <span>Bảo mật giao dịch thanh toán SSL 256-bit</span>
-                        </div>
-                        <div className="flex items-center gap-2.5">
                             <Truck size={16} className="text-[#0f172a] shrink-0" />
                             <span>Kiểm tra hàng trước khi thanh toán</span>
                         </div>

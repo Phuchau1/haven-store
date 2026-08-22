@@ -99,11 +99,7 @@ export default function CheckoutPage() {
                         <span className="text-slate-400">3. Hoàn tất</span>
                     </div>
 
-                    {/* Secure Badge */}
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-                        <Lock size={12} />
-                        <span>BẢO MẬT SSL 256-BIT</span>
-                    </div>
+                    <div className="w-16" />
                 </div>
             </header>
 
