@@ -16,6 +16,7 @@ import {
     Mail,
     Calendar,
     X,
+    PackageCheck,
 } from 'lucide-react';
 import { OrderData } from '@/types';
 import { formatPrice } from '@/lib/format';
@@ -50,8 +51,9 @@ const STATUS_OPTIONS = [
     { id: 'shipped',          label: 'Đang vận chuyển',          icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
     { id: 'delivered',        label: 'Giao hàng thành công',     icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'},
     { id: 'return_requested', label: 'Yêu cầu hoàn hàng',       icon: RotateCcw,     color: 'text-amber-700',   bg: 'bg-amber-100',  border: 'border-amber-200'  },
-    { id: 'returning',        label: 'Đang hoàn hàng về shop',   icon: RotateCcw,     color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-100' },
-    { id: 'refunded',         label: 'Đã hoàn tiền',             icon: RotateCcw,     color: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-100'   },
+    { id: 'returning',        label: 'Đang hoàn hàng về shop',   icon: Truck,         color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-100' },
+    { id: 'return_received',  label: 'Shop lấy hàng thành công', icon: PackageCheck,  color: 'text-purple-600',  bg: 'bg-purple-50',  border: 'border-purple-100' },
+    { id: 'refunded',         label: 'Đã hoàn tiền',             icon: CheckCircle2,  color: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-100'   },
     { id: 'cancelled',        label: 'Hủy đơn hàng này',         icon: XCircle,       color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100'   },
 ];
 
@@ -259,6 +261,16 @@ export default function AdminOrders() {
     };
 
     const getStatusTrackerWidth = (status: string) => {
+        const isReturn = ['return_requested', 'returning', 'return_received', 'refunded'].includes(status);
+        if (isReturn) {
+            const returnMap: Record<string, string> = {
+                return_requested: 'w-1/4',
+                returning: 'w-1/2',
+                return_received: 'w-3/4',
+                refunded: 'w-full'
+            };
+            return returnMap[status] || 'w-1/4';
+        }
         const widths = ['w-1/4', 'w-1/2', 'w-3/4', 'w-full'];
         const index = STATUS_OPTIONS.findIndex(s => s.id === status);
         return widths[Math.max(0, Math.min(index, widths.length - 1))];
@@ -752,8 +764,17 @@ export default function AdminOrders() {
                                                             />
                                                         </div>
 
-                                                        {STATUS_OPTIONS.slice(0, 4).map((opt, idx) => {
-                                                            const isCompleted = STATUS_OPTIONS.findIndex(s => s.id === selectedOrder.status) >= idx;
+                                                        {(['return_requested', 'returning', 'return_received', 'refunded'].includes(selectedOrder.status) ? [
+                                                            { id: 'return_requested', label: 'Yêu cầu hoàn', icon: RotateCcw },
+                                                            { id: 'returning', label: 'Đang hoàn về shop', icon: Truck },
+                                                            { id: 'return_received', label: 'Shop lấy hàng thành công', icon: PackageCheck },
+                                                            { id: 'refunded', label: 'Đã hoàn tiền', icon: CheckCircle2 }
+                                                        ] : STATUS_OPTIONS.slice(0, 4)).map((opt, idx) => {
+                                                            const isReturnFlow = ['return_requested', 'returning', 'return_received', 'refunded'].includes(selectedOrder.status);
+                                                            const returnOrderArray = ['return_requested', 'returning', 'return_received', 'refunded'];
+                                                            const isCompleted = isReturnFlow 
+                                                                ? returnOrderArray.indexOf(selectedOrder.status) >= idx 
+                                                                : STATUS_OPTIONS.findIndex(s => s.id === selectedOrder.status) >= idx;
                                                             const isActive = selectedOrder.status === opt.id;
                                                             return (
                                                                 <div key={opt.id} className="flex flex-col items-center relative z-10 w-24">
@@ -832,9 +853,31 @@ export default function AdminOrders() {
                                                         </div>
 
                                                         {selectedOrder.status === 'cancelled' || selectedOrder.status === 'refunded' ? (
-                                                            <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-xl text-xs font-bold text-rose-300 flex items-center gap-2">
-                                                                <XCircle size={15} />
-                                                                <span>Đơn hàng đã hủy — Toàn bộ tiến trình giao hàng đã dừng.</span>
+                                                            <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-xs font-bold text-emerald-300 flex items-center gap-2">
+                                                                <CheckCircle2 size={15} />
+                                                                <span>{selectedOrder.status === 'refunded' ? 'Đơn hàng đã hoàn tiền thành công vào Ví người dùng.' : 'Đơn hàng đã hủy.'}</span>
+                                                            </div>
+                                                        ) : selectedOrder.status === 'returning' ? (
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    disabled={isSubmitting}
+                                                                    onClick={() => handleUpdateStatus(selectedOrder.id!, 'return_received')}
+                                                                    className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                                                >
+                                                                    <PackageCheck size={16} />
+                                                                    📦 Shop lấy / nhận hàng trả về kho thành công
+                                                                </button>
+                                                            </div>
+                                                        ) : selectedOrder.status === 'return_received' ? (
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    disabled={isSubmitting}
+                                                                    onClick={() => handleUpdateStatus(selectedOrder.id!, 'refunded')}
+                                                                    className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                                                >
+                                                                    <CheckCircle2 size={16} />
+                                                                    💰 Tiến 1 bước: Hoàn tiền vào ví cho khách
+                                                                </button>
                                                             </div>
                                                         ) : (
                                                             <div className="flex gap-2">
