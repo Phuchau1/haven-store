@@ -509,9 +509,7 @@ const updateOrderStatus = async (req, res, next) => {
         }
 
         const oldStatus = currentOrder.status;
-        
-        // 1. Không cho phép huỷ khi đơn hàng đã giao thành công
-        if (status === 'cancelled' && (oldStatus === 'delivered' || oldStatus === 'completed')) {
+
         // ─────────────────────────────────────────────────────────────────
         // KIỂM TRA QUY TẮC CHẶN HỆ THỐNG (Order State Machine Enforcement)
         // ─────────────────────────────────────────────────────────────────
