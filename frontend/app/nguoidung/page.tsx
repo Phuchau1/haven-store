@@ -154,26 +154,46 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
     const isCancelled = ['cancelled','delivery_failed','returned_to_seller','dispute'].includes(order.status);
     const isReturn = ['return_requested','returning','return_received','refunded','refund_requested'].includes(order.status);
 
-    // Bản đồ mốc vận chuyển trực quan
-    const MAP_NODES = [
+    // Bản đồ mốc vận chuyển trực quan (Chiều Giao Hàng & Chiều Hoàn Hàng)
+    const FORWARD_MAP_NODES = [
         { id: 'shop',    label: 'Kho HAVEN',      desc: 'Xuất kho & Đóng gói',   emoji: '🏬' },
         { id: 'hcm',     label: 'Hub Khai Thác',  desc: 'Phân loại tự động',     emoji: '🏢' },
         { id: 'transit', label: 'Trung Chuyển',   desc: 'Vận chuyển liên tỉnh',  emoji: '🚛' },
         { id: 'local',   label: 'Bưu Cục Phát',   desc: 'Đang giao đến bạn',     emoji: '🛵' },
         { id: 'home',    label: 'Địa Chỉ Nhận',   desc: 'Giao hàng thành công',  emoji: '🏠' },
     ];
-    const mapStep = Math.min(
-        (order.status as string) === 'delivered' || (order.status as string) === 'completed'
-            ? 4
-            : shippingTimeline.length > 0
-                ? Math.min(Math.floor((shippingTimeline.length / 5) * 4), 3)
-                : ['shipped', 'in_transit', 'out_for_delivery'].includes(order.status as string)
-                    ? 2
-                    : ['processing', 'picked_up', 'waiting_pickup'].includes(order.status as string)
-                        ? 1
-                        : 0,
-        4
-    );
+
+    const RETURN_MAP_NODES = [
+        { id: 'client',  label: 'Khách Gửi Trả',  desc: 'Tạo yêu cầu hoàn trả',  emoji: '📦' },
+        { id: 'courier', label: 'Shipper Lấy',   desc: 'Trung chuyển về shop',  emoji: '🛵' },
+        { id: 'hub',     label: 'Hub Phân Loại',  desc: 'Kiểm kê kiện hàng',     emoji: '🏢' },
+        { id: 'seller',  label: 'Kho Shop HAVEN', desc: 'Shop nhận hàng về kho', emoji: '🏬' },
+        { id: 'wallet',  label: 'Ví HAVEN Pay',   desc: 'Hoàn tiền thành công',  emoji: '💳' },
+    ];
+
+    const MAP_NODES = isReturn ? RETURN_MAP_NODES : FORWARD_MAP_NODES;
+
+    const returnStepMap: Record<string, number> = {
+        return_requested: 0,
+        returning: 1,
+        return_received: 3,
+        refunded: 4
+    };
+
+    const mapStep = isReturn
+        ? (returnStepMap[order.status as string] ?? 1)
+        : Math.min(
+            (order.status as string) === 'delivered' || (order.status as string) === 'completed'
+                ? 4
+                : shippingTimeline.length > 0
+                    ? Math.min(Math.floor((shippingTimeline.length / 5) * 4), 3)
+                    : ['shipped', 'in_transit', 'out_for_delivery'].includes(order.status as string)
+                        ? 2
+                        : ['processing', 'picked_up', 'waiting_pickup'].includes(order.status as string)
+                            ? 1
+                            : 0,
+            4
+        );
 
     const timelineIndex = Math.max(0, MAIN_TIMELINE_STEPS.findIndex(s => s.key === order.status));
     const steps = MAIN_TIMELINE_STEPS;
@@ -384,73 +404,82 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                         </div>
                     )}
 
-                    {/* ─── BẢN ĐỒ LỘ TRÌNH GIAO HÀNG TRỰC QUAN ────────────────── */}
+                    {/* ─── BẢN ĐỒ LỘ TRÌNH GIAO HÀNG TRỰC QUAN (TO & RÕ NÉT) ───────── */}
                     {hasCarrier && !isCancelled && (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-indigo-50/40 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Navigation size={16} className="text-indigo-600 animate-pulse" />
-                                    <h4 className="font-extrabold text-slate-900 text-sm">Lộ trình vận chuyển trực quan</h4>
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+                            <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
+                                        <Navigation size={18} className="animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-extrabold text-white text-sm sm:text-base">Lộ Trình Vận Chuyển Trực Quan</h4>
+                                        <p className="text-[11px] text-slate-300 font-medium">Bản đồ điều phối thời gian thực</p>
+                                    </div>
                                 </div>
-                                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shadow-xs">
                                     {MAP_NODES[mapStep]?.label || 'Đang cập nhật'}
                                 </span>
                             </div>
 
-                            <div className="p-4 sm:p-5">
-                                {/* Route progress track */}
-                                <div className="relative py-2">
-                                    {/* Background connecting bar */}
-                                    <div className="absolute top-[22px] sm:top-[24px] left-6 right-6 h-1.5 bg-slate-100 rounded-full" />
-                                    {/* Active filled bar */}
-                                    <div 
-                                        className="absolute top-[22px] sm:top-[24px] left-6 h-1.5 bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500 rounded-full transition-all duration-700" 
-                                        style={{ width: `calc(${(mapStep / 4) * 100}% - 12px)` }}
-                                    />
+                            <div className="p-5 sm:p-7">
+                                {/* Route progress track with horizontal scroll wrapper for mobile safety */}
+                                <div className="overflow-x-auto pb-4 pt-2 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+                                    <div className="relative min-w-[580px] px-4 py-2">
+                                        {/* Background connecting bar */}
+                                        <div className="absolute top-[32px] sm:top-[38px] left-10 right-10 h-2.5 bg-slate-100 rounded-full" />
+                                        {/* Active filled bar */}
+                                        <div 
+                                            className="absolute top-[32px] sm:top-[38px] left-10 h-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 via-sky-500 to-emerald-500 rounded-full transition-all duration-700 shadow-xs" 
+                                            style={{ width: `calc(${(mapStep / 4) * 100}% - 20px)` }}
+                                        />
 
-                                    {/* 5 Checkpoint Nodes */}
-                                    <div className="relative grid grid-cols-5 gap-1 text-center">
-                                        {MAP_NODES.map((node, i) => {
-                                            const isPassed = i <= mapStep;
-                                            const isCurrent = i === mapStep;
-                                            return (
-                                                <div key={node.id} className="flex flex-col items-center group">
-                                                    <div className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-lg sm:text-xl shadow-xs transition-all duration-300 ${
-                                                        isCurrent
-                                                            ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 scale-110 shadow-md'
-                                                            : isPassed
-                                                                ? 'bg-slate-900 text-white'
-                                                                : 'bg-slate-100 text-slate-400 border border-slate-200'
-                                                    }`}>
-                                                        <span>{node.emoji}</span>
-                                                        {isCurrent && (
-                                                            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
-                                                        )}
+                                        {/* 5 Checkpoint Nodes (Spacious & Big) */}
+                                        <div className="relative grid grid-cols-5 gap-2 text-center">
+                                            {MAP_NODES.map((node, i) => {
+                                                const isPassed = i <= mapStep;
+                                                const isCurrent = i === mapStep;
+                                                return (
+                                                    <div key={node.id} className="flex flex-col items-center">
+                                                        <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center text-2xl sm:text-3xl transition-all duration-300 ${
+                                                            isCurrent
+                                                                ? 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white ring-4 ring-indigo-200 scale-110 shadow-xl z-20'
+                                                                : isPassed
+                                                                    ? 'bg-slate-900 text-white shadow-md z-10'
+                                                                    : 'bg-slate-50 text-slate-400 border border-slate-200'
+                                                        }`}>
+                                                            <span>{node.emoji}</span>
+                                                            {isCurrent && (
+                                                                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
+                                                            )}
+                                                        </div>
+
+                                                        <p className={`text-xs sm:text-sm font-extrabold mt-3 max-w-[110px] leading-tight ${
+                                                            isCurrent ? 'text-indigo-600' : isPassed ? 'text-slate-900' : 'text-slate-400'
+                                                        }`}>
+                                                            {node.label}
+                                                        </p>
+                                                        <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-1 max-w-[110px] leading-tight">
+                                                            {node.desc}
+                                                        </p>
                                                     </div>
-
-                                                    <p className={`text-[11px] sm:text-xs font-extrabold mt-2 line-clamp-1 ${
-                                                        isCurrent ? 'text-indigo-600' : isPassed ? 'text-slate-900' : 'text-slate-400'
-                                                    }`}>
-                                                        {node.label}
-                                                    </p>
-                                                    <p className="text-[9.5px] text-slate-400 font-medium hidden sm:block mt-0.5 line-clamp-1">
-                                                        {node.desc}
-                                                    </p>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Live checkpoint info card */}
-                                <div className="mt-4 p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-indigo-600 animate-ping shrink-0" />
-                                        <span className="text-slate-600 font-medium">Hiện tại:</span>
-                                        <strong className="text-indigo-950 font-bold">{MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}</strong>
+                                <div className="mt-2 p-4 bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-purple-50/90 border border-indigo-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-3 h-3 rounded-full bg-indigo-600 animate-ping shrink-0" />
+                                        <div>
+                                            <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px] block">Mốc Hiện Tại</span>
+                                            <strong className="text-indigo-950 font-black text-sm">{MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}</strong>
+                                        </div>
                                     </div>
-                                    <span className="text-[11px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-lg border border-indigo-200 shrink-0">
-                                        {mapStep === 4 ? 'ĐÃ HOÀN TẤT' : `BƯỚC ${mapStep + 1}/5`}
+                                    <span className="text-xs font-black text-indigo-700 bg-white px-3.5 py-1.5 rounded-xl border border-indigo-200 shadow-xs shrink-0 self-end sm:self-center">
+                                        {mapStep === 4 ? '🎉 ĐÃ HOÀN TẤT (100%)' : `BƯỚC ${mapStep + 1}/5 (${Math.round(((mapStep + 1) / 5) * 100)}%)`}
                                     </span>
                                 </div>
                             </div>
