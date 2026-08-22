@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Package, X, Plus, Trash2, Image as ImageIcon, DollarSign, Boxes,
     Search, Globe, Truck, Tag, Sliders, History, ShieldCheck, Eye, Save,
-    FileText, CheckCircle2, AlertTriangle, Check, Loader2,
+    FileText, CheckCircle2, AlertTriangle, Check, Loader2, Sparkles, Wand2,
     ArrowUp, ArrowDown, Layers, Store, Upload, Info, ChevronRight, ArrowLeft,
-    CheckSquare, Palette
+    CheckSquare, Palette, RefreshCw
 } from 'lucide-react';
 import { Product, Color } from '@/types';
 import Image from 'next/image';
@@ -97,6 +97,13 @@ export default function EnterpriseEditProductModal({
     const [specKey, setSpecKey] = useState('');
     const [specValue, setSpecValue] = useState('');
 
+    // AI Writer State
+    const [isAiGenerating, setIsAiGenerating] = useState(false);
+    const [aiTone, setAiTone] = useState<'luxury' | 'trendy' | 'minimalist'>('luxury');
+    const [showAiWriterModal, setShowAiWriterModal] = useState(false);
+    const [aiGeneratedShort, setAiGeneratedShort] = useState('');
+    const [aiGeneratedFull, setAiGeneratedFull] = useState('');
+
     // Modal chọn ảnh cho màu
     const [colorImagePickerTarget, setColorImagePickerTarget] = useState<string | null>(null);
 
@@ -185,6 +192,93 @@ export default function EnterpriseEditProductModal({
         }
         setErrors({});
     }, [isOpen, product]);
+
+    // AI Generator Function
+    const handleGenerateAiContent = async (tone = aiTone) => {
+        const productName = formData.name || 'Sản Phẩm Thời Trang';
+        const categoryName = formData.category || 'Thời Trang';
+        const brandName = formData.brand || 'HAVEN';
+        const gender = formData.gender || 'Nam';
+
+        setIsAiGenerating(true);
+
+        // Simulate AI Content Writing logic tailored to product
+        setTimeout(() => {
+            let shortText = '';
+            let fullText = '';
+
+            if (tone === 'luxury') {
+                shortText = `Tác phẩm ${productName} từ thương hiệu ${brandName} mang phong cách thanh lịch, đẳng cấp. Chất liệu sợi dệt cao cấp mềm mịn, ôm dáng chuẩn tạo diện mạo sang trọng cho người mặc.`;
+                fullText = `✨ **${productName.toUpperCase()} - ĐẲNG CẤP & THANH LỊCH** ✨
+
+` +
+                    `Được chế tác chỉn chu từ thương hiệu **${brandName}**, sản phẩm **${productName}** là sự kết hợp hoàn hảo giữa phong cách thời trang hiện đại và sự tinh tế trong từng đường kim mũi chỉ.
+
+` +
+                    `🌟 **Đặc Điểm Nổi Bật:**
+` +
+                    `• **Chất liệu vải cao cấp**: Sợi dệt thoáng khí, co giãn tự nhiên, mang lại cảm giác dễ chịu tuyệt đối suốt cả ngày dài.
+` +
+                    `• **Form dáng chuẩn**: Thiết kế tôn dáng tự nhiên, phù hợp mặc đi làm, đi chơi hay tham dự sự kiện quan trọng.
+` +
+                    `• **Độ bền tối ưu**: Giữ màu sắc tươi mới và không biến dạng form sau nhiều lần giặt.
+
+` +
+                    `💬 **Gợi Ý Phối Đồ:** Dễ dàng kết hợp cùng quần âu thanh lịch, quần jean cá tính hoặc khoác ngoài áo blazer để hoàn thiện diện mạo ấn tượng.`;
+            } else if (tone === 'trendy') {
+                shortText = `Siêu phẩm ${productName} cực chất cho tín đồ thời trang năng động! Thiết kế trẻ trung, phối đồ cực bắt mắt, chất vải siêu thoáng mát cá tính.`;
+                fullText = `🔥 **${productName.toUpperCase()} - PHONG CÁCH TRẺ TRUNG & NĂNG ĐỘNG** 🔥
+
+` +
+                    `Cháy hết mình với mẫu **${productName}** mới nhất từ **${brandName}**! Thiết kế bắt trend cực ngầu, giúp bạn luôn tự tin khẳng định phong cách cá nhân.
+
+` +
+                    `⚡ **Vì Sao Bạn Sẽ Thích:**
+` +
+                    `• **Chất vải chuẩn mát**: Thấm hút mồ hôi tốt, di chuyển thoải mái cả ngày.
+` +
+                    `• **Họa tiết & Đường may cá tính**: Điểm nhấn thời thượng thu hút mọi ánh nhìn.
+` +
+                    `• **Phối đồ đa năng**: Mặc đi học, đi chơi, hẹn hò hay dạo phố đều cực thời trang.
+
+` +
+                    `👉 Sắm ngay **${productName}** để nâng cấp tủ đồ của bạn hôm nay!`;
+            } else {
+                shortText = `Sản phẩm ${productName} thiết kế tối giản, ứng dụng cao. Chất liệu 100% tự nhiên mềm mại, phù hợp mặc hàng ngày.`;
+                fullText = `🌿 **${productName.toUpperCase()} - PHONG CÁCH TỐI GIẢN (MINIMALISM)** 🌿
+
+` +
+                    `Đơn giản nhưng không đơn điệu, **${productName}** đem đến vẻ đẹp thuần khiết và thanh lịch cho tủ đồ thời trang của bạn.
+
+` +
+                    `📌 **Thông Tin Sản Phẩm:**
+` +
+                    `• **Kiểu dáng**: Tối giản, chuẩn mực, dễ sử dụng.
+` +
+                    `• **Chất liệu**: Vải mềm mại, an toàn với làn da, thân thiện với môi trường.
+` +
+                    `• **Bảo quản**: Giặt máy chế độ nhẹ, sấy khô nhiệt độ thường.`;
+            }
+
+            setAiGeneratedShort(shortText);
+            setAiGeneratedFull(fullText);
+            setIsAiGenerating(false);
+        }, 600);
+    };
+
+    const handleApplyAiContent = () => {
+        setFormData({
+            ...formData,
+            shortDescription: aiGeneratedShort,
+            description: aiGeneratedFull,
+            seo: {
+                ...(formData.seo || {}),
+                description: aiGeneratedShort.slice(0, 160)
+            }
+        });
+        setShowAiWriterModal(false);
+        showToast('success', 'Đã áp dụng nội dung AI vào sản phẩm!');
+    };
 
     // Keyboard shortcut Ctrl + S
     useEffect(() => {
@@ -533,6 +627,20 @@ export default function EnterpriseEditProductModal({
 
                 {/* Top Action Buttons */}
                 <div className="flex items-center gap-2 shrink-0">
+                    {/* NÚT AI COPYWRITER TOP BAR */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowAiWriterModal(true);
+                            handleGenerateAiContent(aiTone);
+                        }}
+                        className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                        <Sparkles size={14} className="text-indigo-600 animate-pulse" />
+                        <span className="hidden sm:inline">✨ AI Viết Nội Dung</span>
+                        <span className="sm:hidden">✨ AI</span>
+                    </button>
+
                     <button
                         type="button"
                         onClick={onClose}
@@ -573,12 +681,27 @@ export default function EnterpriseEditProductModal({
             <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 pt-6">
                 <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col space-y-6 w-full">
                     
-                    {/* 1. THÔNG TIN SẢN PHẨM CƠ BẢN */}
+                    {/* 1. THÔNG TIN SẢN PHẨM CƠ BẢN + THANH AI COPYWRITER TỰ ĐỘNG */}
                     <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 sm:p-6">
-                        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider pb-2.5 mb-4 border-b border-slate-100 flex items-center gap-2">
-                            <FileText size={16} className="text-slate-700" />
-                            1. Thông tin sản phẩm cơ bản
-                        </h2>
+                        <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-slate-100">
+                            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                <FileText size={16} className="text-slate-700" />
+                                1. Thông tin sản phẩm cơ bản
+                            </h2>
+
+                            {/* AI QUICK TRIGGER BUTTON */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowAiWriterModal(true);
+                                    handleGenerateAiContent(aiTone);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200 text-indigo-800 text-xs font-bold rounded-lg transition-all cursor-pointer shadow-2xs"
+                            >
+                                <Wand2 size={14} className="text-indigo-600" />
+                                <span>✨ AI Tự Động Viết Bài</span>
+                            </button>
+                        </div>
 
                         <div className="space-y-4">
                             {/* Tên sản phẩm */}
@@ -601,9 +724,22 @@ export default function EnterpriseEditProductModal({
 
                             {/* Mô tả tóm tắt */}
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Mô tả ngắn (Hiển thị đầu trang & thẻ sản phẩm)
-                                </label>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="text-xs font-semibold text-slate-700">
+                                        Mô tả ngắn (Hiển thị đầu trang & thẻ sản phẩm)
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowAiWriterModal(true);
+                                            handleGenerateAiContent(aiTone);
+                                        }}
+                                        className="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <Sparkles size={12} />
+                                        <span>AI Viết Tóm Tắt</span>
+                                    </button>
+                                </div>
                                 <textarea
                                     rows={2}
                                     value={formData.shortDescription || ''}
@@ -615,11 +751,24 @@ export default function EnterpriseEditProductModal({
 
                             {/* Mô tả chi tiết */}
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Mô tả chi tiết sản phẩm
-                                </label>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="text-xs font-semibold text-slate-700">
+                                        Mô tả chi tiết sản phẩm
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowAiWriterModal(true);
+                                            handleGenerateAiContent(aiTone);
+                                        }}
+                                        className="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <Wand2 size={12} />
+                                        <span>AI Viết Mô Tả Chi Tiết</span>
+                                    </button>
+                                </div>
                                 <textarea
-                                    rows={4}
+                                    rows={5}
                                     value={formData.description || ''}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="Mô tả chi tiết chất liệu, cảm giác mặc, tính năng, gợi ý phối đồ..."
@@ -1277,6 +1426,144 @@ export default function EnterpriseEditProductModal({
 
                 </form>
             </div>
+
+            {/* ════════════ MODAL AI COPYWRITER TỰ ĐỘNG VIẾT BÀI MÔ TẢ ════════════ */}
+            <AnimatePresence>
+                {showAiWriterModal && (
+                    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden"
+                        >
+                            {/* Modal Header */}
+                            <div className="p-5 bg-gradient-to-r from-indigo-900 to-slate-900 text-white flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+                                        <Sparkles size={18} className="text-indigo-300" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-white flex items-center gap-2">
+                                            HAVEN AI Product Copywriter
+                                        </h3>
+                                        <p className="text-xs text-indigo-200">Tự động tạo nội dung mô tả thu hút, chuẩn SEO dựa trên tên sản phẩm</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAiWriterModal(false)}
+                                    className="p-1.5 text-indigo-200 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+                                {/* Tone Selector */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+                                        Chọn phong cách giọng văn AI (Tone of Voice):
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2.5">
+                                        {[
+                                            { id: 'luxury', name: '💎 Sang trọng & Đẳng cấp' },
+                                            { id: 'trendy', name: '⚡ Trẻ trung & Bắt trend' },
+                                            { id: 'minimalist', name: '🌿 Tối giản & Công sở' }
+                                        ].map(t => (
+                                            <button
+                                                key={t.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setAiTone(t.id as any);
+                                                    handleGenerateAiContent(t.id as any);
+                                                }}
+                                                className={`px-3 py-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                                                    aiTone === t.id
+                                                        ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm'
+                                                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-indigo-300'
+                                                }`}
+                                            >
+                                                {t.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Loading state or preview */}
+                                {isAiGenerating ? (
+                                    <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
+                                        <Loader2 size={32} className="animate-spin text-indigo-600" />
+                                        <p className="text-sm font-bold text-slate-800">AI đang sáng tạo nội dung sản phẩm...</p>
+                                        <p className="text-xs text-slate-500">Phân tích từ khóa "{formData.name || 'Sản phẩm'}"...</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {/* Short description preview */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                                                Nội dung mô tả ngắn (AI đề xuất):
+                                            </label>
+                                            <textarea
+                                                rows={2}
+                                                value={aiGeneratedShort}
+                                                onChange={(e) => setAiGeneratedShort(e.target.value)}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 outline-none leading-relaxed"
+                                            />
+                                        </div>
+
+                                        {/* Full description preview */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                                                Nội dung chi tiết & Gợi ý phối đồ (AI đề xuất):
+                                            </label>
+                                            <textarea
+                                                rows={8}
+                                                value={aiGeneratedFull}
+                                                onChange={(e) => setAiGeneratedFull(e.target.value)}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 outline-none leading-relaxed"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                                <button
+                                    type="button"
+                                    onClick={() => handleGenerateAiContent(aiTone)}
+                                    disabled={isAiGenerating}
+                                    className="px-3.5 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-50 border border-indigo-200 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                >
+                                    <RefreshCw size={14} className={isAiGenerating ? 'animate-spin' : ''} />
+                                    <span>Tạo lại nội dung khác</span>
+                                </button>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAiWriterModal(false)}
+                                        className="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                                    >
+                                        Đóng
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleApplyAiContent}
+                                        disabled={isAiGenerating}
+                                        className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                    >
+                                        <Check size={15} />
+                                        <span>Áp dụng vào sản phẩm</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* ════════════ MODAL CHỌN ẢNH CHO TỪNG MÀU SẮC ════════════ */}
             <AnimatePresence>
