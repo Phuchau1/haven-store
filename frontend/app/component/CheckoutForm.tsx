@@ -563,490 +563,492 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
     return (
         <form onSubmit={handleCheckout} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* ════════════ CỘT TRÁI: FORM ĐIỀN THÔNG TIN (7 PHẦN) ════════════ */}
-            <div className="lg:col-span-7 space-y-6">
-                
-                {/* ── BƯỚC 1: THÔNG TIN GIAO HÀNG ── */}
-                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
-                    <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                            <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
-                            <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
-                                1. Thông tin giao hàng
-                            </h2>
-                        </div>
+            {/* ════════════ CỘT TRÁI: MASTER CONTAINER GIAO HÀNG & THANH TOÁN (7 PHẦN) ════════════ */}
+            <div className="lg:col-span-7">
+                <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+                    
+                    {/* ── BƯỚC 1: THÔNG TIN GIAO HÀNG ── */}
+                    <div className="p-6 sm:p-7">
+                        <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+                            <div className="flex items-center gap-2.5">
+                                <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
+                                <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
+                                    1. Thông tin giao hàng
+                                </h2>
+                            </div>
 
-                        {user && savedAddresses.length > 0 && (
-                            <button
-                                type="button"
-                                onClick={() => setIsManualAddress(!isManualAddress)}
-                                className="text-xs font-bold text-[#1e40af] hover:underline cursor-pointer"
-                            >
-                                {isManualAddress ? '← Chọn từ sổ địa chỉ' : '+ Thêm địa chỉ mới'}
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Sổ địa chỉ đã lưu */}
-                    {user && savedAddresses.length > 0 && !isManualAddress && (
-                        <div className="mb-5">
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                                <MapPin size={14} className="text-slate-800" />
-                                Địa chỉ nhận hàng đã lưu
-                            </p>
-                            {loadingAddresses ? (
-                                <div className="animate-pulse h-16 bg-slate-100 rounded-xl" />
-                            ) : (
-                                <div className="grid gap-2.5 sm:grid-cols-2">
-                                    {savedAddresses.map(addr => {
-                                        const isSelected = selectedAddressId === addr.id;
-                                        return (
-                                            <div 
-                                                key={addr.id}
-                                                onClick={() => handleSelectAddress(addr)}
-                                                className={`p-3.5 rounded-xl cursor-pointer border transition-all relative ${
-                                                    isSelected 
-                                                        ? 'border-slate-950 bg-slate-50/70 shadow-xs' 
-                                                        : 'border-slate-200 bg-white hover:border-slate-400'
-                                                }`}
-                                            >
-                                                <div className="flex items-center justify-between gap-2 mb-1.5">
-                                                    <span className="font-bold text-slate-900 text-sm truncate">
-                                                        {addr.full_name}
-                                                    </span>
-                                                    {addr.is_default && (
-                                                        <span className="text-[10px] font-bold bg-[#0f172a] text-white px-2 py-0.5 rounded-md">
-                                                            Mặc định
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-slate-700 font-semibold mb-1">
-                                                    {addr.phone}
-                                                </p>
-                                                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                                                    {addr.street}, {addr.ward}, {addr.district}, {addr.city}
-                                                </p>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                            {user && savedAddresses.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsManualAddress(!isManualAddress)}
+                                    className="text-xs font-bold text-[#1e40af] hover:underline cursor-pointer"
+                                >
+                                    {isManualAddress ? '← Chọn từ sổ địa chỉ' : '+ Thêm địa chỉ mới'}
+                                </button>
                             )}
                         </div>
-                    )}
 
-                    {/* Form nhập thông tin chi tiết */}
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {/* Họ tên */}
-                            <div>
-                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                    Họ và tên người nhận <span className="text-rose-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="customerName"
-                                    value={formData.customerName}
-                                    onChange={handleChange}
-                                    placeholder="Ví dụ: Nguyễn Văn A"
-                                    required
-                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
-                                />
+                        {/* Sổ địa chỉ đã lưu */}
+                        {user && savedAddresses.length > 0 && !isManualAddress && (
+                            <div className="mb-5">
+                                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <MapPin size={14} className="text-slate-800" />
+                                    Địa chỉ nhận hàng đã lưu
+                                </p>
+                                {loadingAddresses ? (
+                                    <div className="animate-pulse h-16 bg-slate-100 rounded-xl" />
+                                ) : (
+                                    <div className="grid gap-2.5 sm:grid-cols-2">
+                                        {savedAddresses.map(addr => {
+                                            const isSelected = selectedAddressId === addr.id;
+                                            return (
+                                                <div 
+                                                    key={addr.id}
+                                                    onClick={() => handleSelectAddress(addr)}
+                                                    className={`p-3.5 rounded-xl cursor-pointer border transition-all relative ${
+                                                        isSelected 
+                                                            ? 'border-slate-950 bg-slate-50/70 shadow-xs' 
+                                                            : 'border-slate-200 bg-white hover:border-slate-400'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                        <span className="font-bold text-slate-900 text-sm truncate">
+                                                            {addr.full_name}
+                                                        </span>
+                                                        {addr.is_default && (
+                                                            <span className="text-[10px] font-bold bg-[#0f172a] text-white px-2 py-0.5 rounded-md">
+                                                                Mặc định
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-slate-700 font-semibold mb-1">
+                                                        {addr.phone}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                        {addr.street}, {addr.ward}, {addr.district}, {addr.city}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
+                        )}
 
-                            {/* Số điện thoại */}
-                            <div>
-                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                    Số điện thoại <span className="text-rose-500">*</span>
-                                </label>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    placeholder="0987 654 321"
-                                    required
-                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Email nhận xác nhận đơn */}
-                        <div>
-                            <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                Email nhận thông báo đơn hàng <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="name@example.com"
-                                required
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
-                            />
-                        </div>
-
-                        {/* 3 Dropdowns Tỉnh / Quận / Phường khi nhập mới hoặc sửa */}
-                        {(!selectedAddressId || isManualAddress) && (
-                            <motion.div 
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className="space-y-3.5 pt-1"
-                            >
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    {/* Tỉnh / Thành */}
-                                    <div>
-                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                            Tỉnh / Thành phố <span className="text-rose-500">*</span>
-                                        </label>
-                                        <select 
-                                            required 
-                                            value={selectedProvinceCode || ''} 
-                                            onChange={handleProvinceChange}
-                                            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none"
-                                        >
-                                            <option value="" disabled>Chọn Tỉnh/Thành</option>
-                                            {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
-                                        </select>
-                                    </div>
-
-                                    {/* Quận / Huyện */}
-                                    <div>
-                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                            Quận / Huyện <span className="text-rose-500">*</span>
-                                        </label>
-                                        <select 
-                                            required 
-                                            disabled={!selectedProvinceCode} 
-                                            value={selectedDistrictCode || ''} 
-                                            onChange={handleDistrictChange}
-                                            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
-                                        >
-                                            <option value="" disabled>Chọn Quận/Huyện</option>
-                                            {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
-                                        </select>
-                                    </div>
-
-                                    {/* Phường / Xã */}
-                                    <div>
-                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                            Phường / Xã <span className="text-rose-500">*</span>
-                                        </label>
-                                        <select 
-                                            required 
-                                            disabled={!selectedDistrictCode} 
-                                            value={localAddress.ward ? wards.find(w=>w.name===localAddress.ward)?.code || '' : ''} 
-                                            onChange={handleWardChange}
-                                            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
-                                        >
-                                            <option value="" disabled>Chọn Phường/Xã</option>
-                                            {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                {/* Số nhà, tên đường */}
+                        {/* Form nhập thông tin chi tiết */}
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* Họ tên */}
                                 <div>
                                     <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                        Địa chỉ cụ thể (Số nhà, tên đường, tòa nhà) <span className="text-rose-500">*</span>
+                                        Họ và tên người nhận <span className="text-rose-500">*</span>
                                     </label>
                                     <input
                                         type="text"
-                                        value={localAddress.street}
-                                        onChange={e => setLocalAddress({...localAddress, street: e.target.value})}
-                                        placeholder="Ví dụ: Tầng 4, Số 123 Đường Nguyễn Trãi..."
+                                        name="customerName"
+                                        value={formData.customerName}
+                                        onChange={handleChange}
+                                        placeholder="Ví dụ: Nguyễn Văn A"
                                         required
                                         className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
                                     />
                                 </div>
-                            </motion.div>
+
+                                {/* Số điện thoại */}
+                                <div>
+                                    <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                        Số điện thoại <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        placeholder="0987 654 321"
+                                        required
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Email nhận xác nhận đơn */}
+                            <div>
+                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                    Email nhận thông báo đơn hàng <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="name@example.com"
+                                    required
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
+                                />
+                            </div>
+
+                            {/* 3 Dropdowns Tỉnh / Quận / Phường khi nhập mới hoặc sửa */}
+                            {(!selectedAddressId || isManualAddress) && (
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="space-y-3.5 pt-1"
+                                >
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        {/* Tỉnh / Thành */}
+                                        <div>
+                                            <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                                Tỉnh / Thành phố <span className="text-rose-500">*</span>
+                                            </label>
+                                            <select 
+                                                required 
+                                                value={selectedProvinceCode || ''} 
+                                                onChange={handleProvinceChange}
+                                                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none"
+                                            >
+                                                <option value="" disabled>Chọn Tỉnh/Thành</option>
+                                                {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+                                            </select>
+                                        </div>
+
+                                        {/* Quận / Huyện */}
+                                        <div>
+                                            <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                                Quận / Huyện <span className="text-rose-500">*</span>
+                                            </label>
+                                            <select 
+                                                required 
+                                                disabled={!selectedProvinceCode} 
+                                                value={selectedDistrictCode || ''} 
+                                                onChange={handleDistrictChange}
+                                                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
+                                            >
+                                                <option value="" disabled>Chọn Quận/Huyện</option>
+                                                {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
+                                            </select>
+                                        </div>
+
+                                        {/* Phường / Xã */}
+                                        <div>
+                                            <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                                Phường / Xã <span className="text-rose-500">*</span>
+                                            </label>
+                                            <select 
+                                                required 
+                                                disabled={!selectedDistrictCode} 
+                                                value={localAddress.ward ? wards.find(w=>w.name===localAddress.ward)?.code || '' : ''} 
+                                                onChange={handleWardChange}
+                                                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
+                                            >
+                                                <option value="" disabled>Chọn Phường/Xã</option>
+                                                {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Số nhà, tên đường */}
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                            Địa chỉ cụ thể (Số nhà, tên đường, tòa nhà) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={localAddress.street}
+                                            onChange={e => setLocalAddress({...localAddress, street: e.target.value})}
+                                            placeholder="Ví dụ: Tầng 4, Số 123 Đường Nguyễn Trãi..."
+                                            required
+                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Ghi chú đơn hàng */}
+                            <div>
+                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
+                                    Ghi chú đơn hàng (Tùy chọn)
+                                </label>
+                                <textarea
+                                    name="note"
+                                    value={formData.note}
+                                    onChange={handleChange}
+                                    placeholder="Ghi chú thêm về thời gian nhận hàng hoặc hướng dẫn giao..."
+                                    rows={2}
+                                    className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all resize-none placeholder:text-slate-400"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── BƯỚC 2: PHƯƠNG THỨC VẬN CHUYỂN ── */}
+                    <div className="p-6 sm:p-7">
+                        <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
+                            <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
+                            <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
+                                2. Phương thức vận chuyển
+                            </h2>
+                        </div>
+
+                        {isCalculatingShipping ? (
+                            <div className="flex flex-col items-center justify-center py-6 text-slate-400">
+                                <Loader2 className="w-6 h-6 animate-spin mb-2 text-slate-700" />
+                                <p className="text-xs font-medium">Đang tính toán cước phí vận chuyển...</p>
+                            </div>
+                        ) : shippingMethods.length === 0 ? (
+                            <div className="text-center py-5 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 text-xs">
+                                📍 Vui lòng chọn Tỉnh/Thành phố ở bước 1 để hiển thị các đơn vị vận chuyển khả dụng.
+                            </div>
+                        ) : (
+                            <div className="space-y-2.5">
+                                {shippingMethods.map(sm => {
+                                    const isFree = sm.freeship_applied || ((sm.free_shipping_threshold ?? 0) > 0 && totalAmount >= (sm.free_shipping_threshold ?? 0));
+                                    const isSelected = selectedShippingMethodId === sm.id;
+                                    return (
+                                        <label
+                                            key={sm.id}
+                                            className={`flex items-center justify-between gap-3.5 py-3.5 px-4 rounded-xl border transition-all cursor-pointer ${
+                                                isSelected
+                                                    ? 'border-slate-950 bg-slate-50/70 shadow-2xs'
+                                                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3.5 min-w-0">
+                                                <input
+                                                    type="radio"
+                                                    name="shippingMethod"
+                                                    value={sm.id}
+                                                    checked={isSelected}
+                                                    onChange={(e) => setSelectedShippingMethodId(e.target.value)}
+                                                    className="sr-only"
+                                                />
+                                                
+                                                {/* Minimalist Radio Indicator */}
+                                                <div className={`w-4.5 h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
+                                                    isSelected ? 'border-slate-950 bg-white ring-2 ring-slate-950' : 'border-slate-300 bg-white'
+                                                }`}>
+                                                    {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-slate-950" />}
+                                                </div>
+
+                                                {/* Info */}
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                        {sm.name_methond}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                                        Dự kiến giao hàng: {sm.estimated_time || '2 - 3 ngày làm việc'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Price / Free Badge */}
+                                            <div className="text-right shrink-0">
+                                                {isFree ? (
+                                                    <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md">
+                                                        MIỄN PHÍ
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm font-bold text-slate-900">
+                                                        {formatPrice(sm.cost)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
                         )}
-
-                        {/* Ghi chú đơn hàng */}
-                        <div>
-                            <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                                Ghi chú đơn hàng (Tùy chọn)
-                            </label>
-                            <textarea
-                                name="note"
-                                value={formData.note}
-                                onChange={handleChange}
-                                placeholder="Ghi chú thêm về thời gian nhận hàng hoặc hướng dẫn giao..."
-                                rows={2}
-                                className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all resize-none placeholder:text-slate-400"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── BƯỚC 2: PHƯƠNG THỨC VẬN CHUYỂN ── */}
-                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
-                    <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
-                        <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
-                        <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
-                            2. Phương thức vận chuyển
-                        </h2>
                     </div>
 
-                    {isCalculatingShipping ? (
-                        <div className="flex flex-col items-center justify-center py-6 text-slate-400">
-                            <Loader2 className="w-6 h-6 animate-spin mb-2 text-slate-700" />
-                            <p className="text-xs font-medium">Đang tính toán cước phí vận chuyển...</p>
+                    {/* ── BƯỚC 3: PHƯƠNG THỨC THANH TOÁN ── */}
+                    <div className="p-6 sm:p-7">
+                        <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
+                            <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
+                            <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
+                                3. Phương thức thanh toán
+                            </h2>
                         </div>
-                    ) : shippingMethods.length === 0 ? (
-                        <div className="text-center py-5 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 text-xs">
-                            📍 Vui lòng chọn Tỉnh/Thành phố ở bước 1 để hiển thị các đơn vị vận chuyển khả dụng.
-                        </div>
-                    ) : (
+
                         <div className="space-y-2.5">
-                            {shippingMethods.map(sm => {
-                                const isFree = sm.freeship_applied || ((sm.free_shipping_threshold ?? 0) > 0 && totalAmount >= (sm.free_shipping_threshold ?? 0));
-                                const isSelected = selectedShippingMethodId === sm.id;
-                                return (
-                                    <label
-                                        key={sm.id}
-                                        className={`flex items-center justify-between gap-3.5 py-3.5 px-4 rounded-xl border transition-all cursor-pointer ${
-                                            isSelected
-                                                ? 'border-slate-950 bg-slate-50/70 shadow-2xs'
-                                                : 'border-slate-200 hover:border-slate-300 bg-white'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-3.5 min-w-0">
+                            {paymentMethods.length > 0 ? (
+                                paymentMethods.map(pm => {
+                                    const isSelected = formData.paymentMethod === pm.id;
+                                    const isVNPay = pm.id === 'vnpay' || pm.id.includes('vnpay');
+                                    const isMoMo = pm.id === 'momo' || pm.id.includes('momo');
+                                    const isCOD = pm.id === 'cod' || pm.id.includes('cod');
+                                    return (
+                                        <label
+                                            key={pm.id}
+                                            className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl border transition-all cursor-pointer ${
+                                                isSelected
+                                                    ? 'border-slate-950 bg-slate-50/70 shadow-2xs'
+                                                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                                            }`}
+                                        >
                                             <input
                                                 type="radio"
-                                                name="shippingMethod"
-                                                value={sm.id}
+                                                name="paymentMethod"
+                                                value={pm.id}
                                                 checked={isSelected}
-                                                onChange={(e) => setSelectedShippingMethodId(e.target.value)}
+                                                onChange={handleChange}
                                                 className="sr-only"
                                             />
-                                            
-                                            {/* Minimalist Radio Indicator */}
+
+                                            {/* Delicate Radio Indicator */}
                                             <div className={`w-4.5 h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
                                                 isSelected ? 'border-slate-950 bg-white ring-2 ring-slate-950' : 'border-slate-300 bg-white'
                                             }`}>
                                                 {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-slate-950" />}
                                             </div>
 
-                                            {/* Info */}
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                                    {sm.name_methond}
-                                                </p>
-                                                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                                                    Dự kiến giao hàng: {sm.estimated_time || '2 - 3 ngày làm việc'}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Price / Free Badge */}
-                                        <div className="text-right shrink-0">
-                                            {isFree ? (
-                                                <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md">
-                                                    MIỄN PHÍ
-                                                </span>
+                                            {/* Payment Method Badge */}
+                                            {isVNPay ? (
+                                                <div className="w-10 h-7 bg-blue-600 rounded-md flex items-center justify-center shrink-0 shadow-2xs">
+                                                    <span className="text-white text-[9px] font-black tracking-tight leading-tight text-center">VN<br/>PAY</span>
+                                                </div>
+                                            ) : isMoMo ? (
+                                                <div className="w-10 h-7 bg-[#ae2070] rounded-md flex items-center justify-center shrink-0 shadow-2xs">
+                                                    <span className="text-white text-[9.5px] font-black">MoMo</span>
+                                                </div>
+                                            ) : isCOD ? (
+                                                <div className="w-10 h-7 bg-amber-500 rounded-md flex items-center justify-center shrink-0 shadow-2xs">
+                                                    <Banknote size={17} className="text-white" />
+                                                </div>
                                             ) : (
-                                                <span className="text-sm font-bold text-slate-900">
-                                                    {formatPrice(sm.cost)}
-                                                </span>
+                                                <div className="w-10 h-7 bg-slate-800 rounded-md flex items-center justify-center shrink-0 shadow-2xs">
+                                                    <CreditCard size={17} className="text-white" />
+                                                </div>
                                             )}
-                                        </div>
-                                    </label>
-                                );
-                            })}
+
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-900">
+                                                    {pm.name_methond}
+                                                </p>
+                                                <p className="text-xs text-slate-500 font-medium truncate">
+                                                    {pm.description || 'Thanh toán an toàn và tiện lợi.'}
+                                                </p>
+                                            </div>
+                                        </label>
+                                    );
+                                })
+                            ) : null}
                         </div>
-                    )}
-                </div>
 
-                {/* ── BƯỚC 3: PHƯƠNG THỨC THANH TOÁN ── */}
-                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
-                    <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
-                        <span className="w-1.5 h-5 bg-[#0f172a] rounded-full" />
-                        <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
-                            3. Phương thức thanh toán
-                        </h2>
-                    </div>
-
-                    <div className="space-y-2.5">
-                        {paymentMethods.length > 0 ? (
-                            paymentMethods.map(pm => {
-                                const isSelected = formData.paymentMethod === pm.id;
-                                const isVNPay = pm.id === 'vnpay' || pm.id.includes('vnpay');
-                                const isMoMo = pm.id === 'momo' || pm.id.includes('momo');
-                                const isCOD = pm.id === 'cod' || pm.id.includes('cod');
-                                return (
-                                    <label
-                                        key={pm.id}
-                                        className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl border transition-all cursor-pointer ${
-                                            isSelected
-                                                ? 'border-slate-950 bg-slate-50/70 shadow-2xs'
-                                                : 'border-slate-200 hover:border-slate-300 bg-white'
-                                        }`}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="paymentMethod"
-                                            value={pm.id}
-                                            checked={isSelected}
-                                            onChange={handleChange}
-                                            className="sr-only"
-                                        />
-
-                                        {/* Delicate Radio Indicator */}
-                                        <div className={`w-4.5 h-4.5 rounded-full border transition-all flex items-center justify-center shrink-0 ${
-                                            isSelected ? 'border-slate-950 bg-white ring-2 ring-slate-950' : 'border-slate-300 bg-white'
-                                        }`}>
-                                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-slate-950" />}
-                                        </div>
-
-                                        {/* Payment Method Badge */}
-                                        {isVNPay ? (
-                                            <div className="w-10 h-7 bg-blue-600 rounded-md flex items-center justify-center shrink-0 shadow-2xs">
-                                                <span className="text-white text-[9px] font-black tracking-tight leading-tight text-center">VN<br/>PAY</span>
-                                            </div>
-                                        ) : isMoMo ? (
-                                            <div className="w-10 h-7 bg-[#ae2070] rounded-md flex items-center justify-center shrink-0 shadow-2xs">
-                                                <span className="text-white text-[9.5px] font-black">MoMo</span>
-                                            </div>
-                                        ) : isCOD ? (
-                                            <div className="w-10 h-7 bg-amber-500 rounded-md flex items-center justify-center shrink-0 shadow-2xs">
-                                                <Banknote size={17} className="text-white" />
-                                            </div>
-                                        ) : (
-                                            <div className="w-10 h-7 bg-slate-800 rounded-md flex items-center justify-center shrink-0 shadow-2xs">
-                                                <CreditCard size={17} className="text-white" />
-                                            </div>
-                                        )}
-
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold text-slate-900">
-                                                {pm.name_methond}
-                                            </p>
-                                            <p className="text-xs text-slate-500 font-medium truncate">
-                                                {pm.description || 'Thanh toán an toàn và tiện lợi.'}
-                                            </p>
-                                        </div>
-                                    </label>
-                                );
-                            })
-                        ) : null}
-                    </div>
-
-                    {/* Hướng dẫn chuyển khoản chi tiết nếu chọn Chuyển khoản */}
-                    {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.bank_info && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            className="mt-4 p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row gap-5 items-center"
-                        >
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold uppercase text-slate-900 tracking-wider mb-2">
-                                    Thông tin tài khoản nhận thanh toán:
-                                </p>
-                                <div className="text-xs text-slate-800 font-medium space-y-1.5 whitespace-pre-line leading-relaxed">
-                                    {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.bank_info}
-                                </div>
-                                
-                                {/* Khung cú pháp chuyển khoản có nút Copy */}
-                                <div className="mt-3.5 p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
-                                    <div>
-                                        <p className="text-[10.5px] uppercase font-bold text-slate-500">
-                                            Cú pháp chuyển khoản:
-                                        </p>
-                                        <p className="text-sm font-mono font-black text-[#0f172a]">
-                                            {orderId}
-                                        </p>
+                        {/* Hướng dẫn chuyển khoản chi tiết nếu chọn Chuyển khoản */}
+                        {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.bank_info && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                className="mt-4 p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row gap-5 items-center"
+                            >
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold uppercase text-slate-900 tracking-wider mb-2">
+                                        Thông tin tài khoản nhận thanh toán:
+                                    </p>
+                                    <div className="text-xs text-slate-800 font-medium space-y-1.5 whitespace-pre-line leading-relaxed">
+                                        {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.bank_info}
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => copyToClipboard(orderId, 'orderId')}
-                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold rounded-lg border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
-                                    >
-                                        {copiedField === 'orderId' ? <Check size={14} /> : <Copy size={14} />}
-                                        {copiedField === 'orderId' ? 'Đã sao chép' : 'Sao chép'}
-                                    </button>
+                                    
+                                    {/* Khung cú pháp chuyển khoản có nút Copy */}
+                                    <div className="mt-3.5 p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                                        <div>
+                                            <p className="text-[10.5px] uppercase font-bold text-slate-500">
+                                                Cú pháp chuyển khoản:
+                                            </p>
+                                            <p className="text-sm font-mono font-black text-[#0f172a]">
+                                                {orderId}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => copyToClipboard(orderId, 'orderId')}
+                                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold rounded-lg border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                                        >
+                                            {copiedField === 'orderId' ? <Check size={14} /> : <Copy size={14} />}
+                                            {copiedField === 'orderId' ? 'Đã sao chép' : 'Sao chép'}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url && (
-                                <div className="flex flex-col items-center shrink-0">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img 
-                                        src={paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url as string} 
-                                        alt="VietQR Chuyển khoản" 
-                                        className="w-32 h-32 object-contain bg-white p-1 rounded-xl shadow-2xs border border-slate-200" 
-                                    />
-                                    <span className="text-[11px] font-bold text-slate-700 mt-1.5">
-                                        Quét VietQR tự động
-                                    </span>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                </div>
+                                {paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url && (
+                                    <div className="flex flex-col items-center shrink-0">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img 
+                                            src={paymentMethods.find(pm => pm.id === formData.paymentMethod)?.qr_code_url as string} 
+                                            alt="VietQR Chuyển khoản" 
+                                            className="w-32 h-32 object-contain bg-white p-1 rounded-xl shadow-2xs border border-slate-200" 
+                                        />
+                                        <span className="text-[11px] font-bold text-slate-700 mt-1.5">
+                                            Quét VietQR tự động
+                                        </span>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </div>
 
-                {/* ── BƯỚC 4: XUẤT HÓA ĐƠN VAT DOANH NGHIỆP (TÙY CHỌN) ── */}
-                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs">
-                    <label className="flex items-center gap-3 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            name="wantVAT"
-                            checked={formData.wantVAT}
-                            onChange={handleChange}
-                            className="w-4.5 h-4.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
-                        />
-                        <span className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                            <Building2 size={16} className="text-slate-700" />
-                            Yêu cầu xuất hóa đơn điện tử VAT (Doanh nghiệp)
-                        </span>
-                    </label>
+                    {/* ── BƯỚC 4: XUẤT HÓA ĐƠN VAT DOANH NGHIỆP (TÙY CHỌN) ── */}
+                    <div className="p-6 sm:p-7">
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                name="wantVAT"
+                                checked={formData.wantVAT}
+                                onChange={handleChange}
+                                className="w-4.5 h-4.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                            />
+                            <span className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <Building2 size={16} className="text-slate-700" />
+                                Yêu cầu xuất hóa đơn điện tử VAT (Doanh nghiệp)
+                            </span>
+                        </label>
 
-                    {formData.wantVAT && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="mt-4 space-y-3.5 pt-3.5 border-t border-slate-100"
-                        >
-                            <div>
-                                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Tên công ty *</label>
-                                <input
-                                    type="text"
-                                    name="companyName"
-                                    value={formData.companyName}
-                                    onChange={handleChange}
-                                    placeholder="Công ty TNHH / Cổ phần..."
-                                    required={formData.wantVAT}
-                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        {formData.wantVAT && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="mt-4 space-y-3.5 pt-3.5 border-t border-slate-100"
+                            >
                                 <div>
-                                    <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Mã số thuế *</label>
+                                    <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Tên công ty *</label>
                                     <input
                                         type="text"
-                                        name="companyTaxId"
-                                        value={formData.companyTaxId}
+                                        name="companyName"
+                                        value={formData.companyName}
                                         onChange={handleChange}
-                                        placeholder="0123456789..."
+                                        placeholder="Công ty TNHH / Cổ phần..."
                                         required={formData.wantVAT}
                                         className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Địa chỉ công ty *</label>
-                                    <input
-                                        type="text"
-                                        name="companyAddress"
-                                        value={formData.companyAddress}
-                                        onChange={handleChange}
-                                        placeholder="Địa chỉ trụ sở chính..."
-                                        required={formData.wantVAT}
-                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
-                                    />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Mã số thuế *</label>
+                                        <input
+                                            type="text"
+                                            name="companyTaxId"
+                                            value={formData.companyTaxId}
+                                            onChange={handleChange}
+                                            placeholder="0123456789..."
+                                            required={formData.wantVAT}
+                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-slate-800 mb-1.5">Địa chỉ công ty *</label>
+                                        <input
+                                            type="text"
+                                            name="companyAddress"
+                                            value={formData.companyAddress}
+                                            onChange={handleChange}
+                                            placeholder="Địa chỉ trụ sở chính..."
+                                            required={formData.wantVAT}
+                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    )}
+                            </motion.div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Error Banner */}
@@ -1054,7 +1056,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm font-semibold rounded-2xl flex items-center gap-2"
+                        className="mt-4 p-4 bg-red-50 border border-red-200 text-red-700 text-sm font-semibold rounded-2xl flex items-center gap-2"
                     >
                         <span>⚠️ {error}</span>
                     </motion.div>
