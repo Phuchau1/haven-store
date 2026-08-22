@@ -12,6 +12,7 @@ const UserSchema = new Schema({
     role: { type: String, required: true, enum: ['user', 'admin', 'warehouse_manager', 'warehouse_staff'], default: 'user' },
     phone: { type: String },
     address: { type: String },
+    walletBalance: { type: Number, default: 0 }, // Số dư ví tài khoản HAVEN (VNĐ)
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date }
 }, { timestamps: true });

@@ -47,6 +47,7 @@ interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
 
 const TABS = [
     { id: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
+    { id: 'wallet', label: 'Ví HAVEN (Số dư)', icon: CreditCard },
     { id: 'vouchers', label: 'Ví Voucher của tôi', icon: Ticket },
     { id: 'settings', label: 'Cài đặt', icon: Settings },
     { id: 'notifications', label: 'Thông báo', icon: Bell },
@@ -799,6 +800,40 @@ export default function NguoiDungPage() {
         }
     }, [activeMainTab, fetchMyCoupons]);
 
+    // State cho Ví HAVEN (Số dư ví & Lịch sử hoàn tiền)
+    const [walletInfo, setWalletInfo] = useState<{ walletBalance: number; transactions: any[] }>({ walletBalance: 0, transactions: [] });
+    const [loadingWallet, setLoadingWallet] = useState(false);
+
+    const fetchWalletInfo = useCallback(async () => {
+        if (!user) return;
+        setLoadingWallet(true);
+        try {
+            const res = await fetch('/api/wallet', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'x-user-id': user.id || ''
+                }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setWalletInfo({
+                    walletBalance: data.walletBalance || 0,
+                    transactions: data.transactions || []
+                });
+            }
+        } catch {
+            console.error('Error fetching user wallet info');
+        } finally {
+            setLoadingWallet(false);
+        }
+    }, [user, token]);
+
+    useEffect(() => {
+        if (activeMainTab === 'wallet') {
+            fetchWalletInfo();
+        }
+    }, [activeMainTab, fetchWalletInfo]);
+
     // State cho Chi tiết đơn hàng
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -1295,6 +1330,101 @@ export default function NguoiDungPage() {
                                         </motion.div>
                                     )}
                                 </div>
+                            )}
+
+                            {activeMainTab === 'wallet' && (
+                                <motion.div
+                                    key="wallet"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-6"
+                                >
+                                    {/* Wallet Balance Header Card */}
+                                    <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+                                        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                                            <div>
+                                                <div className="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1.5">
+                                                    <CreditCard size={16} />
+                                                    <span>Ví tài khoản HAVEN Pay</span>
+                                                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px]">Chính chủ</span>
+                                                </div>
+                                                <p className="text-xs text-slate-400 font-medium">Số dư khả dụng để mua sắm & hoàn tiền</p>
+                                                <h2 className="text-3xl sm:text-4xl font-black font-mono tracking-tight mt-2 text-emerald-400">
+                                                    {loadingWallet ? '...' : formatPrice(walletInfo.walletBalance)}
+                                                </h2>
+                                            </div>
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={fetchWalletInfo}
+                                                    className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+                                                >
+                                                    <RotateCcw size={14} className={loadingWallet ? 'animate-spin' : ''} />
+                                                    Cập nhật số dư
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Transaction History Section */}
+                                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8">
+                                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl">
+                                                    <CreditCard size={20} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-slate-900">Lịch sử biến động số dư ví</h3>
+                                                    <p className="text-xs text-slate-400">Lưu lại toàn bộ lịch sử hoàn tiền đơn hủy, trả hàng & thanh toán</p>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-slate-400 font-bold">{walletInfo.transactions.length} giao dịch</span>
+                                        </div>
+
+                                        {loadingWallet ? (
+                                            <div className="space-y-3">
+                                                {[1, 2, 3].map(i => <div key={i} className="h-16 bg-slate-50 rounded-2xl animate-pulse" />)}
+                                            </div>
+                                        ) : walletInfo.transactions.length === 0 ? (
+                                            <div className="p-12 text-center">
+                                                <CreditCard className="mx-auto text-slate-200 mb-3" size={40} />
+                                                <p className="text-slate-500 font-medium text-sm">Chưa có lịch sử giao dịch ví nào</p>
+                                                <p className="text-slate-400 text-xs mt-1">Khi bạn hủy đơn trả trước hoặc hoàn hàng, tiền refund sẽ được tự động cộng vào ví này.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {walletInfo.transactions.map((tx: any) => (
+                                                    <div key={tx.id || tx._id} className="p-4 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors flex items-center justify-between gap-4 bg-slate-50/50">
+                                                        <div className="flex items-center gap-3.5 min-w-0">
+                                                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 font-bold ${
+                                                                tx.amount > 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'
+                                                            }`}>
+                                                                {tx.amount > 0 ? '+' : '-'}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{tx.description}</p>
+                                                                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium mt-0.5">
+                                                                    <span>Mã GD: <strong className="font-mono text-slate-700">{tx.id}</strong></span>
+                                                                    {tx.orderId && <span>· Đơn: <strong className="font-mono text-slate-700">#{tx.orderId}</strong></span>}
+                                                                    <span>· {new Date(tx.createdAt).toLocaleString('vi-VN')}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right shrink-0">
+                                                            <p className={`text-sm sm:text-base font-black font-mono ${tx.amount > 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                                                {tx.amount > 0 ? `+${formatPrice(tx.amount)}` : `${formatPrice(tx.amount)}`}
+                                                            </p>
+                                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                Thành công
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
                             )}
 
                             {activeMainTab === 'vouchers' && (

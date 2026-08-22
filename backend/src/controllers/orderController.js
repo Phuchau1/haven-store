@@ -18,6 +18,8 @@ const { enqueueOrderEmail } = require('../services/queueService');
 const { earnPoints, revokePoints } = require('./loyaltyController');
 // Carrier Simulator: tự động khởi tạo vận đơn khi chọn nhà vận chuyển
 const { initShipping } = require('../services/carrierSimulator');
+const { validateStatusTransition } = require('../utils/orderStateGuard');
+const { refundOrderToWallet } = require('./walletController');
 
 const fs = require('fs');
 const path = require('path');
@@ -510,25 +512,15 @@ const updateOrderStatus = async (req, res, next) => {
         
         // 1. Không cho phép huỷ khi đơn hàng đã giao thành công
         if (status === 'cancelled' && (oldStatus === 'delivered' || oldStatus === 'completed')) {
+        // ─────────────────────────────────────────────────────────────────
+        // KIỂM TRA QUY TẮC CHẶN HỆ THỐNG (Order State Machine Enforcement)
+        // ─────────────────────────────────────────────────────────────────
+        const transitionCheck = validateStatusTransition(oldStatus, status);
+        if (!transitionCheck.allowed) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Đơn hàng đã giao thành công không thể hủy. Khách hàng vui lòng tạo yêu cầu đổi trả / hoàn tiền nếu có sự cố.' 
-            });
-        }
-
-        // 2. Không cho phép huỷ khi đơn hàng đang trong quá trình vận chuyển
-        if (status === 'cancelled' && ['shipped', 'in_transit', 'out_for_delivery', 'delivering'].includes(oldStatus)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Không thể huỷ đơn hàng đang trong quá trình vận chuyển.' 
-            });
-        }
-
-        // 3. Không cho phép đổi trạng thái của đơn hàng đã bị hủy
-        if (oldStatus === 'cancelled' && status !== 'cancelled') {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Đơn hàng này đã bị hủy, không thể thay đổi tiến trình tiếp theo.' 
+                message: transitionCheck.message,
+                ruleName: transitionCheck.ruleName 
             });
         }
 
@@ -540,6 +532,25 @@ const updateOrderStatus = async (req, res, next) => {
         const updatedOrder = await OrderModel.findOneAndUpdate({ id }, updateData, { new: true });
         
         log(`Cập nhật đơn ${id} từ ${oldStatus} sang ${status}`);
+
+        // ─────────────────────────────────────────────────────────────────
+        // TỰ ĐỘNG HOÀN TIỀN VÀO VÍ USER NẾU ĐỔI SANG REFUNDED HOẶC CANCELLED (Trả trước)
+        // ─────────────────────────────────────────────────────────────────
+        if (status === 'refunded' || (status === 'cancelled' && ['vnpay', 'momo', 'banking', 'wallet'].includes(currentOrder.paymentMethod?.toLowerCase()))) {
+            try {
+                const refundAmt = currentOrder.finalAmount || currentOrder.totalAmount || 0;
+                await refundOrderToWallet({
+                    userId: currentOrder.userId,
+                    userEmail: currentOrder.email,
+                    orderId: currentOrder.id,
+                    refundAmount: refundAmt,
+                    reason: status === 'refunded' ? `Hoàn tiền thành công cho đơn hàng #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng trả trước #${currentOrder.id}`
+                });
+                log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${id}`);
+            } catch (wErr) {
+                log(`[Wallet Sync Warning] ${wErr.message}`);
+            }
+        }
 
         // Tự động khởi tạo vận chuyển nếu có carrier và chưa có vận đơn
         let carrierCodeToInit = req.body.carrierCode;

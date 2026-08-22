@@ -35,6 +35,7 @@ const carrierRoutes      = require('./carrierRoutes');      // Carrier Simulatio
 const shippingRoutes     = require('./shippingRoutes');     // Mock Shipping API
 
 const newsletterRoutes   = require('./newsletterRoutes');
+const walletRoutes       = require('./walletRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/menus', menuRoutes);
@@ -58,6 +59,7 @@ router.use('/coupons', couponRoutes);
 router.use('/articles', articleRoutes);
 router.use('/lucky-wheel', luckyWheelRoutes);
 router.use('/newsletter', newsletterRoutes);
+router.use('/wallet', walletRoutes);
 router.use('/recently-viewed', recentlyViewedRoutes);
 router.use('/loyalty',  loyaltyRoutes);   // Hệ thống điểm tích lũy
 router.use('/analytics', analyticsRoutes); // Analytics & tracking
