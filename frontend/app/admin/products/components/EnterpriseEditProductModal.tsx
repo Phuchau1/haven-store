@@ -5,9 +5,10 @@ import {
     Package, X, Plus, Trash2, Image as ImageIcon, DollarSign, Boxes,
     Search, Globe, Truck, Tag, Sliders, History, ShieldCheck, Eye, Save,
     FileText, CheckCircle2, AlertTriangle, Check, Loader2,
-    ArrowUp, ArrowDown, Layers, Store, Upload, Info, ChevronRight, ArrowLeft
+    ArrowUp, ArrowDown, Layers, Store, Upload, Info, ChevronRight, ArrowLeft,
+    CheckSquare, Palette
 } from 'lucide-react';
-import { Product } from '@/types';
+import { Product, Color } from '@/types';
 import Image from 'next/image';
 
 interface EnterpriseEditProductModalProps {
@@ -96,6 +97,9 @@ export default function EnterpriseEditProductModal({
     const [specKey, setSpecKey] = useState('');
     const [specValue, setSpecValue] = useState('');
 
+    // Modal chọn ảnh cho màu
+    const [colorImagePickerTarget, setColorImagePickerTarget] = useState<string | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Initialize Form Data
@@ -121,6 +125,8 @@ export default function EnterpriseEditProductModal({
                 stock: (product as any).stock !== undefined ? Number((product as any).stock) : 100,
                 images: rawImages,
                 image: rawImages[0] || (product as any).image || '',
+                colors: product.colors || [{ name: 'Đen', hex: '#000000' }, { name: 'Trắng', hex: '#FFFFFF' }],
+                sizes: product.sizes || ['S', 'M', 'L', 'XL'],
                 shortDescription: (product as any).shortDescription || product.description || '',
                 highlights: (product as any).highlights || ['Chất liệu cao cấp, co giãn thoải mái', 'Thấm hút mồ hôi, thoáng mát cả ngày', 'Đường may tinh tế, form dáng chuẩn'],
                 specs: (product as any).specs || {
@@ -154,7 +160,7 @@ export default function EnterpriseEditProductModal({
                 images: [],
                 image: '',
                 sizes: ['S', 'M', 'L', 'XL'],
-                colors: [{ name: 'Đen', hex: '#000000' }, { name: 'Trắng', hex: '#FFFFFF' }],
+                colors: [{ name: 'Đen', hex: '#000000', image: '' }, { name: 'Trắng', hex: '#FFFFFF', image: '' }],
                 variants: [],
                 stock: 100,
                 inStock: true,
@@ -208,6 +214,7 @@ export default function EnterpriseEditProductModal({
                     newVariants.push({
                         color: col.name,
                         size: sz,
+                        image: existing?.image || col.image || '',
                         stock: existing ? existing.stock : 25,
                         price: existing?.price !== undefined ? existing.price : (formData.price || 0),
                         originalPrice: existing?.originalPrice !== undefined ? existing.originalPrice : (formData.originalPrice || 0),
@@ -219,7 +226,7 @@ export default function EnterpriseEditProductModal({
             });
         });
 
-        const sig = (vars: any[]) => vars.map(v => `${v.color}-${v.size}-${v.stock}-${v.price}`).join('|');
+        const sig = (vars: any[]) => vars.map(v => `${v.color}-${v.size}-${v.stock}-${v.price}-${v.image || ''}`).join('|');
         if (sig(newVariants) !== sig(currentVariants)) {
             setFormData((prev: any) => ({ ...prev, variants: newVariants }));
         }
@@ -283,6 +290,8 @@ export default function EnterpriseEditProductModal({
                 stock: Number(formData.stock) || 0,
                 images: finalImages,
                 image: finalImages[0],
+                colors: formData.colors || [],
+                sizes: formData.sizes || [],
                 status: isDraft ? 'draft' : (formData.status || 'published'),
                 inStock: isDraft ? false : (formData.inStock !== false && Number(formData.stock) > 0)
             };
@@ -339,10 +348,17 @@ export default function EnterpriseEditProductModal({
     };
 
     const handleRemoveImage = (index: number) => {
-        setFormData((prev: any) => ({
-            ...prev,
-            images: prev.images.filter((_: any, i: number) => i !== index)
-        }));
+        const removedUrl = formData.images[index];
+        setFormData((prev: any) => {
+            const updatedImages = prev.images.filter((_: any, i: number) => i !== index);
+            // If any color used this image, reset it
+            const updatedColors = (prev.colors || []).map((c: any) => c.image === removedUrl ? { ...c, image: '' } : c);
+            return {
+                ...prev,
+                images: updatedImages,
+                colors: updatedColors
+            };
+        });
     };
 
     const handleSetFeaturedImage = (index: number) => {
@@ -381,13 +397,13 @@ export default function EnterpriseEditProductModal({
         if (exists) {
             setFormData({ ...formData, colors: current.filter((c: any) => c.name !== preset.name) });
         } else {
-            setFormData({ ...formData, colors: [...current, preset] });
+            setFormData({ ...formData, colors: [...current, { ...preset, image: '' }] });
         }
     };
 
     const handleAddCustomColor = () => {
         if (!customColorName.trim()) return;
-        const newCol = { name: customColorName.trim(), hex: customColorHex };
+        const newCol = { name: customColorName.trim(), hex: customColorHex, image: '' };
         setFormData({ ...formData, colors: [...(formData.colors || []), newCol] });
         setCustomColorName('');
     };
@@ -396,6 +412,34 @@ export default function EnterpriseEditProductModal({
         setFormData({
             ...formData,
             colors: formData.colors.filter((_: any, i: number) => i !== index)
+        });
+    };
+
+    // Gán ảnh cho màu sắc cụ thể
+    const handleAssignImageToColor = (colorName: string, imgUrl: string) => {
+        setFormData((prev: any) => {
+            const updatedColors = (prev.colors || []).map((c: any) => 
+                c.name === colorName ? { ...c, image: imgUrl } : c
+            );
+            // Cũng đồng bộ sang các variants có màu này
+            const updatedVariants = (prev.variants || []).map((v: any) =>
+                v.color === colorName ? { ...v, image: imgUrl } : v
+            );
+            return { ...prev, colors: updatedColors, variants: updatedVariants };
+        });
+        setColorImagePickerTarget(null);
+        showToast('success', `Đã gán ảnh cho màu ${colorName}`);
+    };
+
+    const handleRemoveColorImage = (colorName: string) => {
+        setFormData((prev: any) => {
+            const updatedColors = (prev.colors || []).map((c: any) => 
+                c.name === colorName ? { ...c, image: '' } : c
+            );
+            const updatedVariants = (prev.variants || []).map((v: any) =>
+                v.color === colorName ? { ...v, image: '' } : v
+            );
+            return { ...prev, colors: updatedColors, variants: updatedVariants };
         });
     };
 
@@ -595,9 +639,9 @@ export default function EnterpriseEditProductModal({
                             <div className="flex items-center justify-between pb-3.5 mb-5 border-b border-slate-100">
                                 <h2 className="text-sm sm:text-base font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
                                     <ImageIcon size={18} className="text-slate-800" />
-                                    2. Hình ảnh sản phẩm ({formData.images?.length || 0})
+                                    2. Thư viện hình ảnh ({formData.images?.length || 0})
                                 </h2>
-                                <span className="text-xs text-slate-500 font-medium">Ảnh đầu tiên là ảnh đại diện</span>
+                                <span className="text-xs text-slate-500 font-medium">Ảnh đầu tiên là ảnh bìa chính</span>
                             </div>
 
                             {/* Khu vực Upload & Nhập URL */}
@@ -624,7 +668,7 @@ export default function EnterpriseEditProductModal({
                                             <>
                                                 <Upload size={22} className="text-slate-700" />
                                                 <span className="text-xs sm:text-sm font-bold text-slate-900">Tải ảnh từ máy tính</span>
-                                                <span className="text-[11px] text-slate-500">JPG, PNG, WEBP</span>
+                                                <span className="text-[11px] text-slate-500">JPG, PNG, WEBP tối đa 5MB</span>
                                             </>
                                         )}
                                     </div>
@@ -767,15 +811,18 @@ export default function EnterpriseEditProductModal({
                             </div>
                         </div>
 
-                        {/* 4. BIẾN THỂ: KÍCH CỠ & MÀU SẮC */}
+                        {/* 4. BIẾN THỂ: KÍCH CỠ, MÀU SẮC & GÁN ẢNH THEO MÀU */}
                         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-7">
-                            <h2 className="text-sm sm:text-base font-bold text-slate-950 uppercase tracking-wider pb-3.5 mb-5 border-b border-slate-100 flex items-center gap-2">
-                                <Boxes size={18} className="text-slate-800" />
-                                4. Phiên bản phân loại (Size & Màu sắc)
-                            </h2>
+                            <div className="flex items-center justify-between pb-3.5 mb-5 border-b border-slate-100">
+                                <h2 className="text-sm sm:text-base font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
+                                    <Boxes size={18} className="text-slate-800" />
+                                    4. Phiên bản phân loại (Size & Màu sắc)
+                                </h2>
+                                <span className="text-xs text-slate-500 font-medium">Hỗ trợ gán ảnh theo từng màu sắc</span>
+                            </div>
 
                             {/* Kích thước */}
-                            <div className="mb-5">
+                            <div className="mb-6">
                                 <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-2">
                                     Kích thước (Size):
                                 </label>
@@ -817,11 +864,11 @@ export default function EnterpriseEditProductModal({
                             </div>
 
                             {/* Màu sắc */}
-                            <div className="mb-5">
+                            <div className="mb-6">
                                 <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-2">
                                     Màu sắc:
                                 </label>
-                                <div className="flex flex-wrap gap-2 mb-2.5">
+                                <div className="flex flex-wrap gap-2 mb-3">
                                     {PRESET_COLORS.map(col => {
                                         const isSelected = formData.colors?.some((c: any) => c.name === col.name);
                                         return (
@@ -864,6 +911,67 @@ export default function EnterpriseEditProductModal({
                                     </button>
                                 </div>
                             </div>
+
+                            {/* ── GÁN ẢNH THEO TỪNG MÀU SẮC (COLOR IMAGE PICKER) ── */}
+                            {formData.colors && formData.colors.length > 0 && (
+                                <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-xs sm:text-sm font-bold text-slate-950 flex items-center gap-2">
+                                            <Palette size={16} className="text-slate-800" />
+                                            Gán hình ảnh theo từng màu sắc ({formData.colors.length} màu)
+                                        </h3>
+                                        <span className="text-[11px] text-slate-500 font-medium">Khi khách bấm vào màu ở web, ảnh sẽ tự động đổi</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {formData.colors.map((c: any) => (
+                                            <div 
+                                                key={c.name} 
+                                                className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs"
+                                            >
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <span 
+                                                        className="w-4 h-4 rounded-full border border-slate-300 shrink-0" 
+                                                        style={{ backgroundColor: c.hex }} 
+                                                    />
+                                                    <span className="text-xs font-bold text-slate-900 truncate">{c.name}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    {c.image ? (
+                                                        <div className="relative group w-10 h-10 rounded-lg overflow-hidden border border-slate-300 bg-slate-100 shrink-0">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img 
+                                                                src={c.image} 
+                                                                alt={c.name} 
+                                                                className="w-full h-full object-cover" 
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveColorImage(c.name)}
+                                                                className="absolute inset-0 bg-rose-950/70 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
+                                                                title="Gỡ ảnh màu này"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[11px] text-slate-400 font-medium italic">Chưa gắn ảnh</span>
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setColorImagePickerTarget(c.name)}
+                                                        className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg border border-slate-300 transition-colors cursor-pointer whitespace-nowrap"
+                                                    >
+                                                        {c.image ? 'Đổi ảnh' : '+ Chọn ảnh'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Bảng ma trận biến thể */}
                             {formData.variants && formData.variants.length > 0 && (
@@ -912,6 +1020,7 @@ export default function EnterpriseEditProductModal({
                                             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase">
                                                 <tr>
                                                     <th className="px-3.5 py-2.5">Phân loại</th>
+                                                    <th className="px-3.5 py-2.5">Ảnh</th>
                                                     <th className="px-3.5 py-2.5">Mã SKU</th>
                                                     <th className="px-3.5 py-2.5">Giá bán (VNĐ)</th>
                                                     <th className="px-3.5 py-2.5">Tồn kho</th>
@@ -922,6 +1031,16 @@ export default function EnterpriseEditProductModal({
                                                     <tr key={idx} className="hover:bg-slate-50/60">
                                                         <td className="px-3.5 py-2.5 font-bold text-slate-900 whitespace-nowrap">
                                                             {v.color} · {v.size}
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            {v.image ? (
+                                                                <div className="w-7 h-7 rounded-md overflow-hidden border border-slate-200 bg-slate-100">
+                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                    <img src={v.image} alt={v.color} className="w-full h-full object-cover" />
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-[10px] text-slate-400 italic">Theo màu</span>
+                                                            )}
                                                         </td>
                                                         <td className="px-3.5 py-2.5">
                                                             <input
@@ -1213,6 +1332,81 @@ export default function EnterpriseEditProductModal({
                     </div>
                 </form>
             </div>
+
+            {/* ════════════ MODAL CHỌN ẢNH CHO TỪNG MÀU SẮC ════════════ */}
+            <AnimatePresence>
+                {colorImagePickerTarget && (
+                    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden"
+                        >
+                            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-950">
+                                        Chọn ảnh cho màu: <span className="text-blue-600 font-extrabold">{colorImagePickerTarget}</span>
+                                    </h3>
+                                    <p className="text-xs text-slate-500 mt-0.5">Nhấp vào một hình ảnh bên dưới để gán làm ảnh đại diện cho màu này</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setColorImagePickerTarget(null)}
+                                    className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            <div className="p-5 max-h-96 overflow-y-auto">
+                                {formData.images && formData.images.length > 0 ? (
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                        {formData.images.map((imgUrl: string, idx: number) => {
+                                            const currentColorObj = formData.colors?.find((c: any) => c.name === colorImagePickerTarget);
+                                            const isSelected = currentColorObj?.image === imgUrl;
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    onClick={() => handleAssignImageToColor(colorImagePickerTarget, imgUrl)}
+                                                    className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer group ${
+                                                        isSelected ? 'border-blue-600 ring-2 ring-blue-600/30' : 'border-slate-200 hover:border-slate-400'
+                                                    }`}
+                                                >
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={imgUrl} alt={`Ảnh ${idx + 1}`} className="w-full h-full object-cover" />
+                                                    {isSelected && (
+                                                        <div className="absolute inset-0 bg-blue-600/25 flex items-center justify-center">
+                                                            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md">
+                                                                <Check size={14} strokeWidth={3} />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-slate-500 text-center py-6">
+                                        Chưa có hình ảnh nào trong thư viện sản phẩm. Vui lòng tải ảnh lên ở mục "2. Thư viện hình ảnh" trước.
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setColorImagePickerTarget(null)}
+                                    className="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                                >
+                                    Đóng
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
