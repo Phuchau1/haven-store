@@ -285,12 +285,21 @@ export default function CartDrawer() {
                         {items.length > 0 && (
                             <div className="border-t border-slate-150 p-5 sm:p-6 pb-8 space-y-3.5 bg-white sticky bottom-0 z-20 shadow-[0_-8px_20px_rgba(0,0,0,0.06)]">
                                 {/* Shipping Notice */}
-                                <div className="flex items-center gap-2 py-2 px-3 bg-emerald-50 border border-emerald-200/80 rounded-xl">
-                                    <span className="text-emerald-600 text-xs">🎉</span>
-                                    <span className="text-emerald-800 text-xs font-bold">
-                                        Miễn phí vận chuyển cho đơn hàng này!
-                                    </span>
-                                </div>
+                                {totalAmount >= 500000 ? (
+                                    <div className="flex items-center gap-2 py-2 px-3 bg-emerald-50 border border-emerald-200/80 rounded-xl">
+                                        <span className="text-emerald-600 text-xs">🎉</span>
+                                        <span className="text-emerald-800 text-xs font-bold">
+                                            Miễn phí vận chuyển cho đơn hàng này!
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 py-2 px-3 bg-amber-50 border border-amber-200/80 rounded-xl">
+                                        <span className="text-amber-600 text-xs">🚚</span>
+                                        <span className="text-amber-900 text-xs font-bold">
+                                            Mua thêm <span className="text-amber-700 font-extrabold">{formatPrice(500000 - totalAmount)}</span> để được Miễn phí vận chuyển!
+                                        </span>
+                                    </div>
+                                )}
 
                                 {/* Total */}
                                 <div className="flex items-center justify-between py-1">
