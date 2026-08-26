@@ -28,6 +28,7 @@ import {
     Check
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
+import { toast } from 'react-hot-toast';
 import { useCart } from '@/app/component/CartContext';
 import { useRouter } from 'next/navigation';
 import { OrderData } from '@/types';
@@ -168,7 +169,7 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
         { id: 'courier', label: 'Shipper Lấy',   desc: 'Trung chuyển về shop',  emoji: '🛵' },
         { id: 'hub',     label: 'Hub Phân Loại',  desc: 'Kiểm kê kiện hàng',     emoji: '🏢' },
         { id: 'seller',  label: 'Kho Shop HAVEN', desc: 'Shop nhận hàng về kho', emoji: '🏬' },
-        { id: 'wallet',  label: 'Ví HAVEN Pay',   desc: 'Hoàn tiền thành công',  emoji: '💳' },
+        { id: 'wallet',  label: 'Hoàn Tiền Khách Hàng', desc: 'Đã hoàn tiền về tài khoản/ví', emoji: '💳' },
     ];
 
     const MAP_NODES = isReturn ? RETURN_MAP_NODES : FORWARD_MAP_NODES;
@@ -389,18 +390,48 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
 
                     {/* ─── CARRIER BADGE + TRACKING NUMBER ──────────────────── */}
                     {hasCarrier && (
-                        <div className="bg-gradient-to-r from-indigo-50 to-sky-50 rounded-xl border border-indigo-100 p-4 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-indigo-100 flex items-center justify-center text-xl">🚚</div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{orderExt.shippingProvider || orderExt.carrierCode || 'Đơn vị vận chuyển'}</p>
-                                <p className="text-sm font-bold text-slate-900 font-mono tracking-wider mt-0.5">{orderExt.trackingNumber || 'Chờ cấp mã...'}</p>
-                            </div>
-                            {orderExt.estimatedDelivery && (
-                                <div className="text-right shrink-0">
-                                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Dự kiến giao</p>
-                                    <p className="text-xs font-bold text-indigo-600">{new Date(orderExt.estimatedDelivery).toLocaleDateString('vi-VN')}</p>
+                        <div className="bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-slate-50 rounded-2xl border border-indigo-100/80 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                                <div className="w-11 h-11 rounded-2xl bg-white shadow-md border border-indigo-100 flex items-center justify-center text-xl shrink-0">🚚</div>
+                                <div className="min-w-0">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                                        Đối Tác Vận Chuyển Doanh Nghiệp
+                                    </span>
+                                    <p className="text-sm font-extrabold text-slate-900 mt-0.5 truncate">
+                                        {orderExt.shippingProvider || orderExt.carrierCode || 'GIAO HÀNG NHANH (GHN)'}
+                                    </p>
                                 </div>
-                            )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-3 shrink-0">
+                                {orderExt.trackingNumber && (
+                                    <div className="bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-2">
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase">Mã vận đơn:</span>
+                                        <span className="text-xs font-mono font-black text-indigo-700">{orderExt.trackingNumber}</span>
+                                        <button
+                                            onClick={() => {
+                                                if (navigator.clipboard) {
+                                                    navigator.clipboard.writeText(orderExt.trackingNumber);
+                                                    toast.success(`Đã sao chép mã ${orderExt.trackingNumber}`);
+                                                }
+                                            }}
+                                            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                                            title="Sao chép mã vận đơn"
+                                        >
+                                            📋
+                                        </button>
+                                    </div>
+                                )}
+
+                                {orderExt.estimatedDelivery && (
+                                    <div className="text-right shrink-0">
+                                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">Dự kiến giao</span>
+                                        <span className="text-xs font-black text-indigo-600">
+                                            {new Date(orderExt.estimatedDelivery).toLocaleDateString('vi-VN')}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 
@@ -423,7 +454,7 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-mono bg-white/10 text-indigo-200 px-3 py-1 rounded-full border border-white/15">
-                                        {orderExt.shippingProvider || orderExt.carrierCode || 'GIAO HÀNG GHTK'}
+                                        {orderExt.shippingProvider || orderExt.carrierCode || 'GIAO HÀNG NHANH (GHN)'}
                                     </span>
                                 </div>
                             </div>
@@ -493,31 +524,31 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                     </div>
                                 </div>
 
-                                {/* ─── LIVE LOCATION RADAR STATUS CARD (KHÔNG BỊ TRUYỀN NỐI XUỐNG DÒNG) ─── */}
-                                <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 rounded-2xl text-white shadow-lg">
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3.5 min-w-0">
+                                {/* ─── LIVE LOCATION RADAR STATUS CARD (SỬA LỖI TRÀN LỀ & LỖI CHỮ) ─── */}
+                                <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 rounded-2xl text-white shadow-lg overflow-hidden">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3.5 min-w-0 max-w-full">
                                             <div className="w-11 h-11 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 text-xl shadow-xs">
                                                 {MAP_NODES[mapStep]?.emoji || '📍'}
                                             </div>
-                                            <div className="min-w-0">
-                                                <span className="text-[10px] font-mono text-indigo-300 uppercase tracking-widest block font-bold">
+                                            <div className="min-w-0 flex-1">
+                                                <span className="text-[10px] font-mono text-indigo-300 uppercase tracking-wider block font-bold">
                                                     Mốc Hiện Tại (GPS Live Radar)
                                                 </span>
-                                                <h5 className="text-sm sm:text-base font-black text-white truncate mt-0.5">
+                                                <h5 className="text-xs sm:text-sm font-bold text-white mt-0.5 leading-snug break-words">
                                                     {MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}
                                                 </h5>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3 shrink-0">
-                                            <div className="text-right hidden sm:block">
+                                        <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto max-w-full">
+                                            <div className="text-right hidden md:block">
                                                 <span className="text-[10px] text-slate-400 block font-semibold">Tiến độ vận chuyển</span>
                                                 <span className="text-xs font-black text-emerald-400">
                                                     {Math.round(((mapStep + 1) / 5) * 100)}% Hoàn thành
                                                 </span>
                                             </div>
-                                            <span className="text-xs font-black text-emerald-300 bg-emerald-500/20 px-3.5 py-1.5 rounded-xl border border-emerald-500/30 whitespace-nowrap">
+                                            <span className="text-[11px] sm:text-xs font-bold text-emerald-300 bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 text-center shrink-0">
                                                 {mapStep === 4 ? '🎉 ĐÃ HOÀN TẤT (100%)' : `BƯỚC ${mapStep + 1}/5`}
                                             </span>
                                         </div>
