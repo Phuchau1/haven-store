@@ -388,26 +388,32 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                 {/* Right Column */}
                 <div className="space-y-5">
 
-                    {/* ─── CARRIER BADGE + TRACKING NUMBER ──────────────────── */}
+                    {/* ─── TIKTOK SHOP STYLE ORDER TRACKING & CARRIER CARD ──────────────────── */}
                     {hasCarrier && (
-                        <div className="bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-slate-50 rounded-2xl border border-indigo-100/80 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
-                            <div className="flex items-center gap-3.5 min-w-0">
-                                <div className="w-11 h-11 rounded-2xl bg-white shadow-md border border-indigo-100 flex items-center justify-center text-xl shrink-0">🚚</div>
-                                <div className="min-w-0">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                                        Đối Tác Vận Chuyển Doanh Nghiệp
-                                    </span>
-                                    <p className="text-sm font-extrabold text-slate-900 mt-0.5 truncate">
-                                        {orderExt.shippingProvider || orderExt.carrierCode || 'GIAO HÀNG NHANH (GHN)'}
-                                    </p>
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                            {/* TikTok Style Carrier Header */}
+                            <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-xl shrink-0">
+                                        {isReturn ? '🔄' : '🚚'}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider block">
+                                                {isReturn ? 'Lộ Trình Hoàn Hàng' : 'Đơn Vị Vận Chuyển'}
+                                            </span>
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                        </div>
+                                        <p className="text-sm font-extrabold text-white truncate">
+                                            {orderExt.shippingProvider || orderExt.carrierCode || 'Giao Hàng Nhanh (GHN)'}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="flex flex-wrap items-center gap-3 shrink-0">
                                 {orderExt.trackingNumber && (
-                                    <div className="bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-2">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase">Mã vận đơn:</span>
-                                        <span className="text-xs font-mono font-black text-indigo-700">{orderExt.trackingNumber}</span>
+                                    <div className="bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-xl border border-white/15 flex items-center gap-2 shrink-0">
+                                        <span className="text-[10px] text-slate-300 font-medium hidden sm:inline">Mã vận đơn:</span>
+                                        <span className="text-xs font-mono font-black text-amber-300">{orderExt.trackingNumber}</span>
                                         <button
                                             onClick={() => {
                                                 if (navigator.clipboard) {
@@ -415,146 +421,107 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                                     toast.success(`Đã sao chép mã ${orderExt.trackingNumber}`);
                                                 }
                                             }}
-                                            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                                            title="Sao chép mã vận đơn"
+                                            className="p-0.5 hover:bg-white/20 rounded text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                            title="Sao chép"
                                         >
                                             📋
                                         </button>
                                     </div>
                                 )}
-
-                                {orderExt.estimatedDelivery && (
-                                    <div className="text-right shrink-0">
-                                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block">Dự kiến giao</span>
-                                        <span className="text-xs font-black text-indigo-600">
-                                            {new Date(orderExt.estimatedDelivery).toLocaleDateString('vi-VN')}
-                                        </span>
-                                    </div>
-                                )}
                             </div>
-                        </div>
-                    )}
 
-                    {/* ─── BẢN ĐỒ VẬN CHUYỂN DI CHUYỂN ĐỘNG TRỰC QUAN (REAL-TIME ANIMATED CARRIER MAP) ───────── */}
-                    {hasCarrier && !isCancelled && (
-                        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
-                            {/* Map Header */}
-                            <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white flex flex-wrap items-center justify-between gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300 shadow-xs">
-                                        <Navigation size={20} className="animate-spin text-sky-400" style={{ animationDuration: '6s' }} />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <h4 className="font-black text-white text-base">Lộ Trình Vận Chuyển GPS</h4>
-                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                            {/* Current Active Status Banner (TikTok Shop Style) */}
+                            {!isCancelled && (
+                                <div className="p-4 bg-indigo-50/70 border-b border-indigo-100/80 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm">
+                                            {MAP_NODES[mapStep]?.emoji || '📍'}
                                         </div>
-                                        <p className="text-xs text-slate-300 font-medium">Bản đồ điều phối di chuyển thời gian thực</p>
+                                        <div className="min-w-0 flex-1">
+                                            <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wide block">
+                                                Trạng Thái Hiện Tại (TikTok Style)
+                                            </span>
+                                            <h5 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                                                {MAP_NODES[mapStep]?.label} — <span className="font-medium text-slate-600">{MAP_NODES[mapStep]?.desc}</span>
+                                            </h5>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-mono bg-white/10 text-indigo-200 px-3 py-1 rounded-full border border-white/15">
-                                        {orderExt.shippingProvider || orderExt.carrierCode || 'GIAO HÀNG NHANH (GHN)'}
+
+                                    <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg shrink-0 border border-emerald-200">
+                                        {Math.round(((mapStep + 1) / 5) * 100)}%
                                     </span>
                                 </div>
-                            </div>
+                            )}
 
-                            <div className="p-5 sm:p-7 space-y-6">
-                                {/* ─── ANIMATED TRACKING ROAD MAP ─────────────────── */}
-                                <div className="relative py-6 px-2 bg-gradient-to-b from-slate-50/80 to-indigo-50/30 rounded-2xl border border-slate-100 overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-                                    <div className="min-w-[620px] relative px-6">
-                                        
-                                        {/* Road line background */}
-                                        <div className="absolute top-[42px] left-12 right-12 h-3 bg-slate-200/80 rounded-full border border-slate-300/40 shadow-inner" />
-                                        
-                                        {/* Animated Active Progress Road */}
-                                        <div 
-                                            className="absolute top-[42px] left-12 h-3 bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-500 rounded-full transition-all duration-1000 shadow-md" 
-                                            style={{ width: `calc(${(mapStep / 4) * 100}% - 24px)` }}
-                                        />
+                            {/* TikTok Shop Vertical Step Timeline */}
+                            {!isCancelled && (
+                                <div className="p-5 sm:p-6">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">
+                                        Lộ Trình Chi Tiết
+                                    </h4>
 
-                                        {/* 🚚 MOVING VEHICLE MARKER (XE DI CHUYỂN ĐỘNG TRÊN BẢN ĐỒ) */}
-                                        <div 
-                                            className="absolute top-[18px] transition-all duration-1000 z-30 transform -translate-x-1/2"
-                                            style={{ left: `calc(48px + (${(mapStep / 4) * 100}% * 0.84))` }}
-                                        >
-                                            <div className="relative flex flex-col items-center">
-                                                {/* Vehicle bubble with pulse ring */}
-                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-400 text-white shadow-xl flex items-center justify-center text-xl border-2 border-white animate-bounce">
-                                                    <span>{isReturn ? '🛵' : (mapStep >= 2 ? '🚚' : '📦')}</span>
-                                                </div>
-                                                <div className="w-3 h-1.5 bg-black/20 rounded-full blur-[1px] mt-0.5" />
-                                            </div>
-                                        </div>
+                                    <div className="relative pl-1 space-y-6">
+                                        {MAP_NODES.map((node, i) => {
+                                            const isPassed = i < mapStep;
+                                            const isCurrent = i === mapStep;
+                                            const isFuture = i > mapStep;
 
-                                        {/* 5 CHECKPOINT NODES */}
-                                        <div className="relative grid grid-cols-5 gap-3 text-center">
-                                            {MAP_NODES.map((node, i) => {
-                                                const isPassed = i <= mapStep;
-                                                const isCurrent = i === mapStep;
-                                                return (
-                                                    <div key={node.id} className="flex flex-col items-center">
-                                                        {/* Node circle */}
-                                                        <div className={`relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ${
-                                                            isCurrent
-                                                                ? 'bg-slate-900 text-white ring-4 ring-indigo-200 scale-110 shadow-xl z-20 border-2 border-indigo-500'
-                                                                : isPassed
-                                                                    ? 'bg-slate-800 text-white shadow-md z-10'
-                                                                    : 'bg-white text-slate-400 border border-slate-200 shadow-xs'
-                                                        }`}>
-                                                            <span>{node.emoji}</span>
+                                            return (
+                                                <div key={node.id} className="relative flex items-start gap-3.5">
+                                                    {/* Vertical Line Connector */}
+                                                    {i < MAP_NODES.length - 1 && (
+                                                        <div 
+                                                            className={`absolute left-[19px] top-9 bottom-[-24px] w-0.5 transition-colors duration-500 ${
+                                                                i < mapStep ? 'bg-emerald-500' : 'bg-slate-200'
+                                                            }`} 
+                                                        />
+                                                    )}
+
+                                                    {/* Node Icon Circle */}
+                                                    <div className={`relative z-10 w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 transition-all duration-300 ${
+                                                        isCurrent
+                                                            ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 shadow-md scale-110 font-bold border-2 border-indigo-400'
+                                                            : isPassed
+                                                                ? 'bg-emerald-600 text-white shadow-xs'
+                                                                : 'bg-slate-100 text-slate-400 border border-slate-200'
+                                                    }`}>
+                                                        {isPassed ? '✓' : <span>{node.emoji}</span>}
+                                                        {isCurrent && (
+                                                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
+                                                        )}
+                                                    </div>
+
+                                                    {/* Step Text Info */}
+                                                    <div className="pt-0.5 min-w-0 flex-1">
+                                                        <div className="flex flex-wrap items-center justify-between gap-1">
+                                                            <p className={`text-xs sm:text-sm font-bold leading-tight ${
+                                                                isCurrent ? 'text-indigo-600 font-black' : isPassed ? 'text-slate-900 font-bold' : 'text-slate-400 font-medium'
+                                                            }`}>
+                                                                {node.label}
+                                                            </p>
                                                             {isCurrent && (
-                                                                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
+                                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 animate-pulse">
+                                                                    ● Đang ở bước này
+                                                                </span>
+                                                            )}
+                                                            {isPassed && (
+                                                                <span className="text-[10px] font-medium text-slate-400">
+                                                                    Hoàn tất
+                                                                </span>
                                                             )}
                                                         </div>
-
-                                                        {/* Node Title & Description */}
-                                                        <p className={`text-xs font-black mt-3 leading-snug text-center ${
-                                                            isCurrent ? 'text-indigo-600 font-extrabold scale-105' : isPassed ? 'text-slate-900' : 'text-slate-400'
+                                                        <p className={`text-xs mt-0.5 leading-normal ${
+                                                            isCurrent ? 'text-slate-700 font-medium' : isPassed ? 'text-slate-600' : 'text-slate-400'
                                                         }`}>
-                                                            {node.label}
-                                                        </p>
-                                                        <p className="text-[10px] text-slate-500 font-medium mt-0.5 leading-tight text-center">
                                                             {node.desc}
                                                         </p>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-
-                                {/* ─── LIVE LOCATION RADAR STATUS CARD (SỬA LỖI TRÀN LỀ & LỖI CHỮ) ─── */}
-                                <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 rounded-2xl text-white shadow-lg overflow-hidden w-full">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
-                                        <div className="flex items-center gap-3.5 w-full sm:w-auto min-w-0 flex-1">
-                                            <div className="w-11 h-11 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 text-xl shadow-xs">
-                                                {MAP_NODES[mapStep]?.emoji || '📍'}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <span className="text-[10px] font-mono text-indigo-300 uppercase tracking-wider block font-bold">
-                                                    Mốc Hiện Tại (GPS Live Radar)
-                                                </span>
-                                                <h5 className="text-xs sm:text-sm font-bold text-white mt-0.5 leading-snug whitespace-normal break-words">
-                                                    {MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}
-                                                </h5>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-indigo-900/50">
-                                            <div className="text-left sm:text-right">
-                                                <span className="text-[10px] text-slate-400 block font-semibold">Tiến độ vận chuyển</span>
-                                                <span className="text-xs font-black text-emerald-400">
-                                                    {Math.round(((mapStep + 1) / 5) * 100)}% Hoàn thành
-                                                </span>
-                                            </div>
-                                            <span className="text-[11px] sm:text-xs font-bold text-emerald-300 bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 text-center shrink-0">
-                                                {mapStep === 4 ? '🎉 ĐÃ HOÀN TẤT (100%)' : `BƯỚC ${mapStep + 1}/5`}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     )}
 
