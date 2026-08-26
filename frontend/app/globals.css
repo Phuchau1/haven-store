@@ -293,6 +293,26 @@
     min-height: 44px;
   }
 
+  .adm-input.pl-9,
+  .adm-input[class*="pl-9"] {
+    padding-left: 2.25rem !important;
+  }
+
+  .adm-input.pl-10,
+  .adm-input[class*="pl-10"] {
+    padding-left: 2.6rem !important;
+  }
+
+  .adm-input.pl-11,
+  .adm-input[class*="pl-11"] {
+    padding-left: 2.75rem !important;
+  }
+
+  .adm-input.pl-12,
+  .adm-input[class*="pl-12"] {
+    padding-left: 3rem !important;
+  }
+
   .adm-input:focus {
     border-color: var(--adm-primary);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);

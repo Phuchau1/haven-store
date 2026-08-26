@@ -368,7 +368,7 @@ export default function AdminOrders() {
                 {/* Search */}
                 <div className="relative w-full sm:w-72">
                     <Search
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10"
                         size={16}
                         style={{ color: 'var(--adm-text-subtle)' }}
                     />
@@ -377,7 +377,8 @@ export default function AdminOrders() {
                         placeholder="Mã đơn, tên, email..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="adm-input w-full pl-10"
+                        className="adm-input w-full !pl-10 pr-4"
+                        style={{ paddingLeft: '2.6rem' }}
                     />
                 </div>
             </div>
