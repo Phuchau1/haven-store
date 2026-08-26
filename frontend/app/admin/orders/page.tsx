@@ -132,6 +132,40 @@ export default function AdminOrders() {
         return () => clearInterval(interval);
     }, [fetchOrders]);
 
+    // Đồng bộ URL parameters (id, status, search) từ Dashboard
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const orderIdParam = params.get('id') || params.get('search');
+            const statusParam = params.get('status');
+
+            if (orderIdParam) {
+                setSearchQuery(orderIdParam);
+                setFilterStatus('all');
+            } else if (statusParam) {
+                setFilterStatus(statusParam);
+            }
+        }
+    }, []);
+
+    // Tự động mở Modal Chi Tiết Đơn Hàng nếu URL có tham số 'id'
+    useEffect(() => {
+        if (typeof window !== 'undefined' && orders.length > 0) {
+            const params = new URLSearchParams(window.location.search);
+            const targetId = params.get('id') || params.get('search');
+            if (targetId) {
+                const targetLower = targetId.toLowerCase();
+                const matchedOrder = orders.find(o => 
+                    o.id?.toLowerCase() === targetLower || 
+                    (o.id && o.id.substring(0, 8).toLowerCase() === targetLower.substring(0, 8))
+                );
+                if (matchedOrder) {
+                    setSelectedOrder(matchedOrder);
+                }
+            }
+        }
+    }, [orders]);
+
     // Update status
     const handleUpdateStatus = async (orderId: string, newStatus: string, shippingProvider?: string) => {
         setIsSubmitting(true);

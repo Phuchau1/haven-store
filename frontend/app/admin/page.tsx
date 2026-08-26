@@ -399,10 +399,17 @@ export default function AdminDashboard() {
                             return displayList.map((o) => {
                                 const st = STATUS_MAP[o.status] || { label: o.status, color: '#6B7280', bg: '#F3F4F6' };
                                 return (
-                                    <div key={o.id} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
+                                    <Link
+                                        key={o.id}
+                                        href={`/admin/orders?id=${o.id}`}
+                                        className="flex items-center justify-between p-3 rounded-xl hover:bg-blue-50/50 hover:border-blue-300 transition-all border border-gray-100 group cursor-pointer shadow-2xs hover:shadow-sm"
+                                    >
                                         <div>
-                                            <p className="text-xs font-bold text-gray-900">Mã đơn #{o.id?.substring(0, 8)}</p>
-                                            <p className="text-[11px] text-gray-500">{o.customerName || 'Khách vãng lai'}</p>
+                                            <p className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors flex items-center gap-1">
+                                                <span>Mã đơn #{o.id?.substring(0, 8)}</span>
+                                                <ChevronRight size={13} className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                                            </p>
+                                            <p className="text-[11px] text-gray-500 mt-0.5">{o.customerName || 'Khách vãng lai'}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-gray-900">{formatPrice(o.totalAmount)}</p>
@@ -410,7 +417,7 @@ export default function AdminDashboard() {
                                                 {st.label}
                                             </span>
                                         </div>
-                                    </div>
+                                    </Link>
                                 );
                             });
                         })()}
