@@ -37,7 +37,7 @@ export default function FeaturesBanner() {
             <div className="container-torano">
                 {/* Section Header */}
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <span className="text-xs font-semibold text-amber-800 tracking-[0.25em] uppercase block mb-3">
+                    <span className="text-xs font-bold text-amber-800 tracking-wide uppercase block mb-3">
                         Triết Lý Thiết Kế
                     </span>
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight uppercase">

@@ -66,7 +66,7 @@ export default function Newsletter() {
                         <div className="lg:col-span-6 text-left">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/60 border border-amber-800/40 mb-3">
                                 <Tag size={12} className="text-amber-400" />
-                                <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-[0.2em]">
+                                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wide">
                                     HAVEN Club
                                 </span>
                             </div>
