@@ -10,9 +10,9 @@ export default function Footer() {
     return (
         <footer className="bg-white border-t border-slate-200 text-slate-900">
             <div className="container-torano py-16 lg:py-20">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 w-full">
-                    {/* Col 1: Brand Info (4/12) */}
-                    <div className="lg:col-span-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 w-full">
+                    {/* Col 1: Brand Info */}
+                    <div>
                         <Link href="/" className="inline-block mb-3">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/logo-new.png" alt="HAVEN" className="h-[56px] w-auto object-contain drop-shadow-xs" />
@@ -53,8 +53,8 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {/* Col 2: Quick Links (3/12) */}
-                    <div className="lg:col-span-3">
+                    {/* Col 2: Quick Links */}
+                    <div>
                         <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4 whitespace-nowrap">
                             LIÊN KẾT NHANH
                         </h3>
@@ -80,8 +80,8 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Col 3: Policies (2.5 -> 2/12) */}
-                    <div className="lg:col-span-3">
+                    {/* Col 3: Policies */}
+                    <div>
                         <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4 whitespace-nowrap">
                             CHÍNH SÁCH
                         </h3>
@@ -106,8 +106,8 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Col 4: Contact Info (3/12) */}
-                    <div className="lg:col-span-3">
+                    {/* Col 4: Contact Info */}
+                    <div>
                         <h3 className="text-[13px] font-black text-slate-950 tracking-wider uppercase mb-4 whitespace-nowrap">
                             LIÊN HỆ
                         </h3>
