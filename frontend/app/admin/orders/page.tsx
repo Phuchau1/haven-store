@@ -17,11 +17,13 @@ import {
     Calendar,
     X,
     PackageCheck,
+    ArrowRight,
 } from 'lucide-react';
 import { OrderData } from '@/types';
 import { formatPrice } from '@/lib/format';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { SkeletonTable, SkeletonList } from '../components/SkeletonLoaders';
 import { EmptyState } from '../components/EmptyState';
 import { AdminPagination } from '../components/AdminPagination';
@@ -43,24 +45,24 @@ const isValidImageSrc = (src?: string | null): src is string => {
 const ITEMS_PER_PAGE = 10;
 
 // ---------------------------------------------------------------------------
-// Status config
+// Status config (Sales Orders)
 // ---------------------------------------------------------------------------
 const STATUS_OPTIONS = [
-    { id: 'pending',          label: 'Chờ bộ phận xử lý',      icon: Clock,         color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-100'  },
-    { id: 'processing',       label: 'Xác nhận & Đóng gói',     icon: Package,       color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100'   },
-    { id: 'shipped',          label: 'Đang vận chuyển',          icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
-    { id: 'delivered',        label: 'Giao hàng thành công',     icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'},
-    { id: 'return_requested', label: 'Yêu cầu hoàn hàng',       icon: RotateCcw,     color: 'text-amber-700',   bg: 'bg-amber-100',  border: 'border-amber-200'  },
-    { id: 'returning',        label: 'Đang hoàn hàng về shop',   icon: Truck,         color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-100' },
-    { id: 'return_received',  label: 'Shop lấy hàng thành công', icon: PackageCheck,  color: 'text-purple-600',  bg: 'bg-purple-50',  border: 'border-purple-100' },
-    { id: 'refunded',         label: 'Đã hoàn tiền',             icon: CheckCircle2,  color: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-100'   },
-    { id: 'cancelled',        label: 'Hủy đơn hàng này',         icon: XCircle,       color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100'   },
+    { id: 'pending',    label: 'Chờ bộ phận xử lý',    icon: Clock,         color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-100'  },
+    { id: 'processing', label: 'Xác nhận & Đóng gói',   icon: Package,       color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100'   },
+    { id: 'shipped',    label: 'Đang vận chuyển',        icon: Truck,         color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
+    { id: 'delivered',  label: 'Giao hàng thành công',   icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'},
+    { id: 'cancelled',  label: 'Hủy đơn hàng này',       icon: XCircle,       color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100'   },
 ];
 
-// Status tabs config (includes "all")
+// Status tabs config for Sales Orders
 const FILTER_TABS = [
-    { id: 'all', label: 'Tất cả' },
-    ...STATUS_OPTIONS.map(s => ({ id: s.id, label: s.label.replace(' bộ phận', '').replace(' thành công', '').replace(' hàng này', '') })),
+    { id: 'all', label: 'Tất cả đơn bán' },
+    { id: 'pending', label: 'Chờ xử lý' },
+    { id: 'processing', label: 'Xác nhận & Đóng gói' },
+    { id: 'shipped', label: 'Đang vận chuyển' },
+    { id: 'delivered', label: 'Giao thành công' },
+    { id: 'cancelled', label: 'Đã hủy' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -383,31 +385,43 @@ export default function AdminOrders() {
                 </div>
             </div>
 
-            {/* ── Status Filter Tabs (horizontal scroll on mobile) ─────────── */}
-            <div
-                className="overflow-x-auto pb-1"
-                style={{ scrollbarWidth: 'none' }}
-            >
-                <div className="flex gap-2 min-w-max">
-                    {FILTER_TABS.map(tab => {
-                        const isActive = filterStatus === tab.id;
-                        const statusInfo = tab.id !== 'all' ? STATUS_OPTIONS.find(s => s.id === tab.id) : null;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setFilterStatus(tab.id)}
-                                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition-all min-h-[36px] ${
-                                    isActive
-                                        ? 'bg-[var(--adm-primary)] text-white border-[var(--adm-primary)] shadow-md'
-                                        : 'bg-[var(--adm-surface)] text-[var(--adm-text-muted)] border-[var(--adm-border)] hover:border-[var(--adm-primary)] hover:text-[var(--adm-primary)]'
-                                }`}
-                            >
-                                {statusInfo && <statusInfo.icon size={13} />}
-                                {tab.label}
-                            </button>
-                        );
-                    })}
+            {/* ── Status Filter Tabs & Separate Return Management Access ─── */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                <div
+                    className="overflow-x-auto pb-1 md:pb-0 flex-1"
+                    style={{ scrollbarWidth: 'none' }}
+                >
+                    <div className="flex gap-2 min-w-max">
+                        {FILTER_TABS.map(tab => {
+                            const isActive = filterStatus === tab.id;
+                            const statusInfo = tab.id !== 'all' ? STATUS_OPTIONS.find(s => s.id === tab.id) : null;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setFilterStatus(tab.id)}
+                                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition-all min-h-[36px] ${
+                                        isActive
+                                            ? 'bg-[var(--adm-primary)] text-white border-[var(--adm-primary)] shadow-md'
+                                            : 'bg-[var(--adm-surface)] text-[var(--adm-text-muted)] border-[var(--adm-border)] hover:border-[var(--adm-primary)] hover:text-[var(--adm-primary)]'
+                                    }`}
+                                >
+                                    {statusInfo && <statusInfo.icon size={13} />}
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
+
+                {/* Separate Link to Return Logistics & Refund Management */}
+                <Link
+                    href="/admin/returns"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 transition-all shadow-2xs shrink-0"
+                >
+                    <RotateCcw size={14} className="text-amber-700" />
+                    <span>Quản lý Hoàn Hàng & Trả Tiền</span>
+                    <ArrowRight size={13} className="text-amber-700" />
+                </Link>
             </div>
 
             {/* ── Table Card Wrapper ────────────────────────────────────────── */}
