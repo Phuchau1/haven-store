@@ -525,9 +525,9 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                 </div>
 
                                 {/* ─── LIVE LOCATION RADAR STATUS CARD (SỬA LỖI TRÀN LỀ & LỖI CHỮ) ─── */}
-                                <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 rounded-2xl text-white shadow-lg overflow-hidden">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3.5 min-w-0 max-w-full">
+                                <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 rounded-2xl text-white shadow-lg overflow-hidden w-full">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+                                        <div className="flex items-center gap-3.5 w-full sm:w-auto min-w-0 flex-1">
                                             <div className="w-11 h-11 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 text-xl shadow-xs">
                                                 {MAP_NODES[mapStep]?.emoji || '📍'}
                                             </div>
@@ -535,14 +535,14 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                                 <span className="text-[10px] font-mono text-indigo-300 uppercase tracking-wider block font-bold">
                                                     Mốc Hiện Tại (GPS Live Radar)
                                                 </span>
-                                                <h5 className="text-xs sm:text-sm font-bold text-white mt-0.5 leading-snug break-words">
+                                                <h5 className="text-xs sm:text-sm font-bold text-white mt-0.5 leading-snug whitespace-normal break-words">
                                                     {MAP_NODES[mapStep]?.label} — {MAP_NODES[mapStep]?.desc}
                                                 </h5>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto max-w-full">
-                                            <div className="text-right hidden md:block">
+                                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-indigo-900/50">
+                                            <div className="text-left sm:text-right">
                                                 <span className="text-[10px] text-slate-400 block font-semibold">Tiến độ vận chuyển</span>
                                                 <span className="text-xs font-black text-emerald-400">
                                                     {Math.round(((mapStep + 1) / 5) * 100)}% Hoàn thành
