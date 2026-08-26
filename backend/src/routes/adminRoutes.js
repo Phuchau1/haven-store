@@ -11,9 +11,10 @@ const auditMiddleware      = require('../middleware/auditMiddleware');
 router.use(auditMiddleware('SystemConfig', 'admin_action'));
 
 // ─── Users ───────────────────────────────────────────────────
-router.get('/users',    adminController.getUsers);
-router.put('/users',    adminController.updateUserRole);
-router.delete('/users', adminController.deleteUser);
+router.get('/users',      adminController.getUsers);
+router.put('/users',      adminController.updateUserRole);
+router.put('/users/lock', adminController.toggleLockUser);
+router.delete('/users',   adminController.deleteUser);
 
 // ─── Stats ───────────────────────────────────────────────────
 router.get('/stats', adminController.getStats);

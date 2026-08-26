@@ -354,18 +354,18 @@ const updateUserRole = async (req, res, next) => {
 };
 
 /**
- * @desc    Xóa tài khoản người dùng
- * @route   DELETE /api/admin/users?id=...
+ * @desc    Khóa / Mở khóa tài khoản người dùng
+ * @route   PUT /api/admin/users/lock
  * @access  Private/Admin
  */
-const deleteUser = async (req, res, next) => {
+const toggleLockUser = async (req, res, next) => {
     try {
-        const id = typeof req.query.id === 'string' ? req.query.id : undefined;
+        const { id, isLocked } = req.body;
         
         if (!id) {
             return res.status(400).json({ success: false, message: 'Thiếu ID người dùng' });
         }
-        
+
         const targetUser = await UserModel.findOne({ id });
         if (!targetUser) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
@@ -373,11 +373,36 @@ const deleteUser = async (req, res, next) => {
 
         const SYSTEM_ADMINS = ['ntphau21@gmail.com', 'admin@havenstore.vn'];
         if (SYSTEM_ADMINS.includes(targetUser.email?.toLowerCase().trim())) {
-            return res.status(400).json({ success: false, message: 'Tài khoản Quản trị viên Mặc định Hệ thống không thể bị xóa' });
+            return res.status(400).json({ success: false, message: 'Tài khoản Quản trị viên Mặc định Hệ thống không thể bị khóa' });
         }
 
-        await UserModel.findOneAndDelete({ id });
-        res.json({ success: true, message: 'Xóa người dùng thành công' });
+        targetUser.isLocked = typeof isLocked === 'boolean' ? isLocked : !targetUser.isLocked;
+        await targetUser.save();
+
+        const userObj = targetUser.toObject();
+        delete userObj.password;
+
+        res.json({
+            success: true,
+            message: targetUser.isLocked ? '🔒 Đã KHÓA tài khoản người dùng thành công!' : '🔓 Đã MỞ KHÓA tài khoản người dùng thành công!',
+            user: userObj
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Xóa tài khoản người dùng (BỊ CHẶN - CHỈ CHO PHÉP KHÓA TÀI KHOẢN)
+ * @route   DELETE /api/admin/users?id=...
+ * @access  Private/Admin
+ */
+const deleteUser = async (req, res, next) => {
+    try {
+        return res.status(400).json({
+            success: false,
+            message: 'Chính sách Bảo vệ Dữ liệu Doanh nghiệp: Hệ thống KHÔNG CHO PHÉP XÓA VĨNH VIỄN tài khoản người dùng để đảm bảo tính toàn vẹn báo cáo & đơn hàng. Vui lòng sử dụng tính năng KHÓA TÀI KHOẢN!'
+        });
     } catch (error) {
         next(error);
     }
@@ -390,5 +415,6 @@ module.exports = {
     updateReviewStatus,
     deleteReview,
     updateUserRole,
+    toggleLockUser,
     deleteUser
 };

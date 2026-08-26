@@ -32,6 +32,11 @@ const login = async (req, res, next) => {
             return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' });
         }
 
+        // Kiểm tra tài khoản bị khóa
+        if (user.isLocked) {
+            return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị KHÓA bởi Quản trị viên. Vui lòng liên hệ bộ phận hỗ trợ HAVEN STORE!' });
+        }
+
         // Chỉ kiểm tra mật khẩu đã được băm (Bảo mật: ngăn chặn Pass-the-Hash)
         const isPasswordCorrect = user.password === hashedPassword;
         if (!isPasswordCorrect) {

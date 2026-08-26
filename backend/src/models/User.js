@@ -13,6 +13,7 @@ const UserSchema = new Schema({
     phone: { type: String },
     address: { type: String },
     walletBalance: { type: Number, default: 0 }, // Số dư ví tài khoản HAVEN (VNĐ)
+    isLocked: { type: Boolean, default: false }, // Trạng thái khóa tài khoản người dùng
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date }
 }, { timestamps: true });
