@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Zap, Tag, Activity } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Zap, Tag, Activity, ArrowLeft, Search, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface FlashSaleVariant {
@@ -258,6 +258,315 @@ export default function AdminFlashSalesPage() {
         p.id.toLowerCase().includes(searchKeyword.toLowerCase())
     );
 
+    if (isModalOpen) {
+        return (
+            <div className="space-y-6 max-w-7xl mx-auto pb-16">
+                {/* Header with Back Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/80 pb-5">
+                    <div className="flex items-center gap-3.5">
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="p-2.5 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-2xs transition-all flex items-center gap-2 text-xs font-bold shrink-0 cursor-pointer"
+                        >
+                            <ArrowLeft size={16} /> Quay lại danh sách
+                        </button>
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-black text-gray-900">
+                                {editingItem ? `Sửa Chiến Dịch: ${editingItem.name}` : 'Tạo Chiến Dịch Flash Sale Mới'}
+                            </h1>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                Cấu hình thông tin thời gian, sản phẩm và giá ưu đãi chi tiết từng biến thể
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={saving}
+                            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                            <Save size={16} /> {saving ? 'Đang lưu...' : 'Lưu Chiến Dịch'}
+                        </button>
+                    </div>
+                </div>
+
+                {errorMsg && (
+                    <div className="p-4 rounded-2xl text-sm font-bold bg-rose-50 border border-rose-200 text-rose-700">
+                        ⚠️ {errorMsg}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* ─── 1. THÔNG TIN CHIẾN DỊCH ─── */}
+                    <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs space-y-4">
+                        <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                            <Zap size={16} className="text-amber-500" />
+                            1. Thông Tin Chiến Dịch Flash Sale
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div className="md:col-span-3">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Tên chiến dịch</label>
+                                <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" placeholder="VD: Siêu sale 11.11 - Giảm sốc đến 50%" />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Bắt đầu</label>
+                                <input type="datetime-local" required value={formData.startTime} onChange={e => setFormData({ ...formData, startTime: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Kết thúc</label>
+                                <input type="datetime-local" required value={formData.endTime} onChange={e => setFormData({ ...formData, endTime: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
+                            </div>
+
+                            <div className="flex items-center">
+                                <label className="flex items-center gap-3 cursor-pointer p-3 rounded-2xl border border-gray-200 bg-gray-50/50 w-full">
+                                    <input type="checkbox" checked={formData.isActive} onChange={e => setFormData({ ...formData, isActive: e.target.checked })} className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                    <span className="text-xs font-black text-gray-800">Kích hoạt chiến dịch ngay</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ─── 2. SẢN PHẨM & CẤU HÌNH BIẾN THỂ ─── */}
+                    <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                                <Tag size={16} className="text-indigo-600" />
+                                2. Sản Phẩm & Cấu Hình Biến Thể ({formData.products.length} sản phẩm)
+                            </h3>
+                        </div>
+
+                        {formData.products.length === 0 ? (
+                            <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                <p className="text-xs font-medium text-gray-500">Chưa có sản phẩm nào được chọn. Vui lòng chọn sản phẩm bên dưới!</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {formData.products.map((p, idx) => {
+                                    const pIdStr = typeof p.productId === 'object' ? p.productId.id : p.productId;
+                                    const productInfo = allProducts.find(ap => ap.id === pIdStr);
+                                    const hasVariants = productInfo?.variants && productInfo.variants.length > 0;
+
+                                    return (
+                                        <div key={idx} className="bg-gray-50/60 p-5 rounded-2xl border border-gray-200 space-y-4">
+                                            {/* Product Card Header */}
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/80 pb-4">
+                                                <div className="flex items-center gap-3.5 min-w-0">
+                                                    <div className="w-14 h-14 bg-white rounded-xl overflow-hidden border border-gray-200 shrink-0">
+                                                        {productInfo?.images?.[0] ? (
+                                                            /* eslint-disable-next-line @next/next/no-img-element */
+                                                            <img src={productInfo.images[0]} alt={productInfo.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Tag className="w-6 h-6 text-gray-300 m-4" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{productInfo?.name || pIdStr}</h4>
+                                                        <p className="text-xs text-gray-500 mt-0.5">Mã: <span className="font-mono font-bold text-gray-700">{pIdStr}</span> | Giá gốc: <strong className="text-gray-900">{productInfo?.price?.toLocaleString() || 0}đ</strong></p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-4 shrink-0">
+                                                    {hasVariants && (
+                                                        <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-indigo-200 text-indigo-700 text-xs font-bold">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={p.useVariants || false}
+                                                                onChange={(e) => handleUpdateProduct(pIdStr, 'useVariants', e.target.checked)}
+                                                                className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                            />
+                                                            <span>Cấu hình theo biến thể ({productInfo.variants?.length} biến thể)</span>
+                                                        </label>
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveProduct(pIdStr)}
+                                                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-rose-200"
+                                                        title="Bỏ sản phẩm này"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* General Pricing (When NOT using variants) */}
+                                            {!p.useVariants && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-gray-200">
+                                                    <div>
+                                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Giá Flash Sale (VNĐ)</label>
+                                                        <input
+                                                            type="number"
+                                                            value={p.flashSalePrice}
+                                                            onChange={(e) => handleUpdateProduct(pIdStr, 'flashSalePrice', e.target.value === '' ? '' : Number(e.target.value))}
+                                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-black text-indigo-600 outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Tồn kho Flash Sale</label>
+                                                        <input
+                                                            type="number"
+                                                            value={p.stockQuantity}
+                                                            onChange={(e) => handleUpdateProduct(pIdStr, 'stockQuantity', e.target.value === '' ? '' : Number(e.target.value))}
+                                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Full-width Variant Pricing Grid */}
+                                            {p.useVariants && p.variants && p.variants.length > 0 && (
+                                                <div className="space-y-3 pt-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-xs font-black uppercase text-indigo-700 tracking-wider">Ma Trận Giá & Tồn Kho Chi Tiết Theo Biến Thể</p>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                        {p.variants.map((v, vIdx) => {
+                                                            const discountPct = productInfo?.price && v.flashSalePrice ? Math.round(((productInfo.price - v.flashSalePrice) / productInfo.price) * 100) : 0;
+                                                            return (
+                                                                <div key={vIdx} className="bg-white p-4 border border-gray-200 rounded-2xl shadow-2xs hover:border-indigo-400 transition-all space-y-3">
+                                                                    <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                                                                        <span className="text-xs font-black text-gray-900">
+                                                                            {v.color} <span className="text-gray-400 font-normal">|</span> {v.size}
+                                                                        </span>
+                                                                        {discountPct > 0 && (
+                                                                            <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                                                                                -{discountPct}%
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="space-y-2">
+                                                                        <div>
+                                                                            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
+                                                                                Giá Flash Sale (VNĐ)
+                                                                            </label>
+                                                                            <input
+                                                                                type="number"
+                                                                                placeholder="Nhập giá FS"
+                                                                                value={v.flashSalePrice !== undefined ? v.flashSalePrice : ''}
+                                                                                onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'flashSalePrice', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                                                                                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-black text-indigo-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50"
+                                                                            />
+                                                                        </div>
+
+                                                                        <div>
+                                                                            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
+                                                                                Tồn Kho Flash Sale
+                                                                            </label>
+                                                                            <input
+                                                                                type="number"
+                                                                                placeholder="Số lượng"
+                                                                                value={v.stockQuantity !== undefined ? v.stockQuantity : ''}
+                                                                                onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'stockQuantity', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                                                                                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ─── 3. TÌM & THÊM SẢN PHẨM MỚI ─── */}
+                    <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs space-y-4">
+                        <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                            <Plus size={16} className="text-emerald-600" />
+                            3. Thêm Sản Phẩm Mới Vào Chiến Dịch
+                        </h3>
+
+                        <div className="relative">
+                            <Search className="w-4 h-4 absolute left-4 top-3.5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1">
+                            {filteredProducts.slice(0, 30).map(product => {
+                                const isSelected = formData.products.some(p => p.productId === product.id);
+                                return (
+                                    <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50/70 border border-gray-200 rounded-2xl hover:border-indigo-300 transition-colors">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-12 h-12 bg-white rounded-xl overflow-hidden border border-gray-200 shrink-0">
+                                                {product.images?.[0] ? (
+                                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Tag className="w-5 h-5 text-gray-300 m-3.5" />
+                                                )}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-xs text-gray-900 truncate">{product.name}</p>
+                                                <p className="text-[11px] text-gray-500 mt-0.5">Giá gốc: <strong>{product.price?.toLocaleString()}đ</strong></p>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            disabled={isSelected}
+                                            onClick={() => handleAddProduct(product)}
+                                            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 cursor-pointer ${
+                                                isSelected
+                                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-2xs'
+                                            }`}
+                                        >
+                                            {isSelected ? 'Đã thêm' : '+ Thêm'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Bottom Action Bar */}
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-6 py-3 rounded-2xl border border-gray-300 text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                            Hủy bỏ
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="px-8 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                            <Save size={18} /> {saving ? 'Đang lưu...' : 'Lưu Chiến Dịch Flash Sale'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -350,217 +659,6 @@ export default function AdminFlashSalesPage() {
                     </div>
                 )}
             </div>
-
-            <AnimatePresence>
-                {isModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-                        <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} className="relative w-full sm:max-w-3xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden" style={{ background: 'var(--adm-surface)', maxHeight: '95dvh', display: 'flex', flexDirection: 'column' }}>
-                            <div className="flex items-center justify-between p-5 border-b shrink-0">
-                                <h3 className="text-lg font-bold">{editingItem ? 'Sửa Flash Sale' : 'Tạo Flash Sale'}</h3>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-xl transition-colors bg-gray-100 text-gray-500 hover:bg-gray-200"><X size={20} /></button>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
-                                {errorMsg && <div className="p-3 rounded-xl text-sm font-medium bg-red-100 text-red-600">{errorMsg}</div>}
-
-                                <div>
-                                    <label className="block text-xs font-bold uppercase mb-2">Tên chiến dịch</label>
-                                    <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="adm-input w-full" placeholder="VD: Siêu sale 11.11" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase mb-2">Bắt đầu</label>
-                                        <input type="datetime-local" required value={formData.startTime} onChange={e => setFormData({ ...formData, startTime: e.target.value })} className="adm-input w-full" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase mb-2">Kết thúc</label>
-                                        <input type="datetime-local" required value={formData.endTime} onChange={e => setFormData({ ...formData, endTime: e.target.value })} className="adm-input w-full" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="flex items-center gap-2 cursor-pointer mt-2">
-                                        <input type="checkbox" checked={formData.isActive} onChange={e => setFormData({ ...formData, isActive: e.target.checked })} className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                                        <span className="text-sm font-bold">Kích hoạt chiến dịch</span>
-                                    </label>
-                                </div>
-
-                                {/* Product Selector UI */}
-                                <div className="mt-6 border-t pt-6">
-                                    <h4 className="font-bold text-md mb-4 uppercase tracking-wider text-gray-800">Sản phẩm tham gia Flash Sale</h4>
-                                    
-                                    {/* Selected Products */}
-                                    {formData.products.length > 0 && (
-                                        <div className="mb-6 space-y-3">
-                                            <p className="text-sm font-semibold text-indigo-600">Đã chọn ({formData.products.length} sản phẩm)</p>
-                                            <div className="border border-gray-200 rounded-xl overflow-hidden">
-                                                <table className="w-full text-sm text-left">
-                                                    <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-bold border-b">
-                                                        <tr>
-                                                            <th className="px-4 py-2">Sản phẩm</th>
-                                                            <th className="px-4 py-2 w-32">Giá Flash Sale</th>
-                                                            <th className="px-4 py-2 w-32">Tồn kho</th>
-                                                            <th className="px-4 py-2 w-16 text-center">Biến thể</th>
-                                                            <th className="px-4 py-2 w-16"></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-gray-100">
-                                                        {formData.products.map((p, idx) => {
-                                                            const pIdStr = typeof p.productId === 'object' ? p.productId.id : p.productId;
-                                                            const productInfo = allProducts.find(ap => ap.id === pIdStr);
-                                                            return (
-                                                                <React.Fragment key={idx}>
-                                                                    <tr className="bg-white hover:bg-gray-50">
-                                                                        <td className="px-4 py-2">
-                                                                            <p className="font-semibold text-gray-800 line-clamp-1">{productInfo?.name || pIdStr}</p>
-                                                                            <p className="text-xs text-gray-500">Giá gốc: {productInfo?.price?.toLocaleString() || 0} đ</p>
-                                                                        </td>
-                                                                        <td className="px-4 py-2">
-                                                                            <input 
-                                                                                type="number" 
-                                                                                disabled={p.useVariants}
-                                                                                value={p.flashSalePrice} 
-                                                                                onChange={(e) => handleUpdateProduct(pIdStr, 'flashSalePrice', e.target.value === '' ? '' : Number(e.target.value))}
-                                                                                className="adm-input w-full text-sm px-2 py-1 h-8 disabled:opacity-50"
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-4 py-2">
-                                                                            <input 
-                                                                                type="number" 
-                                                                                disabled={p.useVariants}
-                                                                                value={p.stockQuantity} 
-                                                                                onChange={(e) => handleUpdateProduct(pIdStr, 'stockQuantity', e.target.value === '' ? '' : Number(e.target.value))}
-                                                                                className="adm-input w-full text-sm px-2 py-1 h-8 disabled:opacity-50"
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-4 py-2 text-center">
-                                                                            {productInfo?.variants && productInfo.variants.length > 0 && (
-                                                                                <label className="inline-flex items-center cursor-pointer">
-                                                                                    <input 
-                                                                                        type="checkbox" 
-                                                                                        checked={p.useVariants || false}
-                                                                                        onChange={(e) => handleUpdateProduct(pIdStr, 'useVariants', e.target.checked)}
-                                                                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                                                                    />
-                                                                                </label>
-                                                                            )}
-                                                                        </td>
-                                                                        <td className="px-4 py-2 text-right">
-                                                                            <button type="button" onClick={() => handleRemoveProduct(pIdStr)} className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg">
-                                                                                <Trash2 size={16} />
-                                                                            </button>
-                                                                        </td>
-                                                                    </tr>
-                                                                    {p.useVariants && p.variants && p.variants.length > 0 && (
-                                                                        <tr className="bg-gray-50">
-                                                                            <td colSpan={5} className="p-4 border-t border-gray-200">
-                                                                                <div className="pl-4 border-l-2 border-indigo-300 space-y-2">
-                                                                                    <p className="text-xs font-bold uppercase text-indigo-600">Cấu hình giá theo biến thể</p>
-                                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-                                                                                        {p.variants.map((v, vIdx) => (
-                                                                                            <div key={vIdx} className="flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-xl shadow-sm hover:border-indigo-300 transition-colors">
-                                                                                                <div className="text-xs font-bold text-gray-800 border-b border-gray-100 pb-2">
-                                                                                                    {v.color} <span className="text-gray-400 font-normal mx-1">|</span> {v.size}
-                                                                                                </div>
-                                                                                                <div className="flex flex-col gap-2 pt-1">
-                                                                                                    <div className="flex items-center justify-between">
-                                                                                                        <label className="text-[10px] text-gray-500 font-medium">Giá Flash Sale</label>
-                                                                                                        <input 
-                                                                                                            type="number" 
-                                                                                                            placeholder="Giá FS"
-                                                                                                            value={v.flashSalePrice !== undefined ? v.flashSalePrice : ''}
-                                                                                                            onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'flashSalePrice', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
-                                                                                                            className="w-24 px-2 py-1.5 rounded-md border text-right text-xs outline-none focus:ring-1 focus:ring-indigo-500 transition-all bg-gray-50"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                    <div className="flex items-center justify-between">
-                                                                                                        <label className="text-[10px] text-gray-700 font-bold uppercase tracking-wider">Tồn kho FS</label>
-                                                                                                        <input 
-                                                                                                            type="number" 
-                                                                                                            placeholder="Tồn kho"
-                                                                                                            value={v.stockQuantity !== undefined ? v.stockQuantity : ''}
-                                                                                                            onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'stockQuantity', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
-                                                                                                            className="w-20 px-2 py-1.5 rounded-md border text-right text-xs font-bold outline-none focus:ring-1 focus:ring-indigo-500 transition-all bg-gray-50"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        ))}
-                                                                                    </div>
-                                                                                </div>
-                                                                            </td>
-                                                                        </tr>
-                                                                    )}
-                                                                </React.Fragment>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Product Search */}
-                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                        <p className="text-sm font-semibold text-gray-700 mb-3">Thêm sản phẩm mới</p>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..." 
-                                            value={searchKeyword}
-                                            onChange={(e) => setSearchKeyword(e.target.value)}
-                                            className="adm-input w-full mb-3"
-                                        />
-                                        <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                            {filteredProducts.slice(0, 20).map(product => {
-                                                const isSelected = formData.products.some(p => p.productId === product.id);
-                                                return (
-                                                    <div key={product.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                                                                {product.images && product.images[0] ? (
-                                                                    <>
-                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                                                                    </>
-                                                                ) : (
-                                                                    <Tag className="w-5 h-5 text-gray-400 m-2.5" />
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-sm text-gray-800 line-clamp-1">{product.name}</p>
-                                                                <p className="text-xs text-gray-500">{product.id} - Giá gốc: {product.price?.toLocaleString()} đ</p>
-                                                            </div>
-                                                        </div>
-                                                        <button 
-                                                            type="button"
-                                                            disabled={isSelected}
-                                                            onClick={() => handleAddProduct(product)}
-                                                            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${isSelected ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'}`}
-                                                        >
-                                                            {isSelected ? 'Đã thêm' : 'Thêm'}
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-                                            {filteredProducts.length > 20 && (
-                                                <p className="text-xs text-center text-gray-500 py-2">Hiển thị 20/{filteredProducts.length} kết quả. Vui lòng tìm kiếm chi tiết hơn.</p>
-                                            )}
-                                            {filteredProducts.length === 0 && (
-                                                <p className="text-sm text-center text-gray-500 py-4">Không tìm thấy sản phẩm nào.</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button type="button" onClick={() => setIsModalOpen(false)} className="adm-btn-secondary flex-1">Hủy</button>
-                                    <button type="submit" disabled={saving} className="adm-btn-primary flex-1 flex items-center justify-center gap-2"><Save size={18} /> {saving ? 'Đang lưu...' : 'Lưu'}</button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }
