@@ -28,8 +28,6 @@ const MENU_ITEMS = [
     { icon: MessageSquare,   label: 'Live Chat',     href: '/admin/chats',             group: 'catalog' },
     { icon: FileText,        label: 'Bài viết',      href: '/admin/articles',          group: 'catalog' },
     { icon: Package,         label: 'Danh mục',      href: '/admin/categories',        group: 'catalog' },
-    { icon: Tag,             label: 'Thương hiệu',   href: '/admin/brands',            group: 'catalog' },
-    { icon: Grid,            label: 'Bộ sưu tập',    href: '/admin/collections',       group: 'catalog' },
     { icon: ImageIcon,       label: 'Banners',       href: '/admin/banners',           group: 'catalog' },
     { icon: Palette,         label: 'Màu sắc',       href: '/admin/colors',            group: 'catalog' },
     { icon: Ruler,           label: 'Kích thước',    href: '/admin/sizes',             group: 'catalog' },
