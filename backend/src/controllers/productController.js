@@ -245,25 +245,11 @@ const deleteProduct = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Thiếu mã ID sản phẩm cần xóa' });
         }
         
-        let deletedProduct = null;
-        if (id) {
-            deletedProduct = await ProductModel.findOneAndDelete({ id });
-        }
-        if (!deletedProduct && targetId) {
-            deletedProduct = await ProductModel.findByIdAndDelete(targetId);
-        }
-        
-        // Xoá cache list và detail ngay lập tức
-        await delCache('products:*', true);
-        if (id) await delCache(`product:${id}`, false);
-        invalidateCache('/api/products');
-        
-        if (!deletedProduct) {
-            return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm để xóa' });
-        }
-        
-        log(`Đã xóa sản phẩm thành công: ${targetId}`);
-        return res.json({ success: true, message: 'Đã xóa sản phẩm thành công' });
+        // BẢO VỆ DỮ LIỆU: KHÔNG CHO PHÉP XÓA VĨNH VIỄN SẢN PHẨM
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Hệ thống bảo vệ dữ liệu: Không được phép XÓA sản phẩm để bảo vệ lịch sử đơn hàng và báo cáo doanh thu. Vui lòng chuyển sản phẩm sang trạng thái ẨN.' 
+        });
     } catch (error) {
         log(`Lỗi khi xóa sản phẩm: ${error.message}`);
         return res.status(500).json({ success: false, message: error.message || 'Lỗi khi xóa sản phẩm' });

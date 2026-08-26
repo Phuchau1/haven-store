@@ -397,30 +397,17 @@ export default function AdminProducts() {
         });
     };
 
-    // ── HARD DELETE (Xóa vĩnh viễn với Modal SweetAlert Danger) ──
+    // ── BẢO VỆ DỮ LIỆU: KHÔNG CHO PHÉP XÓA SẢN PHẨM ──
     const handleDeleteProduct = (product: Product) => {
         setConfirmModal({
             isOpen: true,
-            title: 'Xóa vĩnh viễn sản phẩm?',
-            message: `Bạn có chắc chắn muốn XÓA VĨNH VIỄN sản phẩm "${product.name}" (Mã ID: ${product.id})? Thao tác này sẽ xóa toàn bộ dữ liệu khỏi hệ thống và KHÔNG THỂ KHÔI PHỤC!`,
-            confirmText: 'Xóa vĩnh viễn',
-            type: 'danger',
-            onConfirm: async () => {
+            title: 'Không thể xóa sản phẩm!',
+            message: `Hệ thống quy định KHÔNG ĐƯỢC PHÉP XÓA sản phẩm "${product.name}" (ID: ${product.id}) nhằm bảo vệ dữ liệu lịch sử đơn hàng và báo cáo doanh thu. Bạn có muốn ẨN sản phẩm này khỏi cửa hàng thay vì xóa không?`,
+            confirmText: 'Ẩn sản phẩm ngay',
+            type: 'warning',
+            onConfirm: () => {
                 setConfirmModal(prev => ({ ...prev, isOpen: false }));
-                try {
-                    const res = await fetch(`/api/products?id=${encodeURIComponent(product.id)}`, {
-                        method: 'DELETE',
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        setProducts(products.filter(p => p.id !== product.id));
-                        showToast('success', `Đã xóa vĩnh viễn sản phẩm "${product.name}"`);
-                    } else {
-                        showToast('error', 'Không thể xóa sản phẩm', data.message);
-                    }
-                } catch {
-                    showToast('error', 'Lỗi kết nối khi xóa sản phẩm');
-                }
+                handleToggleHide(product);
             }
         });
     };
