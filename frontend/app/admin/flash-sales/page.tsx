@@ -12,7 +12,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus, Edit2, Trash2, Save, Tag, Activity, ArrowLeft,
+    Plus, Edit2, Trash2, Save, Tag, Activity, ArrowLeft, Zap,
     Search, Calendar, Clock, Percent, Check, RefreshCw, Filter
 } from 'lucide-react';
 import Link from 'next/link';
@@ -206,8 +206,9 @@ export default function AdminFlashSalesPage() {
         setIsModalOpen(true);
     };
 
-    // Áp dụng khung giờ sale 3 ngày chuẩn
+    // Áp dụng/chuyển đổi khung giờ sale theo từng ngày (Tự động tải/tạo sản phẩm KHÁC NHAU cho mỗi ngày)
     const applyDatePreset = (presetIndex: number | 'all-3-days') => {
+        setErrorMsg('');
         if (presetIndex === 'all-3-days') {
             const day0 = threeDayPresets[0];
             const day3 = threeDayPresets[3];
@@ -219,14 +220,132 @@ export default function AdminFlashSalesPage() {
             }));
         } else {
             const p = threeDayPresets[presetIndex];
-            if (p) {
-                setFormData(f => ({
-                    ...f,
+            if (!p) return;
+
+            // Tìm chiến dịch của ngày này nếu đã tồn tại
+            const targetDateStr = p.startISO.slice(0, 10);
+            const existingFs = flashSales.find(fs => {
+                const fsDateStr = new Date(fs.startTime).toISOString().slice(0, 10);
+                return fsDateStr === targetDateStr;
+            });
+
+            if (existingFs) {
+                // Đã có chiến dịch cho ngày này -> Tải đúng chiến dịch và danh sách sản phẩm RIÊNG của ngày đó
+                openModal(existingFs);
+            } else {
+                // Chưa có chiến dịch -> Tạo draft mới cho ngày này với các sản phẩm KHÔNG bị trùng ở ngày khác
+                setEditingItem(null);
+
+                const usedPids = new Set<string>();
+                flashSales.forEach(fs => {
+                    (fs.products || []).forEach(fp => {
+                        const pid = typeof fp.productId === 'object' ? fp.productId.id : fp.productId;
+                        if (pid) usedPids.add(pid);
+                    });
+                });
+
+                // Chọn tự động 4-6 sản phẩm chưa dùng
+                const unusedProds = allProducts.filter(ap => !usedPids.has(ap.id)).slice(0, 6);
+                const newProducts = unusedProds.map(ap => {
+                    const defaultPrice = ap.price ? Math.round(ap.price * 0.8) : 0;
+                    const vars = (ap.variants || []).map(v => ({
+                        color: v.color,
+                        size: v.size,
+                        flashSalePrice: defaultPrice,
+                        stockQuantity: 10,
+                        soldQuantity: 0
+                    }));
+                    return {
+                        productId: ap.id,
+                        flashSalePrice: defaultPrice,
+                        stockQuantity: 100,
+                        soldQuantity: 0,
+                        variants: vars,
+                        useVariants: false
+                    };
+                });
+
+                setFormData({
                     name: `Chiến dịch Flash Sale — ${p.fullLabel}`,
                     startTime: p.startISO,
-                    endTime: p.endISO
-                }));
+                    endTime: p.endISO,
+                    isActive: true,
+                    products: newProducts
+                });
             }
+        }
+    };
+
+    // ⚡ Tự động phân bổ 3 tập sản phẩm KHÔNG TRÙNG NHAU cho 3 ngày Flash Sale
+    const handleAutoSplit3Days = async () => {
+        if (!confirm('Bạn có chắc chắn muốn hệ thống tự động phân bổ 3 tập sản phẩm KHÔNG TRÙNG NHAU cho 3 ngày Flash Sale tiếp theo?')) return;
+        setSaving(true);
+        setErrorMsg('');
+        
+        try {
+            const prods = [...allProducts];
+            if (prods.length < 3) {
+                setErrorMsg('Cần ít nhất 3 sản phẩm trong hệ thống để phân bổ cho 3 ngày.');
+                setSaving(false);
+                return;
+            }
+
+            const chunkSize = Math.max(2, Math.floor(prods.length / 3));
+            const day0Prods = prods.slice(0, chunkSize);
+            const day1Prods = prods.slice(chunkSize, chunkSize * 2);
+            const day2Prods = prods.slice(chunkSize * 2);
+
+            const chunks = [day0Prods, day1Prods, day2Prods];
+
+            for (let i = 0; i < 3; i++) {
+                const preset = threeDayPresets[i];
+                const chunkProds = chunks[i].map(ap => {
+                    const defaultPrice = ap.price ? Math.round(ap.price * 0.8) : 0;
+                    const vars = (ap.variants || []).map(v => ({
+                        color: v.color,
+                        size: v.size,
+                        flashSalePrice: defaultPrice,
+                        stockQuantity: 10,
+                        soldQuantity: 0
+                    }));
+                    return {
+                        productId: ap.id,
+                        flashSalePrice: defaultPrice,
+                        stockQuantity: 100,
+                        soldQuantity: 0,
+                        variants: vars
+                    };
+                });
+
+                const payload = {
+                    name: `Chiến dịch Flash Sale — ${preset.fullLabel}`,
+                    startTime: preset.startISO,
+                    endTime: preset.endISO,
+                    isActive: true,
+                    products: chunkProds
+                };
+
+                const targetDateStr = preset.startISO.slice(0, 10);
+                const existingFs = flashSales.find(fs => new Date(fs.startTime).toISOString().slice(0, 10) === targetDateStr);
+
+                const url = existingFs ? `/api/flash-sales/admin/${existingFs._id}` : '/api/flash-sales/admin';
+                const method = existingFs ? 'PUT' : 'POST';
+
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+
+            await fetchItems();
+            setIsModalOpen(false);
+            alert('🎉 Đã tự động tạo & phân bổ thành công 3 ngày Flash Sale với sản phẩm KHÔNG TRÙNG NHAU!');
+        } catch (err) {
+            console.error('Auto split error:', err);
+            setErrorMsg('Có lỗi xảy ra khi phân bổ 3 ngày.');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -462,45 +581,67 @@ export default function AdminFlashSalesPage() {
                                 </p>
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => applyDatePreset('all-3-days')}
-                                className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors cursor-pointer"
-                            >
-                                Lên lịch liền mạch 3 ngày
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={handleAutoSplit3Days}
+                                    className="px-3.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                                >
+                                    <Zap size={14} className="fill-indigo-600 text-indigo-600" />
+                                    Tự động chia SP KHÔNG TRÙNG cho 3 ngày
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => applyDatePreset('all-3-days')}
+                                    className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors cursor-pointer"
+                                >
+                                    Lên lịch 3 ngày
+                                </button>
+                            </div>
                         </div>
 
                         {/* Presets Segmented Selector */}
                         <div>
                             <label className="block text-xs font-semibold text-slate-500 mb-2.5">
-                                Chọn nhanh khung ngày theo lịch:
+                                Chọn ngày để cấu hình sản phẩm riêng (không bị đồng bộ trùng nhau):
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 {threeDayPresets.map((preset, pIdx) => {
-                                    const isSelected = formData.startTime.startsWith(preset.startISO.slice(0, 10));
+                                    const targetDateStr = preset.startISO.slice(0, 10);
+                                    const isSelected = formData.startTime.startsWith(targetDateStr);
+                                    const matchedFs = flashSales.find(fs => new Date(fs.startTime).toISOString().slice(0, 10) === targetDateStr);
+                                    const prodCount = matchedFs ? (matchedFs.products?.length || 0) : (isSelected ? formData.products.length : 0);
+
                                     return (
                                         <button
                                             key={preset.index}
                                             type="button"
                                             onClick={() => applyDatePreset(pIdx)}
-                                            className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+                                            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 relative overflow-hidden ${
                                                 isSelected
-                                                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                                                    ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-500/30'
                                                     : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
-                                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                                                     isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                                                 }`}>
                                                     {preset.tag}
                                                 </span>
-                                                <span className="text-xs font-mono opacity-80">{preset.dateStr}</span>
+                                                <span className="text-xs font-mono opacity-90 font-bold">{preset.dateStr}</span>
                                             </div>
                                             <div>
                                                 <p className="font-bold text-xs">{preset.dayOfWeek}</p>
-                                                <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>00:00 — 23:59</p>
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
+                                                        prodCount > 0
+                                                            ? (isSelected ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700')
+                                                            : (isSelected ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700')
+                                                    }`}>
+                                                        {prodCount > 0 ? `📦 ${prodCount} SP riêng` : '✨ Chưa có SP'}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </button>
                                     );
