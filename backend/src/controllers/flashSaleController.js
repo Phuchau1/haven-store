@@ -15,41 +15,61 @@ const { ProductModel } = require('../models/Product');
 const getActiveFlashSale = async (req, res) => {
     try {
         const now = new Date();
-        // Lấy Flash Sale có cờ isActive, và nằm trong khung giờ hiện tại
-        const activeFlashSale = await FlashSaleModel.findOne({
-            isActive: true,
-            startTime: { $lte: now },
-            endTime: { $gt: now }
-        }).populate('products.productDoc'); // Join dữ liệu gốc của sản phẩm
+        const startOfToday = new Date(now);
+        startOfToday.setHours(0, 0, 0, 0);
 
-        if (!activeFlashSale) {
-            return res.json({ success: true, data: null });
+        // Lấy tất cả Flash Sale đang bật (isActive: true) từ đầu ngày hôm nay trở đi
+        const allFlashSales = await FlashSaleModel.find({
+            isActive: true,
+            endTime: { $gte: startOfToday }
+        }).populate('products.productDoc').sort({ startTime: 1 });
+
+        if (!allFlashSales || allFlashSales.length === 0) {
+            return res.json({ success: true, data: null, dateSlots: {} });
         }
 
-        // --- Định dạng lại dữ liệu trả về cho Frontend ---
-        const products = activeFlashSale.products
-            .map(fp => {
-                const p = fp.productDoc;
-                if (!p) return null;
-                
-                // Tránh sửa trực tiếp vào document DB
-                const pObj = p.toObject ? p.toObject() : p;
-                
-                // Đè giá bán thông thường bằng giá Flash Sale
-                pObj.price = fp.flashSalePrice; 
-                pObj.originalPrice = p.price; // Lưu lại giá cũ để gạch ngang hiển thị
-                
-                // Trạng thái tồn kho riêng của Flash Sale
-                pObj.flashSaleSold = fp.soldQuantity;
-                pObj.flashSaleStock = fp.stockQuantity;
-                
-                // Tự tính % giảm giá
-                pObj.discountPercentage = Math.round((1 - fp.flashSalePrice / p.price) * 100);
-                pObj.flashSaleVariants = fp.variants || []; 
-                
-                return pObj;
-            })
-            .filter(Boolean);
+        const formatProducts = (fsDoc) => {
+            if (!fsDoc || !fsDoc.products) return [];
+            return fsDoc.products
+                .map(fp => {
+                    const p = fp.productDoc;
+                    if (!p) return null;
+                    const pObj = p.toObject ? p.toObject() : p;
+                    pObj.price = fp.flashSalePrice; 
+                    pObj.originalPrice = p.price;
+                    pObj.flashSaleSold = fp.soldQuantity;
+                    pObj.flashSaleStock = fp.stockQuantity;
+                    pObj.discountPercentage = Math.round((1 - fp.flashSalePrice / p.price) * 100);
+                    pObj.flashSaleVariants = fp.variants || []; 
+                    return pObj;
+                })
+                .filter(Boolean);
+        };
+
+        // Đợt sale đang diễn ra ở thời điểm hiện tại
+        let activeFlashSale = allFlashSales.find(fs => fs.startTime <= now && fs.endTime > now);
+        if (!activeFlashSale) {
+            activeFlashSale = allFlashSales[0];
+        }
+
+        // Map danh sách sản phẩm theo từng chuỗi ngày (VD: "28/08", "29/08", "30/08", "31/08")
+        const dateSlotsMap = {};
+        allFlashSales.forEach(fs => {
+            const startDate = new Date(fs.startTime);
+            const dayStr = String(startDate.getDate()).padStart(2, '0');
+            const monthStr = String(startDate.getMonth() + 1).padStart(2, '0');
+            const dateKey = `${dayStr}/${monthStr}`;
+            
+            dateSlotsMap[dateKey] = {
+                id: fs._id,
+                name: fs.name,
+                startTime: fs.startTime,
+                endTime: fs.endTime,
+                products: formatProducts(fs)
+            };
+        });
+
+        const activeProducts = formatProducts(activeFlashSale);
 
         return res.json({
             success: true,
@@ -57,8 +77,9 @@ const getActiveFlashSale = async (req, res) => {
                 id: activeFlashSale._id,
                 name: activeFlashSale.name,
                 endTime: activeFlashSale.endTime,
-                products: products
-            }
+                products: activeProducts
+            },
+            dateSlots: dateSlotsMap
         });
     } catch (error) {
         console.error("getActiveFlashSale error:", error);

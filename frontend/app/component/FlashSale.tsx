@@ -10,24 +10,21 @@ import ProductCard from './ProductCard';
 export default function FlashSale() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [displayProducts, setDisplayProducts] = useState<Product[]>([]);
+    const [dateSlotsData, setDateSlotsData] = useState<Record<string, { products: Product[]; endTime?: string }>>({});
     const [loading, setLoading] = useState(true);
     const [isActive, setIsActive] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
     const [tabLoading, setTabLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
-    const [slots, setSlots] = useState<{ label: string; subLabel: string; value: string }[]>([
-        { label: "HÔM NAY", subLabel: "ĐANG DIỄN RA", value: "all" },
-        { label: "NGÀY MAI", subLabel: "SẮP DIỄN RA", value: "30" },
-        { label: "GIẢM 40%", subLabel: "HOT DEAL", value: "40" },
-        { label: "GIẢM 50%", subLabel: "SIÊU SALE", value: "50" },
-    ]);
+    const [slots, setSlots] = useState<{ label: string; subLabel: string; value: string; dateKey: string }[]>([]);
 
     useEffect(() => {
         const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
         const now = new Date();
         const dayStr = String(now.getDate()).padStart(2, '0');
         const monthStr = months[now.getMonth()];
+        const todayDateKey = `${dayStr}/${monthStr}`;
 
         const getVietnameseDayOfWeek = (date: Date) => {
             const day = date.getDay();
@@ -36,20 +33,21 @@ export default function FlashSale() {
         };
 
         const dynamicSlots = [
-            { label: "HÔM NAY", subLabel: `${dayStr}/${monthStr}`, value: "all" }
+            { label: "HÔM NAY", subLabel: `${dayStr}/${monthStr}`, value: "all", dateKey: todayDateKey }
         ];
 
-        const discountValues = ["all", "30", "40", "50"];
         for (let i = 1; i <= 3; i++) {
             const futureDate = new Date();
             futureDate.setDate(now.getDate() + i);
             const fDayStr = String(futureDate.getDate()).padStart(2, '0');
             const fMonthStr = months[futureDate.getMonth()];
+            const fDateKey = `${fDayStr}/${fMonthStr}`;
             
             dynamicSlots.push({
                 label: `${fDayStr}/${fMonthStr}`,
                 subLabel: getVietnameseDayOfWeek(futureDate),
-                value: discountValues[i]
+                value: fDateKey,
+                dateKey: fDateKey
             });
         }
         setSlots(dynamicSlots);
@@ -69,7 +67,11 @@ export default function FlashSale() {
                     
                     const products = flashSaleData.products || [];
                     setAllProducts(products);
-                    setDisplayProducts(products.slice(0, 8)); // Display 8 products to form exactly 2 rows of 4
+                    setDisplayProducts(products.slice(0, 8));
+
+                    if (json.dateSlots) {
+                        setDateSlotsData(json.dateSlots);
+                    }
 
                     if (flashSaleData.endTime) {
                         const targetDate = new Date(flashSaleData.endTime);
@@ -101,30 +103,23 @@ export default function FlashSale() {
         return () => { if (timer) clearInterval(timer); };
     }, []);
 
-    const handleTabChange = (tab: string) => {
-        setActiveTab(tab);
+    const handleTabChange = (tabValue: string) => {
+        setActiveTab(tabValue);
         setTabLoading(true);
 
         setTimeout(() => {
-            // Distribute products dynamically to all 4 tabs so they are never empty and have different products!
-            if (tab === 'all') {
+            if (tabValue === 'all') {
                 setDisplayProducts(allProducts.slice(0, 8));
-            } else if (tab === '30') {
+            } else if (dateSlotsData[tabValue] && dateSlotsData[tabValue].products.length > 0) {
+                // Hiển thị chính xác danh sách sản phẩm được Admin cấu hình riêng cho ngày này!
+                setDisplayProducts(dateSlotsData[tabValue].products.slice(0, 8));
+            } else {
+                // Tùy biến phân bổ linh hoạt nếu chưa cấu hình riêng
                 const shifted = [...allProducts].reverse();
                 setDisplayProducts(shifted.slice(0, 8));
-            } else if (tab === '40') {
-                const shifted = [...allProducts];
-                if (shifted.length > 3) {
-                    const chunk = shifted.splice(0, 3);
-                    shifted.push(...chunk);
-                }
-                setDisplayProducts(shifted.slice(0, 8));
-            } else {
-                const sorted = [...allProducts].sort((a, b) => a.price - b.price);
-                setDisplayProducts(sorted.slice(0, 8));
             }
             setTabLoading(false);
-        }, 300);
+        }, 200);
     };
 
     if (loading) {
