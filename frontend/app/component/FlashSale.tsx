@@ -162,48 +162,48 @@ export default function FlashSale() {
         <section id="flash-sale" className="py-14 sm:py-18 bg-[#fafafa]">
             <div className="container-torano">
                 {/* Enterprise High-End Flash Sale Header */}
-                <div className="bg-[#0b0f19] text-white rounded-3xl p-6 md:p-8 mb-10 shadow-2xl relative overflow-hidden border border-slate-800/80">
-                    {/* Background subtle crimson light accent */}
-                    <div className="absolute -right-20 -top-20 w-72 h-72 bg-[#e11d48]/15 rounded-full blur-3xl pointer-events-none" />
+                <div className="bg-gradient-to-r from-[#881337] via-[#be123c] to-[#e11d48] text-white rounded-2xl p-5 sm:p-6 md:p-7 mb-8 shadow-xl relative overflow-hidden">
+                    {/* Subtle light overlay pattern */}
+                    <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
                     
                     {/* Top Row: Title, Slots, Timer */}
-                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
                         {/* Left: Brand Title & Badge */}
-                        <div className="flex items-center gap-4 w-full lg:w-auto">
-                            <div className="w-12 h-12 bg-[#e11d48] text-white rounded-2xl flex items-center justify-center shadow-md shrink-0">
-                                <Zap size={24} fill="currentColor" />
+                        <div className="flex items-center gap-3.5 w-full lg:w-auto">
+                            <div className="w-11 h-11 bg-white/15 backdrop-blur-md border border-white/20 text-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                                <Flame size={24} className="text-amber-300 fill-amber-300" />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-2xl lg:text-3xl font-black uppercase text-white tracking-tight font-display">
+                                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black uppercase text-white tracking-tight font-display">
                                         Flash Sale
                                     </h2>
-                                    <span className="bg-[#e11d48] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md tracking-wider">
+                                    <span className="bg-white text-[#9f1239] text-[10px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider shadow-2xs">
                                         Giới hạn
                                     </span>
                                 </div>
-                                <p className="text-xs text-slate-400 mt-1 font-medium">
+                                <p className="text-xs text-rose-100/90 mt-0.5 font-medium">
                                     Ưu đãi số lượng có hạn · Cập nhật theo từng khung giờ
                                 </p>
                             </div>
                         </div>
 
                         {/* Middle: Date/Time Slots */}
-                        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 hide-scrollbar justify-start lg:justify-center">
+                        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0 hide-scrollbar justify-start lg:justify-center">
                             {slots.map((slot, index) => {
                                 const isActiveTab = activeTab === slot.value;
                                 return (
                                     <button
                                         key={index}
                                         onClick={() => handleTabChange(slot.value)}
-                                        className={`flex flex-col items-center justify-center min-w-[95px] sm:min-w-[105px] py-2.5 px-4 rounded-xl transition-all cursor-pointer ${
+                                        className={`flex flex-col items-center justify-center min-w-[92px] sm:min-w-[102px] py-2 px-3.5 rounded-xl transition-all cursor-pointer border ${
                                             isActiveTab 
-                                                ? 'bg-white text-[#0b0f19] font-black shadow-md scale-105 ring-2 ring-[#e11d48]' 
-                                                : 'bg-[#1e293b] text-slate-300 hover:bg-[#334155] hover:text-white border border-slate-700/60'
+                                                ? 'bg-white text-[#9f1239] font-black shadow-lg scale-105 border-white' 
+                                                : 'bg-black/20 text-white hover:bg-black/30 border-white/15'
                                         }`}
                                     >
                                         <span className="text-xs font-black uppercase tracking-wider">{slot.label}</span>
-                                        <span className={`text-[9.5px] mt-0.5 font-extrabold uppercase tracking-wider ${isActiveTab ? 'text-[#e11d48]' : 'text-slate-400'}`}>
+                                        <span className={`text-[9.5px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#e11d48]' : 'text-rose-200/90'}`}>
                                             {slot.subLabel}
                                         </span>
                                     </button>
@@ -212,26 +212,23 @@ export default function FlashSale() {
                         </div>
 
                         {/* Right: Countdown */}
-                        <div className="flex flex-col items-start lg:items-end w-full lg:w-auto border-t lg:border-t-0 border-slate-800/80 pt-4 lg:pt-0">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 self-start lg:self-end">
+                        <div className="flex flex-col items-start lg:items-end w-full lg:w-auto border-t lg:border-t-0 border-white/20 pt-3 lg:pt-0">
+                            <span className="text-[10px] text-rose-100 font-bold uppercase tracking-widest mb-1 self-start lg:self-end">
                                 Kết thúc sau
                             </span>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
                                 {[
                                     { value: timeLeft.hours, label: 'Giờ' },
                                     { value: timeLeft.minutes, label: 'Phút' },
                                     { value: timeLeft.seconds, label: 'Giây' }
                                 ].map((unit, i) => (
                                     <React.Fragment key={i}>
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center bg-[#1e293b] text-white rounded-xl shadow-xs border border-slate-700/60">
-                                                <span className="text-base sm:text-lg font-black font-mono">
-                                                    {String(unit.value).padStart(2, '0')}
-                                                </span>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-white text-[#9f1239] rounded-lg shadow-sm font-black font-mono text-sm sm:text-base">
+                                                {String(unit.value).padStart(2, '0')}
                                             </div>
-                                            <span className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-wider">{unit.label}</span>
                                         </div>
-                                        {i < 2 && <span className="text-base font-bold text-slate-500 mb-4">:</span>}
+                                        {i < 2 && <span className="text-sm font-bold text-white mb-0.5">:</span>}
                                     </React.Fragment>
                                 ))}
                             </div>
