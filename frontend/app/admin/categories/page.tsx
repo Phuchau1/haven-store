@@ -1,14 +1,22 @@
 'use client';
+/**
+ * ============================================================
+ * TRANG ADMIN: QUẢN LÝ DANH MỤC SẢN PHẨM DOANH NGHIỆP — /admin/categories
+ *
+ * Giao diện Enterprise Workspace (Large 2-Column Editor):
+ * - Hỗ trợ xem trước Ảnh/Video trực tiếp 
+ * - Quản lý Danh mục con (Subcategories) bài bản
+ * ============================================================
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Edit2, Trash2, X, Save, ChevronRight,
     Loader2, Grid3X3,
     Image as ImageIcon, AlertTriangle, CheckCircle, FolderOpen,
-    Eye, EyeOff, ArrowUp, ArrowDown
+    Eye, EyeOff, ArrowUp, ArrowDown, Video, Layers
 } from 'lucide-react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface Subcategory {
     id: string;
     name: string;
@@ -31,7 +39,6 @@ interface Category {
     subcategories: Subcategory[];
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
     useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
     return (
@@ -52,68 +59,6 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
     );
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-function Modal({ open, onClose, title, children }: {
-    open: boolean; onClose: () => void; title: string; children: React.ReactNode;
-}) {
-    return (
-        <AnimatePresence>
-            {open && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                        onClick={onClose}
-                    />
-                    <motion.div
-                        initial={{ scale: 0.92, opacity: 0, y: 16 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.92, opacity: 0, y: 16 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl"
-                        style={{ background: 'var(--adm-surface, #fff)', border: '1px solid var(--adm-border, #e5e7eb)' }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between px-6 py-5 border-b sticky top-0 z-10 rounded-t-3xl"
-                            style={{ background: 'var(--adm-surface, #fff)', borderColor: 'var(--adm-border, #e5e7eb)' }}>
-                            <h3 className="text-base font-bold" style={{ color: 'var(--adm-text, #111)' }}>{title}</h3>
-                            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
-                                <X size={16} />
-                            </button>
-                        </div>
-                        <div className="p-6">{children}</div>
-                    </motion.div>
-                </div>
-            )}
-        </AnimatePresence>
-    );
-}
-
-// ─── Image Preview ────────────────────────────────────────────────────────────
-function ImagePreview({ url, isVideo = false }: { url: string; isVideo?: boolean }) {
-    if (!url) return (
-        <div className="w-full h-36 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2"
-            style={{ borderColor: 'var(--adm-border, #e5e7eb)', color: 'var(--adm-text-muted, #6b7280)' }}>
-            <ImageIcon size={28} />
-            <span className="text-xs">Chưa có {isVideo ? 'video' : 'ảnh'}</span>
-        </div>
-    );
-    if (isVideo) {
-        return (
-            <div className="w-full h-36 rounded-xl overflow-hidden border bg-black flex justify-center" style={{ borderColor: 'var(--adm-border, #e5e7eb)' }}>
-                <video src={url} autoPlay muted loop playsInline className="h-full object-cover" />
-            </div>
-        );
-    }
-    return (
-        <div className="w-full h-36 rounded-xl overflow-hidden border" style={{ borderColor: 'var(--adm-border, #e5e7eb)' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        </div>
-    );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminCategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -124,7 +69,7 @@ export default function AdminCategoriesPage() {
     // Category modal state
     const [catModal, setCatModal] = useState(false);
     const [editingCat, setEditingCat] = useState<Category | null>(null);
-    const [catForm, setCatForm] = useState({ id: '', name: '', description: '', image: '', video: '', order: 0 });
+    const [catForm, setCatForm] = useState({ id: '', name: '', description: '', image: '', video: '', order: 0, isActive: true });
 
     // Subcategory modal state
     const [subModal, setSubModal] = useState(false);
@@ -135,7 +80,6 @@ export default function AdminCategoriesPage() {
     // Delete confirmation
     const [deleteModal, setDeleteModal] = useState<{ type: 'cat' | 'sub'; catId: string; subId?: string; name: string } | null>(null);
 
-    // ── Helpers ──
     const showToast = useCallback((msg: string, type: 'success' | 'error' = 'success') => {
         setToast({ msg, type });
     }, []);
@@ -148,670 +92,478 @@ export default function AdminCategoriesPage() {
             if (data.success) {
                 const sorted = [...(data.categories || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
                 setCategories(sorted);
+            } else {
+                showToast(data.message || 'Lỗi tải danh mục', 'error');
             }
-        } catch { showToast('Không thể tải danh mục', 'error'); }
-        finally { setLoading(false); }
+        } catch {
+            showToast('Không thể kết nối máy chủ', 'error');
+        } finally {
+            setLoading(false);
+        }
     }, [showToast]);
 
     useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
-    // ── Toggle expand ──
     const toggleExpand = (id: string) => {
         setExpandedIds(prev => {
             const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
+            if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
     };
 
-    // ── Open category modal ──
+    // Category CRUD
     const openCatModal = (cat?: Category) => {
         if (cat) {
             setEditingCat(cat);
-            setCatForm({ id: cat.id, name: cat.name, description: cat.description || '', image: cat.image, video: cat.video || '', order: cat.order });
+            setCatForm({
+                id: cat.id, name: cat.name, description: cat.description || '',
+                image: cat.image || '', video: cat.video || '', order: cat.order ?? 0,
+                isActive: cat.isActive ?? true
+            });
         } else {
             setEditingCat(null);
-            setCatForm({ id: '', name: '', description: '', image: '', video: '', order: categories.length });
+            setCatForm({ id: '', name: '', description: '', image: '', video: '', order: categories.length, isActive: true });
         }
         setCatModal(true);
     };
 
-    // ── Open subcategory modal ──
+    const handleSaveCat = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!catForm.id.trim() || !catForm.name.trim()) {
+            showToast('Vui lòng điền ID và Tên danh mục', 'error');
+            return;
+        }
+        setSaving(true);
+        try {
+            const url = editingCat ? `/api/categories?id=${editingCat.id}` : '/api/categories';
+            const method = editingCat ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: catForm.id,
+                    name: catForm.name,
+                    description: catForm.description,
+                    image: catForm.image,
+                    video: catForm.video,
+                    order: Number(catForm.order),
+                    isActive: catForm.isActive
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(editingCat ? 'Cập nhật danh mục thành công' : 'Tạo danh mục mới thành công');
+                setCatModal(false);
+                fetchCategories();
+            } else {
+                showToast(data.message || 'Lỗi lưu danh mục', 'error');
+            }
+        } catch {
+            showToast('Không thể kết nối máy chủ', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const confirmDeleteCat = (cat: Category) => {
+        setDeleteModal({ type: 'cat', catId: cat.id, name: cat.name });
+    };
+
+    // Subcategory CRUD
     const openSubModal = (catId: string, sub?: Subcategory) => {
         setActiveCatId(catId);
         if (sub) {
             setEditingSub(sub);
-            setSubForm({ id: sub.id, name: sub.name, description: sub.description || '', image: sub.image || '', order: sub.order });
+            setSubForm({ id: sub.id, name: sub.name, description: sub.description || '', image: sub.image || '', order: sub.order ?? 0 });
         } else {
+            const targetCat = categories.find(c => c.id === catId);
             setEditingSub(null);
-            const cat = categories.find(c => c.id === catId);
-            setSubForm({ id: '', name: '', description: '', image: '', order: cat?.subcategories?.length ?? 0 });
+            setSubForm({ id: '', name: '', description: '', image: '', order: targetCat?.subcategories?.length || 0 });
         }
         setSubModal(true);
     };
 
-    // ── Submit category ──
-    const handleCatSubmit = async (e: React.FormEvent) => {
+    const handleSaveSub = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!catForm.id.trim() || !catForm.name.trim() || !catForm.image.trim()) {
-            showToast('Vui lòng điền đầy đủ ID, Tên và URL Ảnh', 'error');
+        if (!subForm.id.trim() || !subForm.name.trim()) {
+            showToast('Vui lòng điền ID và Tên danh mục con', 'error');
             return;
         }
         setSaving(true);
         try {
-            const method = editingCat ? 'PUT' : 'POST';
-            const res = await fetch('/api/admin/categories', {
+            const url = editingSub
+                ? `/api/categories/subcategories?catId=${activeCatId}&subId=${editingSub.id}`
+                : `/api/categories/subcategories?catId=${activeCatId}`;
+            const method = editingSub ? 'PUT' : 'POST';
+            const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(catForm),
+                body: JSON.stringify({
+                    id: subForm.id,
+                    name: subForm.name,
+                    description: subForm.description,
+                    image: subForm.image,
+                    order: Number(subForm.order)
+                })
             });
             const data = await res.json();
             if (data.success) {
-                showToast(editingCat ? 'Cập nhật danh mục thành công!' : 'Thêm danh mục thành công!');
-                setCatModal(false);
-                fetchCategories();
-            } else {
-                showToast(data.message || 'Có lỗi xảy ra', 'error');
-            }
-        } catch { showToast('Lỗi kết nối server', 'error'); }
-        finally { setSaving(false); }
-    };
-
-    // ── Submit subcategory ──
-    const handleSubSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!subForm.id.trim() || !subForm.name.trim()) {
-            showToast('Vui lòng điền đầy đủ ID và Tên danh mục con', 'error');
-            return;
-        }
-        setSaving(true);
-        try {
-            let res;
-            if (editingSub) {
-                res = await fetch(`/api/admin/categories/${activeCatId}/subcategories/${editingSub.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subForm),
-                });
-            } else {
-                res = await fetch(`/api/admin/categories/${activeCatId}/subcategories`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subForm),
-                });
-            }
-            const data = await res.json();
-            if (data.success) {
-                showToast(editingSub ? 'Cập nhật danh mục con thành công!' : 'Thêm danh mục con thành công!');
+                showToast(editingSub ? 'Cập nhật danh mục con thành công' : 'Thêm danh mục con thành công');
                 setSubModal(false);
                 fetchCategories();
             } else {
-                showToast(data.message || 'Có lỗi xảy ra', 'error');
+                showToast(data.message || 'Lỗi lưu danh mục con', 'error');
             }
-        } catch { showToast('Lỗi kết nối server', 'error'); }
-        finally { setSaving(false); }
+        } catch {
+            showToast('Không thể kết nối máy chủ', 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    // ── Toggle active ──
-    const toggleCatActive = async (cat: Category) => {
-        try {
-            const res = await fetch('/api/admin/categories', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: cat.id, isActive: !cat.isActive }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                fetchCategories();
-                showToast(!cat.isActive ? 'Đã kích hoạt danh mục' : 'Đã ẩn danh mục');
-            }
-        } catch { showToast('Lỗi cập nhật', 'error'); }
+    const confirmDeleteSub = (catId: string, sub: Subcategory) => {
+        setDeleteModal({ type: 'sub', catId, subId: sub.id, name: sub.name });
     };
 
-    const toggleSubActive = async (catId: string, sub: Subcategory) => {
-        try {
-            const res = await fetch(`/api/admin/categories/${catId}/subcategories/${sub.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isActive: !sub.isActive }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                fetchCategories();
-                showToast(!sub.isActive ? 'Đã kích hoạt' : 'Đã ẩn danh mục con');
-            }
-        } catch { showToast('Lỗi cập nhật', 'error'); }
-    };
-
-    // ── Confirm delete ──
-    const confirmDelete = async () => {
+    const executeDelete = async () => {
         if (!deleteModal) return;
         setSaving(true);
         try {
-            let res;
+            let url = '';
             if (deleteModal.type === 'cat') {
-                res = await fetch(`/api/admin/categories?id=${deleteModal.catId}`, { method: 'DELETE' });
+                url = `/api/categories?id=${deleteModal.catId}`;
             } else {
-                res = await fetch(`/api/admin/categories/${deleteModal.catId}/subcategories/${deleteModal.subId}`, { method: 'DELETE' });
+                url = `/api/categories/subcategories?catId=${deleteModal.catId}&subId=${deleteModal.subId}`;
             }
+            const res = await fetch(url, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
-                showToast('Đã xóa thành công!');
+                showToast('Đã xóa thành công');
                 setDeleteModal(null);
                 fetchCategories();
             } else {
-                showToast(data.message || 'Lỗi xóa', 'error');
+                showToast(data.message || 'Lỗi xóa dữ liệu', 'error');
             }
-        } catch { showToast('Lỗi kết nối server', 'error'); }
-        finally { setSaving(false); }
-    };
-
-    // ── Move category order ──
-    const moveCategory = async (index: number, dir: 'up' | 'down') => {
-        const newCats = [...categories];
-        const swapIdx = dir === 'up' ? index - 1 : index + 1;
-        if (swapIdx < 0 || swapIdx >= newCats.length) return;
-        [newCats[index], newCats[swapIdx]] = [newCats[swapIdx], newCats[index]];
-        const orders = newCats.map((c, i) => ({ id: c.id, order: i }));
-        setCategories(newCats);
-        try {
-            await fetch('/api/admin/categories/reorder', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orders }),
-            });
-        } catch { showToast('Lỗi sắp xếp', 'error'); }
-    };
-
-    // ─────────────────────────────────────────────────────────────────────────
-    const inputCls = "w-full px-4 py-3 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all";
-    const inputStyle = {
-        background: 'var(--adm-surface-2, #f9fafb)',
-        borderColor: 'var(--adm-border, #e5e7eb)',
-        color: 'var(--adm-text, #111)',
+        } catch {
+            showToast('Không thể kết nối máy chủ', 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
-        <div className="space-y-6">
-            {/* ─ Header ─ */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-6 max-w-7xl mx-auto">
+            {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+            {/* Header */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h2 className="text-xl font-bold" style={{ color: 'var(--adm-text, #111)' }}>
-                        Quản lý Danh mục
-                    </h2>
-                    <p className="text-sm mt-0.5" style={{ color: 'var(--adm-text-muted, #6b7280)' }}>
-                        {categories.length} danh mục · {categories.reduce((a, c) => a + (c.subcategories?.length || 0), 0)} danh mục con
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <FolderOpen size={24} className="text-indigo-600" /> Quản lý Danh Mục Sản Phẩm
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                        {categories.length} danh mục cấp cao · Quản lý ảnh đại diện, video banner và danh mục con
                     </p>
                 </div>
                 <button
                     onClick={() => openCatModal()}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95"
-                    style={{ background: 'var(--adm-primary, #6366f1)' }}
+                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
                 >
-                    <Plus size={16} /> Thêm danh mục
+                    <Plus size={16} /> Thêm Danh Mục Mới
                 </button>
             </div>
 
-            {/* ─ Categories List ─ */}
-            {loading ? (
-                <div className="flex items-center justify-center py-24 gap-3" style={{ color: 'var(--adm-text-muted, #6b7280)' }}>
-                    <Loader2 size={24} className="animate-spin" />
-                    <span className="text-sm font-medium">Đang tải dữ liệu...</span>
-                </div>
-            ) : categories.length === 0 ? (
-                <div className="adm-card flex flex-col items-center justify-center py-20 gap-4">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                        style={{ background: 'var(--adm-primary-light, #eef2ff)' }}>
-                        <Grid3X3 size={28} style={{ color: 'var(--adm-primary, #6366f1)' }} />
+            {/* Table */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
+                {loading ? (
+                    <div className="p-12 text-center text-slate-400 flex items-center justify-center gap-2 font-medium">
+                        <Loader2 className="animate-spin" size={20} /> Đang tải danh mục...
                     </div>
-                    <p className="text-sm font-semibold" style={{ color: 'var(--adm-text-muted, #6b7280)' }}>
-                        Chưa có danh mục nào. Hãy thêm danh mục đầu tiên!
-                    </p>
-                    <button onClick={() => openCatModal()}
-                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-                        style={{ background: 'var(--adm-primary, #6366f1)' }}>
-                        <Plus size={14} className="inline mr-1" /> Thêm danh mục
-                    </button>
-                </div>
-            ) : (
-                <div className="space-y-3">
-                    {categories.map((cat, idx) => {
-                        const expanded = expandedIds.has(cat.id);
-                        return (
-                            <motion.div
-                                key={cat.id}
-                                layout
-                                initial={{ opacity: 0, y: 12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.04 }}
-                                className="adm-card overflow-hidden"
-                                style={{ opacity: cat.isActive ? 1 : 0.6 }}
-                            >
-                                {/* ── Category Row ── */}
-                                <div className="flex items-center gap-3 px-4 py-4">
-                                    {/* Order arrows */}
-                                    <div className="flex flex-col gap-0.5 flex-shrink-0">
-                                        <button onClick={() => moveCategory(idx, 'up')} disabled={idx === 0}
-                                            className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 disabled:opacity-20 transition-colors">
-                                            <ArrowUp size={12} />
-                                        </button>
-                                        <button onClick={() => moveCategory(idx, 'down')} disabled={idx === categories.length - 1}
-                                            className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 disabled:opacity-20 transition-colors">
-                                            <ArrowDown size={12} />
-                                        </button>
-                                    </div>
+                ) : categories.length === 0 ? (
+                    <div className="p-12 text-center text-slate-500 space-y-3">
+                        <Grid3X3 size={40} className="mx-auto text-slate-300" />
+                        <p className="font-bold text-slate-700 dark:text-slate-300">Chưa có danh mục sản phẩm nào.</p>
+                        <button onClick={() => openCatModal()} className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs">
+                            Thêm danh mục đầu tiên
+                        </button>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase font-black tracking-wider">
+                                    <th className="p-4 w-12 text-center">STT</th>
+                                    <th className="p-4">Danh mục</th>
+                                    <th className="p-4">Media</th>
+                                    <th className="p-4">Mô tả</th>
+                                    <th className="p-4 text-center">Danh mục con</th>
+                                    <th className="p-4 text-right">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                                {categories.map((cat, idx) => {
+                                    const isExpanded = expandedIds.has(cat.id);
+                                    const subCount = cat.subcategories?.length || 0;
+                                    return (
+                                        <React.Fragment key={cat.id}>
+                                            <tr className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
+                                                <td className="p-4 text-center font-mono font-bold text-slate-400">{cat.order ?? idx}</td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                                                            {cat.image ? (
+                                                                /* eslint-disable-next-line @next/next/no-img-element */
+                                                                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <ImageIcon className="w-5 h-5 text-slate-300 m-2.5" />
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-sm text-slate-900 dark:text-white leading-tight">{cat.name}</p>
+                                                            <p className="text-[11px] font-mono text-slate-400 mt-0.5">ID: {cat.id}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-1.5">
+                                                        {cat.image && <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold rounded text-[10px]">Ảnh</span>}
+                                                        {cat.video && <span className="px-2 py-0.5 bg-purple-50 text-purple-700 font-bold rounded text-[10px]">Video</span>}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-slate-500 max-w-xs truncate">{cat.description || '—'}</td>
+                                                <td className="p-4 text-center">
+                                                    <button
+                                                        onClick={() => toggleExpand(cat.id)}
+                                                        className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                                    >
+                                                        <Layers size={14} /> {subCount} con
+                                                        <ChevronRight size={14} className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                                                    </button>
+                                                </td>
+                                                <td className="p-4 text-right">
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <button onClick={() => openSubModal(cat.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Thêm danh mục con">
+                                                            <Plus size={16} />
+                                                        </button>
+                                                        <button onClick={() => openCatModal(cat)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Sửa danh mục">
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button onClick={() => confirmDeleteCat(cat)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg" title="Xóa danh mục">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
 
-                                    {/* Expand toggle */}
-                                    <button onClick={() => toggleExpand(cat.id)}
-                                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100">
-                                        <motion.span animate={{ rotate: expanded ? 90 : 0 }} transition={{ duration: 0.2 }}>
-                                            <ChevronRight size={16} style={{ color: 'var(--adm-text-muted, #6b7280)' }} />
-                                        </motion.span>
-                                    </button>
-
-                                    {/* Image */}
-                                    <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border"
-                                        style={{ borderColor: 'var(--adm-border, #e5e7eb)' }}>
-                                        {cat.image ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                                <ImageIcon size={16} className="text-gray-400" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Info */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="font-bold text-sm" style={{ color: 'var(--adm-text, #111)' }}>
-                                                {cat.name}
-                                            </span>
-                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full"
-                                                style={{ background: 'var(--adm-surface-2, #f3f4f6)', color: 'var(--adm-text-muted, #6b7280)' }}>
-                                                {cat.id}
-                                            </span>
-                                            {!cat.isActive && (
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-600">Ẩn</span>
+                                            {/* Expanded Subcategories Table */}
+                                            {isExpanded && subCount > 0 && (
+                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50">
+                                                    <td colSpan={6} className="p-4 pl-12">
+                                                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+                                                            <div className="flex items-center justify-between">
+                                                                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500">Danh mục con của &ldquo;{cat.name}&rdquo;</h4>
+                                                                <button onClick={() => openSubModal(cat.id)} className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer">
+                                                                    <Plus size={12} /> Thêm sub
+                                                                </button>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                                                {cat.subcategories.map(sub => (
+                                                                    <div key={sub.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                                                        <div>
+                                                                            <p className="font-bold text-xs text-slate-900 dark:text-white">{sub.name}</p>
+                                                                            <p className="text-[10px] font-mono text-slate-400">{sub.id}</p>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button onClick={() => openSubModal(cat.id, sub)} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"><Edit2 size={14} /></button>
+                                                                            <button onClick={() => confirmDeleteSub(cat.id, sub)} className="p-1 text-rose-600 hover:bg-rose-50 rounded"><Trash2 size={14} /></button>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* ─── ENTERPRISE CATEGORY WORKSPACE MODAL (MAX-W-5XL 2-COLUMN) ─── */}
+            <AnimatePresence>
+                {catModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setCatModal(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                        <motion.div
+                            initial={{ scale: 0.96, opacity: 0, y: 16 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.96, opacity: 0, y: 16 }}
+                            className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[90vh] flex flex-col"
+                        >
+                            {/* Top Bar */}
+                            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 shrink-0">
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                                        {editingCat ? `Chỉnh sửa Danh Mục: ${editingCat.name}` : 'Thêm Danh Mục Mới'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 mt-0.5">Cấu hình thông tin chi tiết, liên kết media hình ảnh/video và vị trí hiển thị</p>
+                                </div>
+                                <button onClick={() => setCatModal(false)} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-200/60 transition-colors cursor-pointer">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            {/* Form Grid 2 Columns */}
+                            <form onSubmit={handleSaveCat} className="p-6 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                {/* Left Column: Inputs (7 Cols) */}
+                                <div className="lg:col-span-7 space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">ID Danh Mục *</label>
+                                            <input
+                                                required
+                                                disabled={!!editingCat}
+                                                value={catForm.id}
+                                                onChange={e => setCatForm({ ...catForm, id: e.target.value })}
+                                                className="adm-input w-full font-mono font-bold"
+                                                placeholder="VD: cat-clothing"
+                                            />
                                         </div>
-                                        <div className="flex items-center gap-3 mt-0.5">
-                                            <span className="text-xs" style={{ color: 'var(--adm-text-muted, #6b7280)' }}>
-                                                {cat.subcategories?.length || 0} danh mục con
-                                            </span>
-                                            {cat.count !== undefined && (
-                                                <span className="text-xs" style={{ color: 'var(--adm-text-muted, #6b7280)' }}>
-                                                    · {cat.count} sản phẩm
-                                                </span>
-                                            )}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tên Danh Mục *</label>
+                                            <input
+                                                required
+                                                value={catForm.name}
+                                                onChange={e => setCatForm({ ...catForm, name: e.target.value })}
+                                                className="adm-input w-full font-bold"
+                                                placeholder="VD: Thời Trang Nam"
+                                            />
                                         </div>
                                     </div>
 
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-1 flex-shrink-0">
-                                        <button onClick={() => openSubModal(cat.id)}
-                                            title="Thêm danh mục con"
-                                            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-indigo-50"
-                                            style={{ color: 'var(--adm-primary, #6366f1)' }}>
-                                            <Plus size={15} />
-                                        </button>
-                                        <button onClick={() => toggleCatActive(cat)}
-                                            title={cat.isActive ? 'Ẩn danh mục' : 'Hiện danh mục'}
-                                            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-yellow-50"
-                                            style={{ color: cat.isActive ? '#10b981' : '#f59e0b' }}>
-                                            {cat.isActive ? <Eye size={15} /> : <EyeOff size={15} />}
-                                        </button>
-                                        <button onClick={() => openCatModal(cat)}
-                                            title="Chỉnh sửa"
-                                            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-indigo-50"
-                                            style={{ color: 'var(--adm-primary, #6366f1)' }}>
-                                            <Edit2 size={15} />
-                                        </button>
-                                        <button
-                                            onClick={() => setDeleteModal({ type: 'cat', catId: cat.id, name: cat.name })}
-                                            title="Xóa"
-                                            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-rose-50 text-rose-500">
-                                            <Trash2 size={15} />
-                                        </button>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mô tả ngắn</label>
+                                        <textarea
+                                            rows={3}
+                                            value={catForm.description}
+                                            onChange={e => setCatForm({ ...catForm, description: e.target.value })}
+                                            className="adm-input w-full py-2.5 font-medium resize-none"
+                                            placeholder="Mô tả chi tiết danh mục dành cho SEO và trang chủ..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">URL Hình Ảnh *</label>
+                                        <input
+                                            required
+                                            value={catForm.image}
+                                            onChange={e => setCatForm({ ...catForm, image: e.target.value })}
+                                            className="adm-input w-full text-xs font-mono"
+                                            placeholder="https://domain.com/image.jpg"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">URL Video (Tùy chọn banner chuyển động)</label>
+                                        <input
+                                            value={catForm.video}
+                                            onChange={e => setCatForm({ ...catForm, video: e.target.value })}
+                                            className="adm-input w-full text-xs font-mono"
+                                            placeholder="https://domain.com/banner.mp4"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-1">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Thứ tự ưu tiên</label>
+                                            <input
+                                                type="number"
+                                                value={catForm.order}
+                                                onChange={e => setCatForm({ ...catForm, order: Number(e.target.value) })}
+                                                className="adm-input w-full font-bold"
+                                            />
+                                        </div>
+                                        <div className="flex items-center">
+                                            <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 w-full">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={catForm.isActive}
+                                                    onChange={e => setCatForm({ ...catForm, isActive: e.target.checked })}
+                                                    className="w-4 h-4 rounded border-slate-300 text-slate-900"
+                                                />
+                                                <span className="text-xs font-bold text-slate-900 dark:text-white">Kích hoạt hiển thị</span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* ── Subcategories ── */}
-                                <AnimatePresence>
-                                    {expanded && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.25, ease: 'easeInOut' }}
-                                            className="overflow-hidden"
-                                        >
-                                            <div className="border-t mx-4" style={{ borderColor: 'var(--adm-border, #e5e7eb)' }} />
-                                            <div className="px-4 py-3 space-y-2">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <p className="text-xs font-bold uppercase tracking-widest"
-                                                        style={{ color: 'var(--adm-text-muted, #6b7280)' }}>
-                                                        Danh mục con ({cat.subcategories?.length || 0})
-                                                    </p>
-                                                    <button onClick={() => openSubModal(cat.id)}
-                                                        className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
-                                                        style={{ color: 'var(--adm-primary, #6366f1)', background: 'var(--adm-primary-light, #eef2ff)' }}>
-                                                        <Plus size={12} /> Thêm con
-                                                    </button>
+                                {/* Right Column: Live Media Preview (5 Cols) */}
+                                <div className="lg:col-span-5 bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                        <Eye size={14} /> Xem trước hiển thị thực tế
+                                    </h4>
+
+                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-md">
+                                        <div className="aspect-video relative bg-slate-100 overflow-hidden">
+                                            {catForm.video ? (
+                                                <video src={catForm.video} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                                            ) : catForm.image ? (
+                                                /* eslint-disable-next-line @next/next/no-img-element */
+                                                <img src={catForm.image} alt="Preview" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-2">
+                                                    <ImageIcon size={36} />
+                                                    <span className="text-xs font-medium">Chưa có đường dẫn ảnh/video</span>
                                                 </div>
+                                            )}
+                                            {catForm.video && (
+                                                <span className="absolute top-3 right-3 bg-purple-600 text-white font-black text-[10px] uppercase px-2.5 py-1 rounded-md shadow-md flex items-center gap-1">
+                                                    <Video size={10} /> Video Active
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="p-4 space-y-1">
+                                            <h5 className="font-black text-sm text-slate-900 dark:text-white leading-tight">{catForm.name || 'Tên danh mục mẫu'}</h5>
+                                            <p className="text-xs text-slate-500 line-clamp-2">{catForm.description || 'Chưa có mô tả danh mục'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
 
-                                                {(!cat.subcategories || cat.subcategories.length === 0) ? (
-                                                    <div className="flex items-center justify-center py-6 rounded-xl"
-                                                        style={{ background: 'var(--adm-surface-2, #f9fafb)' }}>
-                                                        <p className="text-xs" style={{ color: 'var(--adm-text-muted, #9ca3af)' }}>
-                                                            Chưa có danh mục con nào
-                                                        </p>
-                                                    </div>
-                                                ) : (
-                                                    [...cat.subcategories]
-                                                        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                                                        .map(sub => (
-                                                            <motion.div
-                                                                key={sub.id}
-                                                                layout
-                                                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-                                                                style={{
-                                                                    background: 'var(--adm-surface-2, #f9fafb)',
-                                                                    opacity: sub.isActive ? 1 : 0.5
-                                                                }}
-                                                            >
-                                                                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                                                                    style={{ background: sub.isActive ? '#10b981' : '#d1d5db' }} />
-
-                                                                {sub.image && (
-                                                                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border"
-                                                                        style={{ borderColor: 'var(--adm-border, #e5e7eb)' }}>
-                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                        <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" />
-                                                                    </div>
-                                                                )}
-
-                                                                <div className="flex-1 min-w-0">
-                                                                    <span className="text-sm font-semibold" style={{ color: 'var(--adm-text, #111)' }}>
-                                                                        {sub.name}
-                                                                    </span>
-                                                                    <span className="ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded"
-                                                                        style={{ background: 'var(--adm-border, #e5e7eb)', color: 'var(--adm-text-muted, #6b7280)' }}>
-                                                                        {sub.id}
-                                                                    </span>
-                                                                </div>
-
-                                                                <div className="flex items-center gap-0.5 flex-shrink-0">
-                                                                    <button onClick={() => toggleSubActive(cat.id, sub)}
-                                                                        className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors hover:bg-white"
-                                                                        style={{ color: sub.isActive ? '#10b981' : '#f59e0b' }}>
-                                                                        {sub.isActive ? <Eye size={13} /> : <EyeOff size={13} />}
-                                                                    </button>
-                                                                    <button onClick={() => openSubModal(cat.id, sub)}
-                                                                        className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors hover:bg-white"
-                                                                        style={{ color: 'var(--adm-primary, #6366f1)' }}>
-                                                                        <Edit2 size={13} />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => setDeleteModal({ type: 'sub', catId: cat.id, subId: sub.id, name: sub.name })}
-                                                                        className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors hover:bg-white text-rose-500">
-                                                                        <Trash2 size={13} />
-                                                                    </button>
-                                                                </div>
-                                                            </motion.div>
-                                                        ))
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {/* ══ Category Modal ══ */}
-            <Modal open={catModal} onClose={() => setCatModal(false)}
-                title={editingCat ? `Chỉnh sửa: ${editingCat.name}` : 'Thêm danh mục mới'}>
-                <form onSubmit={handleCatSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>ID Danh mục *</label>
-                        <input
-                            required
-                            disabled={!!editingCat}
-                            value={catForm.id}
-                            onChange={e => setCatForm({ ...catForm, id: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                            placeholder="vd: ao-nam, quan-nam, phu-kien"
-                            className={inputCls}
-                            style={{ ...inputStyle, opacity: editingCat ? 0.6 : 1 }}
-                        />
-                        {!editingCat && <p className="text-[11px] mt-1" style={{ color: 'var(--adm-text-muted, #9ca3af)' }}>
-                            ID không thể thay đổi sau khi tạo. Dùng chữ thường, dấu gạch ngang.
-                        </p>}
+                            {/* Bottom Bar */}
+                            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-end gap-3 shrink-0">
+                                <button type="button" onClick={() => setCatModal(false)} className="px-5 py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-100 transition-colors">
+                                    Hủy bỏ
+                                </button>
+                                <button type="button" onClick={handleSaveCat} disabled={saving} className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-md hover:bg-slate-800 transition-all flex items-center gap-2">
+                                    <Save size={16} /> {saving ? 'Đang lưu...' : 'Lưu Danh Mục'}
+                                </button>
+                            </div>
+                        </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
 
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>Tên danh mục *</label>
-                        <input
-                            required
-                            value={catForm.name}
-                            onChange={e => setCatForm({ ...catForm, name: e.target.value })}
-                            placeholder="vd: Áo Nam, Quần Nam, Phụ Kiện"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>Mô tả</label>
-                        <textarea
-                            rows={2}
-                            value={catForm.description}
-                            onChange={e => setCatForm({ ...catForm, description: e.target.value })}
-                            placeholder="Mô tả ngắn về danh mục..."
-                            className={inputCls + ' resize-none'}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>URL Hình ảnh *</label>
-                        <input
-                            required
-                            value={catForm.image}
-                            onChange={e => setCatForm({ ...catForm, image: e.target.value })}
-                            placeholder="https://..."
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                        <div className="mt-2">
-                            <ImagePreview url={catForm.image} />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>URL Video (Tùy chọn)</label>
-                        <input
-                            value={catForm.video}
-                            onChange={e => setCatForm({ ...catForm, video: e.target.value })}
-                            placeholder="https://... (mp4/webm)"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                        <div className="mt-2">
-                            <ImagePreview url={catForm.video} isVideo />
-                        </div>
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--adm-text-muted, #9ca3af)' }}>
-                            Nếu có video, hệ thống sẽ ưu tiên phát video thay vì ảnh tĩnh trên trang chủ.
-                        </p>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>Thứ tự hiển thị</label>
-                        <input
-                            type="number"
-                            min={0}
-                            value={catForm.order}
-                            onChange={e => setCatForm({ ...catForm, order: Number(e.target.value) })}
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={() => setCatModal(false)}
-                            className="flex-1 py-3 rounded-xl font-bold text-sm transition-colors"
-                            style={{ background: 'var(--adm-surface-2, #f3f4f6)', color: 'var(--adm-text, #374151)' }}>
-                            Hủy
-                        </button>
-                        <button type="submit" disabled={saving}
-                            className="flex-1 py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-60"
-                            style={{ background: 'var(--adm-primary, #6366f1)' }}>
-                            {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-                            {editingCat ? 'Lưu thay đổi' : 'Thêm danh mục'}
-                        </button>
-                    </div>
-                </form>
-            </Modal>
-
-            {/* ══ Subcategory Modal ══ */}
-            <Modal open={subModal} onClose={() => setSubModal(false)}
-                title={editingSub ? `Sửa danh mục con: ${editingSub.name}` : 'Thêm danh mục con'}>
-                <div className="mb-4 px-3 py-2 rounded-xl flex items-center gap-2"
-                    style={{ background: 'var(--adm-primary-light, #eef2ff)' }}>
-                    <FolderOpen size={14} style={{ color: 'var(--adm-primary, #6366f1)' }} />
-                    <span className="text-xs font-semibold" style={{ color: 'var(--adm-primary, #6366f1)' }}>
-                        Danh mục cha: {categories.find(c => c.id === activeCatId)?.name}
-                    </span>
-                </div>
-
-                <form onSubmit={handleSubSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>ID Danh mục con *</label>
-                        <input
-                            required
-                            disabled={!!editingSub}
-                            value={subForm.id}
-                            onChange={e => setSubForm({ ...subForm, id: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                            placeholder="vd: ao-polo, ao-thun, ao-so-mi"
-                            className={inputCls}
-                            style={{ ...inputStyle, opacity: editingSub ? 0.6 : 1 }}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>Tên danh mục con *</label>
-                        <input
-                            required
-                            value={subForm.name}
-                            onChange={e => setSubForm({ ...subForm, name: e.target.value })}
-                            placeholder="vd: Áo Polo, Áo Thun, Áo Sơ Mi"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>Mô tả</label>
-                        <input
-                            value={subForm.description}
-                            onChange={e => setSubForm({ ...subForm, description: e.target.value })}
-                            placeholder="Mô tả ngắn..."
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>URL Hình ảnh</label>
-                        <input
-                            value={subForm.image}
-                            onChange={e => setSubForm({ ...subForm, image: e.target.value })}
-                            placeholder="https://... (tùy chọn)"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
-                            style={{ color: 'var(--adm-text-muted, #6b7280)' }}>Thứ tự hiển thị</label>
-                        <input
-                            type="number"
-                            min={0}
-                            value={subForm.order}
-                            onChange={e => setSubForm({ ...subForm, order: Number(e.target.value) })}
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={() => setSubModal(false)}
-                            className="flex-1 py-3 rounded-xl font-bold text-sm transition-colors"
-                            style={{ background: 'var(--adm-surface-2, #f3f4f6)', color: 'var(--adm-text, #374151)' }}>
-                            Hủy
-                        </button>
-                        <button type="submit" disabled={saving}
-                            className="flex-1 py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-60"
-                            style={{ background: 'var(--adm-primary, #6366f1)' }}>
-                            {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-                            {editingSub ? 'Lưu thay đổi' : 'Thêm danh mục con'}
-                        </button>
-                    </div>
-                </form>
-            </Modal>
-
-            {/* ══ Delete Confirm Modal ══ */}
-            <Modal open={!!deleteModal} onClose={() => setDeleteModal(null)} title="Xác nhận xóa">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-50">
-                        <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center flex-shrink-0">
-                            <AlertTriangle size={20} className="text-rose-600" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-rose-800">Xóa &quot;{deleteModal?.name}&quot;?</p>
-                            <p className="text-xs text-rose-600 mt-0.5">
-                                {deleteModal?.type === 'cat'
-                                    ? 'Hành động này sẽ xóa danh mục và tất cả danh mục con. Không thể hoàn tác!'
-                                    : 'Danh mục con này sẽ bị xóa vĩnh viễn.'}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex gap-3">
-                        <button onClick={() => setDeleteModal(null)}
-                            className="flex-1 py-3 rounded-xl font-bold text-sm transition-colors"
-                            style={{ background: 'var(--adm-surface-2, #f3f4f6)', color: 'var(--adm-text, #374151)' }}>
-                            Hủy
-                        </button>
-                        <button onClick={confirmDelete} disabled={saving}
-                            className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-rose-500 hover:bg-rose-600 flex items-center justify-center gap-2 transition-all disabled:opacity-60">
-                            {saving ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                            Xóa vĩnh viễn
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* ── Toast ── */}
+            {/* Delete Modal */}
             <AnimatePresence>
-                {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+                {deleteModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteModal(null)} />
+                        <div className="relative bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full space-y-4 text-center border border-slate-200 dark:border-slate-800">
+                            <AlertTriangle size={36} className="mx-auto text-rose-600" />
+                            <h4 className="font-bold text-base text-slate-900 dark:text-white">Xác nhận xóa {deleteModal.name}?</h4>
+                            <div className="flex gap-3">
+                                <button onClick={() => setDeleteModal(null)} className="flex-1 py-2.5 border rounded-xl font-bold text-xs">Hủy</button>
+                                <button onClick={executeDelete} disabled={saving} className="flex-1 py-2.5 bg-rose-600 text-white rounded-xl font-bold text-xs">Xóa</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </AnimatePresence>
         </div>
     );
