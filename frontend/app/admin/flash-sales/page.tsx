@@ -135,6 +135,22 @@ export default function AdminFlashSalesPage() {
         return Array.from(set);
     }, [allProducts]);
 
+    // Map sản phẩm đã nằm trong chiến dịch ngày khác (Khóa không cho chọn trùng)
+    const usedProductsMap = useMemo(() => {
+        const map = new Map<string, { dateStr: string; campaignName: string }>();
+        flashSales.forEach(fs => {
+            if (editingItem && fs._id === editingItem._id) return;
+            const dateStr = new Date(fs.startTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+            (fs.products || []).forEach(p => {
+                const pid = typeof p.productId === 'object' ? p.productId.id : p.productId;
+                if (pid) {
+                    map.set(pid, { dateStr, campaignName: fs.name });
+                }
+            });
+        });
+        return map;
+    }, [flashSales, editingItem]);
+
     const openModal = (item?: FlashSale) => {
         setErrorMsg('');
         setSearchKeyword('');
@@ -326,7 +342,11 @@ export default function AdminFlashSalesPage() {
     };
 
     const handleAddAllFiltered = () => {
-        const unselected = filteredProducts.filter(p => !formData.products.some(fp => (typeof fp.productId === 'object' ? fp.productId.id : fp.productId) === p.id));
+        const unselected = filteredProducts.filter(p => {
+            const isSelected = formData.products.some(fp => (typeof fp.productId === 'object' ? fp.productId.id : fp.productId) === p.id);
+            const isUsedElsewhere = usedProductsMap.has(p.id);
+            return !isSelected && !isUsedElsewhere;
+        });
         unselected.forEach(p => handleAddProduct(p));
     };
 
@@ -759,12 +779,21 @@ export default function AdminFlashSalesPage() {
                             </div>
                         </div>
 
+                        {/* Enterprise Unique Product Rule Notice */}
+                        <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-semibold flex items-center justify-between gap-2">
+                            <span>🔒 <strong>Quy tắc doanh nghiệp:</strong> Một sản phẩm đã xuất hiện ở 1 ngày Flash Sale (VD: 28/08) sẽ tự động bị khóa, không thể xếp trùng vào các ngày khác (29/08, 30/08).</span>
+                            <span className="text-[11px] font-bold underline shrink-0">Bảo toàn tính độc quyền</span>
+                        </div>
+
                         {/* Product Cards Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[450px] overflow-y-auto p-1">
                             {filteredProducts.slice(0, 60).map(product => {
                                 const isSelected = formData.products.some(p => (typeof p.productId === 'object' ? p.productId.id : p.productId) === product.id);
+                                const usedInfo = usedProductsMap.get(product.id);
+                                const isUsedElsewhere = !!usedInfo;
+
                                 return (
-                                    <div key={product.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-slate-400 transition-colors shadow-2xs">
+                                    <div key={product.id} className={`flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors shadow-2xs ${isUsedElsewhere ? 'opacity-60 bg-slate-100 dark:bg-slate-900/40' : 'hover:border-slate-400'}`}>
                                         <div className="flex items-center gap-3 min-w-0 pr-2">
                                             <div className="w-11 h-11 bg-white rounded-lg overflow-hidden border border-slate-200 shrink-0">
                                                 {product.images?.[0] ? (
@@ -780,18 +809,27 @@ export default function AdminFlashSalesPage() {
                                             </div>
                                         </div>
 
-                                        <button
-                                            type="button"
-                                            disabled={isSelected}
-                                            onClick={() => handleAddProduct(product)}
-                                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 cursor-pointer ${
-                                                isSelected
-                                                    ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
-                                                    : 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
-                                            }`}
-                                        >
-                                            {isSelected ? 'Đã chọn' : '+ Thêm'}
-                                        </button>
+                                        {isUsedElsewhere ? (
+                                            <span
+                                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 shrink-0 cursor-not-allowed"
+                                                title={`Sản phẩm này đã được xếp lịch ngày ${usedInfo.dateStr} (${usedInfo.campaignName}). Không thể chọn trùng!`}
+                                            >
+                                                🔒 Đã dùng {usedInfo.dateStr}
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                disabled={isSelected}
+                                                onClick={() => handleAddProduct(product)}
+                                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 cursor-pointer ${
+                                                    isSelected
+                                                        ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
+                                                        : 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
+                                                }`}
+                                            >
+                                                {isSelected ? 'Đã chọn' : '+ Thêm'}
+                                            </button>
+                                        )}
                                     </div>
                                 );
                             })}

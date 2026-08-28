@@ -100,18 +100,37 @@ const getAdminFlashSales = async (req, res) => {
 };
 
 /**
- * @desc Admin tạo mới một đợt Flash Sale
+ * @desc Admin tạo mới một đợt Flash Sale (Kiểm tra nghiêm ngặt không trùng sản phẩm giữa các ngày)
  */
 const createFlashSale = async (req, res) => {
     try {
         const { name, startTime, endTime, isActive, products } = req.body;
         
-        // Kiểm tra xem tất cả các sản phẩm có thực sự tồn tại trong DB không
         if (products && products.length > 0) {
+            // Lấy tất cả chiến dịch sale khác để kiểm tra trùng sản phẩm
+            const otherSales = await FlashSaleModel.find({ isActive: true }).populate('products.productDoc');
+            
             for (let p of products) {
-                const prod = await ProductModel.findOne({ id: p.productId });
+                const pid = typeof p.productId === 'object' ? p.productId.id : p.productId;
+                const prod = await ProductModel.findOne({ id: pid });
                 if (!prod) {
-                    return res.status(400).json({ success: false, message: `Sản phẩm ${p.productId} không tồn tại` });
+                    return res.status(400).json({ success: false, message: `Sản phẩm ${pid} không tồn tại trong hệ thống` });
+                }
+
+                // Kiểm tra xem sản phẩm này đã được xếp lịch ở chiến dịch ngày khác chưa
+                for (let otherFs of otherSales) {
+                    const isUsed = otherFs.products.some(fp => {
+                        const otherPid = typeof fp.productId === 'object' ? fp.productId.id : (fp.productDoc?.id || fp.productId);
+                        return otherPid === pid;
+                    });
+
+                    if (isUsed) {
+                        const dateStr = new Date(otherFs.startTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                        return res.status(400).json({
+                            success: false,
+                            message: `Sản phẩm "${prod.name}" đã được sử dụng trong đợt Flash Sale ngày ${dateStr} (${otherFs.name}). Vui lòng chọn sản phẩm khác!`
+                        });
+                    }
                 }
             }
         }
@@ -128,7 +147,7 @@ const createFlashSale = async (req, res) => {
 };
 
 /**
- * @desc Admin cập nhật Flash Sale (Thêm/Sửa sản phẩm, đổi ngày giờ)
+ * @desc Admin cập nhật Flash Sale (Kiểm tra nghiêm ngặt trùng sản phẩm giữa các ngày)
  */
 const updateFlashSale = async (req, res) => {
     try {
@@ -136,10 +155,29 @@ const updateFlashSale = async (req, res) => {
         const { name, startTime, endTime, isActive, products } = req.body;
         
         if (products && products.length > 0) {
+            // Lấy các chiến dịch khác ngoại trừ chiến dịch đang sửa
+            const otherSales = await FlashSaleModel.find({ _id: { $ne: id }, isActive: true }).populate('products.productDoc');
+
             for (let p of products) {
-                const prod = await ProductModel.findOne({ id: p.productId });
+                const pid = typeof p.productId === 'object' ? p.productId.id : p.productId;
+                const prod = await ProductModel.findOne({ id: pid });
                 if (!prod) {
-                    return res.status(400).json({ success: false, message: `Sản phẩm ${p.productId} không tồn tại` });
+                    return res.status(400).json({ success: false, message: `Sản phẩm ${pid} không tồn tại` });
+                }
+
+                for (let otherFs of otherSales) {
+                    const isUsed = otherFs.products.some(fp => {
+                        const otherPid = typeof fp.productId === 'object' ? fp.productId.id : (fp.productDoc?.id || fp.productId);
+                        return otherPid === pid;
+                    });
+
+                    if (isUsed) {
+                        const dateStr = new Date(otherFs.startTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                        return res.status(400).json({
+                            success: false,
+                            message: `Sản phẩm "${prod.name}" đã nằm trong đợt Flash Sale ngày ${dateStr} (${otherFs.name}). Tuyệt đối không thể xếp trùng!`
+                        });
+                    }
                 }
             }
         }
@@ -155,6 +193,7 @@ const updateFlashSale = async (req, res) => {
         }
         res.json({ success: true, data: updated });
     } catch (error) {
+        console.error("updateFlashSale error:", error);
         res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
