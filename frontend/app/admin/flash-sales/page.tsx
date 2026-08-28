@@ -3,15 +3,17 @@
  * ============================================================
  * TRANG ADMIN: QUẢN LÝ FLASH SALE DOANH NGHIỆP — /admin/flash-sales
  *
- * Hỗ trợ chọn nhanh sản phẩm sale 3 ngày tiếp theo (Hôm nay, Ngày mai, Ngày kia, Ngày kìa)
- * Cấu hình giá ưu đãi, tồn kho, giảm giá hàng loạt & giao diện chuẩn Doanh Nghiệp.
+ * Giao diện chuẩn Doanh Nghiệp (Human Enterprise UI):
+ * - Tông màu Slate & Monochromatic chuyên nghiệp (Shopify / Linear style)
+ * - Tối ưu công cụ lên lịch Flash Sale 3 ngày tiếp theo
+ * - Bộ công cụ điều chỉnh phần trăm giảm giá & tồn kho chuẩn xác
  * ============================================================
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus, Edit2, Trash2, Save, Zap, Tag, Activity, ArrowLeft,
-    Search, Calendar, Clock, Percent, Sparkles, Check, RefreshCw
+    Plus, Edit2, Trash2, Save, Tag, Activity, ArrowLeft,
+    Search, Calendar, Clock, Percent, Check, RefreshCw, Filter
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -62,13 +64,13 @@ export default function AdminFlashSalesPage() {
     const [allProducts, setAllProducts] = useState<ProductBase[]>([]);
     const [searchKeyword, setSearchKeyword] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const [batchDiscountPercent, setBatchDiscountPercent] = useState<number>(30);
+    const [customDiscountInput, setCustomDiscountInput] = useState<number>(20);
 
     const [formData, setFormData] = useState({
         name: '', startTime: '', endTime: '', isActive: true, products: [] as FlashSaleProduct[]
     });
 
-    // ─── 3-Day Schedule Presets Data ───────────────────────────
+    // ─── Lịch 4 ngày chuẩn Doanh nghiệp (Hôm nay + 3 ngày tiếp theo) ───
     const threeDayPresets = useMemo(() => {
         const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
         const now = new Date();
@@ -83,7 +85,6 @@ export default function AdminFlashSalesPage() {
             const dayNum = d.getDay();
             const dayOfWeek = dayNum === 0 ? 'Chủ Nhật' : `Thứ ${dayNum + 1}`;
             
-            // Format datetime local format: YYYY-MM-DDTHH:mm
             const startD = new Date(d);
             startD.setHours(0, 0, 0, 0);
             const endD = new Date(d);
@@ -127,7 +128,7 @@ export default function AdminFlashSalesPage() {
 
     useEffect(() => { fetchItems(); }, []);
 
-    // ─── Danh mục sản phẩm duy nhất ──────────────────────────
+    // Danh mục sản phẩm
     const categoriesList = useMemo(() => {
         const set = new Set<string>();
         allProducts.forEach(p => { if (p.category) set.add(p.category); });
@@ -177,10 +178,9 @@ export default function AdminFlashSalesPage() {
             });
         } else {
             setEditingItem(null);
-            // Default to Today preset
             const todayPreset = threeDayPresets[0];
             setFormData({ 
-                name: `Flash Sale Đặc Biệt — ${todayPreset.fullLabel}`, 
+                name: `Chiến dịch Flash Sale — ${todayPreset.fullLabel}`, 
                 startTime: todayPreset.startISO, 
                 endTime: todayPreset.endISO, 
                 isActive: true, 
@@ -190,14 +190,14 @@ export default function AdminFlashSalesPage() {
         setIsModalOpen(true);
     };
 
-    // ─── Áp dụng khung giờ sale nhanh 3 ngày ──────────────────
+    // Áp dụng khung giờ sale 3 ngày chuẩn
     const applyDatePreset = (presetIndex: number | 'all-3-days') => {
         if (presetIndex === 'all-3-days') {
             const day0 = threeDayPresets[0];
             const day3 = threeDayPresets[3];
             setFormData(f => ({
                 ...f,
-                name: `Flash Sale 3 Ngày Liên Tiếp (${day0.dateStr} - ${day3.dateStr})`,
+                name: `Chiến dịch Flash Sale 3 Ngày (${day0.dateStr} - ${day3.dateStr})`,
                 startTime: day0.startISO,
                 endTime: day3.endISO
             }));
@@ -206,7 +206,7 @@ export default function AdminFlashSalesPage() {
             if (p) {
                 setFormData(f => ({
                     ...f,
-                    name: `Flash Sale Sốc ${p.tag} (${p.dateStr})`,
+                    name: `Chiến dịch Flash Sale — ${p.fullLabel}`,
                     startTime: p.startISO,
                     endTime: p.endISO
                 }));
@@ -214,15 +214,16 @@ export default function AdminFlashSalesPage() {
         }
     };
 
-    // ─── Áp dụng giảm % hàng loạt cho các sản phẩm đã chọn ───
+    // Áp dụng giảm % hàng loạt (loại bỏ mức giảm 50% exaggerated)
     const applyMassDiscount = (percent: number) => {
+        const safePercent = Math.min(Math.max(percent, 5), 40); // Giới hạn mức giảm hợp lý 5% - 40%
         setFormData(f => ({
             ...f,
             products: f.products.map(p => {
                 const pid = typeof p.productId === 'object' ? p.productId.id : p.productId;
                 const pInfo = allProducts.find(ap => ap.id === pid);
                 const origPrice = pInfo?.price || 0;
-                const discountedPrice = Math.round(origPrice * (1 - percent / 100));
+                const discountedPrice = Math.round(origPrice * (1 - safePercent / 100));
 
                 const updatedVariants = (p.variants || []).map(v => ({
                     ...v,
@@ -244,7 +245,7 @@ export default function AdminFlashSalesPage() {
         setErrorMsg('');
         
         if (formData.products.length === 0) {
-            setErrorMsg('Vui lòng chọn ít nhất 1 sản phẩm cho chiến dịch Flash Sale.');
+            setErrorMsg('Vui lòng chọn ít nhất 1 sản phẩm cho chiến dịch.');
             setSaving(false);
             return;
         }
@@ -278,7 +279,7 @@ export default function AdminFlashSalesPage() {
                 fetchItems();
                 setIsModalOpen(false);
             } else {
-                setErrorMsg(data.message || 'Có lỗi xảy ra khi lưu chiến dịch.');
+                setErrorMsg(data.message || 'Có lỗi xảy ra khi lưu.');
             }
         } catch {
             setErrorMsg('Không thể kết nối đến máy chủ.');
@@ -288,7 +289,7 @@ export default function AdminFlashSalesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa chiến dịch Flash Sale này?')) return;
+        if (!confirm('Bạn có chắc chắn muốn xóa chiến dịch này?')) return;
         try {
             const res = await fetch(`/api/flash-sales/admin/${id}`, { method: 'DELETE' });
             const data = await res.json();
@@ -299,16 +300,15 @@ export default function AdminFlashSalesPage() {
         }
     };
 
-    // Product Selection Handlers
     const handleAddProduct = (product: ProductBase) => {
         if (formData.products.find(p => (typeof p.productId === 'object' ? p.productId.id : p.productId) === product.id)) return;
         
-        const defaultPrice = product.price ? Math.round(product.price * 0.7) : 0; // Default -30%
+        const defaultPrice = product.price ? Math.round(product.price * 0.85) : 0; // -15% mặc định chuẩn doanh nghiệp
         const variants = (product.variants || []).map((v) => ({
             color: v.color,
             size: v.size,
             flashSalePrice: defaultPrice,
-            stockQuantity: 15,
+            stockQuantity: 20,
             soldQuantity: 0
         }));
 
@@ -325,7 +325,6 @@ export default function AdminFlashSalesPage() {
         });
     };
 
-    // Thêm hàng loạt tất cả sản phẩm đang hiển thị trong tìm kiếm
     const handleAddAllFiltered = () => {
         const unselected = filteredProducts.filter(p => !formData.products.some(fp => (typeof fp.productId === 'object' ? fp.productId.id : fp.productId) === p.id));
         unselected.forEach(p => handleAddProduct(p));
@@ -372,33 +371,33 @@ export default function AdminFlashSalesPage() {
     };
 
     // ════════════════════════════════════════════════════════════
-    // ENTERPRISE EDITOR WORKSPACE MODE (FULL PAGE VIEW)
+    // WORKSPACE CHỈNH SỬA TOÀN MÀN HÌNH CHUẨN DOANH NGHIỆP
     // ════════════════════════════════════════════════════════════
     if (isModalOpen) {
         return (
             <motion.div
-                initial={{ opacity: 0, scale: 0.99 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.99 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
                 className="space-y-6 max-w-7xl mx-auto pb-20"
             >
-                {/* Enterprise Sticky Top Bar */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-4 z-30">
+                {/* Header Bar */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-4 z-30">
                     <div className="flex items-center gap-3.5 min-w-0">
                         <button
                             type="button"
                             onClick={() => setIsModalOpen(false)}
-                            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-200 flex items-center gap-2 font-bold text-xs shrink-0 cursor-pointer"
+                            className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 transition-colors text-slate-700 dark:text-slate-200 flex items-center gap-2 font-semibold text-xs shrink-0 cursor-pointer"
                         >
                             <ArrowLeft size={16} /> Quay lại danh sách
                         </button>
-                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+                        <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
                         <div className="min-w-0">
-                            <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white truncate">
-                                {editingItem ? `Sửa Chiến Dịch: ${editingItem.name}` : 'Tạo Chiến Dịch Flash Sale Mới'}
+                            <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">
+                                {editingItem ? `Chỉnh sửa: ${editingItem.name}` : 'Tạo Chiến Dịch Flash Sale Mới'}
                             </h1>
                             <p className="text-xs text-slate-500 truncate mt-0.5">
-                                Cấu hình khung sale 3 ngày, cài đặt phần trăm giảm giá & tồn kho biến thể
+                                Cấu hình thời gian khuyến mãi, danh sách sản phẩm và giá ưu đãi
                             </p>
                         </div>
                     </div>
@@ -407,55 +406,55 @@ export default function AdminFlashSalesPage() {
                         <button
                             type="button"
                             onClick={() => setIsModalOpen(false)}
-                            className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 dark:text-slate-300 font-medium text-xs hover:bg-slate-50 transition-colors cursor-pointer"
                         >
-                            Hủy bỏ
+                            Hủy
                         </button>
                         <button
                             type="button"
                             onClick={handleSubmit}
                             disabled={saving}
-                            className="adm-btn-primary flex items-center gap-2 px-6 py-2.5 text-xs font-bold shadow-md cursor-pointer"
+                            className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs shadow-xs transition-all flex items-center gap-2 cursor-pointer"
                         >
-                            <Save size={16} /> {saving ? 'Đang lưu...' : 'Lưu Chiến Dịch Flash Sale'}
+                            <Save size={15} /> {saving ? 'Đang lưu...' : 'Lưu Chiến Dịch'}
                         </button>
                     </div>
                 </div>
 
                 {errorMsg && (
-                    <div className="p-4 rounded-2xl text-sm font-bold bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2 shadow-xs">
+                    <div className="p-4 rounded-xl text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2">
                         ⚠️ {errorMsg}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
 
-                    {/* ─── 1. BỘ CHỌN NHANH LỊCH SALE 3 NGÀY TIẾP THEO & THÔNG TIN ─── */}
-                    <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    {/* ─── 1. THỜI GIAN & KHUNG GIỜ SALE 3 NGÀY ─── */}
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
                             <div>
-                                <h3 className="text-base font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Zap size={18} className="text-amber-500 fill-amber-400 animate-bounce" />
-                                    1. Lịch Trình Sale & Khung Giờ (Sale 3 Ngày Tiếp Theo)
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Calendar size={16} className="text-slate-700 dark:text-slate-300" />
+                                    1. Cấu hình Thời gian & Khung giờ Khuyến mãi
                                 </h3>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    Chọn nhanh 1 trong các khung ngày tiếp theo để hệ thống tự động lên lịch Flash Sale
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    Chọn khung ngày sale áp dụng trong 3 ngày tiếp theo hoặc tự tùy chỉnh
                                 </p>
                             </div>
 
                             <button
                                 type="button"
                                 onClick={() => applyDatePreset('all-3-days')}
-                                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black text-xs shadow-md hover:brightness-110 transition-all flex items-center gap-1.5 cursor-pointer"
+                                className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors cursor-pointer"
                             >
-                                <Sparkles size={14} /> 🔥 TỰ ĐỘNG LÊN LỊCH TOÀN BỘ 3 NGÀY
+                                Lên lịch liền mạch 3 ngày
                             </button>
                         </div>
 
-                        {/* 📅 3-DAY QUICK PRESETS SELECTOR BUTTONS */}
+                        {/* Presets Segmented Selector */}
                         <div>
-                            <label className="block text-xs font-extrabold uppercase tracking-wider text-indigo-600 mb-3 flex items-center gap-1.5">
-                                <Calendar size={14} /> Chọn nhanh Ngày Sale chuẩn hệ thống:
+                            <label className="block text-xs font-semibold text-slate-500 mb-2.5">
+                                Chọn nhanh khung ngày theo lịch:
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 {threeDayPresets.map((preset, pIdx) => {
@@ -465,109 +464,106 @@ export default function AdminFlashSalesPage() {
                                             key={preset.index}
                                             type="button"
                                             onClick={() => applyDatePreset(pIdx)}
-                                            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 relative overflow-hidden ${
+                                            className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
                                                 isSelected
-                                                    ? 'bg-indigo-900 text-white border-indigo-600 shadow-md ring-2 ring-indigo-400'
-                                                    : 'bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50'
+                                                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                                                    : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
-                                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
-                                                    isSelected ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                                                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                                                 }`}>
                                                     {preset.tag}
                                                 </span>
-                                                <span className="text-xs font-mono font-bold opacity-80">{preset.dateStr}</span>
+                                                <span className="text-xs font-mono opacity-80">{preset.dateStr}</span>
                                             </div>
                                             <div>
-                                                <p className="font-extrabold text-sm leading-tight">{preset.dayOfWeek}</p>
-                                                <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>00:00 — 23:59</p>
+                                                <p className="font-bold text-xs">{preset.dayOfWeek}</p>
+                                                <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>00:00 — 23:59</p>
                                             </div>
-                                            {isSelected && (
-                                                <span className="absolute right-2 bottom-2 text-emerald-400 text-xs font-black">✓ Đã chọn</span>
-                                            )}
                                         </button>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        {/* Form Inputs for Name & Time */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+                        {/* Name & Date Inputs */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                             <div className="md:col-span-3">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Tên chiến dịch Flash Sale</label>
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tên chương trình khuyến mãi</label>
                                 <input
                                     required
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                    placeholder="VD: Flash Sale Sốc Ngày Mai 29/08 - Giảm đến 50%"
+                                    className="adm-input w-full font-medium"
+                                    placeholder="VD: Chương trình Flash Sale Tuần Mới"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
-                                    <Clock size={12} /> Thời gian Bắt đầu
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                                    <Clock size={13} /> Thời gian Bắt đầu
                                 </label>
                                 <input
                                     type="datetime-local"
                                     required
                                     value={formData.startTime}
                                     onChange={e => setFormData({ ...formData, startTime: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="adm-input w-full font-medium"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
-                                    <Clock size={12} /> Thời gian Kết thúc
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                                    <Clock size={13} /> Thời gian Kết thúc
                                 </label>
                                 <input
                                     type="datetime-local"
                                     required
                                     value={formData.endTime}
                                     onChange={e => setFormData({ ...formData, endTime: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="adm-input w-full font-medium"
                                 />
                             </div>
 
                             <div className="flex items-center">
-                                <label className="flex items-center gap-3 cursor-pointer p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 w-full hover:border-indigo-400 transition-colors">
+                                <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 w-full hover:bg-slate-100 transition-colors">
                                     <input
                                         type="checkbox"
                                         checked={formData.isActive}
                                         onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                                        className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
                                     />
-                                    <span className="text-xs font-black text-slate-800 dark:text-slate-200">Bật hiển thị chiến dịch ngay</span>
+                                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Kích hoạt chương trình ngay</span>
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    {/* ─── 2. SẢN PHẨM ĐÃ CHỌN TRONG CHIẾN DỊCH & CÔNG CỤ TÍNH GIÁ HÀNG LOẠT ─── */}
-                    <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    {/* ─── 2. DANH SÁCH SẢN PHẨM ĐÃ CHỌN & ĐIỀU CHỈNH GIÁ HÀNG LOẠT ─── */}
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-3.5">
                             <div>
-                                <h3 className="text-base font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Tag size={18} className="text-indigo-600" />
-                                    2. Danh Sách Sản Phẩm Sale Đã Chọn ({formData.products.length} Sản phẩm)
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Tag size={16} className="text-slate-700 dark:text-slate-300" />
+                                    2. Danh sách Sản phẩm áp dụng ({formData.products.length} sản phẩm)
                                 </h3>
                                 <p className="text-xs text-slate-500 mt-0.5">
-                                    Cài đặt giá Flash Sale, số lượng giới hạn và ma trận giá từng biến thể
+                                    Thiết lập giá bán khuyến mãi và hạn mức tồn kho
                                 </p>
                             </div>
 
-                            {/* Batch Discount Helper Bar */}
+                            {/* Clean Enterprise Mass Discount Tool */}
                             {formData.products.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700">
-                                    <span className="text-[11px] font-bold text-slate-500 pl-2">Áp dụng giảm nhanh:</span>
-                                    {[20, 30, 40, 50].map(pct => (
+                                <div className="flex flex-wrap items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 pl-2">Giảm nhanh:</span>
+                                    {[10, 15, 20, 30].map(pct => (
                                         <button
                                             key={pct}
                                             type="button"
                                             onClick={() => applyMassDiscount(pct)}
-                                            className="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs transition-all cursor-pointer shadow-2xs"
+                                            className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs hover:border-slate-400 transition-all cursor-pointer shadow-2xs"
                                         >
                                             -{pct}%
                                         </button>
@@ -577,132 +573,126 @@ export default function AdminFlashSalesPage() {
                         </div>
 
                         {formData.products.length === 0 ? (
-                            <div className="p-10 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 space-y-2">
-                                <Tag size={36} className="mx-auto text-slate-300 dark:text-slate-600" />
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Chưa có sản phẩm nào trong chiến dịch này</p>
-                                <p className="text-xs text-slate-400">Vui lòng chọn sản phẩm bên dưới ở Mục 3 để thêm vào chiến dịch!</p>
+                            <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 space-y-1.5">
+                                <Tag size={28} className="mx-auto text-slate-300 dark:text-slate-600" />
+                                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Chưa có sản phẩm nào được chọn.</p>
+                                <p className="text-[11px] text-slate-400">Vui lòng chọn sản phẩm ở Mục 3 bên dưới để thêm vào danh sách.</p>
                             </div>
                         ) : (
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 {formData.products.map((p, idx) => {
                                     const pIdStr = typeof p.productId === 'object' ? p.productId.id : p.productId;
                                     const productInfo = allProducts.find(ap => ap.id === pIdStr);
                                     const hasVariants = productInfo?.variants && productInfo.variants.length > 0;
 
                                     return (
-                                        <div key={idx} className="bg-slate-50/70 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4 shadow-2xs">
-                                            {/* Product Card Header */}
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-700/80 pb-4">
-                                                <div className="flex items-center gap-3.5 min-w-0">
-                                                    <div className="w-14 h-14 bg-white rounded-xl overflow-hidden border border-slate-200 shrink-0">
+                                        <div key={idx} className="bg-slate-50/60 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                                            {/* Product Item Header */}
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-700/80 pb-3">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-slate-200 shrink-0">
                                                         {productInfo?.images?.[0] ? (
                                                             /* eslint-disable-next-line @next/next/no-img-element */
                                                             <img src={productInfo.images[0]} alt={productInfo.name} className="w-full h-full object-cover" />
                                                         ) : (
-                                                            <Tag className="w-6 h-6 text-slate-300 m-4" />
+                                                            <Tag className="w-5 h-5 text-slate-300 m-3.5" />
                                                         )}
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <h4 className="font-bold text-sm text-slate-900 dark:text-white leading-snug line-clamp-1">{productInfo?.name || pIdStr}</h4>
+                                                        <h4 className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-white truncate">{productInfo?.name || pIdStr}</h4>
                                                         <p className="text-xs text-slate-500 mt-0.5">
-                                                            Mã SP: <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{pIdStr}</span> | Giá gốc: <strong className="text-slate-900 dark:text-white">{productInfo?.price?.toLocaleString() || 0}đ</strong>
+                                                            Mã: <span className="font-mono font-medium text-slate-700 dark:text-slate-300">{pIdStr}</span> | Giá niêm yết: <strong className="text-slate-900 dark:text-white">{productInfo?.price?.toLocaleString() || 0}đ</strong>
                                                         </p>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center gap-3 shrink-0">
                                                     {hasVariants && (
-                                                        <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 text-xs font-bold">
+                                                        <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={p.useVariants || false}
                                                                 onChange={(e) => handleUpdateProduct(pIdStr, 'useVariants', e.target.checked)}
-                                                                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                                className="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
                                                             />
-                                                            <span>Cấu hình theo biến thể ({productInfo.variants?.length} loại)</span>
+                                                            <span>Cấu hình theo biến thể ({productInfo.variants?.length})</span>
                                                         </label>
                                                     )}
 
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveProduct(pIdStr)}
-                                                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-rose-200 dark:border-rose-900/50 cursor-pointer"
-                                                        title="Bỏ sản phẩm này khỏi chiến dịch"
+                                                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-rose-200 dark:border-rose-900/50 cursor-pointer"
+                                                        title="Gỡ sản phẩm"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Trash2 size={15} />
                                                     </button>
                                                 </div>
                                             </div>
 
                                             {/* General Pricing (When NOT using variants) */}
                                             {!p.useVariants && (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                                                     <div>
-                                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">Giá Flash Sale (VNĐ)</label>
+                                                        <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Giá khuyến mãi (VNĐ)</label>
                                                         <input
                                                             type="number"
                                                             value={p.flashSalePrice}
                                                             onChange={(e) => handleUpdateProduct(pIdStr, 'flashSalePrice', e.target.value === '' ? '' : Number(e.target.value))}
-                                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-black text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                            className="adm-input w-full font-bold text-indigo-600 dark:text-indigo-400"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">Tồn kho Flash Sale</label>
+                                                        <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Số lượng dành cho KM</label>
                                                         <input
                                                             type="number"
                                                             value={p.stockQuantity}
                                                             onChange={(e) => handleUpdateProduct(pIdStr, 'stockQuantity', e.target.value === '' ? '' : Number(e.target.value))}
-                                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                            className="adm-input w-full font-medium"
                                                         />
                                                     </div>
                                                 </div>
                                             )}
 
-                                            {/* Full-width Variant Pricing Grid */}
+                                            {/* Variant Pricing Grid */}
                                             {p.useVariants && p.variants && p.variants.length > 0 && (
-                                                <div className="space-y-3 pt-1">
-                                                    <p className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">Ma Trận Giá & Tồn Kho Chi Tiết Theo Biến Thể</p>
+                                                <div className="space-y-2 pt-1">
+                                                    <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Chi tiết theo màu & size:</p>
 
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                                         {p.variants.map((v, vIdx) => {
                                                             const discountPct = productInfo?.price && v.flashSalePrice ? Math.round(((productInfo.price - v.flashSalePrice) / productInfo.price) * 100) : 0;
                                                             return (
-                                                                <div key={vIdx} className="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xs space-y-3">
-                                                                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                                                                        <span className="text-xs font-black text-slate-900 dark:text-white">
-                                                                            {v.color} <span className="text-slate-400 font-normal">|</span> {v.size}
+                                                                <div key={vIdx} className="bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-700 rounded-lg space-y-2">
+                                                                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-1.5">
+                                                                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                                                                            {v.color} | {v.size}
                                                                         </span>
                                                                         {discountPct > 0 && (
-                                                                            <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                                                                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
                                                                                 -{discountPct}%
                                                                             </span>
                                                                         )}
                                                                     </div>
 
-                                                                    <div className="space-y-2">
+                                                                    <div className="space-y-1.5">
                                                                         <div>
-                                                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                                                                                Giá Sale (VNĐ)
-                                                                            </label>
+                                                                            <label className="text-[10px] font-semibold text-slate-500 block">Giá KM (VNĐ)</label>
                                                                             <input
                                                                                 type="number"
-                                                                                placeholder="Nhập giá FS"
                                                                                 value={v.flashSalePrice !== undefined ? v.flashSalePrice : ''}
                                                                                 onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'flashSalePrice', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
-                                                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-black text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500/20 bg-slate-50 dark:bg-slate-800"
+                                                                                className="adm-input w-full text-xs font-bold text-indigo-600 dark:text-indigo-400 py-1.5 px-2"
                                                                             />
                                                                         </div>
 
                                                                         <div>
-                                                                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                                                                                Tồn Kho FS
-                                                                            </label>
+                                                                            <label className="text-[10px] font-semibold text-slate-500 block">Số lượng KM</label>
                                                                             <input
                                                                                 type="number"
-                                                                                placeholder="Số lượng"
                                                                                 value={v.stockQuantity !== undefined ? v.stockQuantity : ''}
                                                                                 onChange={(e) => handleUpdateVariant(pIdStr, vIdx, 'stockQuantity', e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
-                                                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20 bg-slate-50 dark:bg-slate-800"
+                                                                                className="adm-input w-full text-xs font-medium py-1.5 px-2"
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -719,16 +709,16 @@ export default function AdminFlashSalesPage() {
                         )}
                     </div>
 
-                    {/* ─── 3. KHU VỰC THÊM SẢN PHẨM MỚI VÀO CHIẾN DỊCH (HÌNH 1 USER UPLOAD) ─── */}
-                    <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    {/* ─── 3. THÊM SẢN PHẨM MỚI VÀO CHIẾN DỊCH ─── */}
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
                             <div>
-                                <h3 className="text-base font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Plus size={18} className="text-emerald-600" />
-                                    3. Thêm Sản Phẩm Mới Vào Chiến Dịch
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Plus size={16} className="text-slate-700 dark:text-slate-300" />
+                                    3. Thêm Sản phẩm vào Chương trình
                                 </h3>
                                 <p className="text-xs text-slate-500 mt-0.5">
-                                    Tìm kiếm sản phẩm theo tên, danh mục và chọn nhanh vào danh sách Flash Sale
+                                    Tra cứu sản phẩm theo tên hoặc danh mục để chọn thêm
                                 </p>
                             </div>
 
@@ -736,22 +726,22 @@ export default function AdminFlashSalesPage() {
                                 type="button"
                                 onClick={handleAddAllFiltered}
                                 disabled={filteredProducts.length === 0}
-                                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                                className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors cursor-pointer shrink-0"
                             >
-                                <Plus size={14} /> Thêm tất cả ({filteredProducts.length} SP tìm thấy)
+                                Thêm tất cả ({filteredProducts.length} kết quả)
                             </button>
                         </div>
 
                         {/* Search & Category Filter Bar */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div className="sm:col-span-2 relative">
-                                <Search className="w-4 h-4 absolute left-4 top-3.5 text-slate-400" />
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input
                                     type="text"
                                     placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    className="adm-input pl-9 w-full"
                                 />
                             </div>
 
@@ -769,23 +759,23 @@ export default function AdminFlashSalesPage() {
                             </div>
                         </div>
 
-                        {/* Responsive Product Cards Grid (Matching User Screenshot Image 1) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[500px] overflow-y-auto p-1">
+                        {/* Product Cards Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[450px] overflow-y-auto p-1">
                             {filteredProducts.slice(0, 60).map(product => {
                                 const isSelected = formData.products.some(p => (typeof p.productId === 'object' ? p.productId.id : p.productId) === product.id);
                                 return (
-                                    <div key={product.id} className="flex items-center justify-between p-3.5 bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl hover:border-indigo-400 transition-colors shadow-2xs">
+                                    <div key={product.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-slate-400 transition-colors shadow-2xs">
                                         <div className="flex items-center gap-3 min-w-0 pr-2">
-                                            <div className="w-12 h-12 bg-white rounded-xl overflow-hidden border border-slate-200 shrink-0">
+                                            <div className="w-11 h-11 bg-white rounded-lg overflow-hidden border border-slate-200 shrink-0">
                                                 {product.images?.[0] ? (
                                                     /* eslint-disable-next-line @next/next/no-img-element */
                                                     <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <Tag className="w-5 h-5 text-slate-300 m-3.5" />
+                                                    <Tag className="w-4 h-4 text-slate-300 m-3.5" />
                                                 )}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="font-bold text-xs text-slate-900 dark:text-white truncate leading-snug">{product.name}</p>
+                                                <p className="font-semibold text-xs text-slate-900 dark:text-white truncate leading-snug">{product.name}</p>
                                                 <p className="text-[11px] text-slate-500 mt-0.5">Giá gốc: <strong className="text-slate-900 dark:text-white">{product.price?.toLocaleString()}đ</strong></p>
                                             </div>
                                         </div>
@@ -794,13 +784,13 @@ export default function AdminFlashSalesPage() {
                                             type="button"
                                             disabled={isSelected}
                                             onClick={() => handleAddProduct(product)}
-                                            className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 cursor-pointer ${
+                                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 cursor-pointer ${
                                                 isSelected
                                                     ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
-                                                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-2xs'
+                                                    : 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
                                             }`}
                                         >
-                                            {isSelected ? 'Đã thêm' : '+ Thêm'}
+                                            {isSelected ? 'Đã chọn' : '+ Thêm'}
                                         </button>
                                     </div>
                                 );
@@ -808,21 +798,21 @@ export default function AdminFlashSalesPage() {
                         </div>
                     </div>
 
-                    {/* Bottom Sticky Action Bar */}
-                    <div className="flex items-center justify-end gap-3 p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    {/* Bottom Action Bar */}
+                    <div className="flex items-center justify-end gap-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
                         <button
                             type="button"
                             onClick={() => setIsModalOpen(false)}
-                            className="px-6 py-3 rounded-2xl border border-slate-300 text-slate-700 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 dark:text-slate-300 font-medium text-xs hover:bg-slate-50 transition-colors cursor-pointer"
                         >
-                            Hủy bỏ
+                            Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={saving}
-                            className="adm-btn-primary px-8 py-3 rounded-2xl text-sm font-bold shadow-lg flex items-center gap-2 cursor-pointer"
+                            className="px-6 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-xs transition-all flex items-center gap-2 cursor-pointer"
                         >
-                            <Save size={18} /> {saving ? 'Đang lưu...' : 'Lưu Chiến Dịch Flash Sale'}
+                            <Save size={15} /> {saving ? 'Đang lưu...' : 'Lưu Chiến Dịch'}
                         </button>
                     </div>
                 </form>
@@ -837,60 +827,60 @@ export default function AdminFlashSalesPage() {
         <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-black" style={{ color: 'var(--adm-text)' }}>
-                        Quản lý Chiến Dịch Flash Sale
+                    <h1 className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--adm-text)' }}>
+                        Quản lý Flash Sale
                     </h1>
                     <p className="text-xs sm:text-sm mt-0.5" style={{ color: 'var(--adm-text-muted)' }}>
-                        {flashSales.length} chiến dịch &bull; Lên lịch Sale 3 ngày tiếp theo
+                        Tổng số {flashSales.length} chương trình khuyến mãi
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link href="/admin/flash-sales/dashboard" className="adm-btn-secondary">
-                        <Activity size={18} /> Xem Dashboard
+                        <Activity size={16} /> Dashboard Phân Tích
                     </Link>
                     <button
                         onClick={() => openModal()}
                         className="adm-btn-primary flex items-center gap-2"
                         style={{ minHeight: 44 }}
                     >
-                        <Plus size={18} /> Tạo mới chiến dịch
+                        <Plus size={16} /> Tạo mới chương trình
                     </button>
                 </div>
             </div>
 
-            {/* Quick 3-Day Campaign Status Overview Card */}
-            <div className="adm-card p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-sm border border-indigo-900/40">
+            {/* Enterprise Overview Card */}
+            <div className="adm-card p-5 bg-slate-900 text-white rounded-2xl shadow-xs border border-slate-800">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 text-lg">
-                            <Zap size={20} className="text-amber-400" />
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white text-base">
+                            <Calendar size={18} />
                         </div>
                         <div>
-                            <h3 className="font-extrabold text-sm text-white">Lộ Trình Sale 3 Ngày Tiếp Theo (Hôm nay, Ngày mai & các ngày tới)</h3>
-                            <p className="text-xs text-slate-300 mt-0.5">Bấm Tạo mới để đặt giá giảm sâu và lịch đếm ngược cho từng ngày</p>
+                            <h3 className="font-bold text-sm text-white">Quản lý Khung giờ & Lên lịch Flash Sale</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">Lên lịch chương trình sale 3 ngày tiếp theo và thiết lập giá khuyến mãi</p>
                         </div>
                     </div>
 
                     <button
                         onClick={() => openModal()}
-                        className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-md flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-white text-slate-900 font-bold text-xs hover:bg-slate-100 transition-all shadow-xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                     >
-                        <Plus size={14} /> Lên lịch Sale 3 ngày
+                        <Plus size={14} /> Lên lịch chương trình sale
                     </button>
                 </div>
             </div>
 
-            <div className="adm-card overflow-hidden shadow-sm">
+            <div className="adm-card overflow-hidden shadow-2xs">
                 {loading ? (
                     <div className="p-12 text-center text-slate-500 font-medium flex items-center justify-center gap-2">
-                        <RefreshCw className="animate-spin" size={20} /> Đang tải danh sách chiến dịch...
+                        <RefreshCw className="animate-spin" size={18} /> Đang tải danh sách...
                     </div>
                 ) : flashSales.length === 0 ? (
                     <div className="p-12 text-center text-slate-500 flex flex-col items-center space-y-3">
-                        <Zap size={48} className="text-slate-300 dark:text-slate-600" />
-                        <p className="font-bold text-slate-700 dark:text-slate-300">Chưa có chiến dịch Flash Sale nào.</p>
+                        <Tag size={40} className="text-slate-300 dark:text-slate-600" />
+                        <p className="font-semibold text-slate-700 dark:text-slate-300">Chưa có chương trình Flash Sale nào.</p>
                         <button onClick={() => openModal()} className="adm-btn-primary">
-                            Tạo chiến dịch đầu tiên ngay
+                            Tạo chương trình đầu tiên
                         </button>
                     </div>
                 ) : (
@@ -898,10 +888,10 @@ export default function AdminFlashSalesPage() {
                         <table className="adm-table">
                             <thead>
                                 <tr>
-                                    <th>Tên chiến dịch</th>
+                                    <th>Tên chương trình</th>
                                     <th>Thời gian diễn ra</th>
                                     <th>Trạng thái</th>
-                                    <th>Sản phẩm tham gia</th>
+                                    <th>Sản phẩm áp dụng</th>
                                     <th className="text-right">Thao tác</th>
                                 </tr>
                             </thead>
@@ -910,18 +900,18 @@ export default function AdminFlashSalesPage() {
                                     const now = new Date();
                                     const start = new Date(item.startTime);
                                     const end = new Date(item.endTime);
-                                    let statusText = 'Đang chạy';
-                                    let statusColor = 'bg-emerald-100 text-emerald-700 border border-emerald-300';
+                                    let statusText = 'Đang diễn ra';
+                                    let statusColor = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
                                     
                                     if (!item.isActive) {
-                                        statusText = 'Đã tắt';
+                                        statusText = 'Tắt';
                                         statusColor = 'bg-slate-100 text-slate-600 border border-slate-200';
                                     } else if (now < start) {
                                         statusText = 'Sắp diễn ra';
-                                        statusColor = 'bg-blue-100 text-blue-700 border border-blue-300';
+                                        statusColor = 'bg-blue-50 text-blue-700 border border-blue-200';
                                     } else if (now > end) {
                                         statusText = 'Đã kết thúc';
-                                        statusColor = 'bg-rose-100 text-rose-700 border border-rose-300';
+                                        statusColor = 'bg-slate-100 text-slate-500 border border-slate-200';
                                     }
 
                                     return (
@@ -934,7 +924,7 @@ export default function AdminFlashSalesPage() {
                                                 <div className="text-xs font-mono mt-0.5 text-slate-400">đến {formatDate(item.endTime)}</div>
                                             </td>
                                             <td>
-                                                <span className={`px-2.5 py-1 text-xs font-extrabold rounded-lg ${statusColor}`}>
+                                                <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${statusColor}`}>
                                                     {statusText}
                                                 </span>
                                             </td>
@@ -943,8 +933,8 @@ export default function AdminFlashSalesPage() {
                                             </td>
                                             <td className="text-right">
                                                 <div className="flex items-center justify-end gap-1.5">
-                                                    <button onClick={() => openModal(item)} className="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors" title="Chỉnh sửa"><Edit2 size={16} /></button>
-                                                    <button onClick={() => handleDelete(item._id)} className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors" title="Xóa"><Trash2 size={16} /></button>
+                                                    <button onClick={() => openModal(item)} className="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors" title="Chỉnh sửa"><Edit2 size={15} /></button>
+                                                    <button onClick={() => handleDelete(item._id)} className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors" title="Xóa"><Trash2 size={15} /></button>
                                                 </div>
                                             </td>
                                         </tr>
