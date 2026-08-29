@@ -276,30 +276,19 @@ export default function ProductDetailPage() {
     const getVariantStock = () => {
         if (!product || !selectedColor || !selectedSize) return null;
         const variants = product.variants || [];
-        const match = variants.find((v: any) => v.color === selectedColor.name && v.size === selectedSize);
+        const match = variants.find((v: any) => 
+            (v.color === selectedColor.name || v.color_id === selectedColor.name) && 
+            (v.size === selectedSize || v.size_id === selectedSize)
+        );
         
         let stock = 0;
         if (match) {
-            stock = Number(match.stock) || 0;
+            stock = Number(match.stock) !== undefined && !isNaN(Number(match.stock))
+                ? Number(match.stock)
+                : (Number(match.stockQuantity) || Number(match.countInStock) || 0);
         } else if (variants.length === 0) {
             // Fallback cho sản phẩm cũ chưa cấu hình biến thể
-            stock = product.inStock ? 50 : 0;
-        }
-        
-        // Nếu sản phẩm thuộc Flash Sale, chỉ giới hạn số lượng nếu Admin có cài đặt tồn kho riêng cho biến thể Flash Sale đó
-        if (product.isFlashSale) {
-            const hasFsVariants = Array.isArray(product.flashSaleVariants) && product.flashSaleVariants.length > 0;
-            if (hasFsVariants) {
-                const fsVariant = product.flashSaleVariants.find((v: any) => v.color === selectedColor.name && v.size === selectedSize);
-                if (fsVariant && fsVariant.stockQuantity !== undefined && fsVariant.stockQuantity !== null) {
-                    const fsStock = Number(fsVariant.stockQuantity) || 0;
-                    const fsSold = Number(fsVariant.soldQuantity) || 0;
-                    const fsAvailable = Math.max(0, fsStock - fsSold);
-                    if (fsStock > 0) {
-                        stock = Math.min(stock, fsAvailable);
-                    }
-                }
-            }
+            stock = Number(product.countInStock) || (product.inStock ? 50 : 0);
         }
         
         return Math.max(0, stock);
