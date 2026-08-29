@@ -286,17 +286,19 @@ export default function ProductDetailPage() {
             stock = product.inStock ? 50 : 0;
         }
         
-        // If product is in flash sale, check flash sale stock limits
+        // Nếu sản phẩm thuộc Flash Sale, chỉ giới hạn số lượng nếu Admin có cài đặt tồn kho riêng cho biến thể Flash Sale đó
         if (product.isFlashSale) {
-            const fsVariant = product.flashSaleVariants?.find((v: any) => v.color === selectedColor.name && v.size === selectedSize);
-            if (fsVariant) {
-                const fsStock = fsVariant.stockQuantity !== undefined ? Number(fsVariant.stockQuantity) : (Number(fsVariant.stock) || 0);
-                const fsSold = Number(fsVariant.soldQuantity) || 0;
-                stock = Math.min(stock, fsStock - fsSold);
-            } else if (product.flashSaleStock !== undefined && product.flashSaleStock !== null) {
-                // If no specific variant flash sale stock, limit by total flash sale stock left
-                const totalFsStock = Number(product.flashSaleStock) || 0;
-                stock = Math.min(stock, totalFsStock);
+            const hasFsVariants = Array.isArray(product.flashSaleVariants) && product.flashSaleVariants.length > 0;
+            if (hasFsVariants) {
+                const fsVariant = product.flashSaleVariants.find((v: any) => v.color === selectedColor.name && v.size === selectedSize);
+                if (fsVariant && fsVariant.stockQuantity !== undefined && fsVariant.stockQuantity !== null) {
+                    const fsStock = Number(fsVariant.stockQuantity) || 0;
+                    const fsSold = Number(fsVariant.soldQuantity) || 0;
+                    const fsAvailable = Math.max(0, fsStock - fsSold);
+                    if (fsStock > 0) {
+                        stock = Math.min(stock, fsAvailable);
+                    }
+                }
             }
         }
         
