@@ -252,7 +252,7 @@ export default function AdminFlashSalesPage() {
                         color: v.color,
                         size: v.size,
                         flashSalePrice: defaultPrice,
-                        stockQuantity: 10,
+                        stockQuantity: 50,
                         soldQuantity: 0
                     }));
                     return {
@@ -305,7 +305,7 @@ export default function AdminFlashSalesPage() {
                         color: v.color,
                         size: v.size,
                         flashSalePrice: defaultPrice,
-                        stockQuantity: 10,
+                        stockQuantity: 50,
                         soldQuantity: 0
                     }));
                     return {
