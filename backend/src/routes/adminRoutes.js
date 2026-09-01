@@ -5,6 +5,7 @@ const settingController    = require('../controllers/settingController');
 const categoryController   = require('../controllers/categoryController');
 const adminExtraController = require('../controllers/adminExtraController');
 const articleController    = require('../controllers/articleController');
+const adminWithdrawalController = require('../controllers/adminWithdrawalController');
 const auditMiddleware      = require('../middleware/auditMiddleware');
 
 // ⭐ Audit log tự động cho mọi POST/PUT/DELETE trong khu vực admin
@@ -45,11 +46,14 @@ router.put('/extra/:resource',    adminExtraController.update);
 router.delete('/extra/:resource', adminExtraController.delete);
 
 // ─── Articles (Bài viết) ─────────────────────────────────────
-// ⭐ CRUD bài viết đặt ở đây để dùng chung auth admin
-//    (không cần token riêng — auditMiddleware phía trên đã bao phủ)
 router.get('/articles',         articleController.getArticles);
 router.post('/articles',        articleController.createArticle);
 router.put('/articles/:id',     articleController.updateArticle);
 router.delete('/articles/:id',  articleController.deleteArticle);
+
+// ─── Withdrawals (Yêu cầu rút tiền) ──────────────────────────
+router.get('/withdrawals',              adminWithdrawalController.getAllWithdrawals);
+router.post('/withdrawals/:id/approve', adminWithdrawalController.approveWithdrawal);
+router.post('/withdrawals/:id/reject',  adminWithdrawalController.rejectWithdrawal);
 
 module.exports = router;

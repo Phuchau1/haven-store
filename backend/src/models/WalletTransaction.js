@@ -15,6 +15,8 @@ const WalletTransactionSchema = new Schema({
     balanceBefore: { type: Number, required: true, default: 0 },
     balanceAfter: { type: Number, required: true, default: 0 },
     orderId: { type: String, default: '' },
+    withdrawalRequestId: { type: String, default: '' },
+    metadata: { type: Schema.Types.Mixed },
     description: { type: String, required: true },
     status: { type: String, enum: ['completed', 'pending', 'failed'], default: 'completed' },
     createdAt: { type: Date, default: Date.now }
@@ -22,6 +24,7 @@ const WalletTransactionSchema = new Schema({
 
 WalletTransactionSchema.index({ userId: 1, createdAt: -1 });
 WalletTransactionSchema.index({ orderId: 1 });
+WalletTransactionSchema.index({ withdrawalRequestId: 1 });
 
 const WalletTransactionModel = mongoose.models.WalletTransaction || mongoose.model('WalletTransaction', WalletTransactionSchema);
 

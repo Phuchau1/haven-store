@@ -23,6 +23,7 @@ function generateOrderEmailHTML(data) {
     if (paymentMethod === 'bank-transfer') paymentMethodText = 'Chuyển khoản ngân hàng';
     if (paymentMethod === 'vnpay') paymentMethodText = 'Thanh toán qua VNPay';
     if (paymentMethod === 'momo') paymentMethodText = 'Thanh toán qua Ví MoMo';
+    if (paymentMethod === 'wallet') paymentMethodText = 'Thanh toán qua Ví HAVEN Pay (Đã trừ số dư ví)';
 
     const itemsHTML = items
         .map(

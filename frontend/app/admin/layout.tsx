@@ -36,6 +36,7 @@ const MENU_ITEMS = [
     { icon: Ticket,          label: 'Mã giảm giá',  href: '/admin/coupons',           group: 'store' },
     { icon: Mail,            label: 'Email Đăng ký', href: '/admin/newsletters',       group: 'store' },
     { icon: Gift,            label: 'Vòng quay',     href: '/admin/lucky-wheel',       group: 'store' },
+    { icon: ArrowLeftRight,  label: 'Duyệt Rút Tiền Ví', href: '/admin/withdrawals',    group: 'store' },
     { icon: CreditCard,      label: 'Thanh toán',    href: '/admin/payment-methods',   group: 'store' },
     { icon: Truck,           label: 'Đơn vị vận chuyển', href: '/admin/shipping-methods', group: 'store' },
     { icon: Settings,        label: 'Cài đặt',       href: '/admin/settings',          group: 'store' },

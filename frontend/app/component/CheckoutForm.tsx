@@ -130,6 +130,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const [selectedAddressId, setSelectedAddressId] = useState<string>('');
     const [isManualAddress, setIsManualAddress] = useState(false);
 
+    // ── HAVEN Wallet balance ──
+    const [walletBalance, setWalletBalance] = useState<number | null>(null);
+    const [loadingWallet, setLoadingWallet] = useState(false);
+
     // ── Address Dropdowns ──
     const [provinces, setProvinces] = useState<any[]>([]);
     const [districts, setDistricts] = useState<any[]>([]);
@@ -229,8 +233,29 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }
         };
         fetchPaymentMethods();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Tải số dư Ví HAVEN của người dùng
+    useEffect(() => {
+        const fetchWallet = async () => {
+            if (!user || !token) return;
+            setLoadingWallet(true);
+            try {
+                const res = await fetch('/api/wallet', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setWalletBalance(data.walletBalance || 0);
+                }
+            } catch (err) {
+                console.error("Failed to fetch wallet balance", err);
+            } finally {
+                setLoadingWallet(false);
+            }
+        };
+        fetchWallet();
+    }, [user, token]);
 
     // Tải đơn vị vận chuyển theo địa phương
     useEffect(() => {
@@ -464,6 +489,11 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             return;
         }
 
+        if (formData.paymentMethod === 'wallet' && (walletBalance ?? 0) < finalTotal) {
+            setError(`Số dư ví HAVEN không đủ để thanh toán. Số dư hiện có: ${formatPrice(walletBalance ?? 0)}, cần thanh toán: ${formatPrice(finalTotal)}. Vui lòng nạp thêm tiền hoặc chọn phương thức khác.`);
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -485,6 +515,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             // 2. Tạo đơn hàng
             const orderData: OrderData = {
                 id: orderId,
+                userId: user?.id || '',
                 ...formData,
                 items,
                 totalAmount,
@@ -869,6 +900,60 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         </div>
 
                         <div className="space-y-3">
+                            {/* ── PHƯƠNG THỨC 1: VÍ HAVEN PAY (SỐ DƯ) ── */}
+                            {user && (
+                                <label
+                                    className={`flex items-start sm:items-center gap-4 py-4 px-4.5 rounded-xl border transition-all cursor-pointer ${
+                                        formData.paymentMethod === 'wallet'
+                                            ? 'border-indigo-600 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-600'
+                                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                                    }`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value="wallet"
+                                        checked={formData.paymentMethod === 'wallet'}
+                                        onChange={handleChange}
+                                        className="sr-only"
+                                    />
+
+                                    {/* Radio Indicator */}
+                                    <div className={`w-5 h-5 rounded-full border transition-all flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 ${
+                                        formData.paymentMethod === 'wallet' ? 'border-indigo-600 bg-white ring-2 ring-indigo-600' : 'border-slate-300 bg-white'
+                                    }`}>
+                                        {formData.paymentMethod === 'wallet' && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
+                                    </div>
+
+                                    {/* Icon Badge */}
+                                    <div className="w-11 h-8 bg-gradient-to-r from-slate-900 to-indigo-900 rounded-lg flex items-center justify-center shrink-0 shadow-2xs">
+                                        <CreditCard size={18} className="text-emerald-400" />
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="text-base font-bold text-slate-950">
+                                                Ví tài khoản HAVEN Pay
+                                            </p>
+                                            <span className="text-xs font-mono font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                                Số dư: {walletBalance !== null ? formatPrice(walletBalance) : (loadingWallet ? '...' : '0 đ')}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 font-medium mt-1">
+                                            {(walletBalance ?? 0) >= finalTotal ? (
+                                                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                                    ✓ Đủ số dư · Thanh toán 1-chạm không cần xác thực thẻ
+                                                </span>
+                                            ) : (
+                                                <span className="text-rose-600 font-bold">
+                                                    ✕ Số dư không đủ (Thiếu {formatPrice(finalTotal - (walletBalance ?? 0))}). Vui lòng nạp thêm ví hoặc chọn phương thức khác.
+                                                </span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </label>
+                            )}
+
                             {paymentMethods.length > 0 ? (
                                 paymentMethods.map(pm => {
                                     const isSelected = formData.paymentMethod === pm.id;

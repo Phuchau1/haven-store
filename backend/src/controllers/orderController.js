@@ -12,6 +12,8 @@ const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
 const { CouponModel } = require('../models/Coupon');
 const { ShippingMethodModel } = require('../models/ShippingMethod');
+const { UserModel } = require('../models/User');
+const { WalletTransactionModel } = require('../models/WalletTransaction');
 // Sử dụng BullMQ queue để gửi email bất đồng bộ (không làm chậm tốc độ tạo đơn)
 const { enqueueOrderEmail } = require('../services/queueService');
 // Điểm tích lũy: cộng điểm sau khi tạo đơn, thu hồi khi hủy đơn
@@ -426,12 +428,52 @@ const createOrder = async (req, res, next) => {
             }
         }
 
-        const calculatedFinalAmount = calculatedTotalAmount - calculatedDiscount + calculatedShippingFee;
+        const isWalletPayment = String(body.paymentMethod || '').toLowerCase() === 'wallet';
+        let walletTxToSave = null;
+
+        if (isWalletPayment) {
+            let targetUser = null;
+            if (body.userId) {
+                targetUser = await UserModel.findOne({ id: body.userId }).session(session);
+            }
+            if (!targetUser && body.email) {
+                targetUser = await UserModel.findOne({ email: body.email }).session(session);
+            }
+
+            if (!targetUser) {
+                throw new Error('Vui lòng đăng nhập tài khoản để thanh toán bằng Ví HAVEN');
+            }
+
+            const currentBalance = Number(targetUser.walletBalance) || 0;
+            if (currentBalance < calculatedFinalAmount) {
+                throw new Error(`Số dư ví không đủ để thanh toán. Số dư hiện có: ${currentBalance.toLocaleString('vi-VN')} đ, cần: ${calculatedFinalAmount.toLocaleString('vi-VN')} đ`);
+            }
+
+            const balanceAfter = currentBalance - calculatedFinalAmount;
+            targetUser.walletBalance = balanceAfter;
+            await targetUser.save({ session });
+
+            const txId = `WT-${Date.now().toString().slice(-8)}${Math.floor(10 + Math.random() * 90)}`;
+            walletTxToSave = new WalletTransactionModel({
+                id: txId,
+                userId: targetUser.id,
+                userEmail: targetUser.email,
+                type: 'payment',
+                amount: -calculatedFinalAmount,
+                balanceBefore: currentBalance,
+                balanceAfter,
+                orderId: orderId,
+                description: `Thanh toán đơn hàng #${orderId} bằng Ví HAVEN`,
+                status: 'completed'
+            });
+            await walletTxToSave.save({ session });
+        }
 
         const newOrderData = {
             ...body,
             id: orderId,
-            status: 'pending', // Chờ xác nhận
+            status: isWalletPayment ? 'processing' : 'pending', // Nếu thanh toán ví -> processing
+            paymentStatus: isWalletPayment ? 'paid' : (body.paymentStatus || 'unpaid'),
             totalAmount: calculatedTotalAmount,
             discountAmount: calculatedDiscount,
             shippingFee: calculatedShippingFee,

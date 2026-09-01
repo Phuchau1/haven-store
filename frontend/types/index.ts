@@ -99,6 +99,7 @@ export interface User {
     phone?: string;
     address?: string;
     avatar?: string;
+    walletBalance?: number;
 }
 
 export interface CartItem {
@@ -110,6 +111,7 @@ export interface CartItem {
 
 export interface OrderData {
     id?: string;
+    userId?: string;
     customerName: string;
     phone: string;
     email: string;
