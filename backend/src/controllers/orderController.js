@@ -507,18 +507,23 @@ const createOrder = async (req, res, next) => {
         await session.commitTransaction();
         session.endSession();
 
-        // 5. Gửi email xác nhận đơn hàng cho TẤT CẢ phương thức thanh toán
-        log(`[Order] Gửi email xác nhận cho đơn hàng ${newOrderData.id} (phương thức: ${body.paymentMethod})`);
-        enqueueOrderEmail(newOrderData);
+        // 5. Gửi email xác nhận đơn hàng & cộng điểm tích lũy:
+        // - COD: Khách đã xác nhận đặt hàng trả tiền mặt.
+        // - Ví HAVEN: Đã trừ tiền thành công 100%.
+        // - Với MoMo & VNPay: Sẽ gửi email và tích điểm khi cổng thanh toán IPN báo thanh toán thành công!
+        const isImmediateOrder = isWalletPayment || String(body.paymentMethod || '').toLowerCase() === 'cod' || String(body.paymentMethod || '').toLowerCase() === 'pay-cod' || String(body.paymentMethod || '').toLowerCase() === 'bank-transfer';
 
-        // 6. Cộng điểm tích lũy cho người dùng (nếu có userId)
-        if (body.userId) {
-            try {
-                await earnPoints(body.userId, calculatedFinalAmount, orderId);
-                log(`[Loyalty] Đã cộng điểm cho user ${body.userId} từ đơn hàng ${orderId}`);
-            } catch (loyaltyErr) {
-                // Lỗi loyalty không nên ảnh hưởng đến đơn hàng
-                log(`[Loyalty] Lỗi khi cộng điểm: ${loyaltyErr.message}`);
+        if (isImmediateOrder) {
+            log(`[Order] Gửi email xác nhận cho đơn hàng ${newOrderData.id} (phương thức: ${body.paymentMethod})`);
+            enqueueOrderEmail(newOrderData);
+
+            if (body.userId) {
+                try {
+                    await earnPoints(body.userId, calculatedFinalAmount, orderId);
+                    log(`[Loyalty] Đã cộng điểm cho user ${body.userId} từ đơn hàng ${orderId}`);
+                } catch (loyaltyErr) {
+                    log(`[Loyalty] Lỗi khi cộng điểm: ${loyaltyErr.message}`);
+                }
             }
         }
 

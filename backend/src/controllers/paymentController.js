@@ -60,6 +60,7 @@ const createPaymentUrl = async (req, res) => {
  * @desc Helper: Cập nhật đơn hàng thành công và trừ tồn kho
  */
 const confirmOrderPaid = async (orderId) => {
+    const { earnPoints } = require('../services/loyaltyService');
     const updatedOrder = await OrderModel.findOneAndUpdate(
         { id: orderId, paymentStatus: { $ne: 'paid' } }, // Chỉ update nếu chưa paid (idempotent)
         { status: 'processing', paymentStatus: 'paid' },
@@ -69,6 +70,16 @@ const confirmOrderPaid = async (orderId) => {
         await exportStockOnApproval(updatedOrder.items, orderId);
         // Gửi email xác nhận thanh toán thành công
         enqueueOrderEmail(updatedOrder.toObject());
+
+        // Cộng điểm tích lũy cho người dùng
+        if (updatedOrder.userId) {
+            try {
+                await earnPoints(updatedOrder.userId, updatedOrder.finalAmount || updatedOrder.totalAmount, orderId);
+                logger.info(`[Loyalty] Đã cộng điểm cho user ${updatedOrder.userId} từ đơn hàng ${orderId}`);
+            } catch (lErr) {
+                logger.warn(`[Loyalty Warning] ${lErr.message}`);
+            }
+        }
     }
     return updatedOrder;
 };
