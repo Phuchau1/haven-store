@@ -439,6 +439,9 @@ const createOrder = async (req, res, next) => {
             }
         }
 
+        // Tính tổng tiền thanh toán cuối cùng của đơn hàng
+        const calculatedFinalAmount = Math.max(0, calculatedTotalAmount - calculatedDiscount + calculatedShippingFee);
+
         const isWalletPayment = String(body.paymentMethod || '').toLowerCase() === 'wallet';
         let walletTxToSave = null;
 
