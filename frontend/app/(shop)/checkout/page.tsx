@@ -76,51 +76,49 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] pb-24 lg:pb-16">
+        <div className="min-h-screen bg-slate-50/50 pb-24 lg:pb-16">
             {/* ── HEADER DOANH NGHIỆP & TIẾN TRÌNH THANH TOÁN ── */}
-            <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-2xs backdrop-blur-md bg-white/95">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-sm sm:text-base font-bold text-slate-800 hover:text-slate-950 transition-colors cursor-pointer py-1.5 px-3 -ml-2 rounded-xl hover:bg-slate-100"
+                        className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer py-1.5 px-2.5 -ml-2 rounded-lg hover:bg-slate-100/80"
                     >
-                        <ChevronLeft size={20} />
-                        <span>Giỏ hàng</span>
+                        <ChevronLeft size={18} />
+                        <span>Quay lại giỏ hàng</span>
                     </button>
 
                     {/* Progress Steps (Desktop) */}
-                    <div className="hidden md:flex items-center gap-3 text-sm sm:text-base font-bold">
-                        <span className="text-slate-400">1. Giỏ hàng</span>
+                    <div className="hidden md:flex items-center gap-2.5 text-xs sm:text-sm font-medium">
+                        <span className="text-slate-400">Giỏ hàng</span>
                         <span className="text-slate-300">›</span>
-                        <span className="text-[#0f172a] font-black flex items-center gap-1.5 bg-slate-100 px-3.5 py-1.5 rounded-full">
-                            2. Thanh toán
+                        <span className="text-slate-900 font-semibold bg-slate-100 px-3 py-1 rounded-full flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-900" />
+                            Thanh toán
                         </span>
                         <span className="text-slate-300">›</span>
-                        <span className="text-slate-400">3. Hoàn tất</span>
+                        <span className="text-slate-400">Hoàn tất</span>
                     </div>
 
-                    <div className="w-20" />
+                    <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+                        <ShieldCheck size={16} className="text-emerald-600" />
+                        <span className="hidden sm:inline">Bảo mật SSL 256-bit</span>
+                    </div>
                 </div>
             </header>
 
             {/* ── TIÊU ĐỀ TRANG ── */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-7 sm:pt-9 pb-4">
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <div className="flex items-center gap-3">
-                        <span className="w-2 h-7 sm:h-8 bg-[#0f172a] rounded-full" />
-                        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-slate-950">
-                            Thanh toán đơn hàng
-                        </h1>
-                    </div>
-                </motion.div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Thanh toán đơn hàng
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    Vui lòng kiểm tra kỹ thông tin người nhận và lựa chọn phương thức thanh toán phù hợp.
+                </p>
             </div>
 
             {/* ── NỘI DUNG CHÍNH (2 CỘT CHUẨN DOANH NGHIỆP) ── */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
                 <CheckoutForm onSuccess={handleOrderSuccess} />
             </main>
 
