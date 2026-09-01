@@ -215,24 +215,43 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         }
     }, [localAddress, selectedAddressId, isManualAddress]);
 
+    const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
+        { id: 'cod', name_methond: 'Thanh toán khi nhận hàng (COD)', description: 'Thanh toán tiền mặt trực tiếp khi nhận hàng tận nơi.', is_active: true },
+        { id: 'vnpay', name_methond: 'Thanh toán qua Cổng VNPay', description: 'Hỗ trợ thẻ ATM nội địa, QR Pay, Visa/Mastercard.', is_active: true },
+        { id: 'momo', name_methond: 'Thanh toán qua Ví MoMo', description: 'Quét mã MoMo hoặc liên kết tài khoản tiện lợi.', is_active: true },
+        { id: 'bank-transfer', name_methond: 'Chuyển khoản Ngân hàng (VietQR 247)', description: 'Quét mã VietQR chuyển khoản nhanh 24/7 tự động.', is_active: true }
+    ];
+
+    const DEFAULT_SHIPPING_METHODS: ShippingMethod[] = [
+        { id: 'GHN', name_methond: 'Giao Hàng Nhanh (GHN Express)', description: 'Giao hàng tiêu chuẩn 2-3 ngày toàn quốc', cost: 30000, estimated_time: '2-3 ngày', is_active: true },
+        { id: 'GHTK', name_methond: 'Giao Hàng Tiết Kiệm (GHTK)', description: 'Giao hàng tiết kiệm 3-4 ngày', cost: 25000, estimated_time: '3-4 ngày', is_active: true }
+    ];
+
     // Tải phương thức thanh toán
     useEffect(() => {
         const fetchPaymentMethods = async () => {
             try {
                 const res = await fetch('/api/admin/extra/payment-methods');
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                     const activeMethods = data.data.filter((pm: PaymentMethod) => pm.is_active);
-                    setPaymentMethods(activeMethods);
-                    if (activeMethods.length > 0 && !activeMethods.find((m: PaymentMethod) => m.id === formData.paymentMethod)) {
-                        setFormData(prev => ({ ...prev, paymentMethod: activeMethods[0].id }));
+                    if (activeMethods.length > 0) {
+                        setPaymentMethods(activeMethods);
+                        if (!activeMethods.find((m: PaymentMethod) => m.id === formData.paymentMethod) && formData.paymentMethod !== 'wallet') {
+                            setFormData(prev => ({ ...prev, paymentMethod: activeMethods[0].id }));
+                        }
+                        return;
                     }
                 }
+                // Fallback nếu API chưa có data
+                setPaymentMethods(DEFAULT_PAYMENT_METHODS);
             } catch (err) {
-                console.error("Failed to fetch payment methods", err);
+                console.error("Failed to fetch payment methods, using defaults", err);
+                setPaymentMethods(DEFAULT_PAYMENT_METHODS);
             }
         };
         fetchPaymentMethods();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Tải số dư Ví HAVEN của người dùng
@@ -264,8 +283,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             const district = localAddress.district;
             
             if (!province) {
-                setShippingMethods([]);
-                setSelectedShippingMethodId('');
+                setShippingMethods(DEFAULT_SHIPPING_METHODS);
+                if (!selectedShippingMethodId) {
+                    setSelectedShippingMethodId(DEFAULT_SHIPPING_METHODS[0].id);
+                }
                 return;
             }
 
@@ -278,19 +299,29 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     body: JSON.stringify({ province, district, totalWeight, totalAmount })
                 });
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                     setShippingMethods(data.data);
-                    if (data.data.length > 0) {
+                    if (!data.data.find((m: any) => m.id === selectedShippingMethodId)) {
                         setSelectedShippingMethodId(data.data[0].id);
+                    }
+                } else {
+                    setShippingMethods(DEFAULT_SHIPPING_METHODS);
+                    if (!selectedShippingMethodId) {
+                        setSelectedShippingMethodId(DEFAULT_SHIPPING_METHODS[0].id);
                     }
                 }
             } catch (err) {
-                console.error("Failed to calculate shipping", err);
+                console.error("Failed to calculate shipping, using defaults", err);
+                setShippingMethods(DEFAULT_SHIPPING_METHODS);
+                if (!selectedShippingMethodId) {
+                    setSelectedShippingMethodId(DEFAULT_SHIPPING_METHODS[0].id);
+                }
             } finally {
                 setIsCalculatingShipping(false);
             }
         };
         fetchShippingMethods();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [localAddress.city, localAddress.district, items, totalAmount]);
 
     // Đồng bộ user info & sổ địa chỉ
@@ -298,29 +329,43 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         const savedInfoStr = localStorage.getItem('phstore-checkout-info');
         const savedInfo = savedInfoStr ? JSON.parse(savedInfoStr) : null;
 
+        const initialAddress = user?.address || savedInfo?.address || '';
+
         setFormData(prev => ({
             ...prev,
             customerName: user?.name || savedInfo?.customerName || prev.customerName,
             email: user?.email || savedInfo?.email || prev.email,
             phone: user?.phone || savedInfo?.phone || prev.phone,
-            address: user?.address || savedInfo?.address || prev.address
+            address: initialAddress || prev.address
         }));
+
+        if (initialAddress && !localAddress.street) {
+            setLocalAddress(prev => ({ ...prev, street: initialAddress }));
+        }
 
         if (user) {
             setLoadingAddresses(true);
             fetch(`/api/addresses?user_id=${user.id}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success && data.addresses.length > 0) {
+                    if (data.success && data.addresses && data.addresses.length > 0) {
                         setSavedAddresses(data.addresses);
                         const defAddr = data.addresses.find((a: SavedAddress) => a.is_default) || data.addresses[0];
                         if (defAddr && !isManualAddress) {
                             handleSelectAddress(defAddr);
                         }
+                    } else {
+                        // Nếu chưa có sổ địa chỉ, kích hoạt chế độ nhập thủ công
+                        setIsManualAddress(true);
                     }
                 })
-                .catch(err => console.error(err))
+                .catch(err => {
+                    console.error(err);
+                    setIsManualAddress(true);
+                })
                 .finally(() => setLoadingAddresses(false));
+        } else {
+            setIsManualAddress(true);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
