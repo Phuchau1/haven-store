@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
-type UserRole = 'admin' | 'warehouse_manager' | 'warehouse_staff' | 'user';
+type UserRole = 'admin' | 'user';
 
 interface UserData {
     id: string;
@@ -44,18 +44,8 @@ const ROLE_LABELS: Record<UserRole, { label: string; color: string; badge: strin
         color: 'text-purple-700 bg-purple-50 border-purple-200',
         badge: '👑 Admin'
     },
-    warehouse_manager: {
-        label: 'Quản lý kho',
-        color: 'text-blue-700 bg-blue-50 border-blue-200',
-        badge: '📦 QL Kho'
-    },
-    warehouse_staff: {
-        label: 'Nhân viên kho',
-        color: 'text-amber-700 bg-amber-50 border-amber-200',
-        badge: '🚚 NV Kho'
-    },
     user: {
-        label: 'Khách hàng',
+        label: 'Khách hàng (User)',
         color: 'text-slate-700 bg-slate-100 border-slate-200',
         badge: '👤 User'
     }
@@ -192,7 +182,7 @@ export default function AdminUsers() {
 
     // Thống kê nhanh
     const totalAdmins = users.filter(u => u.role === 'admin').length;
-    const totalStaffs = users.filter(u => ['warehouse_manager', 'warehouse_staff'].includes(u.role)).length;
+    const totalCustomers = users.filter(u => u.role === 'user').length;
     const totalLocked = users.filter(u => u.isLocked).length;
 
     return (
@@ -241,9 +231,9 @@ export default function AdminUsers() {
                     <p className="text-[11px] font-bold text-purple-700 uppercase tracking-wider">Quản trị viên (Admin)</p>
                     <p className="text-2xl font-black text-purple-900 font-mono mt-1">{totalAdmins}</p>
                 </div>
-                <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 shadow-2xs">
-                    <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Nhân sự / Kho</p>
-                    <p className="text-2xl font-black text-blue-900 font-mono mt-1">{totalStaffs}</p>
+                <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 shadow-2xs">
+                    <p className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">Khách hàng (User)</p>
+                    <p className="text-2xl font-black text-indigo-900 font-mono mt-1">{totalCustomers}</p>
                 </div>
                 <div className="bg-rose-50/50 p-4 rounded-2xl border border-rose-100 shadow-2xs">
                     <p className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Tài khoản bị khóa</p>
@@ -257,9 +247,7 @@ export default function AdminUsers() {
                     {[
                         { key: 'all', label: 'Tất cả' },
                         { key: 'admin', label: `Admin (${totalAdmins})` },
-                        { key: 'warehouse_manager', label: 'Quản lý kho' },
-                        { key: 'warehouse_staff', label: 'Nhân viên kho' },
-                        { key: 'user', label: 'Khách hàng' }
+                        { key: 'user', label: `Khách hàng (${totalCustomers})` }
                     ].map(tab => (
                         <button
                             key={tab.key}
@@ -375,13 +363,11 @@ export default function AdminUsers() {
                                                     </span>
                                                 ) : (
                                                     <select
-                                                        value={user.role}
+                                                        value={user.role === 'admin' ? 'admin' : 'user'}
                                                         onChange={(e) => handleUpdateRole(user.id, e.target.value as UserRole)}
                                                         className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-600 ${roleMeta.color}`}
                                                     >
                                                         <option value="admin">👑 Admin (Quản trị viên)</option>
-                                                        <option value="warehouse_manager">📦 Quản lý kho</option>
-                                                        <option value="warehouse_staff">🚚 Nhân viên kho</option>
                                                         <option value="user">👤 Khách hàng (User)</option>
                                                     </select>
                                                 )}
@@ -542,8 +528,6 @@ export default function AdminUsers() {
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                     >
                                         <option value="admin">👑 Admin (Quản trị viên toàn quyền)</option>
-                                        <option value="warehouse_manager">📦 Quản lý kho (Vận hành & Xuất nhập)</option>
-                                        <option value="warehouse_staff">🚚 Nhân viên kho (Soạn hàng & Giao vận)</option>
                                         <option value="user">👤 Khách hàng (User)</option>
                                     </select>
                                 </div>

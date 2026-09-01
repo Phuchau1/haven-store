@@ -412,7 +412,7 @@ const createUser = async (req, res, next) => {
             return res.status(400).json({ success: false, message: `Email [${cleanEmail}] đã tồn tại trong hệ thống` });
         }
 
-        const validRoles = ['admin', 'warehouse_manager', 'warehouse_staff', 'user'];
+        const validRoles = ['admin', 'user'];
         const targetRole = validRoles.includes(role) ? role : 'admin';
 
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
