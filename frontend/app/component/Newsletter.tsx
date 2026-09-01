@@ -77,7 +77,7 @@ export default function Newsletter() {
     };
 
     return (
-        <section className="py-12 lg:py-16 bg-white overflow-hidden">
+        <section className="py-12 lg:py-16 bg-slate-50/60 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* ── 3D WRAPPER CONTAINER ── */}
                 <div style={{ perspective: 1200 }}>
@@ -90,18 +90,18 @@ export default function Newsletter() {
                             rotateY,
                             transformStyle: 'preserve-3d'
                         }}
-                        className="relative rounded-3xl bg-slate-950 text-white p-7 sm:p-10 lg:p-14 overflow-hidden border border-slate-800/90 shadow-2xl transition-shadow hover:shadow-amber-500/10"
+                        className="relative rounded-3xl bg-gradient-to-br from-white via-slate-50/90 to-amber-50/40 text-slate-900 p-7 sm:p-10 lg:p-14 overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/70 transition-all hover:shadow-2xl hover:shadow-amber-500/10"
                     >
                         {/* ── 3D BACKGROUND AMBIENT GLOW & TEXT MARQUEE ── */}
-                        <div className="absolute -top-32 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-                        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-slate-700/20 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -top-32 -right-32 w-96 h-96 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
 
                         {/* Hàng chữ chìm 3D chạy phía sau */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] select-none pointer-events-none overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] select-none pointer-events-none overflow-hidden">
                             <motion.div 
                                 animate={{ x: [0, -1000] }}
                                 transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-                                className="whitespace-nowrap text-8xl sm:text-9xl font-black uppercase tracking-widest text-white"
+                                className="whitespace-nowrap text-8xl sm:text-9xl font-black uppercase tracking-widest text-slate-900"
                             >
                                 HAVEN CLUB · EXCLUSIVE PRIVILEGES · SS 2026 COLLECTION · WELCOME 10% OFF ·
                             </motion.div>
@@ -109,54 +109,54 @@ export default function Newsletter() {
 
                         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
                             
-                            {/* ── CỘT TRÁI: TIÊU ĐỀ & ĐẶC QUYỀN ── */}
+                            {/* ── CỘT TRÁI: TIÊU ĐỀ & ĐẶC QUYỀN SÁNG RÕ ── */}
                             <div className="lg:col-span-7 text-left space-y-4" style={{ transform: 'translateZ(30px)' }}>
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25">
-                                    <Crown size={13} className="text-amber-400" />
-                                    <span className="text-xs font-semibold text-amber-300 tracking-wide">
+                                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 shadow-2xs">
+                                    <Crown size={14} className="text-amber-700" />
+                                    <span className="text-xs font-bold text-amber-900 tracking-wide uppercase">
                                         HAVEN VIP PRIVILEGE
                                     </span>
                                 </div>
 
                                 <div>
-                                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white uppercase leading-tight">
+                                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-950 uppercase leading-tight">
                                         Thành Viên Đặc Quyền
                                     </h2>
-                                    <p className="mt-2 text-sm sm:text-base text-slate-300 font-normal leading-relaxed max-w-xl">
-                                        Đăng ký ngay để nhận <strong className="text-amber-300 font-bold">Voucher 10%</strong> cho đơn hàng đầu tiên, cùng đặc quyền trải nghiệm sớm các bộ sưu tập giới hạn.
+                                    <p className="mt-2 text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-xl">
+                                        Đăng ký ngay để nhận <strong className="text-amber-600 font-bold">Voucher 10%</strong> cho đơn hàng đầu tiên, cùng đặc quyền trải nghiệm sớm các bộ sưu tập giới hạn.
                                     </p>
                                 </div>
 
                                 {/* Feature Badges */}
-                                <div className="pt-2 flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-300 font-medium">
-                                    <div className="flex items-center gap-1.5">
-                                        <Sparkles size={15} className="text-amber-400" />
+                                <div className="pt-1 flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-700 font-semibold">
+                                    <div className="flex items-center gap-1.5 bg-white/80 px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                        <Sparkles size={16} className="text-amber-500" />
                                         <span>Ưu đãi chào mừng 10%</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Gift size={15} className="text-amber-400" />
+                                    <div className="flex items-center gap-1.5 bg-white/80 px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                        <Gift size={16} className="text-amber-500" />
                                         <span>Quà tặng sinh nhật</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <ShieldCheck size={15} className="text-emerald-400" />
+                                    <div className="flex items-center gap-1.5 bg-white/80 px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                        <ShieldCheck size={16} className="text-emerald-600" />
                                         <span>Bảo mật tuyệt đối</span>
                                     </div>
                                 </div>
 
-                                {/* Form đăng ký */}
+                                {/* Form đăng ký sáng rõ */}
                                 <div className="pt-2">
                                     <form
                                         onSubmit={handleSubmit}
-                                        className="flex flex-col sm:flex-row items-center gap-2 bg-slate-900/90 border border-slate-700/80 p-2 rounded-2xl shadow-xl backdrop-blur-md transition-all focus-within:border-amber-400/80 max-w-xl"
+                                        className="flex flex-col sm:flex-row items-center gap-2 bg-white border border-slate-300 p-2 rounded-2xl shadow-md transition-all focus-within:border-slate-900 focus-within:ring-2 focus-within:ring-slate-900/10 max-w-xl"
                                     >
                                         <div className="flex items-center gap-3 flex-1 px-3 py-2 w-full">
-                                            <Mail size={18} className="text-amber-400 shrink-0" />
+                                            <Mail size={18} className="text-amber-600 shrink-0" />
                                             <input
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 placeholder="Nhập địa chỉ email của bạn..."
-                                                className="w-full bg-transparent text-sm sm:text-base text-white placeholder:text-slate-400 focus:outline-none font-medium"
+                                                className="w-full bg-transparent text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none font-medium"
                                                 required
                                                 disabled={loading}
                                             />
@@ -167,16 +167,16 @@ export default function Newsletter() {
                                             disabled={loading}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className="w-full sm:w-auto px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs sm:text-sm font-bold tracking-wide uppercase whitespace-nowrap transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                            className="w-full sm:w-auto px-6 py-3.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-bold tracking-wide uppercase whitespace-nowrap transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                                         >
                                             <span>{loading ? 'Đang gửi...' : 'Nhận ưu đãi 10%'}</span>
-                                            <ArrowRight size={15} className="text-slate-950" />
+                                            <ArrowRight size={15} className="text-white" />
                                         </motion.button>
                                     </form>
                                 </div>
                             </div>
 
-                            {/* ── CỘT PHẢI: 3D FLOATING VIP MEMBER CARD MOCKUP ── */}
+                            {/* ── CỘT PHẢI: 3D FLOATING LUXURY VIP MEMBER CARD ── */}
                             <div className="lg:col-span-5 hidden lg:flex justify-center items-center" style={{ transform: 'translateZ(50px)' }}>
                                 <motion.div
                                     animate={{ 
@@ -188,34 +188,34 @@ export default function Newsletter() {
                                         repeat: Infinity, 
                                         ease: 'easeInOut' 
                                     }}
-                                    className="relative w-80 h-48 rounded-2xl p-5 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/80 shadow-2xl shadow-black/80 flex flex-col justify-between overflow-hidden"
+                                    className="relative w-84 h-50 rounded-2xl p-6 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-amber-400/60 shadow-2xl shadow-slate-900/30 flex flex-col justify-between overflow-hidden text-white"
                                 >
                                     {/* Holographic light beam effect */}
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-400/5 to-transparent pointer-events-none" />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-400/10 to-transparent pointer-events-none" />
 
                                     {/* Card Header */}
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-black tracking-widest text-white">HAVEN</span>
-                                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                            <span className="text-base font-black tracking-widest text-white">HAVEN</span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40">
                                                 BLACK VIP
                                             </span>
                                         </div>
-                                        <div className="w-7 h-5 rounded bg-amber-400/80 flex items-center justify-center shadow-inner">
-                                            <div className="w-5 h-3 border border-amber-900/60 rounded-xs" />
+                                        <div className="w-8 h-5.5 rounded bg-gradient-to-r from-amber-300 to-amber-500 flex items-center justify-center shadow-inner">
+                                            <div className="w-5.5 h-3.5 border border-amber-900/60 rounded-xs" />
                                         </div>
                                     </div>
 
                                     {/* Card Center: Voucher info */}
                                     <div>
-                                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Special Member Privilege</p>
-                                        <p className="text-xl font-extrabold text-amber-300 tracking-tight mt-0.5">10% OFF FIRST ORDER</p>
+                                        <p className="text-[11px] text-slate-300 uppercase tracking-wider font-semibold">Special Member Privilege</p>
+                                        <p className="text-2xl font-extrabold text-amber-300 tracking-tight mt-0.5">10% OFF FIRST ORDER</p>
                                     </div>
 
                                     {/* Card Footer */}
-                                    <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-[11px] text-slate-400 font-mono">
+                                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-800 text-xs text-slate-400 font-mono">
                                         <span>MEMBER · 2026</span>
-                                        <span className="text-amber-400 font-bold font-sans text-xs">#HV-WELCOME10</span>
+                                        <span className="text-amber-400 font-bold font-sans text-xs sm:text-sm">#HV-WELCOME10</span>
                                     </div>
                                 </motion.div>
                             </div>
