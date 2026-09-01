@@ -523,7 +523,14 @@ const createOrder = async (req, res, next) => {
         }
 
 
-        return res.json({ success: true, orderId: newOrderData.id, finalAmount: calculatedFinalAmount });
+        return res.json({ 
+            success: true, 
+            orderId: newOrderData.id, 
+            finalAmount: calculatedFinalAmount,
+            paymentMethod: body.paymentMethod,
+            paymentStatus: newOrderData.paymentStatus,
+            newWalletBalance: isWalletPayment && walletTxToSave ? walletTxToSave.balanceAfter : undefined
+        });
     } catch (error) {
         // NẾU CÓ LỖI (Ví dụ: hết hàng) -> Hủy bỏ mọi thay đổi ở bước 1,2,3
         await session.abortTransaction();

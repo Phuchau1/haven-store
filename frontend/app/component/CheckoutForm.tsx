@@ -609,6 +609,21 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 throw new Error(result.error || result.message || 'Có lỗi xảy ra khi đặt hàng');
             }
 
+            // Cập nhật số dư ví tức thì nếu vừa thanh toán bằng Ví HAVEN
+            if (result.newWalletBalance !== undefined) {
+                setWalletBalance(result.newWalletBalance);
+                try {
+                    const storedUser = localStorage.getItem('user');
+                    if (storedUser) {
+                        const parsed = JSON.parse(storedUser);
+                        parsed.walletBalance = result.newWalletBalance;
+                        localStorage.setItem('user', JSON.stringify(parsed));
+                    }
+                } catch (e) {
+                    console.error('Lỗi khi cập nhật localStorage user wallet:', e);
+                }
+            }
+
             // Lưu cache
             localStorage.setItem('phstore-checkout-info', JSON.stringify({
                 customerName: formData.customerName,
