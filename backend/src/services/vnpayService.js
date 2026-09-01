@@ -22,6 +22,11 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     let secretKey = process.env.VNP_HASH_SECRET;
     let vnpUrl = process.env.VNP_URL;
     let returnUrl = process.env.VNP_RETURN_URL;
+    if (!returnUrl && req) {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host;
+        returnUrl = `${protocol}://${host}/api/payment/vnpay-return`;
+    }
 
     if (!tmnCode || !secretKey) {
         throw new Error('Chưa cấu hình VNPay trên server (thiếu VNP_TMN_CODE hoặc VNP_HASH_SECRET).');
@@ -50,6 +55,16 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
         if (ipAddr === '::1' || ipAddr === '::ffff:127.0.0.1') ipAddr = '127.0.0.1';
     }
 
+    // Chuẩn hóa OrderInfo thành ASCII không dấu chuẩn VNPay
+    const rawInfo = orderInfo || `Thanh toan don hang ${orderId}`;
+    const cleanInfo = rawInfo
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^a-zA-Z0-9 ]/g, '')
+        .trim();
+
     let currCode = 'VND';
     let vnp_Params = {};
     
@@ -57,12 +72,11 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     vnp_Params['vnp_Command'] = 'pay';
     vnp_Params['vnp_TmnCode'] = tmnCode;
     vnp_Params['vnp_Amount'] = Math.round(amount * 100);
-    // Không ép cứng vnp_BankCode để VNPay mở toàn bộ phương thức: QR Pay, Thẻ ATM, Visa/Mastercard
     vnp_Params['vnp_CreateDate'] = createDate;
     vnp_Params['vnp_CurrCode'] = currCode;
     vnp_Params['vnp_IpAddr'] = ipAddr;
     vnp_Params['vnp_Locale'] = 'vn';
-    vnp_Params['vnp_OrderInfo'] = orderInfo || `Thanh toan don hang ${orderId}`;
+    vnp_Params['vnp_OrderInfo'] = cleanInfo || `Thanh toan don hang ${orderId}`;
     vnp_Params['vnp_OrderType'] = 'other';
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_TxnRef'] = orderId;
