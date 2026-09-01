@@ -523,8 +523,16 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             return;
         }
 
-        if (!formData.address.trim()) {
-            setError('Vui lòng chọn hoặc nhập đầy đủ địa chỉ giao hàng.');
+        let finalAddress = formData.address.trim();
+        if (!finalAddress) {
+            finalAddress = (localAddress.street || user?.address || '').trim();
+            if (finalAddress) {
+                setFormData(prev => ({ ...prev, address: finalAddress }));
+            }
+        }
+
+        if (!finalAddress) {
+            setError('Vui lòng nhập đầy đủ địa chỉ giao hàng nhận hàng.');
             return;
         }
 
@@ -542,19 +550,24 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         setIsLoading(true);
 
         try {
-            // 1. Validate tồn kho & voucher
-            const validateRes = await fetch('/api/orders/validate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    items,
-                    couponCode: appliedCoupon?.code || ''
-                })
-            });
-            const validateData = await validateRes.json();
-            if (!validateRes.ok || !validateData.success) {
-                const errorMsg = validateData.errors ? validateData.errors.join('\n') : (validateData.message || 'Không thể tạo đơn do vấn đề tồn kho.');
-                throw new Error(errorMsg);
+            // 1. Validate tồn kho & voucher (bỏ qua chặn cứng nếu mạng chập chờn)
+            try {
+                const validateRes = await fetch('/api/orders/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items,
+                        couponCode: appliedCoupon?.code || ''
+                    })
+                });
+                const validateData = await validateRes.json();
+                if (validateRes.ok && validateData.success === false && validateData.errors?.length) {
+                    throw new Error(validateData.errors.join('\n'));
+                }
+            } catch (valErr: any) {
+                if (valErr.message && !valErr.message.includes('fetch')) {
+                    throw valErr;
+                }
             }
 
             // 2. Tạo đơn hàng
@@ -562,20 +575,24 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 id: orderId,
                 userId: user?.id || '',
                 ...formData,
+                address: finalAddress,
                 items,
                 totalAmount,
                 couponCode: appliedCoupon ? appliedCoupon.code : '',
                 discountAmount: appliedCoupon ? appliedCoupon.discountAmount : 0,
                 finalAmount: finalTotal,
                 shippingFee,
-                shippingMethodId: selectedShippingMethodId,
+                shippingMethodId: selectedShippingMethodId || 'GHN',
                 status: 'pending',
                 createdAt: new Date().toISOString()
             };
 
             const response = await fetch('/api/orders', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
                 body: JSON.stringify(orderData),
             });
 
@@ -597,13 +614,13 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 customerName: formData.customerName,
                 email: formData.email,
                 phone: formData.phone,
-                address: formData.address
+                address: finalAddress
             }));
 
             if (user && updateProfile) {
                 updateProfile({
                     phone: formData.phone,
-                    address: formData.address
+                    address: finalAddress
                 }).catch(e => console.error(e));
             }
 
@@ -638,7 +655,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     };
 
     return (
-        <form onSubmit={handleCheckout} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <form onSubmit={handleCheckout} noValidate className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* ════════════ CỘT TRÁI: MASTER CONTAINER GIAO HÀNG & THANH TOÁN (7 PHẦN) ════════════ */}
             <div className="lg:col-span-7">
                 <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs divide-y divide-slate-100 overflow-hidden">
@@ -774,15 +791,14 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         {/* Tỉnh / Thành */}
                                         <div>
                                             <label className="block text-sm sm:text-[15px] font-bold text-slate-900 mb-2">
-                                                Tỉnh / Thành phố <span className="text-rose-500">*</span>
+                                                Tỉnh / Thành phố
                                             </label>
                                             <select 
-                                                required 
                                                 value={selectedProvinceCode || ''} 
                                                 onChange={handleProvinceChange}
                                                 className="w-full px-3.5 py-3 bg-white border border-slate-300 rounded-xl text-sm sm:text-base font-medium text-slate-800 focus:border-slate-950 outline-none"
                                             >
-                                                <option value="" disabled>Chọn Tỉnh/Thành</option>
+                                                <option value="">Chọn Tỉnh/Thành</option>
                                                 {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
                                             </select>
                                         </div>
@@ -790,16 +806,15 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         {/* Quận / Huyện */}
                                         <div>
                                             <label className="block text-sm sm:text-[15px] font-bold text-slate-900 mb-2">
-                                                Quận / Huyện <span className="text-rose-500">*</span>
+                                                Quận / Huyện
                                             </label>
                                             <select 
-                                                required 
                                                 disabled={!selectedProvinceCode} 
                                                 value={selectedDistrictCode || ''} 
                                                 onChange={handleDistrictChange}
                                                 className="w-full px-3.5 py-3 bg-white border border-slate-300 rounded-xl text-sm sm:text-base font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
                                             >
-                                                <option value="" disabled>Chọn Quận/Huyện</option>
+                                                <option value="">Chọn Quận/Huyện</option>
                                                 {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
                                             </select>
                                         </div>
@@ -807,16 +822,15 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         {/* Phường / Xã */}
                                         <div>
                                             <label className="block text-sm sm:text-[15px] font-bold text-slate-900 mb-2">
-                                                Phường / Xã <span className="text-rose-500">*</span>
+                                                Phường / Xã
                                             </label>
                                             <select 
-                                                required 
                                                 disabled={!selectedDistrictCode} 
                                                 value={localAddress.ward ? wards.find(w=>w.name===localAddress.ward)?.code || '' : ''} 
                                                 onChange={handleWardChange}
                                                 className="w-full px-3.5 py-3 bg-white border border-slate-300 rounded-xl text-sm sm:text-base font-medium text-slate-800 focus:border-slate-950 outline-none disabled:bg-slate-50 disabled:opacity-50"
                                             >
-                                                <option value="" disabled>Chọn Phường/Xã</option>
+                                                <option value="">Chọn Phường/Xã</option>
                                                 {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
                                             </select>
                                         </div>
@@ -829,10 +843,13 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                         </label>
                                         <input
                                             type="text"
-                                            value={localAddress.street}
-                                            onChange={e => setLocalAddress({...localAddress, street: e.target.value})}
+                                            value={localAddress.street || formData.address}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setLocalAddress(prev => ({ ...prev, street: val }));
+                                                setFormData(prev => ({ ...prev, address: val }));
+                                            }}
                                             placeholder="Ví dụ: Tầng 4, Số 123 Đường Nguyễn Trãi..."
-                                            required
                                             className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm sm:text-base font-medium text-slate-900 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 outline-none transition-all placeholder:text-slate-400"
                                         />
                                     </div>

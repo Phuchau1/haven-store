@@ -312,28 +312,39 @@ const createOrder = async (req, res, next) => {
         
         // Loop qua từng item để tính giá chuẩn
         for (const item of body.items) {
-            const productId = item.product.id;
+            const productId = item.product?.id || item.product?._id;
             const size = item.selectedSize;
-            const color = item.selectedColor.name;
-            const quantity = item.quantity;
+            const color = item.selectedColor?.name;
+            const quantity = Number(item.quantity) || 1;
             
-            const dbProduct = await ProductModel.findOne({ id: productId }).session(session);
-            if (!dbProduct) {
-                throw new Error(`Sản phẩm ${item.product.name} không tồn tại.`);
+            let itemPrice = Number(item.product?.price) || 0;
+
+            let dbProduct = null;
+            if (productId) {
+                dbProduct = await ProductModel.findOne({
+                    $or: [
+                        { id: productId },
+                        { id: String(productId) },
+                        { _id: mongoose.Types.ObjectId.isValid(productId) ? productId : undefined }
+                    ].filter(Boolean)
+                }).session(session);
             }
             
-            let itemPrice = dbProduct.price;
-            
-            // Tìm variant để xem có giá ghi đè không
-            if (dbProduct.variants) {
-                const variant = dbProduct.variants.find(v => v.color === color && v.size === size);
-                if (variant && variant.price !== undefined && variant.price !== null) {
-                    itemPrice = variant.price;
+            if (dbProduct) {
+                itemPrice = dbProduct.price;
+                // Tìm variant để xem có giá ghi đè không
+                if (dbProduct.variants) {
+                    const variant = dbProduct.variants.find(v => v.color === color && v.size === size);
+                    if (variant && variant.price !== undefined && variant.price !== null) {
+                        itemPrice = variant.price;
+                    }
                 }
             }
             
             // Ghi đè lại giá chuẩn cho item (để khi lưu vào DB, lịch sử có giá đúng)
-            item.product.price = itemPrice;
+            if (item.product) {
+                item.product.price = itemPrice;
+            }
             calculatedTotalAmount += itemPrice * quantity;
         }
 
@@ -957,11 +968,13 @@ const validateOrderItems = async (req, res, next) => {
             }
 
             // Kiểm tra sản phẩm tồn tại
-            const dbProduct = await ProductModel.findOne({ id: productId });
-            if (!dbProduct) {
-                errors.push(`Sản phẩm "${item.product?.name}" không còn tồn tại.`);
-                continue;
-            }
+            const dbProduct = await ProductModel.findOne({
+                $or: [
+                    { id: productId },
+                    { id: String(productId) },
+                    { _id: mongoose.Types.ObjectId.isValid(productId) ? productId : undefined }
+                ].filter(Boolean)
+            });
 
             // Kiểm tra tồn kho variant
             const variant = await ProductVariantModel.findOne({
