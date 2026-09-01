@@ -339,6 +339,122 @@ const registerFlashSaleReminder = async (req, res) => {
     }
 };
 
+/**
+ * @desc Tự động tạo và phân bổ sản phẩm KHÔNG TRÙNG NHAU cho 3 ngày Flash Sale tiếp theo
+ * @route POST /api/flash-sales/admin/auto-split-3-days
+ */
+const autoSplit3DaysFlashSale = async (req, res) => {
+    try {
+        const allProducts = await ProductModel.find();
+        if (!allProducts || allProducts.length < 3) {
+            return res.status(400).json({
+                success: false,
+                message: 'Hệ thống cần ít nhất 3 sản phẩm để tự động phân bổ cho 3 ngày Flash Sale.'
+            });
+        }
+
+        const now = new Date();
+        const days = [];
+        const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+
+        for (let i = 0; i < 3; i++) {
+            const d = new Date(now);
+            d.setDate(now.getDate() + i);
+
+            const dayStr = String(d.getDate()).padStart(2, '0');
+            const monthStr = months[d.getMonth()];
+            const dayNum = d.getDay();
+            const dayOfWeek = dayNum === 0 ? 'Chủ Nhật' : `Thứ ${dayNum + 1}`;
+
+            const startD = new Date(d);
+            startD.setHours(0, 0, 0, 0);
+
+            const endD = new Date(d);
+            endD.setHours(23, 59, 59, 999);
+
+            days.push({
+                index: i,
+                fullLabel: `${i === 0 ? 'Hôm nay' : dayOfWeek} (${dayStr}/${monthStr})`,
+                startTime: startD,
+                endTime: endD,
+                dateStr: `${dayStr}/${monthStr}`
+            });
+        }
+
+        // Xáo trộn sản phẩm ngẫu nhiên để công bằng
+        const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
+        const chunkSize = Math.max(1, Math.floor(shuffled.length / 3));
+
+        const day0Prods = shuffled.slice(0, chunkSize);
+        const day1Prods = shuffled.slice(chunkSize, chunkSize * 2);
+        const day2Prods = shuffled.slice(chunkSize * 2);
+        const chunks = [day0Prods, day1Prods, day2Prods];
+
+        const savedSales = [];
+
+        for (let i = 0; i < 3; i++) {
+            const dayInfo = days[i];
+            const prodChunk = chunks[i];
+
+            const formattedProducts = prodChunk.map(p => {
+                const origPrice = p.price || 100000;
+                const salePrice = Math.round(origPrice * 0.8); // Giảm 20% mặc định
+
+                const vars = (p.variants || []).map(v => ({
+                    color: v.color,
+                    size: v.size,
+                    flashSalePrice: salePrice,
+                    stockQuantity: 50,
+                    soldQuantity: 0
+                }));
+
+                return {
+                    productId: p.id,
+                    flashSalePrice: salePrice,
+                    stockQuantity: 100,
+                    soldQuantity: 0,
+                    variants: vars,
+                    useVariants: vars.length > 0
+                };
+            });
+
+            // Tìm xem ngày này đã có chiến dịch nào chưa
+            const existing = await FlashSaleModel.findOne({
+                startTime: { $gte: dayInfo.startTime, $lte: dayInfo.endTime }
+            });
+
+            if (existing) {
+                existing.name = `Chiến dịch Flash Sale — ${dayInfo.fullLabel}`;
+                existing.startTime = dayInfo.startTime;
+                existing.endTime = dayInfo.endTime;
+                existing.isActive = true;
+                existing.products = formattedProducts;
+                await existing.save();
+                savedSales.push(existing);
+            } else {
+                const newFs = new FlashSaleModel({
+                    name: `Chiến dịch Flash Sale — ${dayInfo.fullLabel}`,
+                    startTime: dayInfo.startTime,
+                    endTime: dayInfo.endTime,
+                    isActive: true,
+                    products: formattedProducts
+                });
+                await newFs.save();
+                savedSales.push(newFs);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: '🎉 Đã tự động tạo & phân bổ thành công 3 ngày Flash Sale với sản phẩm KHÔNG TRÙNG NHAU!',
+            data: savedSales
+        });
+    } catch (error) {
+        console.error("autoSplit3DaysFlashSale error:", error);
+        res.status(500).json({ success: false, message: 'Lỗi khi tự động phân bổ Flash Sale 3 ngày' });
+    }
+};
+
 module.exports = {
     getActiveFlashSale,
     getAdminFlashSales,
@@ -346,5 +462,6 @@ module.exports = {
     updateFlashSale,
     deleteFlashSale,
     getFlashSaleDashboard,
-    registerFlashSaleReminder
+    registerFlashSaleReminder,
+    autoSplit3DaysFlashSale
 };

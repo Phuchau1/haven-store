@@ -283,67 +283,22 @@ export default function AdminFlashSalesPage() {
         setErrorMsg('');
         
         try {
-            const prods = [...allProducts];
-            if (prods.length < 3) {
-                setErrorMsg('Cần ít nhất 3 sản phẩm trong hệ thống để phân bổ cho 3 ngày.');
-                setSaving(false);
-                return;
+            const res = await fetch('/api/flash-sales/admin/auto-split-3-days', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                await fetchItems();
+                setIsModalOpen(false);
+                alert(data.message || 'Đã tự động tạo & phân bổ thành công 3 ngày Flash Sale!');
+            } else {
+                setErrorMsg(data.message || 'Có lỗi xảy ra khi phân bổ 3 ngày.');
             }
-
-            const chunkSize = Math.max(2, Math.floor(prods.length / 3));
-            const day0Prods = prods.slice(0, chunkSize);
-            const day1Prods = prods.slice(chunkSize, chunkSize * 2);
-            const day2Prods = prods.slice(chunkSize * 2);
-
-            const chunks = [day0Prods, day1Prods, day2Prods];
-
-            for (let i = 0; i < 3; i++) {
-                const preset = threeDayPresets[i];
-                const chunkProds = chunks[i].map(ap => {
-                    const defaultPrice = ap.price ? Math.round(ap.price * 0.8) : 0;
-                    const vars = (ap.variants || []).map(v => ({
-                        color: v.color,
-                        size: v.size,
-                        flashSalePrice: defaultPrice,
-                        stockQuantity: 50,
-                        soldQuantity: 0
-                    }));
-                    return {
-                        productId: ap.id,
-                        flashSalePrice: defaultPrice,
-                        stockQuantity: 100,
-                        soldQuantity: 0,
-                        variants: vars
-                    };
-                });
-
-                const payload = {
-                    name: `Chiến dịch Flash Sale — ${preset.fullLabel}`,
-                    startTime: preset.startISO,
-                    endTime: preset.endISO,
-                    isActive: true,
-                    products: chunkProds
-                };
-
-                const targetDateStr = preset.startISO.slice(0, 10);
-                const existingFs = flashSales.find(fs => new Date(fs.startTime).toISOString().slice(0, 10) === targetDateStr);
-
-                const url = existingFs ? `/api/flash-sales/admin/${existingFs._id}` : '/api/flash-sales/admin';
-                const method = existingFs ? 'PUT' : 'POST';
-
-                await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            }
-
-            await fetchItems();
-            setIsModalOpen(false);
-            alert('🎉 Đã tự động tạo & phân bổ thành công 3 ngày Flash Sale với sản phẩm KHÔNG TRÙNG NHAU!');
         } catch (err) {
             console.error('Auto split error:', err);
-            setErrorMsg('Có lỗi xảy ra khi phân bổ 3 ngày.');
+            setErrorMsg('Có lỗi kết nối máy chủ khi phân bổ 3 ngày.');
         } finally {
             setSaving(false);
         }
@@ -581,19 +536,20 @@ export default function AdminFlashSalesPage() {
                                 </p>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2.5">
                                 <button
                                     type="button"
                                     onClick={handleAutoSplit3Days}
-                                    className="px-3.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                                    disabled={saving}
+                                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
                                 >
-                                    <Zap size={14} className="fill-indigo-600 text-indigo-600" />
-                                    Tự động chia SP KHÔNG TRÙNG cho 3 ngày
+                                    <Zap size={14} className="fill-amber-400 text-amber-400" />
+                                    <span>{saving ? 'Đang phân bổ...' : 'Tự động chia SP không trùng cho 3 ngày'}</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => applyDatePreset('all-3-days')}
-                                    className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors cursor-pointer"
+                                    className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs transition-colors cursor-pointer shadow-2xs"
                                 >
                                     Lên lịch 3 ngày
                                 </button>

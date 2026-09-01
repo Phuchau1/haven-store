@@ -13,6 +13,7 @@ router.get('/admin/dashboard', flashSaleController.getFlashSaleDashboard);
 
 // Admin CRUD routes
 router.get('/admin', flashSaleController.getAdminFlashSales);
+router.post('/admin/auto-split-3-days', flashSaleController.autoSplit3DaysFlashSale);
 router.post('/admin', flashSaleController.createFlashSale);
 router.put('/admin/:id', flashSaleController.updateFlashSale);
 router.delete('/admin/:id', flashSaleController.deleteFlashSale);
