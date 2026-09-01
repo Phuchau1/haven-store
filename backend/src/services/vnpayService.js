@@ -42,6 +42,14 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     
     let createDate = getVNPayDate();
     let ipAddr = '127.0.0.1';
+    if (req) {
+        ipAddr = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+                 req.headers['x-real-ip'] || 
+                 req.socket?.remoteAddress || 
+                 '127.0.0.1';
+        if (ipAddr === '::1' || ipAddr === '::ffff:127.0.0.1') ipAddr = '127.0.0.1';
+    }
+
     let currCode = 'VND';
     let vnp_Params = {};
     
@@ -49,12 +57,12 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
     vnp_Params['vnp_Command'] = 'pay';
     vnp_Params['vnp_TmnCode'] = tmnCode;
     vnp_Params['vnp_Amount'] = Math.round(amount * 100);
-    vnp_Params['vnp_BankCode'] = 'VNBANK'; // Chuyển thẳng vào trang thẻ ATM nội địa (không qua QR)
+    // Không ép cứng vnp_BankCode để VNPay mở toàn bộ phương thức: QR Pay, Thẻ ATM, Visa/Mastercard
     vnp_Params['vnp_CreateDate'] = createDate;
     vnp_Params['vnp_CurrCode'] = currCode;
     vnp_Params['vnp_IpAddr'] = ipAddr;
     vnp_Params['vnp_Locale'] = 'vn';
-    vnp_Params['vnp_OrderInfo'] = orderInfo;
+    vnp_Params['vnp_OrderInfo'] = orderInfo || `Thanh toan don hang ${orderId}`;
     vnp_Params['vnp_OrderType'] = 'other';
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_TxnRef'] = orderId;
