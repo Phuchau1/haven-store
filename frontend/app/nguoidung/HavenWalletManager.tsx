@@ -394,58 +394,57 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-5">
             {/* Toast popup */}
             <AnimatePresence>
                 {toastMsg && (
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
+                        initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className={`p-4 rounded-2xl text-xs font-bold shadow-lg border flex items-center gap-2 ${
+                        exit={{ opacity: 0, y: -10 }}
+                        className={`p-3.5 rounded-xl text-xs font-semibold shadow-xs border flex items-center gap-2 ${
                             toastMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
                         }`}
                     >
-                        {toastMsg.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                        {toastMsg.type === 'success' ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
                         <span>{toastMsg.text}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* ── CARD SỐ DƯ VÍ TÀI KHOẢN HAVEN PAY ── */}
-            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            {/* ── CARD SỐ DƯ VÍ TÀI KHOẢN HAVEN PAY (CHUẨN DOANH NGHIỆP SANG TRỌNG) ── */}
+            <div className="bg-slate-900 rounded-2xl p-6 sm:p-7 text-white shadow-xs relative overflow-hidden border border-slate-800">
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div>
-                        <div className="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-2">
-                            <CreditCard size={16} />
-                            <span>Ví tài khoản HAVEN Pay</span>
-                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-bold">
+                        <div className="flex items-center gap-2 text-slate-400 text-xs font-medium mb-1.5">
+                            <CreditCard size={15} className="text-slate-300" />
+                            <span>Số dư ví HAVEN Pay</span>
+                            <span className="px-2 py-0.2 bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-medium">
                                 Khả dụng
                             </span>
                         </div>
-                        <p className="text-xs text-slate-400 font-medium">Số dư khả dụng để mua sắm 1 chạm & rút tiền về ngân hàng</p>
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black font-mono tracking-tight mt-3 text-emerald-400">
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white mt-1">
                             {loading ? '...' : formatPrice(balance)}
                         </h2>
+                        <p className="text-[11px] text-slate-400 mt-1">Dùng để mua sắm thanh toán 1-chạm & rút về tài khoản ngân hàng</p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2.5">
                         {/* Nút Rút tiền */}
                         <button
                             onClick={() => setShowWithdrawModal(true)}
-                            className="px-5 py-3 bg-white text-slate-950 hover:bg-slate-100 rounded-2xl text-xs font-black transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                            className="px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white border border-white/15 rounded-xl text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
                         >
-                            <ArrowUpRight size={16} className="text-indigo-600" />
+                            <ArrowUpRight size={15} />
                             Rút về Ngân hàng
                         </button>
 
                         {/* Nút Nạp tiền */}
                         <button
                             onClick={() => { setShowDepositModal(true); setDepositResult(null); }}
-                            className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-black transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                            className="px-4 py-2.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                         >
-                            <ArrowDownLeft size={16} />
+                            <ArrowDownLeft size={15} />
                             Nạp thêm tiền
                         </button>
 
@@ -453,39 +452,39 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
                         <button
                             onClick={fetchWalletData}
                             disabled={loading}
-                            className="p-3 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer"
-                            title="Làm mới số dư"
+                            className="p-2.5 bg-white/10 hover:bg-white/15 border border-white/15 text-slate-300 hover:text-white rounded-xl text-xs transition-colors flex items-center justify-center cursor-pointer"
+                            title="Cập nhật lại số dư"
                         >
-                            <RotateCcw size={16} className={loading ? 'animate-spin' : ''} />
+                            <RotateCcw size={15} className={loading ? 'animate-spin' : ''} />
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* ── TABS CHỨC NĂNG BÊN TRONG VÍ ── */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5 mb-4">
+                    <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl overflow-x-auto">
                         <button
                             onClick={() => setSubTab('history')}
-                            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                                subTab === 'history' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                                subTab === 'history' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
                             Lịch sử biến động ({transactions.length})
                         </button>
                         <button
                             onClick={() => setSubTab('withdrawals')}
-                            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                                subTab === 'withdrawals' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                                subTab === 'withdrawals' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
                             Lệnh rút tiền ({withdrawals.length})
                         </button>
                         <button
                             onClick={() => setSubTab('banks')}
-                            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                                subTab === 'banks' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                                subTab === 'banks' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
                             Tài khoản ngân hàng ({savedBanks.length})
@@ -495,10 +494,10 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
                     {subTab === 'banks' && (
                         <button
                             onClick={() => setShowAddBankModal(true)}
-                            className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1 cursor-pointer shrink-0"
                         >
-                            <Plus size={14} />
-                            Thêm tài khoản ngân hàng
+                            <Plus size={13} />
+                            Thêm tài khoản
                         </button>
                     )}
                 </div>
@@ -507,43 +506,42 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
                 {subTab === 'history' && (
                     <div>
                         {loading ? (
-                            <div className="space-y-3">
-                                {[1, 2, 3].map(i => <div key={i} className="h-16 bg-slate-50 rounded-2xl animate-pulse" />)}
+                            <div className="space-y-2">
+                                {[1, 2, 3].map(i => <div key={i} className="h-14 bg-slate-50 rounded-xl animate-pulse" />)}
                             </div>
                         ) : transactions.length === 0 ? (
-                            <div className="p-12 text-center">
-                                <CreditCard className="mx-auto text-slate-200 mb-3" size={40} />
-                                <p className="text-slate-500 font-medium text-sm">Chưa có lịch sử giao dịch ví nào</p>
-                                <p className="text-slate-400 text-xs mt-1">Khi bạn nạp tiền, rút tiền, hoàn tiền hoặc thanh toán đơn hàng, giao dịch sẽ xuất hiện ở đây.</p>
+                            <div className="py-10 text-center text-slate-400">
+                                <CreditCard className="mx-auto text-slate-300 mb-2" size={32} />
+                                <p className="text-slate-600 font-medium text-xs sm:text-sm">Chưa có lịch sử giao dịch nào</p>
+                                <p className="text-slate-400 text-xs mt-0.5">Các biến động nạp/rút/thanh toán sẽ hiển thị tại đây.</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="divide-y divide-slate-100">
                                 {transactions.map((tx) => (
-                                    <div key={tx.id} className="p-4 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors flex items-center justify-between gap-4 bg-slate-50/50">
-                                        <div className="flex items-center gap-3.5 min-w-0">
-                                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 font-bold ${
-                                                tx.amount > 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'
+                                    <div key={tx.id} className="py-3 px-2 flex items-center justify-between gap-3 hover:bg-slate-50/60 rounded-xl transition-colors">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
+                                                tx.amount > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'
                                             }`}>
                                                 {tx.amount > 0 ? '+' : '-'}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{tx.description}</p>
-                                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 font-medium mt-0.5">
-                                                    <span>Mã GD: <strong className="font-mono text-slate-700">{tx.id}</strong></span>
-                                                    {tx.orderId && <span>· Đơn: <strong className="font-mono text-slate-700">#{tx.orderId}</strong></span>}
-                                                    {tx.withdrawalRequestId && <span>· Lệnh rút: <strong className="font-mono text-indigo-600">#{tx.withdrawalRequestId}</strong></span>}
+                                                <p className="text-xs sm:text-sm font-semibold text-slate-900 truncate">{tx.description}</p>
+                                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                                                    <span>Mã: <strong className="font-mono text-slate-600 font-normal">{tx.id}</strong></span>
+                                                    {tx.orderId && <span>· Đơn: <strong className="font-mono text-slate-600 font-normal">#{tx.orderId}</strong></span>}
                                                     <span>· {new Date(tx.createdAt).toLocaleString('vi-VN')}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="text-right shrink-0">
-                                            <p className={`text-sm sm:text-base font-black font-mono ${tx.amount > 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                            <p className={`text-xs sm:text-sm font-bold ${tx.amount > 0 ? 'text-emerald-700' : 'text-slate-900'}`}>
                                                 {tx.amount > 0 ? `+${formatPrice(tx.amount)}` : `${formatPrice(tx.amount)}`}
                                             </p>
-                                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                                                tx.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                tx.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                                'bg-rose-50 text-rose-700 border-rose-200'
+                                            <span className={`text-[10px] font-medium px-1.5 py-0.2 rounded ${
+                                                tx.status === 'completed' ? 'bg-emerald-50 text-emerald-700' :
+                                                tx.status === 'pending' ? 'bg-amber-50 text-amber-700' :
+                                                'bg-rose-50 text-rose-700'
                                             }`}>
                                                 {tx.status === 'completed' ? 'Thành công' : tx.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
                                             </span>
@@ -559,38 +557,38 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
                 {subTab === 'withdrawals' && (
                     <div>
                         {withdrawals.length === 0 ? (
-                            <div className="p-12 text-center">
-                                <ArrowUpRight className="mx-auto text-slate-200 mb-3" size={40} />
-                                <p className="text-slate-500 font-medium text-sm">Chưa có yêu cầu rút tiền nào</p>
-                                <p className="text-slate-400 text-xs mt-1">Bạn có thể rút tiền từ số dư ví về bất kỳ tài khoản ngân hàng nào tại Việt Nam.</p>
+                            <div className="py-10 text-center text-slate-400">
+                                <ArrowUpRight className="mx-auto text-slate-300 mb-2" size={32} />
+                                <p className="text-slate-600 font-medium text-xs sm:text-sm">Chưa có yêu cầu rút tiền nào</p>
+                                <p className="text-slate-400 text-xs mt-0.5">Bạn có thể rút tiền về bất kỳ tài khoản ngân hàng nào tại Việt Nam.</p>
                                 <button
                                     onClick={() => setShowWithdrawModal(true)}
-                                    className="mt-4 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors"
+                                    className="mt-3 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
-                                    Tạo yêu cầu rút tiền ngay
+                                    Rút tiền ngay
                                 </button>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="divide-y divide-slate-100">
                                 {withdrawals.map((w) => (
-                                    <div key={w.id} className="p-4 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                        <div className="flex items-start gap-3.5">
-                                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 mt-0.5">
-                                                <Building2 size={20} />
+                                    <div key={w.id} className="py-3.5 px-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 rounded-xl transition-colors">
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-slate-100 text-slate-700 rounded-lg shrink-0 mt-0.5">
+                                                <Building2 size={16} />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-mono font-bold text-xs bg-slate-200/80 px-2 py-0.5 rounded text-slate-800">{w.id}</span>
-                                                    <span className="text-xs font-bold text-slate-900 uppercase">{w.bankInfo.bankCode} - {w.bankInfo.bankName}</span>
+                                                    <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.2 rounded text-slate-700">{w.id}</span>
+                                                    <span className="text-xs font-semibold text-slate-900 uppercase">{w.bankInfo.bankCode} - {w.bankInfo.bankName}</span>
                                                 </div>
-                                                <p className="text-xs text-slate-600 mt-1">
-                                                    STK: <strong className="font-mono text-indigo-600">{w.bankInfo.accountNumber}</strong> · Chủ TK: <strong className="uppercase">{w.bankInfo.accountHolder}</strong>
+                                                <p className="text-xs text-slate-600 mt-0.5">
+                                                    STK: <strong className="font-mono text-slate-900 font-medium">{w.bankInfo.accountNumber}</strong> · Chủ TK: <strong className="uppercase font-medium">{w.bankInfo.accountHolder}</strong>
                                                 </p>
                                                 <p className="text-[11px] text-slate-400 mt-0.5">
                                                     Ngày tạo: {new Date(w.createdAt).toLocaleString('vi-VN')}
                                                 </p>
                                                 {w.adminNote && (
-                                                    <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mt-1.5 inline-block">
+                                                    <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 mt-1 inline-block">
                                                         Phản hồi: {w.adminNote}
                                                     </p>
                                                 )}
@@ -598,24 +596,24 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
                                         </div>
 
                                         <div className="sm:text-right flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
-                                            <p className="text-base font-black font-mono text-slate-900">{formatPrice(w.amount)}</p>
-                                            <div className="mt-1">
+                                            <p className="text-sm font-bold text-slate-900">{formatPrice(w.amount)}</p>
+                                            <div className="mt-0.5">
                                                 {w.status === 'pending' && (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                        <Clock size={12} />
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                                        <Clock size={11} />
                                                         Đang chờ duyệt
                                                     </span>
                                                 )}
                                                 {w.status === 'completed' && (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                        <CheckCircle2 size={12} />
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        <CheckCircle2 size={11} />
                                                         Đã chuyển tiền
                                                     </span>
                                                 )}
                                                 {w.status === 'rejected' && (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                                        <XCircle size={12} />
-                                                        Đã từ chối (Đã hoàn tiền vào ví)
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                                                        <XCircle size={11} />
+                                                        Đã từ chối (Đã hoàn ví)
                                                     </span>
                                                 )}
                                             </div>
@@ -631,42 +629,42 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
                 {subTab === 'banks' && (
                     <div>
                         {savedBanks.length === 0 ? (
-                            <div className="p-12 text-center">
-                                <Building2 className="mx-auto text-slate-200 mb-3" size={40} />
-                                <p className="text-slate-500 font-medium text-sm">Bạn chưa lưu tài khoản ngân hàng nào</p>
-                                <p className="text-slate-400 text-xs mt-1">Lưu tài khoản ngân hàng giúp bạn rút tiền về tài khoản nhanh chóng chỉ với 1 click.</p>
+                            <div className="py-10 text-center text-slate-400">
+                                <Building2 className="mx-auto text-slate-300 mb-2" size={32} />
+                                <p className="text-slate-600 font-medium text-xs sm:text-sm">Bạn chưa lưu tài khoản ngân hàng nào</p>
+                                <p className="text-slate-400 text-xs mt-0.5">Lưu tài khoản giúp bạn rút tiền nhanh chóng chỉ với 1 click.</p>
                                 <button
                                     onClick={() => setShowAddBankModal(true)}
-                                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors"
+                                    className="mt-3 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
-                                    Thêm tài khoản ngân hàng ngay
+                                    Thêm tài khoản ngân hàng
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {savedBanks.map((b) => (
-                                    <div key={b.id} className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs hover:border-indigo-300 transition-all relative flex flex-col justify-between">
+                                    <div key={b.id} className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col justify-between">
                                         <div>
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-bold text-[11px] rounded-lg uppercase">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-800 font-semibold text-[10px] rounded uppercase">
                                                     {b.bankCode}
                                                 </span>
                                                 <button
                                                     onClick={() => handleDeleteBank(b.id)}
-                                                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                                    className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 transition-colors cursor-pointer"
                                                     title="Xóa tài khoản này"
                                                 >
-                                                    <Trash2 size={15} />
+                                                    <Trash2 size={14} />
                                                 </button>
                                             </div>
-                                            <h4 className="font-bold text-sm text-slate-900">{b.bankName}</h4>
-                                            <p className="font-mono text-base font-bold text-indigo-600 tracking-wider mt-1">{b.accountNumber}</p>
-                                            <p className="text-xs text-slate-500 font-bold uppercase mt-1">{b.accountHolder}</p>
+                                            <h4 className="font-semibold text-xs sm:text-sm text-slate-900">{b.bankName}</h4>
+                                            <p className="font-mono text-sm font-bold text-slate-900 tracking-wide mt-0.5">{b.accountNumber}</p>
+                                            <p className="text-[11px] text-slate-500 font-medium uppercase mt-0.5">{b.accountHolder}</p>
                                         </div>
 
-                                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                                            <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-                                                <ShieldCheck size={14} /> Sẵn sàng nhận tiền
+                                        <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                                            <span className="text-[10px] text-emerald-700 font-medium flex items-center gap-1">
+                                                <ShieldCheck size={13} /> Sẵn sàng nhận tiền
                                             </span>
                                             <button
                                                 onClick={() => {
@@ -680,7 +678,7 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
                                                     }));
                                                     setShowWithdrawModal(true);
                                                 }}
-                                                className="text-xs font-bold text-slate-800 hover:text-indigo-600 cursor-pointer"
+                                                className="text-xs font-semibold text-slate-700 hover:text-slate-950 cursor-pointer"
                                             >
                                                 Rút về thẻ này →
                                             </button>
