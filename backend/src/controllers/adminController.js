@@ -393,11 +393,6 @@ const toggleLockUser = async (req, res, next) => {
 };
 
 /**
- * @desc    Xóa tài khoản người dùng (BỊ CHẶN - CHỈ CHO PHÉP KHÓA TÀI KHOẢN)
- * @route   DELETE /api/admin/users?id=...
- * @access  Private/Admin
- */
-/**
  * @desc    Tạo tài khoản Quản trị viên / Người dùng mới (Admin tạo trực tiếp)
  * @route   POST /api/admin/users
  * @access  Private/Admin
@@ -445,6 +440,22 @@ const createUser = async (req, res, next) => {
             success: true,
             message: `Tạo tài khoản ${targetRole === 'admin' ? 'Quản trị viên (Admin)' : 'Người dùng'} thành công!`,
             user: userObj
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Xóa tài khoản người dùng (BỊ CHẶN - CHỈ CHO PHÉP KHÓA TÀI KHOẢN)
+ * @route   DELETE /api/admin/users?id=...
+ * @access  Private/Admin
+ */
+const deleteUser = async (req, res, next) => {
+    try {
+        return res.status(400).json({
+            success: false,
+            message: 'Chính sách Bảo vệ Dữ liệu Doanh nghiệp: Hệ thống KHÔNG CHO PHÉP XÓA VĨNH VIỄN tài khoản người dùng để đảm bảo tính toàn vẹn báo cáo & đơn hàng. Vui lòng sử dụng tính năng KHÓA TÀI KHOẢN!'
         });
     } catch (error) {
         next(error);
