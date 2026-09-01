@@ -13,6 +13,7 @@ router.use(auditMiddleware('SystemConfig', 'admin_action'));
 
 // ─── Users ───────────────────────────────────────────────────
 router.get('/users',      adminController.getUsers);
+router.post('/users',     adminController.createUser);
 router.put('/users',      adminController.updateUserRole);
 router.put('/users/lock', adminController.toggleLockUser);
 router.delete('/users',   adminController.deleteUser);

@@ -397,11 +397,54 @@ const toggleLockUser = async (req, res, next) => {
  * @route   DELETE /api/admin/users?id=...
  * @access  Private/Admin
  */
-const deleteUser = async (req, res, next) => {
+/**
+ * @desc    Tạo tài khoản Quản trị viên / Người dùng mới (Admin tạo trực tiếp)
+ * @route   POST /api/admin/users
+ * @access  Private/Admin
+ */
+const createUser = async (req, res, next) => {
     try {
-        return res.status(400).json({
-            success: false,
-            message: 'Chính sách Bảo vệ Dữ liệu Doanh nghiệp: Hệ thống KHÔNG CHO PHÉP XÓA VĨNH VIỄN tài khoản người dùng để đảm bảo tính toàn vẹn báo cáo & đơn hàng. Vui lòng sử dụng tính năng KHÓA TÀI KHOẢN!'
+        const crypto = require('crypto');
+        const { name, email, password, phone, role = 'admin', address } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp đầy đủ: Họ tên, Email và Mật khẩu' });
+        }
+
+        const cleanEmail = email.toLowerCase().trim();
+        const existingUser = await UserModel.findOne({ email: cleanEmail });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: `Email [${cleanEmail}] đã tồn tại trong hệ thống` });
+        }
+
+        const validRoles = ['admin', 'warehouse_manager', 'warehouse_staff', 'user'];
+        const targetRole = validRoles.includes(role) ? role : 'admin';
+
+        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+        const userId = `USR-${Date.now().toString(36).toUpperCase()}${Math.floor(10 + Math.random() * 90)}`;
+
+        const newUser = new UserModel({
+            id: userId,
+            name: name.trim(),
+            email: cleanEmail,
+            password: hashedPassword,
+            phone: phone ? phone.trim() : '',
+            address: address ? address.trim() : '',
+            role: targetRole,
+            walletBalance: 0,
+            isLocked: false
+        });
+
+        await newUser.save();
+
+        const userObj = newUser.toObject();
+        delete userObj.password;
+
+        log(`Admin đã tạo tài khoản mới: ${cleanEmail} với vai trò ${targetRole}`);
+        res.status(201).json({
+            success: true,
+            message: `Tạo tài khoản ${targetRole === 'admin' ? 'Quản trị viên (Admin)' : 'Người dùng'} thành công!`,
+            user: userObj
         });
     } catch (error) {
         next(error);
@@ -411,6 +454,7 @@ const deleteUser = async (req, res, next) => {
 module.exports = {
     getStats,
     getUsers,
+    createUser,
     getAllReviews,
     updateReviewStatus,
     deleteReview,
