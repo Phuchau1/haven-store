@@ -595,23 +595,32 @@ const updateOrderStatus = async (req, res, next) => {
         log(`Cập nhật đơn ${id} từ ${oldStatus} sang ${status}`);
 
         // ─────────────────────────────────────────────────────────────────
-        // TỰ ĐỘNG HOÀN TIỀN VÀO VÍ USER NẾU ĐỔI SANG REFUNDED HOẶC CANCELLED (MỌI PHƯƠNG THỨC THANH TOÁN)
+        // TỰ ĐỘNG HOÀN TIỀN VÀO VÍ USER NẾU ĐỔI SANG REFUNDED HOẶC CANCELLED
+        // CHỈ HOÀN TIỀN KHI ĐƠN HÀNG ĐÃ THANH TOÁN (paymentStatus === 'paid')
+        // TUYỆT ĐỐI KHÔNG HOÀN TIỀN NẾU LÀ ĐƠN COD HOẶC CHƯA THANH TOÁN (unpaid)
         // ─────────────────────────────────────────────────────────────────
-        if (status === 'refunded' || status === 'cancelled') {
+        const isCOD = ['cod', 'pay-cod'].includes(String(currentOrder.paymentMethod || '').toLowerCase());
+        const isPaid = currentOrder.paymentStatus === 'paid';
+
+        if (status === 'refunded' || (status === 'cancelled' && isPaid && !isCOD)) {
             try {
                 const refundAmt = currentOrder.finalAmount || currentOrder.totalAmount || 0;
-                await refundOrderToWallet({
-                    userId: currentOrder.userId,
-                    userEmail: currentOrder.email,
-                    userPhone: currentOrder.phone,
-                    orderId: currentOrder.id,
-                    refundAmount: refundAmt,
-                    reason: status === 'refunded' ? `Hoàn tiền hoàn hàng thành công cho đơn #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng #${currentOrder.id}`
-                });
-                log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${id}`);
+                if (refundAmt > 0) {
+                    await refundOrderToWallet({
+                        userId: currentOrder.userId,
+                        userEmail: currentOrder.email,
+                        userPhone: currentOrder.phone,
+                        orderId: currentOrder.id,
+                        refundAmount: refundAmt,
+                        reason: status === 'refunded' ? `Hoàn tiền hoàn hàng thành công cho đơn #${currentOrder.id}` : `Hoàn tiền do hủy đơn hàng đã thanh toán #${currentOrder.id}`
+                    });
+                    log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${id}`);
+                }
             } catch (wErr) {
                 log(`[Wallet Sync Warning] ${wErr.message}`);
             }
+        } else if (status === 'cancelled' && (isCOD || !isPaid)) {
+            log(`[Hủy đơn không hoàn tiền] Đơn hàng #${currentOrder.id} (Phương thức: ${currentOrder.paymentMethod}, Trạng thái: ${currentOrder.paymentStatus}) -> Hủy đơn & hoàn lại tồn kho, KHÔNG phát sinh hoàn tiền vào ví.`);
         }
 
         // Tự động khởi tạo vận chuyển nếu có carrier và chưa có vận đơn
