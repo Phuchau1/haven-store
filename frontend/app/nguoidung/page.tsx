@@ -868,40 +868,6 @@ export default function NguoiDungPage() {
         }
     }, [activeMainTab, fetchMyCoupons]);
 
-    // State cho Ví HAVEN (Số dư ví & Lịch sử hoàn tiền)
-    const [walletInfo, setWalletInfo] = useState<{ walletBalance: number; transactions: any[] }>({ walletBalance: 0, transactions: [] });
-    const [loadingWallet, setLoadingWallet] = useState(false);
-
-    const fetchWalletInfo = useCallback(async () => {
-        if (!user) return;
-        setLoadingWallet(true);
-        try {
-            const res = await fetch('/api/wallet', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'x-user-id': user.id || ''
-                }
-            });
-            const data = await res.json();
-            if (data.success) {
-                setWalletInfo({
-                    walletBalance: data.walletBalance || 0,
-                    transactions: data.transactions || []
-                });
-            }
-        } catch {
-            console.error('Error fetching user wallet info');
-        } finally {
-            setLoadingWallet(false);
-        }
-    }, [user, token]);
-
-    useEffect(() => {
-        if (activeMainTab === 'wallet') {
-            fetchWalletInfo();
-        }
-    }, [activeMainTab, fetchWalletInfo]);
-
     // State cho Chi tiết đơn hàng
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -1407,7 +1373,7 @@ export default function NguoiDungPage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                 >
-                                    <HavenWalletManager onBalanceChange={(newBal) => setWalletInfo(prev => ({ ...prev, walletBalance: newBal }))} />
+                                    <HavenWalletManager />
                                 </motion.div>
                             )}
 

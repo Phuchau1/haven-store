@@ -124,9 +124,14 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
         accountHolder: ''
     });
 
+    const onBalanceChangeRef = React.useRef(onBalanceChange);
+    useEffect(() => {
+        onBalanceChangeRef.current = onBalanceChange;
+    }, [onBalanceChange]);
+
     // Tải toàn bộ dữ liệu ví
     const fetchWalletData = useCallback(async () => {
-        if (!user || !token) return;
+        if (!user?.id || !token) return;
         setLoading(true);
         try {
             const [walletRes, withdrawRes, banksRes] = await Promise.all([
@@ -150,7 +155,9 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
             if (walletData.success) {
                 setBalance(walletData.walletBalance || 0);
                 setTransactions(walletData.transactions || []);
-                if (onBalanceChange) onBalanceChange(walletData.walletBalance || 0);
+                if (onBalanceChangeRef.current) {
+                    onBalanceChangeRef.current(walletData.walletBalance || 0);
+                }
             }
             if (withdrawData.success) {
                 setWithdrawals(withdrawData.withdrawals || []);
@@ -175,7 +182,8 @@ export default function HavenWalletManager({ onBalanceChange }: HavenWalletManag
         } finally {
             setLoading(false);
         }
-    }, [user, token, onBalanceChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id, token]);
 
     useEffect(() => {
         fetchWalletData();
