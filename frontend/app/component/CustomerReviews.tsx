@@ -14,35 +14,52 @@ interface Review {
     avatar: string;
 }
 
+const DEFAULT_REVIEWS: Review[] = [
+    {
+        id: 'rev-1',
+        name: 'Trần Minh Hoàng',
+        role: 'Khách hàng thân thiết',
+        content: 'Chất lượng áo polo và sơ mi của HAVEN cực kỳ ấn tượng. Form dáng chuẩn, chất vải mát và đường may rất tinh tế.',
+        rating: 5,
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop'
+    },
+    {
+        id: 'rev-2',
+        name: 'Nguyễn Thu Trang',
+        role: 'Khách hàng VIP',
+        content: 'Đồ nữ công sở rất thanh lịch, đóng gói chỉn chu và giao hàng cực nhanh. Chắc chắn sẽ tiếp tục ủng hộ HAVEN.',
+        rating: 5,
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&h=120&fit=crop'
+    },
+    {
+        id: 'rev-3',
+        name: 'Lê Tuấn Kiệt',
+        role: 'Khách hàng thân thiết',
+        content: 'Quần âu và blazer mặc lên rất đứng form. Dịch vụ chăm sóc khách hàng và tư vấn size rất chu đáo và nhiệt tình.',
+        rating: 5,
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop'
+    }
+];
+
 export default function CustomerReviews() {
-    const [reviews, setReviews] = useState<Review[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [reviews, setReviews] = useState<Review[]>(DEFAULT_REVIEWS);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchReviews = async () => {
             try {
                 const res = await fetch('/api/settings');
                 const data = await res.json();
-                if (data.success && data.settings && Array.isArray(data.settings.homepageReviews)) {
+                if (data.success && data.settings && Array.isArray(data.settings.homepageReviews) && data.settings.homepageReviews.length > 0) {
                     setReviews(data.settings.homepageReviews);
                 }
             } catch (error) {
                 console.error('Lỗi khi tải đánh giá trang chủ:', error);
-            } finally {
-                setLoading(false);
             }
         };
 
         fetchReviews();
     }, []);
-
-    if (loading) {
-        return (
-            <div className="py-20 bg-black flex justify-center">
-                <Loader2 className="animate-spin text-gray-500" size={32} />
-            </div>
-        );
-    }
 
     if (reviews.length === 0) return null;
 

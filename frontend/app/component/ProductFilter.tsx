@@ -466,9 +466,9 @@ export default function ProductFilter({ filters, setFilters, isOpen, onClose }: 
                             <div className="p-5 border-t border-gray-100">
                                 <button
                                     onClick={onClose}
-                                    className="w-full py-3 bg-black text-white rounded-xl text-sm font-semibold hover:bg-gray-900 transition-colors"
+                                    className="w-full py-3 bg-black text-white rounded-xl text-sm font-semibold hover:bg-gray-900 transition-colors cursor-pointer"
                                 >
-                                    Xem {'{'}kết quả{'}'} sản phẩm
+                                    Xem sản phẩm
                                 </button>
                             </div>
                         </motion.div>
