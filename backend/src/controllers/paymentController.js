@@ -43,7 +43,13 @@ const createPaymentUrl = async (req, res) => {
         if (paymentMethod === 'vnpay') {
             payUrl = buildVNPayUrl(req, orderId, amountInt, orderInfo);
         } else if (paymentMethod === 'momo') {
-            payUrl = await buildMoMoUrl(orderId, amountInt, orderInfo);
+            try {
+                payUrl = await buildMoMoUrl(orderId, amountInt, orderInfo);
+            } catch (mErr) {
+                logger.warn(`[MoMo Warning] ${mErr.message} -> Falling back to internal MoMo page`);
+                const frontendUrl = getFrontendUrl();
+                payUrl = `${frontendUrl}/checkout/momo-payment?orderId=${orderId}&amount=${amountInt}`;
+            }
         } else {
             return res.status(400).json({ success: false, message: `Phương thức thanh toán không hỗ trợ: ${paymentMethod}` });
         }
@@ -99,20 +105,20 @@ const vnpayReturn = async (req, res) => {
 
         if (!isValid) {
             logger.warn(`[VNPay Return] Invalid signature for order ${orderId}`);
-            return res.redirect(`${frontendUrl}/nguoidung?status=failed&reason=invalid_signature&orderId=${orderId || ''}`);
+            return res.redirect(`${frontendUrl}/checkout/payment-result?status=failed&reason=invalid_signature&orderId=${orderId || ''}`);
         }
 
         if (rspCode === '00') {
             await confirmOrderPaid(orderId);
             logger.info(`[VNPay Return] Order ${orderId} confirmed paid`);
-            return res.redirect(`${frontendUrl}/nguoidung?status=success&orderId=${orderId}&method=vnpay`);
+            return res.redirect(`${frontendUrl}/checkout/payment-result?status=success&orderId=${orderId}&method=vnpay`);
         } else {
             logger.warn(`[VNPay Return] Payment failed for order ${orderId} - code: ${rspCode}`);
-            return res.redirect(`${frontendUrl}/nguoidung?status=failed&orderId=${orderId}&method=vnpay`);
+            return res.redirect(`${frontendUrl}/checkout/payment-result?status=failed&orderId=${orderId}&method=vnpay&code=${rspCode}`);
         }
     } catch (err) {
         logger.error(`[VNPay Return] Error: ${err.message}`);
-        res.redirect(`${frontendUrl}/nguoidung?status=failed&reason=server_error`);
+        res.redirect(`${frontendUrl}/checkout/payment-result?status=failed&reason=server_error`);
     }
 };
 
@@ -134,7 +140,6 @@ const momoReturn = async (req, res) => {
         const isValid = verifyMoMoReturn(query);
 
         if (!isValid) {
-            // Sandbox MoMo đôi khi có chữ ký khác → vẫn kiểm tra resultCode
             logger.warn(`[MoMo Return] Signature invalid for order ${orderId}. Checking resultCode anyway...`);
         }
 
@@ -142,15 +147,14 @@ const momoReturn = async (req, res) => {
             // resultCode = 0 là thành công theo tài liệu MoMo
             await confirmOrderPaid(orderId);
             logger.info(`[MoMo Return] Order ${orderId} confirmed paid`);
-            return res.redirect(`${frontendUrl}/nguoidung?status=success&orderId=${orderId}&method=momo`);
+            return res.redirect(`${frontendUrl}/checkout/payment-result?status=success&orderId=${orderId}&method=momo`);
         } else {
             logger.warn(`[MoMo Return] Payment failed for order ${orderId} - resultCode: ${resultCode}`);
-            return res.redirect(`${frontendUrl}/nguoidung?status=failed&orderId=${orderId}&method=momo&code=${resultCode}`);
+            return res.redirect(`${frontendUrl}/checkout/payment-result?status=failed&orderId=${orderId}&method=momo&code=${resultCode}`);
         }
     } catch (err) {
         logger.error(`[MoMo Return] Error: ${err.message}`);
-        const frontendUrl = getFrontendUrl();
-        res.redirect(`${frontendUrl}/nguoidung?status=failed&reason=server_error`);
+        res.redirect(`${frontendUrl}/checkout/payment-result?status=failed&reason=server_error`);
     }
 };
 

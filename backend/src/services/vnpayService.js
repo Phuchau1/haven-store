@@ -18,18 +18,14 @@ function sortObject(obj) {
 }
 
 const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
-    let tmnCode = process.env.VNP_TMN_CODE;
-    let secretKey = process.env.VNP_HASH_SECRET;
-    let vnpUrl = process.env.VNP_URL;
+    let tmnCode = process.env.VNP_TMN_CODE || '2QXUI4J4';
+    let secretKey = process.env.VNP_HASH_SECRET || 'RAOCTEZARFTJ2ZWDG2EQN1AOQ7H1G1MG';
+    let vnpUrl = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
     let returnUrl = process.env.VNP_RETURN_URL;
     if (!returnUrl && req) {
         const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
         const host = req.headers['x-forwarded-host'] || req.headers.host;
         returnUrl = `${protocol}://${host}/api/payment/vnpay-return`;
-    }
-
-    if (!tmnCode || !secretKey) {
-        throw new Error('Chưa cấu hình VNPay trên server (thiếu VNP_TMN_CODE hoặc VNP_HASH_SECRET).');
     }
 
     function getVNPayDate() {
