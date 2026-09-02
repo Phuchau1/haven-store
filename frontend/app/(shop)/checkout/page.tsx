@@ -77,9 +77,9 @@ export default function CheckoutPage() {
 
     return (
         <div className="min-h-screen bg-slate-50/50 pb-24 lg:pb-16">
-            {/* ── HEADER DOANH NGHIỆP & TIẾN TRÌNH THANH TOÁN ── */}
-            <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            {/* ── TIẾN TRÌNH THANH TOÁN ── */}
+            <div className="bg-white border-b border-slate-200/80">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
                     <button
                         onClick={() => router.back()}
                         className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer py-1.5 px-2.5 -ml-2 rounded-lg hover:bg-slate-100/80"
@@ -105,7 +105,7 @@ export default function CheckoutPage() {
                         <span className="hidden sm:inline">Bảo mật SSL 256-bit</span>
                     </div>
                 </div>
-            </header>
+            </div>
 
             {/* ── TIÊU ĐỀ TRANG ── */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
