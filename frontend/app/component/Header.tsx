@@ -237,7 +237,7 @@ export default function Header() {
     const lastScrollY = useRef(0);
     const rafId = useRef<number | null>(null);
     const SCROLL_THRESHOLD = 80; // kích hoạt sau 80px đầu
-    const SCROLL_DELTA = 4;      // độ nhạy: cần cuộn ít nhất 4px
+    const SCROLL_DELTA = 15;     // độ nhạy chuẩn chống giật: cần cuộn ít nhất 15px
 
     const handleScroll = useCallback(() => {
         if (rafId.current !== null) return; // throttle bằng rAF
@@ -252,12 +252,12 @@ export default function Header() {
             } else {
                 setIsScrolled(true);
                 if (delta > SCROLL_DELTA) {
-                    // Cuộn xuống → ẩn header
+                    // Cuộn xuống nhanh → ẩn header
                     setIsVisible(false);
                     // Đóng mobile menu khi ẩn
                     setIsMobileMenuOpen(false);
                 } else if (delta < -SCROLL_DELTA) {
-                    // Cuộn lên → hiện header
+                    // Cuộn lên rõ rệt → hiện header
                     setIsVisible(true);
                 }
             }
