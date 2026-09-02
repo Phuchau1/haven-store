@@ -14,7 +14,7 @@ export default function ProductsClient() {
     const searchParam = searchParams.get('search');
 
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [products, setProducts] = useState<Product[]>([]);
+    const [rawProducts, setRawProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<FilterState>({
         category: categoryParam || '',
@@ -36,27 +36,8 @@ export default function ProductsClient() {
                 });
                 const res = await fetch(`/api/products?${params.toString()}`);
                 const data = await res.json();
-                if (data.success) {
-                    let result = data.products;
-
-                    if (filters.sizes.length > 0) {
-                        result = result.filter((p: Product) => p.sizes.some((size) => filters.sizes.includes(size)));
-                    }
-                    if (filters.colors.length > 0) {
-                        result = result.filter((p: Product) => 
-                            p.colors.some((color) => 
-                                filters.colors.some(fc => 
-                                    color.name.toLowerCase().includes(fc.toLowerCase()) || 
-                                    fc.toLowerCase().includes(color.name.toLowerCase())
-                                )
-                            )
-                        );
-                    }
-                    result = result.filter(
-                        (p: Product) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
-                    );
-
-                    setProducts(result);
+                if (data.success && Array.isArray(data.products)) {
+                    setRawProducts(data.products);
                 }
             } catch (error) {
                 console.error('Error fetching products:', error);
@@ -65,7 +46,7 @@ export default function ProductsClient() {
             }
         };
         fetchProducts();
-    }, [filters.category, filters.sortBy, filters.sizes, filters.colors, filters.priceRange, filters.search]);
+    }, [filters.category, filters.sortBy, filters.search]);
 
     useEffect(() => {
         setFilters((prev) => ({
@@ -75,7 +56,31 @@ export default function ProductsClient() {
         }));
     }, [categoryParam, searchParam]);
 
-    const filteredProducts = products;
+    // Instant Client Filter (0ms latency, no server re-fetch)
+    const filteredProducts = React.useMemo(() => {
+        let result = rawProducts;
+
+        if (filters.sizes.length > 0) {
+            result = result.filter((p: Product) => p.sizes.some((size) => filters.sizes.includes(size)));
+        }
+        if (filters.colors.length > 0) {
+            result = result.filter((p: Product) => 
+                p.colors.some((color) => 
+                    filters.colors.some(fc => 
+                        color.name.toLowerCase().includes(fc.toLowerCase()) || 
+                        fc.toLowerCase().includes(color.name.toLowerCase())
+                    )
+                )
+            );
+        }
+        if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) {
+            result = result.filter(
+                (p: Product) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
+            );
+        }
+
+        return result;
+    }, [rawProducts, filters.sizes, filters.colors, filters.priceRange]);
 
     const getCategoryTitle = () => {
         if (!filters.category) return 'Tất cả sản phẩm';
