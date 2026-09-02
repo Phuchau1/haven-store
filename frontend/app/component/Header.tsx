@@ -231,49 +231,16 @@ export default function Header() {
     }, []);
 
     // ── Smart scroll state ──────────────────────────────────────────────────
-    const [isScrolled, setIsScrolled] = useState(false);   // nền mờ khi cuộn
-    const [isVisible, setIsVisible] = useState(true);       // ẩn/hiện header
-
-    const lastScrollY = useRef(0);
-    const rafId = useRef<number | null>(null);
-    const SCROLL_THRESHOLD = 80; // kích hoạt sau 80px đầu
-    const SCROLL_DELTA = 15;     // độ nhạy chuẩn chống giật: cần cuộn ít nhất 15px
-
-    const handleScroll = useCallback(() => {
-        if (rafId.current !== null) return; // throttle bằng rAF
-        rafId.current = requestAnimationFrame(() => {
-            const currentY = window.scrollY;
-            const delta = currentY - lastScrollY.current;
-
-            // Luôn hiện khi ở đầu trang
-            if (currentY <= SCROLL_THRESHOLD) {
-                setIsVisible(true);
-                setIsScrolled(false);
-            } else {
-                setIsScrolled(true);
-                if (delta > SCROLL_DELTA) {
-                    // Cuộn xuống nhanh → ẩn header
-                    setIsVisible(false);
-                    // Đóng mobile menu khi ẩn
-                    setIsMobileMenuOpen(false);
-                } else if (delta < -SCROLL_DELTA) {
-                    // Cuộn lên rõ rệt → hiện header
-                    setIsVisible(true);
-                }
-            }
-
-            lastScrollY.current = currentY;
-            rafId.current = null;
-        });
-    }, []);
+    const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-            if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+        const handleScroll = () => {
+            const scrolled = window.scrollY > 20;
+            setIsScrolled(prev => (prev !== scrolled ? scrolled : prev));
         };
-    }, [handleScroll]);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     // ── Fetch menus ────────────────────────────────────────────────────────
     useEffect(() => {
@@ -313,26 +280,11 @@ export default function Header() {
     }, []);
 
     return (
-        <>
-            {/* ── Fixed smart header ────────────────────────────────────────── */}
-            <header
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    zIndex: 9999,
-                    transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
-                    transition: 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, box-shadow 0.3s ease',
-                    willChange: 'transform',
-                    backgroundColor: isScrolled ? 'rgba(255,255,255,0.97)' : '#ffffff',
-                    backdropFilter: isScrolled ? 'blur(12px)' : 'none',
-                    WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'none',
-                    boxShadow: isScrolled
-                        ? '0 4px 24px rgba(0,0,0,0.09)'
-                        : '0 1px 0 rgba(0,0,0,0.06)',
-                }}
-            >
+        <header
+            className={`sticky top-0 z-[100] w-full transition-all duration-200 ${
+                isScrolled ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-gray-100' : 'bg-white'
+            }`}
+        >
                 {/* Top announcement bar */}
                 <div className="bg-black text-white text-center py-2.5 text-xs tracking-[3px] uppercase font-light">
                     Miễn phí vận chuyển cho đơn hàng từ 500.000đ 🚚
@@ -535,12 +487,5 @@ export default function Header() {
                     )}
                 </AnimatePresence>
             </header>
-
-            {/* ── Spacer: chừa khoảng trống đúng bằng chiều cao header ── */}
-            <div
-                aria-hidden="true"
-                style={{ height: 'var(--header-total-height, 120px)', flexShrink: 0 }}
-            />
-        </>
     );
 }
