@@ -67,6 +67,13 @@ interface SavedAddress {
     is_default: boolean;
 }
 
+const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
+    { id: 'cod', name_methond: 'Thanh toán khi nhận hàng (COD)', description: 'Thanh toán tiền mặt trực tiếp khi nhận hàng tận nơi.', is_active: true },
+    { id: 'momo', name_methond: 'Thanh toán qua Ví MoMo', description: 'Quét mã MoMo hoặc liên kết tài khoản tiện lợi.', is_active: true },
+    { id: 'vnpay', name_methond: 'Thanh toán qua Cổng VNPay', description: 'Hỗ trợ thẻ ATM nội địa, QR Pay, Visa/Mastercard.', is_active: true },
+    { id: 'bank-transfer', name_methond: 'Chuyển khoản Ngân hàng (VietQR 247)', description: 'Quét mã VietQR chuyển khoản nhanh 24/7 tự động.', is_active: true }
+];
+
 export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const { items: cartItems, totalAmount: cartTotalAmount } = useCart();
     const buyNowItem = useCartStore(s => s.buyNowItem);
@@ -108,7 +115,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         return initialData;
     });
 
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS);
     const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
     const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string>('GHN');
 
@@ -215,12 +222,52 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         }
     }, [localAddress, selectedAddressId, isManualAddress]);
 
-    const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
-        { id: 'cod', name_methond: 'Thanh toán khi nhận hàng (COD)', description: 'Thanh toán tiền mặt trực tiếp khi nhận hàng tận nơi.', is_active: true },
-        { id: 'vnpay', name_methond: 'Thanh toán qua Cổng VNPay', description: 'Hỗ trợ thẻ ATM nội địa, QR Pay, Visa/Mastercard.', is_active: true },
-        { id: 'momo', name_methond: 'Thanh toán qua Ví MoMo', description: 'Quét mã MoMo hoặc liên kết tài khoản tiện lợi.', is_active: true },
-        { id: 'bank-transfer', name_methond: 'Chuyển khoản Ngân hàng (VietQR 247)', description: 'Quét mã VietQR chuyển khoản nhanh 24/7 tự động.', is_active: true }
-    ];
+    // Tải phương thức thanh toán từ backend
+    useEffect(() => {
+        const fetchPaymentMethods = async () => {
+            try {
+                const res = await fetch('/api/admin/extra/payment-methods');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+                    const activeMethods = data.data.filter((pm: PaymentMethod) => pm.is_active);
+                    if (activeMethods.length > 0) {
+                        setPaymentMethods(activeMethods);
+                        if (!activeMethods.find((m: PaymentMethod) => m.id === formData.paymentMethod) && formData.paymentMethod !== 'wallet') {
+                            setFormData(prev => ({ ...prev, paymentMethod: activeMethods[0].id }));
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch payment methods, using defaults", err);
+            }
+        };
+        fetchPaymentMethods();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Tải số dư Ví HAVEN của người dùng
+    useEffect(() => {
+        const fetchWallet = async () => {
+            if (!user) return;
+            setLoadingWallet(true);
+            try {
+                const headers: Record<string, string> = {};
+                if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                if (user.id) headers['x-user-id'] = user.id;
+
+                const res = await fetch('/api/wallet', { headers });
+                const data = await res.json();
+                if (data.success) {
+                    setWalletBalance(data.walletBalance || 0);
+                }
+            } catch (err) {
+                console.error("Failed to fetch wallet balance", err);
+            } finally {
+                setLoadingWallet(false);
+            }
+        };
+        fetchWallet();
+    }, [user, token]);
 
     // Tính phí vận chuyển tức thì (Instant Zero-Latency Calculation)
     const computeInstantShippingMethods = (province: string, totalWeight: number, totalAmt: number): ShippingMethod[] => {
