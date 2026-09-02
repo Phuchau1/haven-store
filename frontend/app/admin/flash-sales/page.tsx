@@ -418,8 +418,7 @@ export default function AdminFlashSalesPage() {
     const handleAddAllFiltered = () => {
         const unselected = filteredProducts.filter(p => {
             const isSelected = formData.products.some(fp => (typeof fp.productId === 'object' ? fp.productId.id : fp.productId) === p.id);
-            const isUsedElsewhere = usedProductsMap.has(p.id);
-            return !isSelected && !isUsedElsewhere;
+            return !isSelected;
         });
         unselected.forEach(p => handleAddProduct(p));
     };
@@ -876,21 +875,20 @@ export default function AdminFlashSalesPage() {
                             </div>
                         </div>
 
-                        {/* Enterprise Unique Product Rule Notice */}
-                        <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-semibold flex items-center justify-between gap-2">
-                            <span>🔒 <strong>Quy tắc doanh nghiệp:</strong> Một sản phẩm đã xuất hiện ở 1 ngày Flash Sale (VD: 28/08) sẽ tự động bị khóa, không thể xếp trùng vào các ngày khác (29/08, 30/08).</span>
-                            <span className="text-[11px] font-bold underline shrink-0">Bảo toàn tính độc quyền</span>
+                        {/* Enterprise Unique Product Guidance Notice */}
+                        <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 text-blue-800 dark:text-blue-300 text-xs font-semibold flex items-center justify-between gap-2">
+                            <span>💡 <strong>Gợi ý:</strong> Bạn có thể chọn bất kỳ sản phẩm nào cho đợt sale này. Các nhãn màu cam bên dưới cho biết sản phẩm đã từng được xếp ở ngày nào để bạn tiện theo dõi.</span>
+                            <span className="text-[11px] font-bold shrink-0 text-blue-700 dark:text-blue-200">Linh hoạt cấu hình</span>
                         </div>
 
                         {/* Product Cards Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[450px] overflow-y-auto p-1">
-                            {filteredProducts.slice(0, 60).map(product => {
+                            {filteredProducts.map(product => {
                                 const isSelected = formData.products.some(p => (typeof p.productId === 'object' ? p.productId.id : p.productId) === product.id);
                                 const usedInfo = usedProductsMap.get(product.id);
-                                const isUsedElsewhere = !!usedInfo;
 
                                 return (
-                                    <div key={product.id} className={`flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors shadow-2xs ${isUsedElsewhere ? 'opacity-60 bg-slate-100 dark:bg-slate-900/40' : 'hover:border-slate-400'}`}>
+                                    <div key={product.id} className={`flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 border rounded-xl transition-colors shadow-2xs ${isSelected ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-slate-200 dark:border-slate-700 hover:border-slate-400'}`}>
                                         <div className="flex items-center gap-3 min-w-0 pr-2">
                                             <div className="w-11 h-11 bg-white rounded-lg overflow-hidden border border-slate-200 shrink-0">
                                                 {product.images?.[0] ? (
@@ -901,32 +899,30 @@ export default function AdminFlashSalesPage() {
                                                 )}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="font-semibold text-xs text-slate-900 dark:text-white truncate leading-snug">{product.name}</p>
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <p className="font-semibold text-xs text-slate-900 dark:text-white truncate leading-snug">{product.name}</p>
+                                                    {usedInfo && (
+                                                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.2 rounded border border-amber-200 shrink-0" title={`Đã có trong ${usedInfo.campaignName}`}>
+                                                            {usedInfo.dateStr}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-[11px] text-slate-500 mt-0.5">Giá gốc: <strong className="text-slate-900 dark:text-white">{product.price?.toLocaleString()}đ</strong></p>
                                             </div>
                                         </div>
 
-                                        {isUsedElsewhere ? (
-                                            <span
-                                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 shrink-0 cursor-not-allowed"
-                                                title={`Sản phẩm này đã được xếp lịch ngày ${usedInfo.dateStr} (${usedInfo.campaignName}). Không thể chọn trùng!`}
-                                            >
-                                                🔒 Đã dùng {usedInfo.dateStr}
-                                            </span>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                disabled={isSelected}
-                                                onClick={() => handleAddProduct(product)}
-                                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 cursor-pointer ${
-                                                    isSelected
-                                                        ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
-                                                        : 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
-                                                }`}
-                                            >
-                                                {isSelected ? 'Đã chọn' : '+ Thêm'}
-                                            </button>
-                                        )}
+                                        <button
+                                            type="button"
+                                            disabled={isSelected}
+                                            onClick={() => handleAddProduct(product)}
+                                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 cursor-pointer ${
+                                                isSelected
+                                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-not-allowed'
+                                                    : 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
+                                            }`}
+                                        >
+                                            {isSelected ? '✓ Đã chọn' : '+ Thêm'}
+                                        </button>
                                     </div>
                                 );
                             })}
