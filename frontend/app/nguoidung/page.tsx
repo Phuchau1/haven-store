@@ -885,12 +885,20 @@ export default function NguoiDungPage() {
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
     const fetchMyCoupons = useCallback(async () => {
-        if (!user || !token) return;
+        if (!user) return;
         setLoadingCoupons(true);
         try {
-            // Dùng token đã được destructure từ hook useAuth()
-            const res = await fetch('/api/coupons/my-coupons', {
-                headers: { 'Authorization': `Bearer ${token}` }
+            const headers: Record<string, string> = {};
+            if (token) {
+                headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            }
+            if (user.id) {
+                headers['x-user-id'] = user.id;
+            }
+
+            const queryParam = user.id ? `?user_id=${encodeURIComponent(user.id)}` : '';
+            const res = await fetch(`/api/coupons/my-coupons${queryParam}`, {
+                headers
             });
             const data = await res.json();
             if (data.success) {

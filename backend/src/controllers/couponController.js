@@ -7,7 +7,7 @@
  */
 const { CouponModel } = require('../models/Coupon');
 const { OrderModel } = require('../models/Order');
-
+const { UserModel } = require('../models/User');
 const UserCoupon = require('../models/UserCoupon');
 
 /**
@@ -34,8 +34,38 @@ const getAvailableCoupons = async (req, res) => {
  */
 const getUserCoupons = async (req, res) => {
     try {
-        const userId = req.user._id || req.user.id;
-        const coupons = await UserCoupon.find({ user_id: String(userId) }).sort({ createdAt: -1 });
+        const aliases = [];
+        const u = req.user;
+        if (u) {
+            if (u.id) aliases.push(String(u.id));
+            if (u._id) aliases.push(String(u._id));
+            if (u.email) aliases.push(String(u.email));
+        }
+
+        const headerUserId = req.headers['x-user-id'];
+        const queryUserId = req.query.user_id;
+        if (headerUserId) aliases.push(String(headerUserId));
+        if (queryUserId) aliases.push(String(queryUserId));
+
+        // Tra cứu thêm User trong DB nếu có email hoặc ID để gom đủ tất cả các định dạng id/_id
+        const searchTerms = Array.from(new Set(aliases.filter(Boolean)));
+        if (searchTerms.length > 0) {
+            const dbUsers = await UserModel.find({
+                $or: [
+                    { id: { $in: searchTerms } },
+                    { email: { $in: searchTerms } }
+                ]
+            }).lean().catch(() => []);
+
+            dbUsers.forEach(userItem => {
+                if (userItem.id) aliases.push(String(userItem.id));
+                if (userItem._id) aliases.push(String(userItem._id));
+                if (userItem.email) aliases.push(String(userItem.email));
+            });
+        }
+
+        const cleanAliases = Array.from(new Set(aliases.filter(Boolean)));
+        const coupons = await UserCoupon.find({ user_id: { $in: cleanAliases } }).sort({ createdAt: -1 });
 
         const now = new Date();
         const formatted = coupons.map(c => {
@@ -43,8 +73,18 @@ const getUserCoupons = async (req, res) => {
             if (c.is_used) status = 'used';
             else if (c.expires_at && new Date(c.expires_at) < now) status = 'expired';
 
+            const defaultRewardName = c.reward_name || (
+                c.type === 'percent' 
+                    ? `Giảm ${c.discount_value}%` 
+                    : c.type === 'shipping' 
+                        ? 'Freeship toàn quốc' 
+                        : `Giảm ${(c.discount_value || 0).toLocaleString('vi-VN')}đ`
+            );
+
             return {
                 id: c._id,
+                _id: c._id,
+                reward_name: defaultRewardName,
                 code: c.coupon_code,
                 type: c.type,
                 discount_value: c.discount_value,

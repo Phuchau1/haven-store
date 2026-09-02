@@ -393,10 +393,15 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     combinedCoupons = [...data.coupons];
                 }
 
-                if (user && token) {
+                if (user) {
                     try {
-                        const resMy = await fetch('/api/coupons/my-coupons', {
-                            headers: { 'Authorization': `Bearer ${token}` }
+                        const headers: Record<string, string> = {};
+                        if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                        if (user.id) headers['x-user-id'] = user.id;
+
+                        const queryParam = user.id ? `?user_id=${encodeURIComponent(user.id)}` : '';
+                        const resMy = await fetch(`/api/coupons/my-coupons${queryParam}`, {
+                            headers
                         });
                         const dataMy = await resMy.json();
                         if (dataMy.success && dataMy.coupons) {

@@ -9,6 +9,7 @@
 const { CartModel } = require('../models/Cart');
 const { ProductModel } = require('../models/Product');
 const { ProductVariantModel } = require('../models/ProductVariant');
+const { UserModel } = require('../models/User');
 
 /**
  * @desc Lấy giỏ hàng của một người dùng
@@ -18,7 +19,21 @@ exports.getCart = async (req, res) => {
         const { user_id } = req.query;
         if (!user_id) return res.status(400).json({ success: false, message: 'Thiếu user_id' });
 
-        let cart = await CartModel.findOne({ user_id });
+        const aliases = [String(user_id)];
+        const isObjectId = typeof user_id === 'string' && user_id.match(/^[0-9a-fA-F]{24}$/);
+        const orConditions = [{ id: user_id }, { email: user_id }];
+        if (isObjectId) orConditions.push({ _id: user_id });
+
+        const dbUser = await UserModel.findOne({ $or: orConditions }).lean().catch(() => null);
+
+        if (dbUser) {
+            if (dbUser.id) aliases.push(String(dbUser.id));
+            if (dbUser._id) aliases.push(String(dbUser._id));
+            if (dbUser.email) aliases.push(String(dbUser.email));
+        }
+
+        const cleanAliases = Array.from(new Set(aliases.filter(Boolean)));
+        let cart = await CartModel.findOne({ user_id: { $in: cleanAliases } });
 
         // Nếu người dùng chưa có giỏ hàng trong DB -> Tự động tạo giỏ hàng trống mới
         if (!cart) {
