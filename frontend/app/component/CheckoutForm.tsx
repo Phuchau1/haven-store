@@ -110,7 +110,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
-    const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string>('');
+    const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string>('GHN');
 
     // ── Voucher states ──
     const [voucherInput, setVoucherInput] = useState('');
@@ -222,107 +222,98 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         { id: 'bank-transfer', name_methond: 'Chuyển khoản Ngân hàng (VietQR 247)', description: 'Quét mã VietQR chuyển khoản nhanh 24/7 tự động.', is_active: true }
     ];
 
-    const DEFAULT_SHIPPING_METHODS: ShippingMethod[] = [
-        { id: 'GHN', name_methond: 'Giao Hàng Nhanh (GHN Express)', description: 'Giao hàng tiêu chuẩn 2-3 ngày toàn quốc', cost: 30000, estimated_time: '2-3 ngày', is_active: true },
-        { id: 'GHTK', name_methond: 'Giao Hàng Tiết Kiệm (GHTK)', description: 'Giao hàng tiết kiệm 3-4 ngày', cost: 25000, estimated_time: '3-4 ngày', is_active: true }
-    ];
+    // Tính phí vận chuyển tức thì (Instant Zero-Latency Calculation)
+    const computeInstantShippingMethods = (province: string, totalWeight: number, totalAmt: number): ShippingMethod[] => {
+        const isHCM = province ? (province.toLowerCase().includes('hồ chí minh') || province.toLowerCase().includes('hcm')) : false;
+        const isHN = province ? (province.toLowerCase().includes('hà nội') || province.toLowerCase().includes('ha noi')) : false;
+        const isMajor = isHCM || isHN;
 
-    // Tải phương thức thanh toán
-    useEffect(() => {
-        const fetchPaymentMethods = async () => {
-            try {
-                const res = await fetch('/api/admin/extra/payment-methods');
-                const data = await res.json();
-                if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-                    const activeMethods = data.data.filter((pm: PaymentMethod) => pm.is_active);
-                    if (activeMethods.length > 0) {
-                        setPaymentMethods(activeMethods);
-                        if (!activeMethods.find((m: PaymentMethod) => m.id === formData.paymentMethod) && formData.paymentMethod !== 'wallet') {
-                            setFormData(prev => ({ ...prev, paymentMethod: activeMethods[0].id }));
-                        }
-                        return;
-                    }
-                }
-                // Fallback nếu API chưa có data
-                setPaymentMethods(DEFAULT_PAYMENT_METHODS);
-            } catch (err) {
-                console.error("Failed to fetch payment methods, using defaults", err);
-                setPaymentMethods(DEFAULT_PAYMENT_METHODS);
+        const baseGHN = isMajor ? 20000 : 35000;
+        const baseGHTK = isMajor ? 18000 : 32000;
+        const baseViettel = isMajor ? 22000 : 38000;
+        const baseJT = isMajor ? 15000 : 30000;
+
+        let weightSurcharge = 0;
+        if (totalWeight > 500) {
+            const extraWeight = totalWeight - 500;
+            weightSurcharge = Math.ceil(extraWeight / 500) * 5000;
+        }
+
+        const isFreeship = totalAmt >= 500000;
+
+        return [
+            {
+                id: 'GHN',
+                name_methond: 'Giao Hàng Nhanh (GHN Express)',
+                description: 'Giao hàng tiêu chuẩn toàn quốc',
+                cost: isFreeship ? 0 : baseGHN + weightSurcharge,
+                original_cost: baseGHN + weightSurcharge,
+                estimated_time: isMajor ? '1-2 ngày' : '2-3 ngày',
+                freeship_applied: isFreeship,
+                is_active: true
+            },
+            {
+                id: 'GHTK',
+                name_methond: 'Giao Hàng Tiết Kiệm (GHTK)',
+                description: 'Giao hàng tiết kiệm',
+                cost: isFreeship ? 0 : baseGHTK + weightSurcharge,
+                original_cost: baseGHTK + weightSurcharge,
+                estimated_time: isMajor ? '1-2 ngày' : '3-4 ngày',
+                freeship_applied: isFreeship,
+                is_active: true
+            },
+            {
+                id: 'VIETTEL',
+                name_methond: 'Viettel Post',
+                description: 'Chuyển phát tiêu chuẩn',
+                cost: isFreeship ? 0 : baseViettel + weightSurcharge,
+                original_cost: baseViettel + weightSurcharge,
+                estimated_time: isMajor ? '1-2 ngày' : '3-5 ngày',
+                freeship_applied: isFreeship,
+                is_active: true
+            },
+            {
+                id: 'JT',
+                name_methond: 'J&T Express',
+                description: 'Giao hàng tiêu chuẩn',
+                cost: isFreeship ? 0 : baseJT + weightSurcharge,
+                original_cost: baseJT + weightSurcharge,
+                estimated_time: isMajor ? '1-2 ngày' : '3-4 ngày',
+                freeship_applied: isFreeship,
+                is_active: true
             }
-        };
-        fetchPaymentMethods();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        ];
+    };
 
-    // Tải số dư Ví HAVEN của người dùng
+    // Tải đơn vị vận chuyển theo địa phương tức thì (Zero Latency)
     useEffect(() => {
-        const fetchWallet = async () => {
-            if (!user || !token) return;
-            setLoadingWallet(true);
-            try {
-                const res = await fetch('/api/wallet', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    setWalletBalance(data.walletBalance || 0);
-                }
-            } catch (err) {
-                console.error("Failed to fetch wallet balance", err);
-            } finally {
-                setLoadingWallet(false);
-            }
-        };
-        fetchWallet();
-    }, [user, token]);
+        const province = localAddress.city;
+        const totalWeight = 200 * items.reduce((sum, i) => sum + i.quantity, 0);
+        
+        // Cập nhật tức thì không độ trễ
+        const instantMethods = computeInstantShippingMethods(province, totalWeight, totalAmount);
+        setShippingMethods(instantMethods);
+        if (!selectedShippingMethodId || !instantMethods.find(m => m.id === selectedShippingMethodId)) {
+            setSelectedShippingMethodId(instantMethods[0].id);
+        }
 
-    // Tải đơn vị vận chuyển theo địa phương
-    useEffect(() => {
-        const fetchShippingMethods = async () => {
-            const province = localAddress.city;
-            const district = localAddress.district;
-            
-            if (!province) {
-                setShippingMethods(DEFAULT_SHIPPING_METHODS);
-                if (!selectedShippingMethodId) {
-                    setSelectedShippingMethodId(DEFAULT_SHIPPING_METHODS[0].id);
-                }
-                return;
-            }
-
-            setIsCalculatingShipping(true);
-            try {
-                const totalWeight = 200 * items.reduce((sum, i) => sum + i.quantity, 0);
-                const res = await fetch('/api/shipping/calculate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ province, district, totalWeight, totalAmount })
-                });
-                const data = await res.json();
+        // Đồng bộ ngầm với backend nếu có địa chỉ
+        if (province) {
+            fetch('/api/shipping/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ province, district: localAddress.district, totalWeight, totalAmount })
+            })
+            .then(res => res.json())
+            .then(data => {
                 if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                     setShippingMethods(data.data);
-                    if (!data.data.find((m: any) => m.id === selectedShippingMethodId)) {
-                        setSelectedShippingMethodId(data.data[0].id);
-                    }
-                } else {
-                    setShippingMethods(DEFAULT_SHIPPING_METHODS);
-                    if (!selectedShippingMethodId) {
-                        setSelectedShippingMethodId(DEFAULT_SHIPPING_METHODS[0].id);
-                    }
                 }
-            } catch (err) {
-                console.error("Failed to calculate shipping, using defaults", err);
-                setShippingMethods(DEFAULT_SHIPPING_METHODS);
-                if (!selectedShippingMethodId) {
-                    setSelectedShippingMethodId(DEFAULT_SHIPPING_METHODS[0].id);
-                }
-            } finally {
-                setIsCalculatingShipping(false);
-            }
-        };
-        fetchShippingMethods();
+            })
+            .catch(() => {});
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [localAddress.city, localAddress.district, items, totalAmount]);
+    }, [localAddress.city, localAddress.district, totalAmount]);
 
     // Đồng bộ user info & sổ địa chỉ
     useEffect(() => {
@@ -893,12 +884,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         </h2>
                     </div>
 
-                    {isCalculatingShipping ? (
-                        <div className="flex flex-col items-center justify-center py-6 text-slate-400">
-                            <Loader2 className="w-5 h-5 animate-spin mb-1.5 text-slate-700" />
-                            <p className="text-sm font-medium">Đang tính toán cước phí...</p>
-                        </div>
-                    ) : shippingMethods.length === 0 ? (
+                    {shippingMethods.length === 0 ? (
                         <div className="text-center py-4 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 text-sm">
                             📍 Vui lòng chọn địa chỉ để hiển thị các đơn vị vận chuyển khả dụng.
                         </div>
