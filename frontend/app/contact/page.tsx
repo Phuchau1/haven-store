@@ -8,7 +8,7 @@ export default function ContactPage() {
                 <div className="container-torano text-center">
                     <h1 className="text-4xl lg:text-5xl font-light text-black tracking-tight mb-4">Liên hệ với chúng tôi</h1>
                     <p className="text-gray-500 max-w-2xl mx-auto font-light leading-relaxed">
-                        Bạn có câu hỏi hoặc cần hỗ trợ? Đừng ngần ngại liên hệ với PH Store. Chúng tôi luôn sẵn sàng lắng nghe và giải đáp mọi thắc mắc của bạn.
+                        Bạn có câu hỏi hoặc cần hỗ trợ? Đừng ngần ngại liên hệ với HAVEN STORE. Chúng tôi luôn sẵn sàng lắng nghe và giải đáp mọi thắc mắc của bạn.
                     </p>
                 </div>
             </div>

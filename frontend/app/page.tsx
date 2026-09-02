@@ -7,7 +7,6 @@ import BestSelling from '@/app/component/BestSelling';
 import FlashSale from '@/app/component/FlashSale';
 import FeaturesBanner from '@/app/component/FeaturesBanner';
 import Interactive3DBanner from '@/app/component/Interactive3DBanner';
-import CustomerReviews from '@/app/component/CustomerReviews';
 import Newsletter from '@/app/component/Newsletter';
 import FlashSalePopup from '@/app/component/FlashSalePopup';
 
@@ -22,7 +21,6 @@ export default function HomePage() {
       <NewArrivals />
       <BestSelling />
       <FeaturesBanner />
-      <CustomerReviews />
       <Newsletter />
       <FlashSalePopup />
     </>

@@ -95,7 +95,7 @@ export default function OrderSuccessModal({ isOpen, orderId, email, onClose }: O
                                     Đặt hàng thành công! 🎉
                                 </h2>
                                 <p className="mt-2 text-sm text-gray-500 font-light leading-relaxed">
-                                    Cảm ơn bạn đã tin tưởng PH Store. Đơn hàng của bạn đang được xử lý.
+                                    Cảm ơn bạn đã tin tưởng HAVEN STORE. Đơn hàng của bạn đang được xử lý.
                                 </p>
 
                                 {/* Order ID */}

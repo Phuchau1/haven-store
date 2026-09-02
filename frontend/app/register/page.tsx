@@ -78,7 +78,7 @@ export default function RegisterPage() {
                 >
                     <div className="text-center mb-10">
                         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Tạo tài khoản</h2>
-                        <p className="mt-2 text-sm text-slate-500">Trở thành thành viên của gia đình PH Store</p>
+                        <p className="mt-2 text-sm text-slate-500">Trở thành thành viên của gia đình HAVEN STORE</p>
 
                         {error && (
                             <motion.div

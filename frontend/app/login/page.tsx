@@ -62,7 +62,7 @@ function LoginContent() {
                 >
                     <div className="text-center mb-10">
                         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Chào mừng trở lại</h2>
-                        <p className="mt-2 text-sm text-slate-500">Đăng nhập để tiếp tục mua sắm tại PH Store</p>
+                        <p className="mt-2 text-sm text-slate-500">Đăng nhập để tiếp tục mua sắm tại HAVEN STORE</p>
 
                         {error && (
                             <motion.div

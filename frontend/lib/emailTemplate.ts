@@ -51,7 +51,7 @@ export function generateOrderEmailHTML(data: EmailData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xác nhận đơn hàng - PH Store</title>
+  <title>Xác nhận đơn hàng - HAVEN STORE</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f8f8;">
   
@@ -61,7 +61,7 @@ export function generateOrderEmailHTML(data: EmailData): string {
     <!-- ===== HEADER ===== -->
     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 40px 32px; text-align: center;">
       <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 300; letter-spacing: 8px; text-transform: uppercase;">
-        PH Store
+        HAVEN STORE
       </h1>
       <p style="margin: 8px 0 0; color: #cccccc; font-size: 12px; letter-spacing: 3px; text-transform: uppercase;">
         Premium Fashion Store
@@ -184,7 +184,7 @@ export function generateOrderEmailHTML(data: EmailData): string {
     <!-- ===== FOOTER ===== -->
     <div style="padding: 24px 32px; text-align: center; background-color: #1a1a1a;">
       <p style="margin: 0; color: #666; font-size: 11px; line-height: 1.8;">
-        © 2026 PH Store. All rights reserved.<br/>
+        © 2026 HAVEN STORE. All rights reserved.<br/>
         123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh<br/>
         <a href="#" style="color: #888; text-decoration: underline;">Chính sách bảo mật</a> | 
         <a href="#" style="color: #888; text-decoration: underline;">Điều khoản sử dụng</a>
