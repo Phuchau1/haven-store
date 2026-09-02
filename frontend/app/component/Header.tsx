@@ -1,6 +1,6 @@
-'use client';
-// ===== SMART HEADER — Hide on scroll down, show on scroll up =====
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿'use client';
+// ===== SMART HEADER — Hide on scroll down, show on scroll up & mouse hover =====
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -230,7 +230,7 @@ export default function Header() {
         };
     }, []);
 
-    // ── Smart scroll state (Hide on scroll down, slide down on scroll up) ──
+    // ── Smart scroll & hover state (Hiện từ từ khi di chuột lên hoặc cuộn lên) ──
     const [isVisible, setIsVisible] = useState(true);
     const [isScrolled, setIsScrolled] = useState(false);
     const lastScrollY = useRef(0);
@@ -257,10 +257,10 @@ export default function Header() {
             }
 
             // Cuộn xuống (Scroll Down) -> Trượt ẩn header lên
-            if (currentScrollY > lastScrollY.current + 5) {
+            if (currentScrollY > lastScrollY.current + 8) {
                 setIsVisible(false);
             } 
-            // Cuộn lên (Scroll Up) -> Trượt hiện header xuống
+            // Cuộn lên (Scroll Up) -> Trượt hiện header từ từ xuống
             else if (currentScrollY < lastScrollY.current - 5) {
                 setIsVisible(true);
             }
@@ -268,8 +268,19 @@ export default function Header() {
             lastScrollY.current = currentScrollY;
         };
 
+        // Di chuột lên phía trên mép màn hình (Mouse Move to Top) -> Tự động trượt header từ từ xuống
+        const handleMouseMove = (e: MouseEvent) => {
+            if (e.clientY <= 70) {
+                setIsVisible(true);
+            }
+        };
+
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
     }, [isMobileMenuOpen, isSearchOpen]);
 
     // ── Fetch menus ────────────────────────────────────────────────────────
@@ -310,13 +321,22 @@ export default function Header() {
     }, []);
 
     return (
-        <header
-            className={`sticky top-0 z-[100] w-full transform transition-transform duration-300 ease-in-out ${
-                isVisible ? 'translate-y-0' : '-translate-y-full'
-            } ${
-                isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-gray-100' : 'bg-white'
-            }`}
-        >
+        <>
+            {/* Top hover detector khi header đang ẩn - di chuột lên mép trên sẽ hiện header */}
+            {!isVisible && (
+                <div
+                    className="fixed top-0 left-0 right-0 h-4 z-[99] pointer-events-auto"
+                    onMouseEnter={() => setIsVisible(true)}
+                />
+            )}
+            <header
+                onMouseEnter={() => setIsVisible(true)}
+                className={`sticky top-0 z-[100] w-full transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isVisible ? 'translate-y-0' : '-translate-y-full'
+                } ${
+                    isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-gray-100' : 'bg-white'
+                }`}
+            >
                 {/* Top announcement bar */}
                 <div className="bg-black text-white text-center py-2.5 text-xs tracking-[3px] uppercase font-light">
                     Miễn phí vận chuyển cho đơn hàng từ 500.000đ 🚚
@@ -519,5 +539,6 @@ export default function Header() {
                     )}
                 </AnimatePresence>
             </header>
+        </>
     );
 }
