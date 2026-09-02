@@ -230,17 +230,47 @@ export default function Header() {
         };
     }, []);
 
-    // ── Smart scroll state ──────────────────────────────────────────────────
+    // ── Smart scroll state (Hide on scroll down, slide down on scroll up) ──
+    const [isVisible, setIsVisible] = useState(true);
     const [isScrolled, setIsScrolled] = useState(false);
+    const lastScrollY = useRef(0);
 
     useEffect(() => {
         const handleScroll = () => {
-            const scrolled = window.scrollY > 20;
-            setIsScrolled(prev => (prev !== scrolled ? scrolled : prev));
+            const currentScrollY = window.scrollY;
+
+            // Đổi background khi cuộn qua đỉnh
+            setIsScrolled(currentScrollY > 20);
+
+            // Luôn hiện khi ở gần đỉnh trang
+            if (currentScrollY <= 80) {
+                setIsVisible(true);
+                lastScrollY.current = currentScrollY;
+                return;
+            }
+
+            // Luôn hiện khi đang mở Menu Mobile hoặc Search modal
+            if (isMobileMenuOpen || isSearchOpen) {
+                setIsVisible(true);
+                lastScrollY.current = currentScrollY;
+                return;
+            }
+
+            // Cuộn xuống (Scroll Down) -> Trượt ẩn header lên
+            if (currentScrollY > lastScrollY.current + 5) {
+                setIsVisible(false);
+            } 
+            // Cuộn lên (Scroll Up) -> Trượt hiện header xuống
+            else if (currentScrollY < lastScrollY.current - 5) {
+                setIsVisible(true);
+            }
+
+            lastScrollY.current = currentScrollY;
         };
+
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [isMobileMenuOpen, isSearchOpen]);
 
     // ── Fetch menus ────────────────────────────────────────────────────────
     useEffect(() => {
@@ -281,8 +311,10 @@ export default function Header() {
 
     return (
         <header
-            className={`sticky top-0 z-[100] w-full transition-all duration-200 ${
-                isScrolled ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-gray-100' : 'bg-white'
+            className={`sticky top-0 z-[100] w-full transform transition-transform duration-300 ease-in-out ${
+                isVisible ? 'translate-y-0' : '-translate-y-full'
+            } ${
+                isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-gray-100' : 'bg-white'
             }`}
         >
                 {/* Top announcement bar */}
