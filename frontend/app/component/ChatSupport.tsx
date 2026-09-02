@@ -151,14 +151,22 @@ export default function ChatSupport() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/products`);
+        const res = await fetch('/api/products?limit=60');
         const data = await res.json();
         if (data.success && Array.isArray(data.products)) {
           setProducts(data.products);
           setIsReady(true);
         }
       } catch (err) {
-        console.error('Không thể tải sản phẩm:', err);
+        try {
+          const fallbackRes = await fetch(`${BACKEND_URL}/api/products?limit=60`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && Array.isArray(fallbackData.products)) {
+            setProducts(fallbackData.products);
+          }
+        } catch (e) {
+          console.error('Không thể tải sản phẩm:', e);
+        }
         setIsReady(true);
       }
     };

@@ -98,6 +98,12 @@ const ProductSchema = new Schema({
 /* ---------- Chỉ mục (Index) tối ưu tốc độ truy vấn ---------- */
 ProductSchema.index({ name: 'text', description: 'text' }); // Cho phép tìm kiếm full-text theo tên và mô tả
 ProductSchema.index({ category: 1, price: 1 });              // Tối ưu lọc theo danh mục + khoảng giá
+ProductSchema.index({ subCategory: 1 });
+ProductSchema.index({ status: 1, inStock: 1 });
+ProductSchema.index({ category_id: 1 });
+ProductSchema.index({ "seo.slug": 1 });
+ProductSchema.index({ soldQuantity: -1 });
+ProductSchema.index({ rating: -1 });
 ProductSchema.index({ createdAt: -1 });                      // Tối ưu sắp xếp theo ngày mới nhất
 
 /* ---------- Khởi tạo Model (tránh tạo lại khi hot-reload) ---------- */

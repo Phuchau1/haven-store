@@ -75,9 +75,10 @@ const CACHE_TTL = {
     '/api/locations':    10 * 60 * 1000, // 10 phút
 };
 
-function getCacheTTL(path) {
+function getCacheTTL(requestPath) {
+    const normalized = requestPath.startsWith('/api') ? requestPath : `/api${requestPath.startsWith('/') ? '' : '/'}${requestPath}`;
     for (const [prefix, ttl] of Object.entries(CACHE_TTL)) {
-        if (path.startsWith(prefix)) return ttl;
+        if (normalized.startsWith(prefix)) return ttl;
     }
     return null; // Không cache
 }
@@ -87,10 +88,12 @@ function cacheMiddleware(req, res, next) {
     // Chỉ cache GET requests
     if (req.method !== 'GET') return next();
 
-    const ttl = getCacheTTL(req.path);
+    const normalizedPath = req.baseUrl ? `${req.baseUrl}${req.path}` : (req.path.startsWith('/api') ? req.path : `/api${req.path}`);
+    const ttl = getCacheTTL(normalizedPath);
     if (!ttl) return next();
 
-    const cacheKey = `${req.path}?${new URLSearchParams(req.query).toString()}`;
+    const queryString = new URLSearchParams(req.query).toString();
+    const cacheKey = queryString ? `${normalizedPath}?${queryString}` : normalizedPath;
     const cached = cache.get(cacheKey);
 
     if (cached) {
@@ -114,7 +117,11 @@ function cacheMiddleware(req, res, next) {
 
 // ─── Cache Invalidation Helper ────────────────────────────────
 function invalidateCache(pattern) {
-    cache.invalidate(pattern);
+    const cleanPattern = pattern.replace(/^\/api\/?/, '').replace(/^\//, '');
+    cache.invalidate(cleanPattern);
+    if (pattern !== cleanPattern) {
+        cache.invalidate(pattern);
+    }
     logger.info(`[Cache] Invalidated: ${pattern}`);
 }
 

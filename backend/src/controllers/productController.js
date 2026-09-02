@@ -145,7 +145,7 @@ const getProducts = async (req, res, next) => {
             productsQuery.limit(limitNumber);
         }
 
-        const products = await productsQuery;
+        const products = await productsQuery.lean();
         
         // --- 6. Lưu kết quả vào Cache ---
         // Cache dữ liệu trong 300 giây (5 phút) để dùng cho các request giống hệt sau này
@@ -351,8 +351,21 @@ const getProductById = async (req, res, next) => {
             return res.json({ success: true, product: cachedProduct, cached: true });
         }
 
-        // Tìm thông tin gốc của sản phẩm
-        const product = await ProductModel.findOne({ id });
+        // Tìm thông tin gốc của sản phẩm bằng id, _id hoặc slug
+        let product = await ProductModel.findOne({ id }).lean();
+        
+        if (!product && mongoose.Types.ObjectId.isValid(id)) {
+            product = await ProductModel.findById(id).lean();
+        }
+
+        if (!product) {
+            product = await ProductModel.findOne({
+                $or: [
+                    { "seo.slug": id },
+                    { id: { $regex: new RegExp(id + '$', 'i') } }
+                ]
+            }).lean();
+        }
         
         if (!product) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
@@ -361,11 +374,11 @@ const getProductById = async (req, res, next) => {
         // Tìm tất cả các biến thể thuộc sản phẩm này trong collection Variant
         const variantList = await ProductVariantModel.find({
             product_id: product.id
-        });
+        }).lean();
 
         // Gộp data trả về (Product + Array Variants)
         const productData = {
-            ...product.toObject(),
+            ...product,
             variants: variantList
         };
 

@@ -47,23 +47,24 @@ export default function Hero() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Fetch Settings
-                const resSettings  = await fetch('/api/settings');
-                const dataSettings = await resSettings.json();
-                
+                const [resSettingsResult, resBannersResult, resProductsResult] = await Promise.allSettled([
+                    fetch('/api/settings').then(r => r.ok ? r.json() : null),
+                    fetch('/api/banners?type=hero').then(r => r.ok ? r.json() : null),
+                    fetch('/api/products').then(r => r.ok ? r.json() : null)
+                ]);
+
                 const newSettings = { ...settings };
-                
-                if (dataSettings.success && dataSettings.settings) {
-                    newSettings.heroSubtitle = dataSettings.settings.heroSubtitle || newSettings.heroSubtitle;
-                    newSettings.heroVideoUrl = dataSettings.settings.heroVideoUrl || newSettings.heroVideoUrl;
+
+                // 1. Settings
+                if (resSettingsResult.status === 'fulfilled' && resSettingsResult.value?.success && resSettingsResult.value.settings) {
+                    const s = resSettingsResult.value.settings;
+                    newSettings.heroSubtitle = s.heroSubtitle || newSettings.heroSubtitle;
+                    newSettings.heroVideoUrl = s.heroVideoUrl || newSettings.heroVideoUrl;
                 }
 
-                // 2. Fetch Banners
-                const resBanners = await fetch('/api/banners?type=hero');
-                const dataBanners = await resBanners.json();
-                
-                if (dataBanners.success && dataBanners.banners && dataBanners.banners.length > 0) {
-                    const banner = dataBanners.banners[0];
+                // 2. Banners
+                if (resBannersResult.status === 'fulfilled' && resBannersResult.value?.success && resBannersResult.value.banners?.length > 0) {
+                    const banner = resBannersResult.value.banners[0];
                     newSettings.heroHeading = banner.title;
                     newSettings.heroImage = banner.image;
                     if (banner.video) {
@@ -74,11 +75,9 @@ export default function Hero() {
 
                 setSettings(newSettings);
 
-                // 3. Fetch Real Products for Live Stats
-                const resProducts = await fetch('/api/products');
-                const dataProducts = await resProducts.json();
-                if (dataProducts.success && Array.isArray(dataProducts.products) && dataProducts.products.length > 0) {
-                    const prods = dataProducts.products;
+                // 3. Products for Live Stats
+                if (resProductsResult.status === 'fulfilled' && resProductsResult.value?.success && Array.isArray(resProductsResult.value.products) && resProductsResult.value.products.length > 0) {
+                    const prods = resProductsResult.value.products;
                     const totalCount = prods.length;
                     const totalSold = prods.reduce((sum: number, p: any) => sum + (Number(p.soldQuantity) || Number(p.sold_quantity) || 0), 0);
                     const validRatings = prods.filter((p: any) => p.rating && Number(p.rating) > 0);

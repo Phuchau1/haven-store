@@ -39,9 +39,9 @@ const DEFAULT_SLIDES: Banner[] = [
 ];
 
 export default function CategorySection() {
-    const [slides, setSlides] = useState<Banner[]>([]);
+    const [slides, setSlides] = useState<Banner[]>(DEFAULT_SLIDES);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [direction, setDirection] = useState<'up' | 'down'>('up'); // 'up' = bottom to top, 'down' = top to bottom
     const [isHovered, setIsHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);

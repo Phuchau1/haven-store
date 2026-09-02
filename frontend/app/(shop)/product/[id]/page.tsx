@@ -148,71 +148,101 @@ export default function ProductDetailPage() {
     useEffect(() => {
         const fetchProductData = async () => {
             try {
-                let data: any = { success: false };
-                let fsData: any = { success: false };
+                const rawParam = decodeURIComponent(String(params.id || '')).trim();
+                const target = rawParam.toLowerCase();
                 
-                try {
-                    const [res, fsRes] = await Promise.all([
-                        fetch('/api/products'),
-                        fetch('/api/flash-sales/active')
-                    ]);
-                    
-                    if (res.ok) data = await res.json();
-                    if (fsRes.ok) fsData = await fsRes.json();
-                } catch (err) {
-                    console.error("Failed to fetch product or flash sale data", err);
-                }
-                
-                let currentFlashSale = null;
-                if (fsData.success && fsData.data) {
-                    currentFlashSale = fsData.data;
-                    setActiveFlashSale(currentFlashSale);
-                }
+                // Trích xuất mã ID nếu slug dạng "ten-san-pham-LF-XXXXXX"
+                const idMatch = rawParam.match(/(LF-[A-Z0-9]+)$/i) || rawParam.match(/([a-f0-9]{24})$/i);
+                const directId = idMatch ? idMatch[1] : rawParam;
 
-                if (data.success) {
-                    const target = decodeURIComponent(String(params.id || '')).toLowerCase();
-                    let foundProduct = data.products.find((p: any) => {
-                        const pId = (p.id || '').toLowerCase();
-                        const pSlug = (p.slug || slugify(p.name || '')).toLowerCase();
-                        const pNameSlug = slugify(p.name || '').toLowerCase();
-                        return pId === target || pSlug === target || pNameSlug === target || target.endsWith(pId) || pId.endsWith(target);
-                    });
+                let foundProduct: any = null;
+                let currentFlashSale: any = null;
 
-                    if (foundProduct) {
-                        const canonicalSlug = getProductSlug(foundProduct);
-                        if (canonicalSlug && params.id !== canonicalSlug && typeof window !== 'undefined') {
-                            window.history.replaceState(null, '', `/product/${canonicalSlug}`);
+                // Chạy song song: Lấy thông tin sản phẩm trực tiếp + Flash Sale
+                const [singleRes, fsRes] = await Promise.allSettled([
+                    fetch(`/api/products/${encodeURIComponent(directId)}`),
+                    fetch('/api/flash-sales/active')
+                ]);
+
+                if (fsRes.status === 'fulfilled' && fsRes.value.ok) {
+                    try {
+                        const fsJson = await fsRes.value.json();
+                        if (fsJson.success && fsJson.data) {
+                            currentFlashSale = fsJson.data;
+                            setActiveFlashSale(currentFlashSale);
                         }
+                    } catch (e) {}
+                }
 
-                        // Merge Flash Sale data if applicable
-                        if (currentFlashSale) {
-                            const fsProduct = currentFlashSale.products?.find((p: any) => p.productId === foundProduct.id || p.id === foundProduct.id);
-                            if (fsProduct) {
-                                foundProduct.originalPrice = foundProduct.price;
-                                // fsProduct already mapped 'price' to flashSalePrice in the backend
-                                const fpPrice = fsProduct.price !== undefined && fsProduct.price !== null ? fsProduct.price : foundProduct.price;
-                                foundProduct.price = fpPrice;
-                                foundProduct.isFlashSale = true;
-                                foundProduct.flashSaleVariants = fsProduct.flashSaleVariants && fsProduct.flashSaleVariants.length > 0 ? fsProduct.flashSaleVariants : (fsProduct.variants || []);
-                                foundProduct.flashSaleStock = fsProduct.flashSaleStock !== undefined ? fsProduct.flashSaleStock : (fsProduct.stockQuantity || 0);
+                if (singleRes.status === 'fulfilled' && singleRes.value.ok) {
+                    try {
+                        const sJson = await singleRes.value.json();
+                        if (sJson.success && sJson.product) {
+                            foundProduct = sJson.product;
+                        }
+                    } catch (e) {}
+                }
+
+                // Fallback: Nếu không tìm thấy bằng direct ID, tìm qua danh sách /api/products
+                if (!foundProduct) {
+                    try {
+                        const listRes = await fetch('/api/products');
+                        if (listRes.ok) {
+                            const listJson = await listRes.json();
+                            if (listJson.success && Array.isArray(listJson.products)) {
+                                foundProduct = listJson.products.find((p: any) => {
+                                    const pId = (p.id || '').toLowerCase();
+                                    const pSlug = (p.slug || slugify(p.name || '')).toLowerCase();
+                                    const pNameSlug = slugify(p.name || '').toLowerCase();
+                                    return pId === target || pSlug === target || pNameSlug === target || target.endsWith(pId) || pId.endsWith(target);
+                                });
                             }
                         }
+                    } catch (e) {
+                        console.error("Fallback product search error:", e);
+                    }
+                }
 
-                        setProduct(foundProduct);
-                        addProduct(foundProduct); // Lưu vào lịch sử xem
-                        
-                        // Tự động chọn nếu chỉ có 1 màu hoặc 1 size
-                        if (foundProduct.colors && foundProduct.colors.length === 1) {
-                            setSelectedColor(foundProduct.colors[0]);
-                        }
-                        if (foundProduct.sizes && foundProduct.sizes.length === 1) {
-                            setSelectedSize(foundProduct.sizes[0]);
-                        }
+                if (foundProduct) {
+                    const canonicalSlug = getProductSlug(foundProduct);
+                    if (canonicalSlug && params.id !== canonicalSlug && typeof window !== 'undefined') {
+                        window.history.replaceState(null, '', `/product/${canonicalSlug}`);
+                    }
 
-                        const related = data.products
-                            .filter((p: Product) => p.category === foundProduct.category && p.id !== foundProduct.id)
-                            .slice(0, 4);
-                        setRelatedProducts(related);
+                    // Merge Flash Sale data if applicable
+                    if (currentFlashSale) {
+                        const fsProduct = currentFlashSale.products?.find((p: any) => p.productId === foundProduct.id || p.id === foundProduct.id);
+                        if (fsProduct) {
+                            foundProduct.originalPrice = foundProduct.price;
+                            const fpPrice = fsProduct.price !== undefined && fsProduct.price !== null ? fsProduct.price : foundProduct.price;
+                            foundProduct.price = fpPrice;
+                            foundProduct.isFlashSale = true;
+                            foundProduct.flashSaleVariants = fsProduct.flashSaleVariants && fsProduct.flashSaleVariants.length > 0 ? fsProduct.flashSaleVariants : (fsProduct.variants || []);
+                            foundProduct.flashSaleStock = fsProduct.flashSaleStock !== undefined ? fsProduct.flashSaleStock : (fsProduct.stockQuantity || 0);
+                        }
+                    }
+
+                    setProduct(foundProduct);
+                    addProduct(foundProduct);
+
+                    if (foundProduct.colors && foundProduct.colors.length === 1) {
+                        setSelectedColor(foundProduct.colors[0]);
+                    }
+                    if (foundProduct.sizes && foundProduct.sizes.length === 1) {
+                        setSelectedSize(foundProduct.sizes[0]);
+                    }
+
+                    // Fetch related products theo danh mục một cách nhanh chóng
+                    if (foundProduct.category) {
+                        try {
+                            const relRes = await fetch(`/api/products?category=${encodeURIComponent(foundProduct.category)}&limit=6`);
+                            if (relRes.ok) {
+                                const relJson = await relRes.json();
+                                if (relJson.success && Array.isArray(relJson.products)) {
+                                    setRelatedProducts(relJson.products.filter((p: Product) => p.id !== foundProduct.id).slice(0, 4));
+                                }
+                            }
+                        } catch (e) {}
                     }
                 }
             } catch (error) {
