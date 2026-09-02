@@ -195,14 +195,14 @@ const exportStockOnApproval = async (orderItems, orderId) => {
  */
 const getOrders = async (req, res, next) => {
     try {
-        const email = typeof req.query.email === 'string' ? req.query.email : undefined;
+        const email = typeof req.query.email === 'string' ? req.query.email.trim() : undefined;
         const filter = email ? { email } : {};
-        let orders = await OrderModel.find(filter).sort({ createdAt: -1 });
+        let orders = await OrderModel.find(filter).sort({ createdAt: -1 }).lean();
 
         // Tự động Seed đơn hàng mẫu vào MongoDB nếu chưa có đơn nào trong DB
         if (orders.length === 0 && !email) {
             await autoSeedOrdersData();
-            orders = await OrderModel.find(filter).sort({ createdAt: -1 });
+            orders = await OrderModel.find(filter).sort({ createdAt: -1 }).lean();
         }
 
         res.json({ success: true, orders });

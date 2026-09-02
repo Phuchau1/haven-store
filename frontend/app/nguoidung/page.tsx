@@ -1003,7 +1003,7 @@ export default function NguoiDungPage() {
         const fetchOrders = async (silent = false) => {
             try {
                 if (!silent) setLoading(true);
-                const res = await fetch(`/api/orders?email=${user.email}&t=${Date.now()}`);
+                const res = await fetch(`/api/orders?email=${encodeURIComponent(user.email)}`);
                 const data = await res.json();
                 if (data.success) {
                     setOrders(prev => {
