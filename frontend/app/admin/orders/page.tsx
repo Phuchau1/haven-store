@@ -727,57 +727,91 @@ export default function AdminOrders() {
 
                                     {/* ── Order Progress Stepper ── */}
                                     <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800">
-                                        <div className="flex items-center justify-between relative px-1 sm:px-6">
+                                        <div className="flex items-center justify-between relative px-1 sm:px-4">
                                             {/* Progress connecting line */}
-                                            <div className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 dark:bg-slate-700 -z-0" />
+                                            <div className="absolute top-4 left-4 right-4 h-0.5 bg-slate-200 dark:bg-slate-700 -z-0" />
                                             
-                                            {WORKFLOW_STAGES.map((stage, idx) => {
-                                                const isReturnStatus = ['return_requested', 'returning', 'return_received', 'refunded'].includes(selectedOrder.status);
-                                                const isRefunded = selectedOrder.status === 'refunded';
-                                                const isCancelled = selectedOrder.status === 'cancelled';
-                                                const currentIdx = getStageIndex(selectedOrder.status);
+                                            {(() => {
+                                                const isReturnFlow = ['return_requested', 'returning', 'return_received', 'refunded'].includes(selectedOrder.status);
+                                                
+                                                const stages = isReturnFlow ? [
+                                                    { id: 'pending',    label: 'Chờ tiếp nhận' },
+                                                    { id: 'processing', label: 'Đã xác nhận' },
+                                                    { id: 'shipped',    label: 'Đang vận chuyển' },
+                                                    { id: 'delivered',  label: 'Giao thành công' },
+                                                    { id: 'returning',  label: 'Vận chuyển về shop' },
+                                                    { id: 'refunded',   label: 'Đã hoàn tiền' },
+                                                ] : [
+                                                    { id: 'pending',    label: 'Chờ tiếp nhận' },
+                                                    { id: 'processing', label: 'Đã xác nhận' },
+                                                    { id: 'shipped',    label: 'Đang vận chuyển' },
+                                                    { id: 'delivered',  label: 'Giao thành công' },
+                                                ];
 
-                                                // Nếu đơn trong chu trình đổi trả, 4 bước giao hàng trước đó đã hoàn tất
-                                                const isCompleted = isRefunded
-                                                    ? true
-                                                    : isReturnStatus
-                                                    ? idx < 4
-                                                    : !isCancelled && currentIdx >= idx;
+                                                return stages.map((stage, idx) => {
+                                                    let isCompleted = false;
+                                                    let isActive = false;
+                                                    let stageLabel = stage.label;
 
-                                                const isActive = isRefunded
-                                                    ? false
-                                                    : isReturnStatus
-                                                    ? idx === 4
-                                                    : !isCancelled && currentIdx === idx;
+                                                    if (isReturnFlow) {
+                                                        // 4 bước giao hàng trước đó đã hoàn tất
+                                                        if (idx < 4) {
+                                                            isCompleted = true;
+                                                        } else if (idx === 4) {
+                                                            // Bước: Vận chuyển về shop
+                                                            if (selectedOrder.status === 'return_requested') {
+                                                                isActive = true;
+                                                                stageLabel = 'Chờ duyệt hoàn';
+                                                            } else if (selectedOrder.status === 'returning') {
+                                                                isActive = true;
+                                                                stageLabel = 'Vận chuyển về shop';
+                                                            } else if (['return_received', 'refunded'].includes(selectedOrder.status)) {
+                                                                isCompleted = true;
+                                                                stageLabel = 'Đã về kho shop';
+                                                            }
+                                                        } else if (idx === 5) {
+                                                            // Bước: Đã hoàn tiền
+                                                            if (selectedOrder.status === 'refunded') {
+                                                                isCompleted = true;
+                                                                stageLabel = 'Đã hoàn tiền';
+                                                            } else if (selectedOrder.status === 'return_received') {
+                                                                isActive = true;
+                                                                stageLabel = 'Kiểm & Hoàn tiền';
+                                                            }
+                                                        }
+                                                    } else {
+                                                        const currentIdx = getStageIndex(selectedOrder.status);
+                                                        const isCancelled = selectedOrder.status === 'cancelled';
+                                                        isCompleted = !isCancelled && currentIdx >= idx;
+                                                        isActive = !isCancelled && currentIdx === idx;
+                                                    }
 
-                                                let stageLabel = stage.label;
-                                                if (stage.id === 'return') {
-                                                    if (selectedOrder.status === 'return_requested') stageLabel = 'Yêu cầu hoàn';
-                                                    else if (selectedOrder.status === 'returning') stageLabel = 'Đang hoàn hàng';
-                                                    else if (selectedOrder.status === 'return_received') stageLabel = 'Kho nhận hàng';
-                                                    else if (selectedOrder.status === 'refunded') stageLabel = 'Đã hoàn tiền';
-                                                    else stageLabel = 'Đổi trả hàng';
-                                                }
-
-                                                return (
-                                                    <div key={stage.id} className="flex flex-col items-center relative z-10">
-                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                                                            isActive
-                                                                ? 'bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-sm'
-                                                                : isCompleted
-                                                                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                                                                : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-300 dark:border-slate-700'
-                                                        }`}>
-                                                            {isCompleted && !isActive ? <Check size={14} /> : idx + 1}
+                                                    return (
+                                                        <div key={stage.id} className="flex flex-col items-center relative z-10">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                                                isActive
+                                                                    ? 'bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-sm'
+                                                                    : isCompleted
+                                                                    ? stage.id === 'refunded' 
+                                                                        ? 'bg-emerald-600 text-white shadow-xs'
+                                                                        : 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                                                                    : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-300 dark:border-slate-700'
+                                                            }`}>
+                                                                {isCompleted && !isActive ? <Check size={14} /> : idx + 1}
+                                                            </div>
+                                                            <span className={`mt-2 text-[10px] sm:text-xs text-center font-medium ${
+                                                                isActive 
+                                                                    ? 'text-blue-600 dark:text-blue-400 font-bold' 
+                                                                    : isCompleted 
+                                                                    ? stage.id === 'refunded' ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-slate-900 dark:text-slate-100 font-semibold' 
+                                                                    : 'text-slate-400'
+                                                            }`}>
+                                                                {stageLabel}
+                                                            </span>
                                                         </div>
-                                                        <span className={`mt-2 text-[11px] sm:text-xs text-center font-medium ${
-                                                            isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : isCompleted ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-400'
-                                                        }`}>
-                                                            {stageLabel}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     </div>
 
@@ -813,7 +847,7 @@ export default function AdminOrders() {
                                                 {/* Shipping provider status */}
                                                 <div className="text-xs text-slate-600 dark:text-slate-400 space-y-2">
                                                     <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                                                        <span>Đơn vị vận chuyển:</span>
+                                                        <span>Đơn vị vận chuyển (giao đi):</span>
                                                         <span className="font-semibold text-slate-900 dark:text-white">
                                                             {(selectedOrder as any).shippingProvider || (selectedOrder as any).carrierCode || 'Giao Hàng Nhanh (GHN)'}
                                                         </span>
@@ -860,35 +894,58 @@ export default function AdminOrders() {
                                                     </div>
                                                 ) : null}
 
-                                                {/* Actions for Return / Refund Workflow */}
-                                                {['returning', 'return_requested', 'return_received'].includes(selectedOrder.status) && (
+                                                {/* Actions & Details for Return / Refund Workflow */}
+                                                {['returning', 'return_requested', 'return_received', 'refunded'].includes(selectedOrder.status) && (
                                                     <div className="pt-2 space-y-2.5">
-                                                        <div className="p-3 bg-amber-50/90 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/60 space-y-1.5 text-xs">
+                                                        <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/60 space-y-2 text-xs">
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-amber-800 dark:text-amber-300 font-medium">Tiến độ hoàn trả:</span>
-                                                                <span className="font-bold text-amber-900 dark:text-amber-200">
+                                                                <span className="text-amber-800 dark:text-amber-300 font-bold">Vận chuyển hoàn hàng về shop:</span>
+                                                                <span className={`font-bold px-2 py-0.5 rounded text-[11px] ${
+                                                                    selectedOrder.status === 'refunded'
+                                                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                                                        : 'bg-amber-100 text-amber-900 border border-amber-300'
+                                                                }`}>
                                                                     {selectedOrder.status === 'return_requested' && 'Chờ Shop xét duyệt yêu cầu'}
-                                                                    {selectedOrder.status === 'returning' && 'Khách đang gửi bưu kiện hoàn trả'}
+                                                                    {selectedOrder.status === 'returning' && 'Khách đang gửi bưu kiện hoàn'}
                                                                     {selectedOrder.status === 'return_received' && 'Kho Shop đã nhận bưu kiện hoàn'}
+                                                                    {selectedOrder.status === 'refunded' && 'Đã nhận về kho & Hoàn tất tiền vào Ví'}
                                                                 </span>
                                                             </div>
-                                                            {selectedOrder.returnRequest?.returnTrackingNumber && (
-                                                                <div className="flex justify-between items-center pt-1.5 border-t border-amber-200/60 dark:border-amber-800/40">
-                                                                    <span className="text-amber-700 dark:text-amber-400">Mã vận đơn gửi:</span>
+
+                                                            <div className="space-y-1.5 pt-1.5 border-t border-amber-200/60 dark:border-amber-800/40 text-[11px]">
+                                                                <div className="flex justify-between items-center">
+                                                                    <span className="text-amber-700 dark:text-amber-400 font-medium">Mã vận đơn gửi hoàn:</span>
                                                                     <span className="font-mono font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-amber-200">
-                                                                        {selectedOrder.returnRequest.returnTrackingNumber} ({selectedOrder.returnRequest.returnCarrier || 'Chuyển phát'})
+                                                                        {selectedOrder.returnRequest?.returnTrackingNumber || 'Chưa cập nhật mã'} ({selectedOrder.returnRequest?.returnCarrier || 'Chuyển phát bưu cục'})
                                                                     </span>
                                                                 </div>
-                                                            )}
+                                                                {(selectedOrder.returnRequest as any)?.warehouseAddress && (
+                                                                    <div className="flex justify-between items-start pt-1">
+                                                                        <span className="text-amber-700 dark:text-amber-400 font-medium shrink-0">Kho nhận hoàn:</span>
+                                                                        <span className="text-right text-slate-800 dark:text-slate-200 font-semibold pl-2 line-clamp-2">
+                                                                            {(selectedOrder.returnRequest as any).warehouseAddress}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
 
-                                                        <a
-                                                            href="/admin/returns"
-                                                            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-                                                        >
-                                                            <RotateCcw size={14} />
-                                                            <span>Tiến hành kiểm hàng & xử lý tại mục Đổi trả →</span>
-                                                        </a>
+                                                        {selectedOrder.status !== 'refunded' ? (
+                                                            <a
+                                                                href="/admin/returns"
+                                                                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                                                            >
+                                                                <RotateCcw size={14} />
+                                                                <span>Tiến hành kiểm hàng & xử lý tại mục Đổi trả →</span>
+                                                            </a>
+                                                        ) : (
+                                                            <a
+                                                                href="/admin/returns"
+                                                                className="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                                            >
+                                                                <span>Xem chi tiết hồ sơ đổi trả tại mục Đổi trả →</span>
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 )}
 
