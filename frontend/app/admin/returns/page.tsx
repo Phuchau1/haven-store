@@ -21,8 +21,29 @@ interface OrderItem {
 
 interface ReturnRequestData {
     status: 'pending' | 'approved' | 'rejected' | 'none';
+    returnType?: 'return_and_refund' | 'refund_only';
+    returnItems?: {
+        productId?: string;
+        name?: string;
+        image?: string;
+        size?: string;
+        color?: string;
+        quantity?: number;
+        price?: number;
+        refundAmount?: number;
+    }[];
     reason: string;
+    customReason?: string;
+    description?: string;
     images?: string[];
+    videoUrl?: string;
+    estimatedRefundAmount?: number;
+    refundMethod?: 'wallet' | 'original' | 'bank_transfer';
+    bankInfo?: {
+        bankName?: string;
+        accountNumber?: string;
+        accountHolder?: string;
+    };
     requestedAt?: string;
     reviewDeadline?: string;
     reviewedAt?: string;
@@ -520,26 +541,64 @@ export default function AdminReturnsPage() {
                         </div>
 
                         {/* Return Request Details */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                            <div className="flex justify-between items-center text-xs">
-                                <span className="font-bold text-slate-600 uppercase">Lý do từ khách hàng</span>
-                                <span className="text-slate-400">
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3.5">
+                            <div className="flex flex-wrap justify-between items-center gap-2 text-xs">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-slate-700 uppercase">Hình thức yêu cầu:</span>
+                                    <span className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
+                                        selectedOrder.returnRequest?.returnType === 'refund_only'
+                                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                            : 'bg-indigo-100 text-indigo-900 border border-indigo-300'
+                                    }`}>
+                                        {selectedOrder.returnRequest?.returnType === 'refund_only' ? '⚡ Chỉ hoàn tiền (Không gửi hàng)' : '📦 Trả hàng & hoàn tiền'}
+                                    </span>
+                                </div>
+                                <span className="text-slate-400 font-medium">
                                     {selectedOrder.returnRequest?.requestedAt 
                                         ? new Date(selectedOrder.returnRequest.requestedAt).toLocaleString('vi-VN')
                                         : ''}
                                 </span>
                             </div>
-                            <p className="text-sm font-medium text-slate-900 bg-white p-3 rounded-lg border border-slate-100">
-                                "{selectedOrder.returnRequest?.reason || 'Chưa cung cấp lý do'}"
-                            </p>
 
-                            {/* Images */}
+                            <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                                <p className="text-[11px] font-bold text-slate-500 uppercase">Lý do từ khách hàng:</p>
+                                <p className="text-sm font-bold text-slate-900">
+                                    {selectedOrder.returnRequest?.reason}
+                                    {selectedOrder.returnRequest?.customReason && ` (${selectedOrder.returnRequest.customReason})`}
+                                </p>
+                            </div>
+
+                            {selectedOrder.returnRequest?.description && (
+                                <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                                    <p className="text-[11px] font-bold text-slate-500 uppercase">Mô tả chi tiết vấn đề:</p>
+                                    <p className="text-xs text-slate-800 leading-relaxed">
+                                        {selectedOrder.returnRequest.description}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Phương thức nhận tiền hoàn */}
+                            <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+                                <p className="text-[11px] font-bold text-slate-500 uppercase">Phương thức nhận tiền hoàn:</p>
+                                <p className="font-bold text-slate-900">
+                                    {selectedOrder.returnRequest?.refundMethod === 'wallet' && '💰 Hoàn tiền vào Ví HAVEN Pay'}
+                                    {selectedOrder.returnRequest?.refundMethod === 'original' && '💳 Hoàn về phương thức thanh toán ban đầu'}
+                                    {selectedOrder.returnRequest?.refundMethod === 'bank_transfer' && '🏦 Chuyển khoản ngân hàng'}
+                                </p>
+                                {selectedOrder.returnRequest?.bankInfo?.accountNumber && (
+                                    <p className="text-slate-600 font-mono text-[11px] pt-1">
+                                        Ngân hàng: <strong>{selectedOrder.returnRequest.bankInfo.bankName}</strong> · STK: <strong>{selectedOrder.returnRequest.bankInfo.accountNumber}</strong> · Chủ TK: <strong>{selectedOrder.returnRequest.bankInfo.accountHolder}</strong>
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Images & Video */}
                             {selectedOrder.returnRequest?.images && selectedOrder.returnRequest.images.length > 0 && (
                                 <div>
-                                    <p className="text-xs font-bold text-slate-600 uppercase mb-2">Ảnh bằng chứng từ khách</p>
+                                    <p className="text-xs font-bold text-slate-600 uppercase mb-2">Ảnh bằng chứng từ khách ({selectedOrder.returnRequest.images.length} ảnh):</p>
                                     <div className="flex gap-2 overflow-x-auto pb-2">
                                         {selectedOrder.returnRequest.images.map((img, idx) => (
-                                            <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 shrink-0 hover:opacity-90">
+                                            <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shrink-0 hover:opacity-90 shadow-2xs">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img src={img} alt={`Evidence ${idx}`} className="w-full h-full object-cover" />
                                             </a>
@@ -548,9 +607,18 @@ export default function AdminReturnsPage() {
                                 </div>
                             )}
 
+                            {selectedOrder.returnRequest?.videoUrl && (
+                                <div className="text-xs">
+                                    <span className="font-bold text-slate-600 uppercase block mb-1">Link Video bằng chứng:</span>
+                                    <a href={selectedOrder.returnRequest.videoUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-medium break-all">
+                                        {selectedOrder.returnRequest.videoUrl}
+                                    </a>
+                                </div>
+                            )}
+
                             {/* If Rejected */}
                             {selectedOrder.returnRequest?.status === 'rejected' && (
-                                <div className="bg-rose-50 border border-rose-200 p-3 rounded-lg text-rose-900 text-xs space-y-1">
+                                <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-rose-900 text-xs space-y-1">
                                     <p className="font-bold flex items-center gap-1">
                                         <XCircle className="w-4 h-4 text-rose-600" /> Lý do từ chối:
                                     </p>
@@ -559,23 +627,37 @@ export default function AdminReturnsPage() {
                             )}
                         </div>
 
-                        {/* Order Items */}
+                        {/* Order Return Items */}
                         <div>
-                            <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">Sản phẩm trong đơn</h4>
+                            <h4 className="text-xs font-bold uppercase text-slate-600 mb-2">
+                                Sản phẩm khách yêu cầu hoàn ({selectedOrder.returnRequest?.returnItems?.length || selectedOrder.items.length} món)
+                            </h4>
                             <div className="space-y-2">
-                                {selectedOrder.items.map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 bg-slate-50/50">
+                                {(selectedOrder.returnRequest?.returnItems && selectedOrder.returnRequest.returnItems.length > 0
+                                    ? selectedOrder.returnRequest.returnItems
+                                    : selectedOrder.items.map(it => ({
+                                        productId: it.product?.id,
+                                        name: it.product?.name,
+                                        image: it.product?.images?.[0],
+                                        size: it.selectedSize,
+                                        color: it.selectedColor?.name,
+                                        quantity: it.quantity,
+                                        price: it.product?.price,
+                                        refundAmount: (it.product?.price || 0) * it.quantity
+                                    }))
+                                ).map((item: any, i: number) => (
+                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/70">
                                         <div className="w-12 h-12 bg-slate-200 rounded-lg overflow-hidden shrink-0">
-                                            {item.product?.images?.[0] && (
+                                            {item.image && (
                                                 /* eslint-disable-next-line @next/next/no-img-element */
-                                                <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />
+                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0 text-xs">
-                                            <p className="font-semibold text-slate-800 truncate">{item.product.name}</p>
-                                            <p className="text-slate-400">Size: {item.selectedSize} | Màu: {item.selectedColor.name} | x{item.quantity}</p>
+                                            <p className="font-bold text-slate-900 truncate">{item.name}</p>
+                                            <p className="text-slate-500 mt-0.5">Size: {item.size} | Màu: {item.color} | Số lượng hoàn: <strong className="text-rose-600 font-bold">x{item.quantity}</strong></p>
                                         </div>
-                                        <p className="font-bold text-xs text-slate-900">{(item.product.price * item.quantity).toLocaleString('vi-VN')}đ</p>
+                                        <p className="font-bold text-xs text-rose-600">{((item.price || 0) * item.quantity).toLocaleString('vi-VN')}đ</p>
                                     </div>
                                 ))}
                             </div>

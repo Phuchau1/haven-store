@@ -827,8 +827,21 @@ const requestRefund = async (req, res, next) => {
  */
 const submitReturnRequest = async (req, res, next) => {
     try {
-        const { orderId, reason, images } = req.body;
-        if (!orderId || !reason || reason.trim().length < 3) {
+        const { 
+            orderId, 
+            reason, 
+            customReason,
+            description,
+            returnType, 
+            returnItems, 
+            images, 
+            videoUrl, 
+            refundMethod, 
+            bankInfo, 
+            estimatedRefundAmount 
+        } = req.body;
+
+        if (!orderId || !reason || reason.trim().length < 2) {
             return res.status(400).json({ success: false, message: 'Cần cung cấp mã đơn hàng và lý do hoàn hàng chi tiết' });
         }
 
@@ -856,10 +869,29 @@ const submitReturnRequest = async (req, res, next) => {
         const now = new Date();
         const reviewDeadline = new Date(now.getTime() + 48 * 60 * 60 * 1000); // Shop cam kết xử lý trong 24-48 giờ
 
+        const calculatedEstimated = Number(estimatedRefundAmount) > 0 ? Number(estimatedRefundAmount) : (order.finalAmount || order.totalAmount || 0);
+
         order.returnRequest = {
             status: 'pending',
+            returnType: returnType || 'return_and_refund',
+            returnItems: Array.isArray(returnItems) && returnItems.length > 0 ? returnItems : order.items.map(it => ({
+                productId: it.product?.id || '',
+                name: it.product?.name || '',
+                image: it.product?.images?.[0] || '',
+                size: it.selectedSize || '',
+                color: it.selectedColor?.name || it.selectedColor || '',
+                quantity: it.quantity || 1,
+                price: it.product?.price || 0,
+                refundAmount: (it.product?.price || 0) * (it.quantity || 1)
+            })),
             reason: reason.trim(),
+            customReason: (customReason || '').trim(),
+            description: (description || '').trim(),
             images: images || [],
+            videoUrl: videoUrl || '',
+            estimatedRefundAmount: calculatedEstimated,
+            refundMethod: refundMethod || 'wallet',
+            bankInfo: bankInfo || { bankName: '', accountNumber: '', accountHolder: '' },
             requestedAt: now,
             reviewDeadline: reviewDeadline,
             reviewedAt: null,
@@ -873,8 +905,7 @@ const submitReturnRequest = async (req, res, next) => {
             inspectionDeadline: null,
             refundDeadline: null,
             refundedAt: null,
-            refundAmount: order.finalAmount || order.totalAmount || 0,
-            refundMethod: 'wallet'
+            refundAmount: calculatedEstimated
         };
 
         order.status = 'return_requested';
@@ -882,7 +913,7 @@ const submitReturnRequest = async (req, res, next) => {
         order.shippingTimeline.push({
             status: 'return_requested',
             title: 'Khách hàng gửi yêu cầu trả hàng / hoàn tiền',
-            note: `Lý do: "${reason.trim()}" • Shop cam kết xét duyệt trong 24-48 giờ (Hạn chót: ${reviewDeadline.toLocaleString('vi-VN')})`,
+            note: `Hình thức: ${order.returnRequest.returnType === 'refund_only' ? 'Chỉ hoàn tiền' : 'Trả hàng & hoàn tiền'} • Lý do: "${reason.trim()}" • Số tiền dự kiến: ${calculatedEstimated.toLocaleString('vi-VN')}đ • Hạn chót duyệt: ${reviewDeadline.toLocaleString('vi-VN')}`,
             timestamp: now,
             isCustomerVisible: true
         });

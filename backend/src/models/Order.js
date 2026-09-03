@@ -110,8 +110,29 @@ const OrderSchema = new Schema({
     // ─── RETURN REQUEST (SLA ENGINE & TRACKING) ──────────────────────────────
     returnRequest: {
         status:               { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
+        returnType:           { type: String, enum: ['return_and_refund', 'refund_only'], default: 'return_and_refund' },
+        returnItems:          [{
+            productId:        { type: String },
+            name:             { type: String },
+            image:            { type: String },
+            size:             { type: String },
+            color:            { type: String },
+            quantity:         { type: Number, default: 1 },
+            price:            { type: Number, default: 0 },
+            refundAmount:     { type: Number, default: 0 }
+        }],
         reason:               { type: String, default: '' },
+        customReason:         { type: String, default: '' },
+        description:          { type: String, default: '' },
         images:               [{ type: String }],
+        videoUrl:             { type: String, default: '' },
+        estimatedRefundAmount:{ type: Number, default: 0 },
+        refundMethod:         { type: String, default: 'wallet' }, // 'wallet' | 'original' | 'bank_transfer'
+        bankInfo: {
+            bankName:         { type: String, default: '' },
+            accountNumber:    { type: String, default: '' },
+            accountHolder:    { type: String, default: '' }
+        },
         requestedAt:          { type: Date },
         reviewDeadline:       { type: Date },       // Hạn chót shop duyệt (requestedAt + 48h)
         reviewedAt:           { type: Date },
@@ -131,8 +152,7 @@ const OrderSchema = new Schema({
         // Hoàn tiền
         refundDeadline:       { type: Date },       // Hạn hoàn tiền (3 ngày)
         refundedAt:           { type: Date },       // Thời điểm hoàn tiền thành công
-        refundAmount:         { type: Number, default: 0 },
-        refundMethod:         { type: String, default: 'wallet' }
+        refundAmount:         { type: Number, default: 0 }
     },
 
     createdAt: { type: String, required: true }

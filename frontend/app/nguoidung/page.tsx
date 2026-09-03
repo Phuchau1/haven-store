@@ -30,7 +30,16 @@ import {
     Sparkles,
     Gift,
     ArrowUpRight,
-    ArrowDownRight
+    ArrowDownRight,
+    CheckSquare,
+    Square,
+    Plus,
+    Minus,
+    Building2,
+    UploadCloud,
+    HelpCircle,
+    Info,
+    FileText
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -728,42 +737,166 @@ const CustomerReturnModal = ({
     onSuccess: (orderId: string) => void;
 }) => {
     const { showToast } = useToast();
-    const [reason, setReason] = useState('');
-    const [customReason, setCustomReason] = useState('');
+    
+    // ── 1. Chọn sản phẩm & số lượng muốn hoàn ──
+    const [selectedItems, setSelectedItems] = useState<Record<number, { selected: boolean; quantity: number }>>(() => {
+        const init: Record<number, { selected: boolean; quantity: number }> = {};
+        (order.items || []).forEach((item, idx) => {
+            init[idx] = { selected: true, quantity: item.quantity || 1 };
+        });
+        return init;
+    });
+
+    // ── 2. Hình thức xử lý ──
+    const [returnType, setReturnType] = useState<'return_and_refund' | 'refund_only'>('return_and_refund');
+
+    // ── 3. Lý do hoàn hàng ──
+    const [reason, setReason] = useState<string>('Sản phẩm bị lỗi / hư hỏng');
+    const [customReason, setCustomReason] = useState<string>('');
+
+    // ── 4. Mô tả chi tiết vấn đề ──
+    const [description, setDescription] = useState<string>('');
+
+    // ── 5. Ảnh & Video bằng chứng ──
     const [images, setImages] = useState<string[]>([]);
-    const [imageUrlInput, setImageUrlInput] = useState('');
+    const [imageUrlInput, setImageUrlInput] = useState<string>('');
+    const [videoUrl, setVideoUrl] = useState<string>('');
+
+    // ── 6. Phương thức nhận tiền hoàn ──
+    const isOnlinePayment = ['vnpay', 'momo', 'wallet'].includes(order.paymentMethod?.toLowerCase() || '');
+    const [refundMethod, setRefundMethod] = useState<'wallet' | 'original' | 'bank_transfer'>(
+        isOnlinePayment ? 'wallet' : 'wallet'
+    );
+    const [bankInfo, setBankInfo] = useState({
+        bankName: 'Vietcombank',
+        accountNumber: '',
+        accountHolder: order.customerName || ''
+    });
+
     const [submitting, setSubmitting] = useState(false);
 
+    // ── Danh sách lý do chuẩn hóa ──
     const REASONS = [
-        'Sản phẩm bị lỗi / hư hỏng từ nhà sản xuất',
-        'Giao sai sản phẩm / sai màu / sai kích thước',
-        'Sản phẩm không đúng hình ảnh & mô tả',
-        'Sản phẩm không vừa size / cần đổi trả',
+        'Sản phẩm bị lỗi / hư hỏng',
+        'Giao sai sản phẩm',
+        'Sai màu',
+        'Sai kích thước',
+        'Sản phẩm không đúng mô tả',
+        'Thiếu sản phẩm / phụ kiện',
+        'Hàng giả / không đúng chất lượng',
+        'Không còn nhu cầu',
         'Khác'
     ];
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                if (reader.result) setImages(prev => [...prev, reader.result as string]);
+    const POPULAR_BANKS = [
+        'Vietcombank', 'MBBank (MB)', 'Techcombank', 'BIDV', 
+        'VietinBank', 'ACB', 'VPBank', 'TPBank', 'Sacombank', 'Khác'
+    ];
+
+    // ── 7. Tính thời hạn SLA 7 ngày ──
+    const deliveredDate = (order as any).deliveredAt ? new Date((order as any).deliveredAt) : new Date(order.createdAt);
+    const deadlineTime = deliveredDate.getTime() + 7 * 24 * 60 * 60 * 1000;
+    const diffMs = deadlineTime - Date.now();
+    const daysRemaining = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    const hoursRemaining = Math.max(0, Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+    const isExpired = diffMs <= 0;
+
+    // ── 8. Tính toán số tiền dự kiến hoàn từ Database ──
+    let selectedProductsTotal = 0;
+    let selectedProductsCount = 0;
+    const returnItemsPayload: any[] = [];
+
+    (order.items || []).forEach((item, idx) => {
+        const itemState = selectedItems[idx];
+        if (itemState && itemState.selected && itemState.quantity > 0) {
+            const itemPrice = item.product?.price || 0;
+            const itemTotal = itemPrice * itemState.quantity;
+            selectedProductsTotal += itemTotal;
+            selectedProductsCount += itemState.quantity;
+
+            returnItemsPayload.push({
+                productId: item.product?.id || '',
+                name: item.product?.name || '',
+                image: item.product?.images?.[0] || '',
+                size: item.selectedSize || '',
+                color: typeof item.selectedColor === 'object' ? item.selectedColor?.name : String(item.selectedColor || ''),
+                quantity: itemState.quantity,
+                price: itemPrice,
+                refundAmount: itemTotal
+            });
+        }
+    });
+
+    // Tỷ lệ khấu trừ voucher nếu đơn hàng có áp dụng mã giảm giá
+    const discountRatio = order.totalAmount > 0 ? ((order.totalAmount - (order.finalAmount || order.totalAmount)) / order.totalAmount) : 0;
+    const voucherDeduction = Math.round(selectedProductsTotal * discountRatio);
+    const estimatedRefund = Math.max(0, selectedProductsTotal - voucherDeduction);
+
+    // Toggle chọn item
+    const toggleItem = (idx: number) => {
+        setSelectedItems(prev => ({
+            ...prev,
+            [idx]: {
+                ...prev[idx],
+                selected: !prev[idx]?.selected
+            }
+        }));
+    };
+
+    // Điều chỉnh số lượng hoàn
+    const updateQuantity = (idx: number, delta: number, maxQty: number) => {
+        setSelectedItems(prev => {
+            const current = prev[idx]?.quantity || 1;
+            const nextQty = Math.max(1, Math.min(maxQty, current + delta));
+            return {
+                ...prev,
+                [idx]: {
+                    ...prev[idx],
+                    quantity: nextQty
+                }
             };
-            reader.readAsDataURL(file);
+        });
+    };
+
+    // Upload nhiều ảnh từ thiết bị
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            Array.from(files).forEach(file => {
+                if (images.length >= 6) {
+                    showToast('Chỉ được chọn tối đa 6 ảnh bằng chứng', 'warning');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (reader.result) {
+                        setImages(prev => prev.length < 6 ? [...prev, reader.result as string] : prev);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
         }
     };
 
     const handleAddImageUrl = () => {
         if (imageUrlInput.trim()) {
+            if (images.length >= 6) {
+                showToast('Chỉ được thêm tối đa 6 ảnh bằng chứng', 'warning');
+                return;
+            }
             setImages(prev => [...prev, imageUrlInput.trim()]);
             setImageUrlInput('');
         }
     };
 
     const handleSubmit = async () => {
-        const allowedStatuses = ['delivered', 'completed', 'awaiting_review', 'reviewed'];
-        if (!allowedStatuses.includes(order.status)) {
-            showToast('Chỉ có thể yêu cầu hoàn hàng với đơn đã giao thành công!', 'error', 'Đơn chưa đủ điều kiện');
+        if (isExpired) {
+            showToast('Đã hết thời hạn 7 ngày yêu cầu trả hàng / hoàn tiền cho đơn này', 'error', 'Quá hạn SLA');
+            return;
+        }
+
+        if (selectedProductsCount === 0) {
+            showToast('Vui lòng chọn ít nhất 1 sản phẩm bạn muốn hoàn', 'warning', 'Chưa chọn sản phẩm');
             return;
         }
 
@@ -773,9 +906,20 @@ const CustomerReturnModal = ({
             return;
         }
 
-        const evidenceImages = images.length > 0 
-            ? images 
-            : (order.items && order.items[0]?.product?.images ? [order.items[0].product.images[0]] : []);
+        if (!description.trim() || description.trim().length < 5) {
+            showToast('Vui lòng nhập mô tả chi tiết vấn đề sản phẩm (tối thiểu 5 ký tự)', 'warning', 'Thiếu mô tả');
+            return;
+        }
+
+        if (images.length === 0) {
+            showToast('Vui lòng tải lên ít nhất 1 ảnh chụp bằng chứng lỗi/hỏng', 'warning', 'Thiếu ảnh bằng chứng');
+            return;
+        }
+
+        if (refundMethod === 'bank_transfer' && (!bankInfo.accountNumber.trim() || !bankInfo.accountHolder.trim())) {
+            showToast('Vui lòng điền đầy đủ số tài khoản và tên chủ tài khoản ngân hàng', 'warning', 'Thiếu tài khoản ngân hàng');
+            return;
+        }
 
         setSubmitting(true);
         try {
@@ -784,14 +928,22 @@ const CustomerReturnModal = ({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     orderId: order.id,
+                    returnType,
+                    returnItems: returnItemsPayload,
                     reason: finalReason,
-                    images: evidenceImages
+                    customReason: customReason.trim(),
+                    description: description.trim(),
+                    images,
+                    videoUrl: videoUrl.trim(),
+                    refundMethod,
+                    bankInfo: refundMethod === 'bank_transfer' ? bankInfo : undefined,
+                    estimatedRefundAmount: estimatedRefund
                 })
             });
 
             const data = await res.json();
             if (data.success) {
-                showToast('Admin sẽ xem xét và tiến hành duyệt trong thời gian sớm nhất.', 'success', 'Gửi yêu cầu hoàn hàng thành công!');
+                showToast('Yêu cầu của bạn đã được gửi đến Admin. Chúng tôi sẽ xét duyệt trong vòng 24–48 giờ.', 'success', 'Gửi yêu cầu hoàn hàng thành công!');
                 onSuccess(order.id ?? '');
                 onClose();
             } else {
@@ -805,108 +957,509 @@ const CustomerReturnModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md overflow-y-auto">
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto"
+                initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto"
             >
-                <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                        <RotateCcw className="text-rose-500" size={18} /> Yêu Cầu Hoàn Hàng (Chờ Admin Duyệt)
-                    </h3>
-                    <button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100">
-                        <XCircle size={20} />
+                {/* ── HEADER MODAL ── */}
+                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-900 to-indigo-950 text-white shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-rose-500/20 border border-rose-400/30 text-rose-300 rounded-2xl shrink-0">
+                            <RotateCcw size={22} className="animate-spin-slow" />
+                        </div>
+                        <div>
+                            <h3 className="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+                                Yêu Cầu Trả Hàng / Hoàn Tiền
+                            </h3>
+                            <p className="text-xs text-slate-300 mt-0.5">
+                                Đơn hàng <span className="font-mono font-bold text-amber-300">#{order.id}</span> · Đặt ngày {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                            </p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onClose} 
+                        className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                        title="Đóng modal"
+                    >
+                        <XCircle size={22} />
                     </button>
                 </div>
 
-                <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-xs space-y-1">
-                    <p className="font-bold text-amber-900">Đơn hàng đã mua: #{order.id}</p>
-                    <p className="text-amber-700 text-[11px]">
-                        ⚠️ Quy định: Ảnh chụp bằng chứng sản phẩm & lý do sẽ được chuyển đến Admin xem xét kỹ trước khi duyệt hoàn tiền/kho.
-                    </p>
-                </div>
-
-                {/* Reasons */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">1. Chọn lý do hoàn hàng *</label>
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                        {REASONS.map(r => (
-                            <button
-                                key={r}
-                                type="button"
-                                onClick={() => setReason(r)}
-                                className={`w-full text-left p-2.5 rounded-xl text-xs font-medium transition-all border ${reason === r ? 'bg-rose-50 border-rose-300 text-rose-700 font-bold' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'}`}
-                            >
-                                {r}
-                            </button>
-                        ))}
-                    </div>
-                    {reason === 'Khác' && (
-                        <textarea
-                            rows={2}
-                            placeholder="Nhập lý do chi tiết..."
-                            value={customReason}
-                            onChange={e => setCustomReason(e.target.value)}
-                            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-rose-400"
-                        />
-                    )}
-                </div>
-
-                {/* Images Proof Upload */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">2. Chụp/Tải ảnh bằng chứng hàng lỗi/hỏng *</label>
+                {/* ── SCROLLABLE BODY ── */}
+                <div className="p-6 sm:p-8 space-y-7 overflow-y-auto flex-1 hide-scrollbar">
                     
-                    <div className="flex items-center gap-2">
-                        <label className="flex-1 cursor-pointer bg-slate-100 hover:bg-slate-200 border border-dashed border-slate-300 rounded-xl py-3 px-4 text-center text-xs font-semibold text-slate-600 transition-colors flex items-center justify-center gap-2">
-                            📸 Chọn ảnh từ thiết bị
-                            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                        </label>
+                    {/* ⏱ SLA 7 NGÀY COUNTDOWN BANNER */}
+                    <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                        isExpired 
+                            ? 'bg-rose-50 border-rose-200 text-rose-900' 
+                            : 'bg-amber-50/80 border-amber-200 text-amber-950'
+                    }`}>
+                        <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 font-bold text-xs sm:text-sm">
+                                <Clock size={16} className={isExpired ? 'text-rose-600' : 'text-amber-600'} />
+                                <span>Thời hạn yêu cầu trả hàng / hoàn tiền</span>
+                            </div>
+                            <p className="text-xs opacity-85">
+                                Chính sách HAVEN cho phép gửi yêu cầu trong vòng <strong>7 ngày</strong> kể từ khi nhận hàng.
+                            </p>
+                        </div>
+                        <div className={`px-3.5 py-1.5 rounded-xl text-xs font-black shrink-0 border ${
+                            isExpired 
+                                ? 'bg-rose-100 text-rose-700 border-rose-300' 
+                                : 'bg-amber-100/80 text-amber-900 border-amber-300 animate-pulse'
+                        }`}>
+                            {isExpired ? '⚠ Đã hết hạn (7 ngày)' : `⏱ Còn lại: ${daysRemaining} ngày ${hoursRemaining} giờ`}
+                        </div>
                     </div>
 
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            placeholder="Hoặc dán Link URL hình ảnh..."
-                            value={imageUrlInput}
-                            onChange={e => setImageUrlInput(e.target.value)}
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
-                        />
-                        <button type="button" onClick={handleAddImageUrl} className="px-3 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700">
-                            Thêm
-                        </button>
-                    </div>
+                    {/* ── BƯỚC 1: CHỌN SẢN PHẨM MUỐN HOÀN ── */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">1</span>
+                                Chọn sản phẩm muốn hoàn ({selectedProductsCount} sản phẩm đã chọn) <span className="text-rose-500">*</span>
+                            </label>
+                        </div>
 
-                    {/* Preview Images */}
-                    {images.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-1">
-                            {images.map((img, idx) => (
-                                <div key={idx} className="relative w-16 h-16 rounded-xl border border-slate-200 overflow-hidden group">
-                                    <img src={img} alt={`Proof ${idx}`} className="w-full h-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => setImages(prev => prev.filter((_, i) => i !== idx))}
-                                        className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center opacity-90 hover:opacity-100"
+                        <div className="space-y-2.5">
+                            {(order.items || []).map((item, idx) => {
+                                const isChecked = !!selectedItems[idx]?.selected;
+                                const curQty = selectedItems[idx]?.quantity || 1;
+                                const maxQty = item.quantity || 1;
+
+                                return (
+                                    <div 
+                                        key={idx}
+                                        className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                                            isChecked 
+                                                ? 'bg-indigo-50/40 border-indigo-200 ring-1 ring-indigo-300/40 shadow-xs' 
+                                                : 'bg-slate-50/60 border-slate-200 opacity-60 hover:opacity-100'
+                                        }`}
                                     >
-                                        ×
-                                    </button>
+                                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleItem(idx)}
+                                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                                                    isChecked ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-300 text-transparent'
+                                                }`}
+                                            >
+                                                <Check size={14} className="stroke-[3]" />
+                                            </button>
+
+                                            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                                                <Image 
+                                                    src={item.product?.images?.[0] || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=300'} 
+                                                    alt={item.product?.name || 'Sản phẩm'} 
+                                                    fill 
+                                                    className="object-cover" 
+                                                />
+                                            </div>
+
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                                                    {item.product?.name}
+                                                </p>
+                                                <p className="text-[11px] text-slate-500 mt-0.5">
+                                                    Phân loại: <strong className="text-slate-700">{item.selectedSize} · {typeof item.selectedColor === 'object' ? item.selectedColor?.name : String(item.selectedColor || '')}</strong> · Mua: x{item.quantity}
+                                                </p>
+                                                <p className="text-xs font-bold text-indigo-600 mt-0.5">
+                                                    {formatPrice(item.product?.price || 0)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Bộ chọn số lượng nếu mua >= 2 cái */}
+                                        {isChecked && (
+                                            <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
+                                                <span className="text-xs font-semibold text-slate-600">Số lượng hoàn:</span>
+                                                <div className="flex items-center border border-slate-200 bg-white rounded-xl overflow-hidden shadow-2xs">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => updateQuantity(idx, -1, maxQty)}
+                                                        disabled={curQty <= 1}
+                                                        className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                                                    >
+                                                        <Minus size={12} />
+                                                    </button>
+                                                    <span className="px-3 py-1 text-xs font-bold text-slate-900 min-w-[28px] text-center">
+                                                        {curQty}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => updateQuantity(idx, 1, maxQty)}
+                                                        disabled={curQty >= maxQty}
+                                                        className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                                                    >
+                                                        <Plus size={12} />
+                                                    </button>
+                                                </div>
+                                                <span className="text-xs font-bold text-slate-900 min-w-[80px] text-right">
+                                                    {formatPrice((item.product?.price || 0) * curQty)}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* ── BƯỚC 2: HÌNH THỨC XỬ LÝ ── */}
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">2</span>
+                            Hình thức xử lý <span className="text-rose-500">*</span>
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <label className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                                returnType === 'return_and_refund' 
+                                    ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20' 
+                                    : 'bg-white border-slate-200 hover:border-slate-300'
+                            }`}>
+                                <input
+                                    type="radio"
+                                    name="returnType"
+                                    checked={returnType === 'return_and_refund'}
+                                    onChange={() => setReturnType('return_and_refund')}
+                                    className="mt-1 w-4 h-4 accent-indigo-600"
+                                />
+                                <div>
+                                    <p className="text-xs sm:text-sm font-bold text-slate-900">📦 Trả hàng & hoàn tiền</p>
+                                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                        Bạn sẽ gửi bưu kiện hoàn về cho Shop qua đơn vị vận chuyển (GHN, GHTK, Viettel Post...).
+                                    </p>
                                 </div>
+                            </label>
+
+                            <label className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                                returnType === 'refund_only' 
+                                    ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20' 
+                                    : 'bg-white border-slate-200 hover:border-slate-300'
+                            }`}>
+                                <input
+                                    type="radio"
+                                    name="returnType"
+                                    checked={returnType === 'refund_only'}
+                                    onChange={() => setReturnType('refund_only')}
+                                    className="mt-1 w-4 h-4 accent-indigo-600"
+                                />
+                                <div>
+                                    <p className="text-xs sm:text-sm font-bold text-slate-900">⚡ Chỉ hoàn tiền (Không cần trả hàng)</p>
+                                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                        Áp dụng khi sản phẩm bị vỡ hỏng nặng, thiếu linh kiện, hoặc Shop chấp thuận không thu hồi.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* ── BƯỚC 3: LÝ DO TRẢ HÀNG ── */}
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">3</span>
+                            Lý do trả hàng <span className="text-rose-500">*</span>
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {REASONS.map(r => (
+                                <button
+                                    key={r}
+                                    type="button"
+                                    onClick={() => setReason(r)}
+                                    className={`p-3 rounded-xl text-left text-xs font-semibold transition-all border cursor-pointer ${
+                                        reason === r 
+                                            ? 'bg-rose-50 border-rose-400 text-rose-800 shadow-2xs' 
+                                            : 'bg-slate-50/80 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                    }`}
+                                >
+                                    {r}
+                                </button>
                             ))}
                         </div>
-                    )}
+
+                        {reason === 'Khác' && (
+                            <input
+                                type="text"
+                                value={customReason}
+                                onChange={e => setCustomReason(e.target.value)}
+                                placeholder="Vui lòng mô tả lý do của bạn *"
+                                className="w-full px-4 py-3 bg-white border border-rose-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-400/30"
+                            />
+                        )}
+                    </div>
+
+                    {/* ── BƯỚC 4: MÔ TẢ CHI TIẾT VẤN ĐỀ ── */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">4</span>
+                            Mô tả chi tiết vấn đề <span className="text-rose-500">*</span>
+                        </label>
+                        <p className="text-[11px] text-slate-500">
+                            Hãy mô tả chi tiết tình trạng sản phẩm để shop có thể xử lý nhanh hơn. (Ví dụ: &ldquo;Áo bị rách khoảng 3cm ở tay trái khi mở gói...&rdquo;)
+                        </p>
+                        <textarea
+                            rows={3}
+                            value={description}
+                            onChange={e => setDescription(e.target.value)}
+                            placeholder="Mô tả cụ thể lỗi hoặc lý do hoàn hàng..."
+                            className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none"
+                        />
+                    </div>
+
+                    {/* ── BƯỚC 5: ẢNH & VIDEO BẰNG CHỨNG ── */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">5</span>
+                                Ảnh / Video bằng chứng ({images.length}/6 ảnh) <span className="text-rose-500">*</span>
+                            </label>
+                        </div>
+
+                        {/* Gợi ý ảnh chuẩn */}
+                        <div className="flex flex-wrap gap-2 text-[11px] text-slate-600 font-medium">
+                            <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">📸 Toàn bộ sản phẩm</span>
+                            <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">🔍 Vị trí lỗi chi tiết</span>
+                            <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">🏷️ Tem/mã sản phẩm</span>
+                            <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">📦 Bao bì & mã vận đơn</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label className="cursor-pointer bg-slate-50 hover:bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl py-4 px-4 text-center text-xs font-bold text-slate-700 transition-colors flex flex-col items-center justify-center gap-1.5">
+                                <UploadCloud size={24} className="text-indigo-600" />
+                                <span>Chọn ảnh từ thiết bị (Tối đa 6 ảnh)</span>
+                                <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
+                            </label>
+
+                            <div className="space-y-2">
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Dán Link URL hình ảnh..."
+                                        value={imageUrlInput}
+                                        onChange={e => setImageUrlInput(e.target.value)}
+                                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                                    />
+                                    <button type="button" onClick={handleAddImageUrl} className="px-3 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 cursor-pointer">
+                                        Thêm
+                                    </button>
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Dán Link Video bằng chứng (Youtube/Tiktok/Drive nếu có)..."
+                                    value={videoUrl}
+                                    onChange={e => setVideoUrl(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Preview Images Grid */}
+                        {images.length > 0 && (
+                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+                                {images.map((img, idx) => (
+                                    <div key={idx} className="relative aspect-square rounded-2xl border border-slate-200 overflow-hidden group shadow-2xs">
+                                        <Image src={img} alt={`Proof ${idx}`} fill className="object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setImages(prev => prev.filter((_, i) => i !== idx))}
+                                            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center opacity-90 hover:opacity-100 shadow-md cursor-pointer"
+                                            title="Xóa ảnh này"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── BƯỚC 6: PHƯƠNG THỨC NHẬN TIỀN HOÀN ── */}
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">6</span>
+                            Phương thức nhận tiền hoàn <span className="text-rose-500">*</span>
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                                refundMethod === 'wallet' 
+                                    ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/20' 
+                                    : 'bg-white border-slate-200 hover:border-slate-300'
+                            }`}>
+                                <input
+                                    type="radio"
+                                    name="refundMethod"
+                                    checked={refundMethod === 'wallet'}
+                                    onChange={() => setRefundMethod('wallet')}
+                                    className="mt-1 w-4 h-4 accent-emerald-600"
+                                />
+                                <div>
+                                    <p className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                                        <span>💰 Hoàn vào Ví HAVEN Pay</span>
+                                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Khuyên dùng</span>
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                        Tiền vào tài khoản ví ngay sau khi duyệt. Dùng mua sắm đơn sau hoặc rút về thẻ ngân hàng bất kỳ lúc nào.
+                                    </p>
+                                </div>
+                            </label>
+
+                            {isOnlinePayment ? (
+                                <label className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                                    refundMethod === 'original' 
+                                        ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20' 
+                                        : 'bg-white border-slate-200 hover:border-slate-300'
+                                }`}>
+                                    <input
+                                        type="radio"
+                                        name="refundMethod"
+                                        checked={refundMethod === 'original'}
+                                        onChange={() => setRefundMethod('original')}
+                                        className="mt-1 w-4 h-4 accent-indigo-600"
+                                    />
+                                    <div>
+                                        <p className="text-xs sm:text-sm font-bold text-slate-900">
+                                            Hoàn về {order.paymentMethod === 'vnpay' ? 'Cổng VNPay / Thẻ' : 'Ví MoMo'}
+                                        </p>
+                                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                            Tiền sẽ được ngân hàng hoàn về tài khoản thanh toán ban đầu (1-3 ngày làm việc).
+                                        </p>
+                                    </div>
+                                </label>
+                            ) : (
+                                <label className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                                    refundMethod === 'bank_transfer' 
+                                        ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20' 
+                                        : 'bg-white border-slate-200 hover:border-slate-300'
+                                }`}>
+                                    <input
+                                        type="radio"
+                                        name="refundMethod"
+                                        checked={refundMethod === 'bank_transfer'}
+                                        onChange={() => setRefundMethod('bank_transfer')}
+                                        className="mt-1 w-4 h-4 accent-indigo-600"
+                                    />
+                                    <div>
+                                        <p className="text-xs sm:text-sm font-bold text-slate-900">
+                                            🏦 Chuyển khoản Ngân hàng
+                                        </p>
+                                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                            Shop sẽ chuyển khoản tiền hoàn trực tiếp vào STK ngân hàng của bạn.
+                                        </p>
+                                    </div>
+                                </label>
+                            )}
+                        </div>
+
+                        {refundMethod === 'bank_transfer' && (
+                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label className="text-[11px] font-bold text-slate-600 block mb-1">Ngân hàng</label>
+                                        <select
+                                            value={bankInfo.bankName}
+                                            onChange={e => setBankInfo({ ...bankInfo, bankName: e.target.value })}
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold"
+                                        >
+                                            {POPULAR_BANKS.map(b => (
+                                                <option key={b} value={b}>{b}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] font-bold text-slate-600 block mb-1">Số tài khoản *</label>
+                                        <input
+                                            type="text"
+                                            value={bankInfo.accountNumber}
+                                            onChange={e => setBankInfo({ ...bankInfo, accountNumber: e.target.value })}
+                                            placeholder="1012345678..."
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] font-bold text-slate-600 block mb-1">Tên chủ tài khoản (In hoa) *</label>
+                                        <input
+                                            type="text"
+                                            value={bankInfo.accountHolder}
+                                            onChange={e => setBankInfo({ ...bankInfo, accountHolder: e.target.value.toUpperCase() })}
+                                            placeholder="NGUYEN VAN A..."
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── BƯỚC 7: TÓM TẮT SỐ TIỀN DỰ KIẾN HOÀN ── */}
+                    <div className="p-5 bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl text-white space-y-3 shadow-lg">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Tóm Tắt Số Tiền Dự Kiến Hoàn
+                        </h4>
+
+                        <div className="space-y-2 text-xs">
+                            <div className="flex justify-between text-slate-300">
+                                <span>Giá trị sản phẩm đã chọn ({selectedProductsCount} sản phẩm):</span>
+                                <span className="font-bold text-white">{formatPrice(selectedProductsTotal)}</span>
+                            </div>
+                            {voucherDeduction > 0 && (
+                                <div className="flex justify-between text-amber-300">
+                                    <span>Khấu trừ voucher giảm giá theo tỷ lệ:</span>
+                                    <span>-{formatPrice(voucherDeduction)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between text-slate-300">
+                                <span>Phí vận chuyển:</span>
+                                <span className="text-emerald-400 font-bold">0đ (Theo quy định hoàn)</span>
+                            </div>
+                            <div className="pt-2 border-t border-white/10 flex justify-between items-baseline">
+                                <div>
+                                    <span className="text-sm font-black uppercase text-amber-300 block">
+                                        Dự kiến hoàn trả
+                                    </span>
+                                    <span className="text-[10px] text-slate-400">
+                                        (Số tiền cuối cùng có thể thay đổi sau khi Shop kiểm tra thẩm định)
+                                    </span>
+                                </div>
+                                <span className="text-2xl font-black text-amber-300">
+                                    {formatPrice(estimatedRefund)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                    <button onClick={onClose} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                {/* ── FOOTER ACTIONS ── */}
+                <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 shrink-0">
+                    <button 
+                        type="button"
+                        onClick={onClose} 
+                        className="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                    >
                         Hủy
                     </button>
                     <button
+                        type="button"
                         onClick={handleSubmit}
-                        disabled={submitting || !reason || images.length === 0}
-                        className="flex-1 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                        disabled={submitting || isExpired || selectedProductsCount === 0 || images.length === 0}
+                        className="px-6 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-200 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
-                        {submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu Cho Admin Duyệt'}
+                        {submitting ? (
+                            <>
+                                <Loader2 size={14} className="animate-spin" />
+                                <span>Đang gửi yêu cầu...</span>
+                            </>
+                        ) : (
+                            <>
+                                <RotateCcw size={14} />
+                                <span>Gửi Yêu Cầu Cho Admin Duyệt</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </motion.div>

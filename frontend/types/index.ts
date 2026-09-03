@@ -135,8 +135,29 @@ export interface OrderData {
     createdAt: string;
     returnRequest?: {
         status?: 'none' | 'pending' | 'approved' | 'rejected';
+        returnType?: 'return_and_refund' | 'refund_only';
+        returnItems?: {
+            productId?: string;
+            name?: string;
+            image?: string;
+            size?: string;
+            color?: string;
+            quantity?: number;
+            price?: number;
+            refundAmount?: number;
+        }[];
         reason?: string;
+        customReason?: string;
+        description?: string;
         images?: string[];
+        videoUrl?: string;
+        estimatedRefundAmount?: number;
+        refundMethod?: 'wallet' | 'original' | 'bank_transfer';
+        bankInfo?: {
+            bankName?: string;
+            accountNumber?: string;
+            accountHolder?: string;
+        };
         requestedAt?: string;
         reviewDeadline?: string;
         reviewedAt?: string;
