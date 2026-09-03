@@ -125,7 +125,7 @@ export interface OrderData {
     shippingMethodId?: string;
     finalAmount: number;
     note?: string;
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'return_requested' | 'returning' | 'return_received' | 'refunded';
+    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'return_requested' | 'returning' | 'return_received' | 'refunded' | 'confirmed' | 'packing' | 'waiting_pickup' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivering' | 'shipping' | 'completed' | (string & {});
     shippingProvider?: string;
     createdAt: string;
     returnRequest?: {
