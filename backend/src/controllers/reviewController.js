@@ -154,7 +154,7 @@ const createReview = async (req, res, next) => {
             try {
                 const { earnPoints } = require('./loyaltyController');
                 if (typeof earnPoints === 'function') {
-                    await earnPoints(user_id, 50000, `reward-review-${reviewId}`); // 50k = 50 điểm thưởng
+                    await earnPoints(user_id, 50, `reward-review-${reviewId}`, 'bonus', 'Thưởng +50 điểm khi đánh giá sản phẩm');
                 }
             } catch (err) {
                 log(`[Loyalty Warning] Review points award failed: ${err.message}`);
