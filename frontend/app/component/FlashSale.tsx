@@ -111,11 +111,11 @@ export default function FlashSale() {
             if (tabValue === 'all') {
                 setDisplayProducts(allProducts.slice(0, 8));
             } else if (dateSlotsData[tabValue] && dateSlotsData[tabValue].products && dateSlotsData[tabValue].products.length > 0) {
-                // Hiển thị chính xác danh sách sản phẩm KHÁC NHAU được Admin cấu hình riêng cho từng ngày
+                // Hiển thị danh sách sản phẩm được Admin cấu hình riêng cho từng ngày
                 setDisplayProducts(dateSlotsData[tabValue].products.slice(0, 8));
             } else {
-                // Nếu khung ngày chưa có sản phẩm riêng -> Không hiển thị lặp lại sản phẩm hôm nay
-                setDisplayProducts([]);
+                // Tuần hoàn hiển thị danh sách sản phẩm Flash Sale để khách hàng luôn thấy ưu đãi hấp dẫn
+                setDisplayProducts(allProducts.slice(0, 8));
             }
             setTabLoading(false);
         }, 200);

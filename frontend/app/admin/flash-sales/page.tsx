@@ -206,7 +206,7 @@ export default function AdminFlashSalesPage() {
         setIsModalOpen(true);
     };
 
-    // Áp dụng/chuyển đổi khung giờ sale theo từng ngày (Tự động tải/tạo sản phẩm KHÁC NHAU cho mỗi ngày)
+    // Áp dụng/chuyển đổi khung giờ sale theo từng ngày (Linh hoạt cho phép chọn bất kỳ sản phẩm nào kể cả lặp lại tuần hoàn)
     const applyDatePreset = (presetIndex: number | 'all-3-days') => {
         setErrorMsg('');
         if (presetIndex === 'all-3-days') {
@@ -230,48 +230,18 @@ export default function AdminFlashSalesPage() {
             });
 
             if (existingFs) {
-                // Đã có chiến dịch cho ngày này -> Tải đúng chiến dịch và danh sách sản phẩm RIÊNG của ngày đó
+                // Đã có chiến dịch cho ngày này -> Tải chiến dịch của ngày đó
                 openModal(existingFs);
             } else {
-                // Chưa có chiến dịch -> Tạo draft mới cho ngày này với các sản phẩm KHÔNG bị trùng ở ngày khác
+                // Chưa có chiến dịch -> Tạo draft mới cho ngày này, cho phép chọn bất kỳ sản phẩm nào
                 setEditingItem(null);
-
-                const usedPids = new Set<string>();
-                flashSales.forEach(fs => {
-                    (fs.products || []).forEach(fp => {
-                        const pid = typeof fp.productId === 'object' ? fp.productId.id : fp.productId;
-                        if (pid) usedPids.add(pid);
-                    });
-                });
-
-                // Chọn tự động 4-6 sản phẩm chưa dùng
-                const unusedProds = allProducts.filter(ap => !usedPids.has(ap.id)).slice(0, 6);
-                const newProducts = unusedProds.map(ap => {
-                    const defaultPrice = ap.price ? Math.round(ap.price * 0.8) : 0;
-                    const vars = (ap.variants || []).map(v => ({
-                        color: v.color,
-                        size: v.size,
-                        flashSalePrice: defaultPrice,
-                        stockQuantity: 50,
-                        soldQuantity: 0
-                    }));
-                    return {
-                        productId: ap.id,
-                        flashSalePrice: defaultPrice,
-                        stockQuantity: 100,
-                        soldQuantity: 0,
-                        variants: vars,
-                        useVariants: false
-                    };
-                });
-
-                setFormData({
+                setFormData(prev => ({
+                    ...prev,
                     name: `Chiến dịch Flash Sale — ${p.fullLabel}`,
                     startTime: p.startISO,
                     endTime: p.endISO,
                     isActive: true,
-                    products: newProducts
-                });
+                }));
             }
         }
     };
