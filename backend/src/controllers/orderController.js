@@ -1128,6 +1128,26 @@ const validateOrderItems = async (req, res, next) => {
     }
 };
 
+const checkOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const order = await OrderModel.findOne({ id: orderId }).select('id status paymentStatus paymentMethod totalAmount finalAmount createdAt');
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
+        }
+        res.json({
+            success: true,
+            orderId: order.id,
+            status: order.status,
+            paymentStatus: order.paymentStatus,
+            paymentMethod: order.paymentMethod,
+            finalAmount: order.finalAmount || order.totalAmount
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 module.exports = {
     getOrders,
     createOrder,
@@ -1139,5 +1159,6 @@ module.exports = {
     getReturnRequests,
     reviewReturnRequest,
     confirmReturnReceived,
-    validateOrderItems
+    validateOrderItems,
+    checkOrderStatus
 };

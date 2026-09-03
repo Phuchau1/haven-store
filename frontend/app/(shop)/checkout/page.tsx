@@ -21,7 +21,7 @@ export default function CheckoutPage() {
     
     const { removeVoucher } = useVoucherStore();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [orderInfo, setOrderInfo] = useState({ orderId: '', email: '' });
+    const [orderInfo, setOrderInfo] = useState({ orderId: '', email: '', paymentMethod: '', amount: 0 });
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -33,8 +33,8 @@ export default function CheckoutPage() {
         };
     }, [closeCart]);
 
-    const handleOrderSuccess = (orderId: string, email: string) => {
-        setOrderInfo({ orderId, email });
+    const handleOrderSuccess = (orderId: string, email: string, paymentMethod?: string, amount?: number) => {
+        setOrderInfo({ orderId, email, paymentMethod: paymentMethod || 'cod', amount: amount || 0 });
         setShowSuccessModal(true);
         
         const buyNowItem = useCartStore.getState().buyNowItem;
@@ -127,6 +127,8 @@ export default function CheckoutPage() {
                 isOpen={showSuccessModal}
                 orderId={orderInfo.orderId}
                 email={orderInfo.email}
+                paymentMethod={orderInfo.paymentMethod}
+                amount={orderInfo.amount}
                 onClose={handleCloseModal}
             />
         </div>

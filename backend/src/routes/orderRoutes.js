@@ -9,6 +9,7 @@ const { orderLimiter } = require('../middleware/rateLimiter');
 router.post('/validate', orderController.validateOrderItems);
 
 router.get('/', orderController.getOrders);
+router.get('/status/:orderId', orderController.checkOrderStatus);
 router.post('/', orderLimiter, validateOrder, orderController.createOrder); // Rate limit đặt hàng — chống spam
 router.put('/', validateOrder, orderController.updateOrderStatus);
 

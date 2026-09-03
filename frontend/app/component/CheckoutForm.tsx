@@ -19,7 +19,7 @@ import { useCheckoutStore } from '@/app/store/useCheckoutStore';
 import { useCartStore } from '@/app/store/useCartStore';
 
 interface CheckoutFormProps {
-    onSuccess: (orderId: string, email: string) => void;
+    onSuccess: (orderId: string, email: string, paymentMethod?: string, amount?: number) => void;
 }
 
 interface Coupon {
@@ -703,7 +703,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }
 
             localStorage.removeItem('phstore-checkout-temp');
-            onSuccess(result.orderId, formData.email);
+            onSuccess(result.orderId, formData.email, formData.paymentMethod, result.finalAmount || finalTotal);
         } catch (err: unknown) {
             console.error('Checkout error:', err);
             setError((err as Error).message || 'Có lỗi xảy ra. Vui lòng thử lại.');
