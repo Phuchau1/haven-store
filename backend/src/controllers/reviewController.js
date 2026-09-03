@@ -75,7 +75,7 @@ const getReviewsByProduct = async (req, res, next) => {
  */
 const createReview = async (req, res, next) => {
     try {
-        const { product_id, rating, content, userName, userEmail, user_id } = req.body;
+        const { product_id, rating, content, userName, userEmail, user_id, sellerRating, shippingRating, tags, orderId } = req.body;
 
         // Validation cơ bản
         if (!product_id || !rating || !content) {
@@ -128,7 +128,6 @@ const createReview = async (req, res, next) => {
                 });
             }
         }
-        const { product_id, rating, content, userName, userEmail, user_id, sellerRating, shippingRating, tags, orderId } = req.body;
         const reviewId = `rv-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
         const newReview = new ProductReviewModel({
             id: reviewId,
