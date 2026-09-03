@@ -22,7 +22,7 @@ interface OrderItem {
 }
 
 interface ReturnRequestData {
-    status: 'pending' | 'approved' | 'rejected' | 'none';
+    status: 'pending' | 'approved' | 'rejected' | 'returning' | 'refunded' | 'none';
     returnType?: 'return_and_refund' | 'refund_only';
     returnItems?: {
         productId?: string;
@@ -425,11 +425,11 @@ export default function AdminReturnsPage() {
                             ) : (
                                 filteredOrders.map(order => {
                                     const req = order.returnRequest;
-                                    const isPending = req?.status === 'pending';
-                                    const isApproved = req?.status === 'approved';
-                                    const isRejected = req?.status === 'rejected';
-                                    const isReturning = order.status === 'returning';
-                                    const isRefunded = order.status === 'refunded';
+                                    const isRefunded = order.status === 'refunded' || req?.status === 'refunded' || !!req?.refundedAt;
+                                    const isReturning = !isRefunded && (order.status === 'returning' || req?.status === 'returning');
+                                    const isRejected = !isRefunded && req?.status === 'rejected';
+                                    const isPending = !isRefunded && !isReturning && !isRejected && (req?.status === 'pending' || order.status === 'return_requested');
+                                    const isApproved = !isRefunded && !isReturning && !isRejected && !isPending && req?.status === 'approved';
                                     const isRefundOnly = req?.returnType === 'refund_only';
                                     const refundAmt = req?.estimatedRefundAmount || req?.refundAmount || order.finalAmount || order.totalAmount || 0;
 
@@ -526,7 +526,7 @@ export default function AdminReturnsPage() {
                                                         <CheckCircle2 className="w-3 h-3" /> Đã hoàn tiền
                                                     </span>
                                                 )}
-                                                {isApproved && !isReturning && !isRefunded && (
+                                                {isApproved && (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-800 border border-slate-200">
                                                         <CheckCircle2 className="w-3 h-3" /> Đã duyệt
                                                     </span>

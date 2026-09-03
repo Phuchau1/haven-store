@@ -694,6 +694,35 @@ export default function AdminOrders() {
                                 {/* Body */}
                                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
+                                    {/* ── Return / Refund Notice Banner ── */}
+                                    {selectedOrder.status === 'refunded' && (
+                                        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-2xs">
+                                            <div className="flex items-center gap-2.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                                                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                                <span>Đơn hàng đã hoàn tất quy trình đổi trả & hoàn tiền vào Ví HAVEN</span>
+                                            </div>
+                                            <a href="/admin/returns" className="text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:underline flex items-center gap-1 shrink-0">
+                                                Xem hồ sơ đổi trả →
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    {['return_requested', 'returning', 'return_received'].includes(selectedOrder.status) && (
+                                        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-2xs">
+                                            <div className="flex items-center gap-2.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                                                <Clock size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                                                <span>
+                                                    {selectedOrder.status === 'return_requested' && 'Khách hàng đã gửi yêu cầu đổi trả — Đang chờ Shop xét duyệt'}
+                                                    {selectedOrder.status === 'returning' && 'Khách hàng đang gửi bưu kiện hoàn trả về kho'}
+                                                    {selectedOrder.status === 'return_received' && 'Kho đã nhận bưu kiện — Đang thẩm định hàng hoàn'}
+                                                </span>
+                                            </div>
+                                            <a href="/admin/returns" className="text-xs font-bold text-amber-800 dark:text-amber-300 hover:underline flex items-center gap-1 shrink-0">
+                                                Xử lý tại mục Đổi trả →
+                                            </a>
+                                        </div>
+                                    )}
+
                                     {/* ── Order Progress Stepper ── */}
                                     <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800">
                                         <div className="flex items-center justify-between relative px-2 sm:px-6">
@@ -702,8 +731,9 @@ export default function AdminOrders() {
                                             
                                             {WORKFLOW_STAGES.map((stage, idx) => {
                                                 const currentIdx = getStageIndex(selectedOrder.status);
-                                                const isCompleted = selectedOrder.status !== 'cancelled' && currentIdx >= idx;
-                                                const isActive = selectedOrder.status !== 'cancelled' && currentIdx === idx;
+                                                const isRefunded = selectedOrder.status === 'refunded';
+                                                const isCompleted = isRefunded || (selectedOrder.status !== 'cancelled' && currentIdx >= idx);
+                                                const isActive = !isRefunded && selectedOrder.status !== 'cancelled' && currentIdx === idx;
 
                                                 return (
                                                     <div key={stage.id} className="flex flex-col items-center relative z-10">
@@ -793,7 +823,7 @@ export default function AdminOrders() {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                ) : selectedOrder.status !== 'delivered' && selectedOrder.status !== 'completed' && selectedOrder.status !== 'cancelled' ? (
+                                                ) : !['delivered', 'completed', 'cancelled', 'refunded', 'returning', 'return_requested', 'return_received'].includes(selectedOrder.status) ? (
                                                     <div className="pt-2">
                                                         <button
                                                             disabled={isSimulating}

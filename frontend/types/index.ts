@@ -134,7 +134,7 @@ export interface OrderData {
     shippingProvider?: string;
     createdAt: string;
     returnRequest?: {
-        status?: 'none' | 'pending' | 'approved' | 'rejected';
+        status?: 'none' | 'pending' | 'approved' | 'rejected' | 'returning' | 'refunded';
         returnType?: 'return_and_refund' | 'refund_only';
         returnItems?: {
             productId?: string;
