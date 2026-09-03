@@ -256,7 +256,7 @@ function MoMoPaymentContent() {
                         </div>
 
                         <div className="p-3.5 bg-pink-50 border border-pink-200 rounded-xl text-xs text-pink-900 leading-relaxed">
-                            💡 <strong>Sandbox Test:</strong> SĐT: <code className="bg-white px-1.5 py-0.5 rounded font-bold font-mono">0909888999</code> · OTP: <code className="bg-white px-1.5 py-0.5 rounded font-bold font-mono">000000</code>
+                            💡 <strong>Sandbox Test:</strong> SĐT: <code className="bg-white px-1.5 py-0.5 rounded font-bold font-mono">0909888999</code> · OTP: <code className="bg-white px-1.5 py-0.5 rounded font-bold font-mono">123456</code> hoặc <code className="bg-white px-1.5 py-0.5 rounded font-bold font-mono">000000</code>
                         </div>
                     </div>
 

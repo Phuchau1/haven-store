@@ -49,7 +49,8 @@ const createPaymentUrl = async (req, res) => {
         if (paymentMethod === 'vnpay') {
             payUrl = buildVNPayUrl(req, orderId, amountInt, orderInfo);
         } else if (paymentMethod === 'momo') {
-            payUrl = await buildMoMoUrl(orderId, amountInt, orderInfo);
+            const frontendUrl = getFrontendUrl();
+            payUrl = `${frontendUrl}/checkout/momo-payment?orderId=${orderId}&amount=${amountInt}`;
         } else {
             return res.status(400).json({ success: false, message: `Phương thức thanh toán không hỗ trợ: ${paymentMethod}` });
         }
@@ -306,13 +307,13 @@ const momoConfirm = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Thiếu thông tin xác nhận.' });
         }
 
-        // Lấy OTP đã lưu hoặc chấp nhận mặc định 000000
+        // Lấy OTP đã lưu hoặc chấp nhận mặc định 000000 / 123456
         const stored = otpStore.get(orderId);
         const inputOtp = String(otp).trim();
-        const isValidOtp = inputOtp === '000000' || (stored && stored.otp === inputOtp);
+        const isValidOtp = inputOtp === '000000' || inputOtp === '123456' || (stored && stored.otp === inputOtp);
 
         if (!isValidOtp) {
-            return res.status(400).json({ success: false, message: 'Mã OTP không đúng (Mã test là 000000). Vui lòng kiểm tra lại.' });
+            return res.status(400).json({ success: false, message: 'Mã OTP không đúng (Mã test là 123456 hoặc 000000). Vui lòng kiểm tra lại.' });
         }
 
         // OTP đúng -> xác nhận đơn hàng thành công ngay lập tức
