@@ -24,6 +24,7 @@
     "bullmq": "^5.79.1",
     "bwip-js": "^4.11.1",
     "cloudinary": "^1.41.3",
+    "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",

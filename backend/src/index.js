@@ -3,6 +3,7 @@ const socketIo = require('socket.io');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
 const dotenv = require('dotenv');
@@ -58,6 +59,9 @@ logger.info(`CWD: ${process.cwd()}`);
 app.all(['/health', '/api/health', '/'], (req, res) => {
     res.status(200).json({ status: 'ok', message: 'HAVEN Store Backend API is running smoothly', timestamp: new Date() });
 });
+
+// --- NÉN DỮ LIỆU (GZIP / DEFLATE) ---
+app.use(compression());
 
 // --- BẢO MẬT (SECURITY) ---
 app.use(helmet({ crossOriginResourcePolicy: false })); 
