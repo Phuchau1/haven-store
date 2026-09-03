@@ -49,8 +49,13 @@ const createPaymentUrl = async (req, res) => {
         if (paymentMethod === 'vnpay') {
             payUrl = buildVNPayUrl(req, orderId, amountInt, orderInfo);
         } else if (paymentMethod === 'momo') {
-            const frontendUrl = getFrontendUrl();
-            payUrl = `${frontendUrl}/checkout/momo-payment?orderId=${orderId}&amount=${amountInt}`;
+            try {
+                payUrl = await buildMoMoUrl(orderId, amountInt, orderInfo);
+            } catch (mErr) {
+                logger.warn(`[MoMo Warning] ${mErr.message} -> Falling back to internal MoMo page`);
+                const frontendUrl = getFrontendUrl();
+                payUrl = `${frontendUrl}/checkout/momo-payment?orderId=${orderId}&amount=${amountInt}`;
+            }
         } else {
             return res.status(400).json({ success: false, message: `Phương thức thanh toán không hỗ trợ: ${paymentMethod}` });
         }
