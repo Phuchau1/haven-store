@@ -326,29 +326,60 @@ export default function ProductTabs({ product }: ProductTabsProps) {
                                             <p className="text-sm text-gray-400 mt-1">Hãy là người đầu tiên đánh giá sản phẩm này.</p>
                                         </div>
                                     ) : (
-                                        <div className="space-y-6">
-                                            {reviews.map((review) => (
-                                                <div key={review.id} className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
-                                                                <User size={18} />
+                                                    <div className="space-y-6">
+                                                        {reviews.map((review) => (
+                                                            <div key={review.id} className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-3">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                                                                            <User size={18} />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-sm font-medium text-gray-900">{review.userName}</p>
+                                                                            <p className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('vi-VN')}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex gap-1">
+                                                                        {[...Array(5)].map((_, i) => (
+                                                                            <Star key={i} size={14} className={i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'} />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Quick tags from TikTok / Shopee */}
+                                                                {review.tags && review.tags.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-1.5">
+                                                                        {review.tags.map((tag, tIdx) => (
+                                                                            <span key={tIdx} className="px-2.5 py-0.5 bg-amber-50 text-amber-800 rounded-md text-[11px] font-medium border border-amber-200/60">
+                                                                                ✓ {tag}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+
+                                                                <p className="text-gray-700 text-sm leading-relaxed">{review.content}</p>
+
+                                                                {/* Seller Reply Box */}
+                                                                {review.reply && (
+                                                                    <div className="mt-3 p-3.5 bg-slate-50 border-l-4 border-indigo-600 rounded-r-xl space-y-1">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <span className="text-xs font-bold text-indigo-700 flex items-center gap-1.5">
+                                                                                🏪 Phản hồi của Người Bán (HAVEN STORE)
+                                                                            </span>
+                                                                            {review.replyCreatedAt && (
+                                                                                <span className="text-[11px] text-slate-400">
+                                                                                    {new Date(review.replyCreatedAt).toLocaleDateString('vi-VN')}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <p className="text-xs text-slate-700 leading-relaxed italic">
+                                                                            "{review.reply}"
+                                                                        </p>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            <div>
-                                                                <p className="text-sm font-medium text-gray-900">{review.userName}</p>
-                                                                <p className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('vi-VN')}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-1">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <Star key={i} size={14} className={i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'} />
-                                                            ))}
-                                                        </div>
+                                                        ))}
                                                     </div>
-                                                    <p className="text-gray-700 text-sm leading-relaxed">{review.content}</p>
-                                                </div>
-                                            ))}
-                                        </div>
                                     )}
                                 </div>
                             </div>

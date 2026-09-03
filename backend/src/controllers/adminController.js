@@ -462,6 +462,39 @@ const deleteUser = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Admin trả lời phản hồi đánh giá của khách hàng
+ * @route   POST /api/admin/reviews/reply
+ * @access  Private/Admin
+ */
+const replyReview = async (req, res, next) => {
+    try {
+        const { id, reply } = req.body;
+        if (!id) {
+            return res.status(400).json({ success: false, message: 'Thiếu ID đánh giá' });
+        }
+
+        const review = await ProductReviewModel.findOneAndUpdate(
+            { id },
+            {
+                reply: String(reply || '').trim(),
+                replyCreatedAt: new Date().toISOString()
+            },
+            { new: true }
+        );
+
+        if (!review) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy đánh giá' });
+        }
+
+        log(`Admin replied to review ${id}: "${reply}"`);
+        res.json({ success: true, message: 'Đã gửi phản hồi đánh giá thành công!', review });
+    } catch (error) {
+        log(`Lỗi trả lời đánh giá: ${error.message}`);
+        next(error);
+    }
+};
+
 module.exports = {
     getStats,
     getUsers,
@@ -469,6 +502,7 @@ module.exports = {
     getAllReviews,
     updateReviewStatus,
     deleteReview,
+    replyReview,
     updateUserRole,
     toggleLockUser,
     deleteUser

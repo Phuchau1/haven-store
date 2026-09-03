@@ -12,6 +12,8 @@ const ProductReviewSchema = new Schema({
     shippingRating: { type: Number, min: 1, max: 5, default: 5 },
     tags: [{ type: String }],
     content: { type: String, required: true },
+    reply: { type: String, default: '' },
+    replyCreatedAt: { type: String },
     status: { type: String, required: true, default: 'approved' },
     created_at: { type: String, required: true, default: () => new Date().toISOString() }
 }, { timestamps: true });

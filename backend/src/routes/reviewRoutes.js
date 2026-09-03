@@ -20,7 +20,8 @@ const {
     getMyReviews,
     getAllReviews,
     updateReviewStatus,
-    deleteReview
+    deleteReview,
+    replyReview
 } = require('../controllers/reviewController');
 
 // ─── PUBLIC ──────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ router.get('/my-reviews', getMyReviews);        // GET /api/reviews/my-reviews?u
 // ─── ADMIN ───────────────────────────────────────────────────────────────────
 router.get('/all', getAllReviews);          // GET /api/reviews/all
 router.put('/status', updateReviewStatus); // PUT /api/reviews/status
+router.post('/reply', replyReview);        // POST /api/reviews/reply
 router.delete('/', deleteReview);          // DELETE /api/reviews?id=rv-xxx
 
 module.exports = router;

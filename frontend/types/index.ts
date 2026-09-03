@@ -80,7 +80,12 @@ export interface ProductReview {
     product_id: string;
     productName?: string; // Tên sản phẩm được map từ Backend
     rating: number;
+    sellerRating?: number;
+    shippingRating?: number;
+    tags?: string[];
     content: string;
+    reply?: string;
+    replyCreatedAt?: string;
     status: 'pending' | 'approved' | 'rejected';
     created_at: string;
 }

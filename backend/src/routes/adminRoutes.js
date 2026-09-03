@@ -24,6 +24,7 @@ router.get('/stats', adminController.getStats);
 // ─── Reviews ─────────────────────────────────────────────────
 router.get('/reviews',        adminController.getAllReviews);
 router.put('/reviews/status', adminController.updateReviewStatus);
+router.post('/reviews/reply', adminController.replyReview);
 router.delete('/reviews',     adminController.deleteReview);
 
 // ─── Settings ────────────────────────────────────────────────
