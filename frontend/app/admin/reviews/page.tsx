@@ -326,72 +326,102 @@ export default function AdminReviewsPage() {
                 </div>
             </div>
 
-            {/* MODAL TRẢ LỜI ĐÁNH GIÁ */}
+            {/* MODAL TRẢ LỜI ĐÁNH GIÁ (PHIÊN BẢN RỘNG RÃI & THOÁNG MẮT) */}
             <AnimatePresence>
                 {selectedReview && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100"
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-100 my-8"
                         >
                             {/* Modal Header */}
-                            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
-                                        <MessageSquare size={16} />
+                            <div className="px-6 sm:px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                                        <MessageSquare size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-base font-bold text-slate-900">Trả lời Đánh giá</h3>
-                                        <p className="text-xs text-slate-500">Phản hồi chính thức hiển thị công khai trên sản phẩm</p>
+                                        <h3 className="text-lg font-bold text-slate-900">Trả lời Đánh giá Khách hàng</h3>
+                                        <p className="text-xs text-slate-500 mt-0.5">Phản hồi chính thức sẽ được hiển thị công khai ngay dưới đánh giá trên trang sản phẩm</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setSelectedReview(null)}
-                                    className="p-1.5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
+                                    className="p-2 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                                 >
-                                    <X size={18} />
+                                    <X size={20} />
                                 </button>
                             </div>
 
                             {/* Modal Body */}
-                            <div className="p-6 space-y-4">
+                            <div className="p-6 sm:p-8 space-y-6 max-h-[75vh] overflow-y-auto">
                                 {/* Tóm tắt đánh giá khách hàng */}
-                                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-slate-800">
-                                            {selectedReview.userName}
-                                        </span>
-                                        <div className="flex items-center gap-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} size={12} className={i < selectedReview.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'} />
-                                            ))}
+                                <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
+                                                {selectedReview.userName ? selectedReview.userName.charAt(0).toUpperCase() : 'K'}
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-bold text-slate-900 block">
+                                                    {selectedReview.userName}
+                                                </span>
+                                                <span className="text-[11px] text-slate-400">
+                                                    {new Date(selectedReview.created_at).toLocaleDateString('vi-VN')}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                                            <div className="flex gap-0.5">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} size={13} className={i < selectedReview.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'} />
+                                                ))}
+                                            </div>
+                                            <span className="text-xs font-bold text-amber-700">{selectedReview.rating} / 5</span>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-slate-500 font-medium line-clamp-1">
-                                        Sản phẩm: {selectedReview.productName}
-                                    </p>
-                                    <p className="text-xs text-slate-700 italic bg-white p-2.5 rounded-xl border border-slate-100">
+
+                                    <div className="text-xs text-slate-600 font-medium">
+                                        <span className="text-slate-400">Sản phẩm:</span> <strong className="text-slate-900">{selectedReview.productName}</strong>
+                                    </div>
+
+                                    {/* Tags */}
+                                    {selectedReview.tags && selectedReview.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 pt-1">
+                                            {selectedReview.tags.map((tag, tIdx) => (
+                                                <span key={tIdx} className="px-2.5 py-0.5 bg-amber-100/70 text-amber-900 rounded-md text-[11px] font-medium border border-amber-200">
+                                                    ✓ {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Review text */}
+                                    <div className="text-sm text-slate-800 bg-white p-3.5 rounded-xl border border-slate-200/80 leading-relaxed font-normal">
                                         "{selectedReview.content}"
-                                    </p>
+                                    </div>
                                 </div>
 
-                                {/* Gợi ý mẫu câu trả lời nhanh */}
+                                {/* Gợi ý mẫu câu trả lời nhanh (Grid 2 Cột hiển thị trọn vẹn chữ) */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                        <Sparkles size={13} className="text-indigo-600" /> Chọn mẫu câu trả lời nhanh:
-                                    </label>
-                                    <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                            <Sparkles size={14} className="text-indigo-600" /> Chọn nhanh mẫu câu phản hồi chuyên nghiệp:
+                                        </label>
+                                        <span className="text-[11px] text-slate-400">Bấm để tự động điền</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {quickTemplates.map((template, idx) => (
                                             <button
                                                 key={idx}
                                                 type="button"
                                                 onClick={() => setReplyText(template)}
-                                                className="w-full text-left p-2 rounded-xl text-xs text-slate-600 bg-slate-50 hover:bg-indigo-50/60 hover:text-indigo-900 border border-slate-200/60 transition-all line-clamp-1"
-                                                title={template}
+                                                className="text-left p-3 rounded-2xl text-xs text-slate-700 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-900 border border-slate-200 transition-all leading-relaxed cursor-pointer active:scale-98 group flex items-start gap-2"
                                             >
-                                                💬 {template}
+                                                <span className="text-sm shrink-0">💬</span>
+                                                <span className="font-medium group-hover:font-semibold">{template}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -399,30 +429,32 @@ export default function AdminReviewsPage() {
 
                                 {/* Textarea Nhập phản hồi */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                        Nội dung phản hồi của Shop <span className="text-rose-500">*</span>
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Nội dung phản hồi của HAVEN STORE <span className="text-rose-500">*</span>
+                                        </label>
+                                        <span className="text-xs font-mono font-medium text-slate-400">{replyText.length} / 1000 ký tự</span>
+                                    </div>
                                     <textarea
-                                        rows={4}
+                                        rows={5}
                                         value={replyText}
                                         onChange={(e) => setReplyText(e.target.value)}
-                                        placeholder="Nhập lời cảm ơn hoặc phản hồi của HAVEN STORE tới khách hàng..."
-                                        className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none transition-all resize-none"
+                                        placeholder="Nhập lời cảm ơn, giải đáp hoặc phản hồi chính thức từ HAVEN STORE tới khách hàng..."
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 outline-none transition-all resize-y leading-relaxed font-normal shadow-2xs"
                                         maxLength={1000}
                                     />
-                                    <div className="flex justify-between text-[11px] text-slate-400 mt-1">
-                                        <span>Phản hồi sẽ được hiển thị ngay bên dưới đánh giá của khách</span>
-                                        <span>{replyText.length} / 1000 ký tự</span>
-                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-2 flex items-center gap-1">
+                                        💡 <span>Khách hàng sẽ nhận được phản hồi này công khai ngay tại trang sản phẩm và trong đơn mua.</span>
+                                    </p>
                                 </div>
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="px-6 py-4 bg-slate-50/60 border-t border-slate-100 flex items-center justify-end gap-3">
+                            <div className="px-6 sm:px-8 py-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-end gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setSelectedReview(null)}
-                                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-all cursor-pointer"
+                                    className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-all cursor-pointer"
                                 >
                                     Đóng
                                 </button>
@@ -430,17 +462,17 @@ export default function AdminReviewsPage() {
                                     type="button"
                                     disabled={isSubmittingReply || !replyText.trim()}
                                     onClick={handleSendReply}
-                                    className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer active:scale-95"
+                                    className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer active:scale-95"
                                 >
                                     {isSubmittingReply ? (
                                         <>
-                                            <Loader2 size={14} className="animate-spin" />
-                                            <span>Đang gửi...</span>
+                                            <Loader2 size={15} className="animate-spin" />
+                                            <span>Đang gửi phản hồi...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Send size={14} />
-                                            <span>Gửi phản hồi</span>
+                                            <Send size={15} />
+                                            <span>Gửi phản hồi cho khách</span>
                                         </>
                                     )}
                                 </button>
