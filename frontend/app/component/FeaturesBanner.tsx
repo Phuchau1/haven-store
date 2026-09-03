@@ -1,87 +1,62 @@
-'use client';
-// ===== BRAND CRAFTSMANSHIP & PHILOSOPHY SECTION =====
+﻿'use client';
+// ===== BST XUÂN HÈ 2026: EASY DAILY SECTION =====
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Feather, Compass, ShieldCheck, PackageCheck } from 'lucide-react';
-
-const BRAND_PILLARS = [
-    {
-        number: '01',
-        icon: Feather,
-        title: 'Sợi Vải Tự Nhiên',
-        description: 'Ưu tiên Organic Cotton, Modal & Bamboo có nguồn gốc rõ ràng. Cho bề mặt vải êm mịn, thoáng khí tự nhiên và an toàn cho làn da.',
-    },
-    {
-        number: '02',
-        icon: Compass,
-        title: 'Phom Dáng Hiệu Chỉnh Tỉ Mỉ',
-        description: 'Mỗi mẫu thiết kế trải qua hàng chục lần điều chỉnh trên vóc dáng thực tế, đảm bảo đường nét lịch lãm mà vẫn thoải mái khi chuyển động.',
-    },
-    {
-        number: '03',
-        icon: ShieldCheck,
-        title: 'Kỹ Thuật May Tinh Thảo',
-        description: 'Mật độ chỉ may dày dặn, xử lý đường nét sắc sảo và công nghệ xử lý bề mặt giúp sản phẩm giữ phom chuẩn bền lâu qua nhiều lần giặt.',
-    },
-    {
-        number: '04',
-        icon: PackageCheck,
-        title: 'Trải Nghiệm Mở Hộp Tinh Tế',
-        description: 'Mỗi đơn hàng được đóng gói chỉn chu trong hộp cứng bảo vệ cao cấp, đính kèm túi thơm thảo mộc và thiệp cảm ơn cá nhân hóa.',
-    },
-];
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 export default function FeaturesBanner() {
     return (
-        <section className="py-20 lg:py-24 bg-[#fafafa] border-y border-slate-200/80">
+        <section className="py-16 sm:py-20 lg:py-24 bg-white border-y border-slate-100 overflow-hidden">
             <div className="container-torano">
-                {/* Section Header */}
-                <div className="text-center max-w-2xl mx-auto mb-16">
-                    <span className="text-xs font-bold text-amber-800 tracking-wide uppercase block mb-3">
-                        Triết Lý Thiết Kế
-                    </span>
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight uppercase">
-                        Sự Tinh Tế Trong Từng Chi Tiết
-                    </h2>
-                    <div className="w-12 h-[2px] bg-slate-900 mx-auto my-4 opacity-80" />
-                    <p className="text-sm sm:text-[15px] text-slate-600 font-normal leading-relaxed">
-                        Không chạy theo xu hướng nhất thời. HAVEN tập trung tạo nên những trang phục bền vững với thời gian — nơi chất liệu tự nhiên gặp gỡ kỹ thuật may đo chuẩn xác.
-                    </p>
-                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-14 items-center">
+                    {/* ── Left: Collection Banner Image ─────────────────── */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                        className="lg:col-span-6 relative group"
+                    >
+                        <Link href="/products" className="block relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-slate-100 transition-all duration-500">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="/bst-xuan-he-2026.png"
+                                alt="BST XUÂN HÈ 2026: EASY DAILY | BẮT NHỊP SỐNG - HÒA NHỊP SỐNG"
+                                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
+                        </Link>
+                    </motion.div>
 
-                {/* Pillars Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {BRAND_PILLARS.map((pillar, index) => (
-                        <motion.div
-                            key={pillar.title}
-                            initial={{ opacity: 0, y: 24 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: index * 0.12 }}
-                            className="relative flex flex-col p-8 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-900 shadow-sm hover:shadow-lg transition-all duration-300 group"
-                        >
-                            {/* Number & Icon Row */}
-                            <div className="flex items-center justify-between mb-6">
-                                <span className="text-3xl font-light font-mono text-slate-300 group-hover:text-amber-800 transition-colors duration-300">
-                                    {pillar.number}
-                                </span>
-                                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-800 flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-all duration-300 shadow-xs">
-                                    <pillar.icon size={19} strokeWidth={1.8} />
-                                </div>
-                            </div>
+                    {/* ── Right: Collection Description & Action ───────── */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        className="lg:col-span-6 flex flex-col justify-center"
+                    >
+                        <h2 className="text-2xl sm:text-3xl lg:text-[32px] xl:text-[36px] font-black text-slate-900 leading-[1.25] tracking-tight uppercase">
+                            BST XUÂN HÈ 2026: EASY DAILY | BẮT NHỊP SỐNG - HÒA NHỊP SỐNG
+                        </h2>
 
-                            <h3 className="text-[16px] font-bold text-slate-900 mb-3 tracking-tight group-hover:text-slate-900 transition-colors">
-                                {pillar.title}
-                            </h3>
-                            
-                            <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed">
-                                {pillar.description}
+                        <div className="mt-5 sm:mt-6 space-y-4 text-slate-600 text-[14px] sm:text-[15px] leading-relaxed font-normal">
+                            <p>
+                                ✨ <strong className="font-semibold text-slate-800">BST Xuân Hè</strong> cập bến mang theo tinh thần <strong className="font-semibold text-slate-900">&quot;Easy&quot;</strong> thoải mái trải nghiệm cùng những trang phục <strong className="font-semibold text-slate-900">&quot;Daily&quot;</strong> tiện dụng mỗi ngày. HAVEN tin rằng, khi trang phục đủ nhẹ tênh, tâm trí sẽ tự khắc rộng mở để bạn bắt trọn nhịp điệu cuộc sống. Sẵn sàng cho một diện mạo rạng rỡ và trải nghiệm đầy năng lượng cùng HAVEN ngay hôm nay!
                             </p>
+                        </div>
 
-                            {/* Subtle line indicator on hover */}
-                            <div className="absolute bottom-0 left-8 right-8 h-[2px] bg-slate-900 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
-                        </motion.div>
-                    ))}
+                        <div className="mt-6 sm:mt-8">
+                            <Link
+                                href="/products"
+                                className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-slate-900 hover:text-[#C9A227] underline underline-offset-8 decoration-2 hover:decoration-[#C9A227] transition-all group cursor-pointer"
+                            >
+                                <span>Xem chi tiết</span>
+                                <ArrowRight size={18} className="transform group-hover:translate-x-1.5 transition-transform duration-300" />
+                            </Link>
+                        </div>
+                    </motion.div>
                 </div>
             </div>
         </section>
