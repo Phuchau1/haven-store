@@ -867,14 +867,46 @@ const reviewReturnRequest = async (req, res, next) => {
             order.returnRequest.status = 'approved';
             order.returnRequest.reviewedAt = now;
             order.returnRequest.reviewedBy = adminName || 'Admin';
-            order.status = 'returning';
-            order.shippingTimeline.push({
-                status: 'returning',
-                title: 'Yêu cầu hoàn hàng được chấp thuận',
-                note: 'Shop đã duyệt — vui lòng gửi hàng về',
-                timestamp: now,
-                isCustomerVisible: true
-            });
+
+            // Nếu Admin chọn Hoàn tiền ngay (instantRefund === true hoặc action === 'instant_refund')
+            if (req.body.instantRefund) {
+                order.status = 'refunded';
+                order.shippingTimeline.push({
+                    status: 'refunded',
+                    title: 'Duyệt hoàn hàng & Hoàn tiền vào Ví thành công',
+                    note: `Shop đã duyệt hoàn tiền ngay lập tức. Số tiền ${(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của khách hàng.`,
+                    timestamp: now,
+                    isCustomerVisible: true
+                });
+
+                if (order.items && order.items.length > 0) {
+                    await returnExportedStock(order.items, orderId);
+                }
+
+                const refundAmt = order.finalAmount || order.totalAmount || 0;
+                try {
+                    await refundOrderToWallet({
+                        userId: order.userId,
+                        userEmail: order.email,
+                        userPhone: order.phone,
+                        orderId: order.id,
+                        refundAmount: refundAmt,
+                        reason: `Hoàn tiền hoàn hàng thành công cho đơn #${order.id}`
+                    });
+                    log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${orderId} (Instant Refund)`);
+                } catch (wErr) {
+                    log(`[Wallet Sync Warning] ${wErr.message}`);
+                }
+            } else {
+                order.status = 'returning';
+                order.shippingTimeline.push({
+                    status: 'returning',
+                    title: 'Yêu cầu hoàn hàng được chấp thuận',
+                    note: 'Shop đã duyệt — vui lòng gửi hàng về kho để được hoàn tiền',
+                    timestamp: now,
+                    isCustomerVisible: true
+                });
+            }
         } else {
             order.returnRequest.status = 'rejected';
             order.returnRequest.reviewedAt = now;
@@ -895,7 +927,11 @@ const reviewReturnRequest = async (req, res, next) => {
         const io = req.app.get('io');
         if (io) io.emit('order_status_changed', { orderId, status: order.status });
 
-        res.json({ success: true, message: action === 'approve' ? 'Chấp thuận hoàn hàng' : 'Từ chối hoàn hàng', order });
+        const respMsg = action === 'approve' 
+            ? (req.body.instantRefund ? '✅ Đã duyệt và hoàn tiền ngay vào Ví HAVEN của khách hàng' : '✅ Đã duyệt hoàn hàng — chờ khách gửi hàng về') 
+            : '❌ Đã từ chối hoàn hàng';
+
+        res.json({ success: true, message: respMsg, order });
     } catch (error) {
         next(error);
     }

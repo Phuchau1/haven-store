@@ -53,7 +53,7 @@ export default function AdminReturnsPage() {
     
     // Modal states
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
-    const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | 'confirm_received'>('approve');
+    const [reviewAction, setReviewAction] = useState<'approve' | 'instant_refund' | 'reject' | 'confirm_received'>('approve');
     const [rejectReason, setRejectReason] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -93,7 +93,7 @@ export default function AdminReturnsPage() {
         setTimeout(() => setToastMessage(null), 4000);
     };
 
-    const handleOpenReview = (order: OrderData, action: 'approve' | 'reject' | 'confirm_received') => {
+    const handleOpenReview = (order: OrderData, action: 'approve' | 'instant_refund' | 'reject' | 'confirm_received') => {
         setSelectedOrder(order);
         setReviewAction(action);
         setRejectReason('');
@@ -111,7 +111,12 @@ export default function AdminReturnsPage() {
         try {
             let url = `/api/orders/return-request/${selectedOrder.id}`;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let body: Record<string, any> = { action: reviewAction, rejectReason: rejectReason.trim(), adminName: 'Admin' };
+            let body: Record<string, any> = { 
+                action: reviewAction === 'instant_refund' ? 'approve' : reviewAction, 
+                instantRefund: reviewAction === 'instant_refund',
+                rejectReason: rejectReason.trim(), 
+                adminName: 'Admin' 
+            };
             if (reviewAction === 'confirm_received') {
                 url = `/api/orders/return-received/${selectedOrder.id}`;
                 body = { adminName: 'Admin' };
@@ -124,7 +129,14 @@ export default function AdminReturnsPage() {
 
             const data = await res.json();
             if (data.success) {
-                const msg = reviewAction === 'approve' ? '✅ Đã duyệt hoàn hàng — khách cần gửi hàng về' : reviewAction === 'confirm_received' ? '💰 Đã xác nhận nhận hàng & hoàn tiền thành công!' : '❌ Đã từ chối hoàn hàng'; showToast(msg, 'success');
+                const msg = reviewAction === 'instant_refund'
+                    ? '💰 Đã duyệt & Hoàn tiền ngay vào Ví HAVEN của khách hàng thành công!'
+                    : reviewAction === 'approve' 
+                        ? '✅ Đã duyệt hoàn hàng — khách cần gửi hàng về kho' 
+                        : reviewAction === 'confirm_received' 
+                            ? '💰 Đã xác nhận nhận hàng & hoàn tiền thành công!' 
+                            : '❌ Đã từ chối hoàn hàng';
+                showToast(msg, 'success');
                 setReviewModalOpen(false);
                 setSelectedOrder(null);
                 fetchReturns();
@@ -371,14 +383,22 @@ export default function AdminReturnsPage() {
                                                     {isPending && (
                                                         <>
                                                             <button
-                                                                onClick={() => handleOpenReview(order, 'approve')}
-                                                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors flex items-center gap-1"
+                                                                onClick={() => handleOpenReview(order, 'instant_refund')}
+                                                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-xs"
+                                                                title="Duyệt và hoàn tiền ngay lập tức vào Ví HAVEN"
                                                             >
-                                                                <Check className="w-3.5 h-3.5" /> Duyệt
+                                                                ⚡ Hoàn tiền ngay
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleOpenReview(order, 'approve')}
+                                                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center gap-1"
+                                                                title="Duyệt cho phép gửi hàng về kho trước"
+                                                            >
+                                                                <Check className="w-3.5 h-3.5" /> Duyệt gửi hàng
                                                             </button>
                                                             <button
                                                                 onClick={() => handleOpenReview(order, 'reject')}
-                                                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-colors flex items-center gap-1"
+                                                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors flex items-center gap-1"
                                                             >
                                                                 <X className="w-3.5 h-3.5" /> Từ chối
                                                             </button>
@@ -389,7 +409,7 @@ export default function AdminReturnsPage() {
                                                             onClick={() => handleOpenReview(order, 'confirm_received')}
                                                             className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-sm"
                                                         >
-                                                            Nhận hàng & Hoàn tiền
+                                                            💰 Đã nhận hàng & Hoàn tiền
                                                         </button>
                                                     )}
                                                 </div>
@@ -484,18 +504,24 @@ export default function AdminReturnsPage() {
 
                         {/* Actions */}
                         {selectedOrder.returnRequest?.status === 'pending' && (
-                            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                            <div className="flex flex-wrap justify-end gap-2.5 pt-3 border-t border-slate-100">
                                 <button
                                     onClick={() => handleOpenReview(selectedOrder, 'reject')}
-                                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
+                                    className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
                                 >
-                                    <X className="w-4 h-4" /> Từ chối yêu cầu
+                                    <X className="w-4 h-4" /> Từ chối
                                 </button>
                                 <button
                                     onClick={() => handleOpenReview(selectedOrder, 'approve')}
-                                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
+                                    className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
                                 >
-                                    <Check className="w-4 h-4" /> Chấp thuận & Cho phép trả
+                                    <Check className="w-4 h-4" /> Cho phép gửi hàng về
+                                </button>
+                                <button
+                                    onClick={() => handleOpenReview(selectedOrder, 'instant_refund')}
+                                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                                >
+                                    ⚡ Hoàn tiền ngay vào Ví
                                 </button>
                             </div>
                         )}
@@ -505,7 +531,7 @@ export default function AdminReturnsPage() {
                                     onClick={() => handleOpenReview(selectedOrder, 'confirm_received')}
                                     className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
                                 >
-                                    📦 Xác nhận đã nhận hàng & Hoàn tiền
+                                    💰 Xác nhận đã nhận hàng & Hoàn tiền vào Ví
                                 </button>
                             </div>
                         )}
@@ -518,20 +544,36 @@ export default function AdminReturnsPage() {
                 <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
                         <div className="flex items-center gap-3">
-                            <div className={`p-2.5 rounded-xl ${reviewAction === 'approve' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                {reviewAction === 'approve' ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
+                            <div className={`p-2.5 rounded-xl ${
+                                reviewAction === 'instant_refund' ? 'bg-emerald-100 text-emerald-700' :
+                                reviewAction === 'approve' ? 'bg-indigo-100 text-indigo-700' : 
+                                reviewAction === 'confirm_received' ? 'bg-teal-100 text-teal-700' : 
+                                'bg-rose-100 text-rose-700'
+                            }`}>
+                                {reviewAction === 'reject' ? <X className="w-6 h-6" /> : <Check className="w-6 h-6" />}
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900">
-                                    {reviewAction === 'approve' ? 'Chấp thuận hoàn hàng' : reviewAction === 'confirm_received' ? 'Xác nhận nhận hàng & Hoàn tiền' : 'Từ chối hoàn hàng'}
+                                    {reviewAction === 'instant_refund' ? '⚡ Duyệt & Hoàn tiền ngay vào Ví' :
+                                     reviewAction === 'approve' ? 'Chấp thuận hoàn hàng' : 
+                                     reviewAction === 'confirm_received' ? 'Xác nhận nhận hàng & Hoàn tiền' : 
+                                     'Từ chối hoàn hàng'}
                                 </h3>
-                                <p className="text-xs text-slate-500">Đơn hàng #{selectedOrder.id}</p>
+                                <p className="text-xs text-slate-500">Đơn hàng #{selectedOrder.id} • Số tiền: {(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString('vi-VN')} đ</p>
                             </div>
                         </div>
 
-                        {reviewAction === 'approve' ? (
+                        {reviewAction === 'instant_refund' ? (
                             <p className="text-xs text-slate-600 leading-relaxed bg-emerald-50 p-3 rounded-xl border border-emerald-200">
-                                Khi chấp thuận, đơn hàng sẽ chuyển sang trạng thái <strong>Đang gửi hàng trả (returning)</strong>. Khách hàng sẽ nhận thông báo gửi sản phẩm về shop.
+                                Hệ thống sẽ <strong>hoàn tiền ngay lập tức</strong> số tiền <strong>{(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString('vi-VN')} đ</strong> vào <strong>Ví HAVEN</strong> của khách hàng. Khách có thể dùng số dư mua hàng hoặc rút về ngân hàng.
+                            </p>
+                        ) : reviewAction === 'approve' ? (
+                            <p className="text-xs text-slate-600 leading-relaxed bg-indigo-50 p-3 rounded-xl border border-indigo-200">
+                                Khi chấp thuận, đơn hàng sẽ chuyển sang trạng thái <strong>Đang gửi hàng trả (returning)</strong>. Khách hàng sẽ gửi sản phẩm về shop. Tiền sẽ được hoàn sau khi shop nhận hàng.
+                            </p>
+                        ) : reviewAction === 'confirm_received' ? (
+                            <p className="text-xs text-slate-600 leading-relaxed bg-teal-50 p-3 rounded-xl border border-teal-200">
+                                Xác nhận đã nhận lại kiện hàng vật lý. Hệ thống sẽ cộng <strong>{(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString('vi-VN')} đ</strong> vào Ví HAVEN của khách hàng.
                             </p>
                         ) : (
                             <div className="space-y-2">
@@ -557,13 +599,17 @@ export default function AdminReturnsPage() {
                                 onClick={handleReviewSubmit}
                                 disabled={submitting}
                                 className={`px-4 py-2 rounded-xl text-white text-xs font-semibold flex items-center gap-1.5 ${
-                                    reviewAction === 'approve'
-                                    ? 'bg-emerald-600 hover:bg-emerald-700'
-                                    : 'bg-rose-600 hover:bg-rose-700'
+                                    reviewAction === 'instant_refund' ? 'bg-emerald-600 hover:bg-emerald-700' :
+                                    reviewAction === 'approve' ? 'bg-indigo-600 hover:bg-indigo-700' :
+                                    reviewAction === 'confirm_received' ? 'bg-teal-600 hover:bg-teal-700' :
+                                    'bg-rose-600 hover:bg-rose-700'
                                 } disabled:opacity-50`}
                             >
                                 {submitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                                {reviewAction === 'approve' ? 'Xác nhận Chấp thuận' : reviewAction === 'confirm_received' ? 'Xác nhận Hoàn tiền' : 'Xác nhận Từ chối'}
+                                {reviewAction === 'instant_refund' ? 'Xác nhận Hoàn tiền ngay' :
+                                 reviewAction === 'approve' ? 'Xác nhận Chấp thuận' : 
+                                 reviewAction === 'confirm_received' ? 'Xác nhận Hoàn tiền' : 
+                                 'Xác nhận Từ chối'}
                             </button>
                         </div>
                     </div>
