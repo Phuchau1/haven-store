@@ -1027,7 +1027,7 @@ const getReturnRequests = async (req, res, next) => {
 const reviewReturnRequest = async (req, res, next) => {
     try {
         const { orderId } = req.params;
-        const { action, rejectReason, adminName, instantRefund } = req.body;
+        const { action, rejectReason, adminName, instantRefund, warehouseAddress, customRefundAmount } = req.body;
 
         if (!['approve', 'reject'].includes(action)) {
             return res.status(400).json({ success: false, message: 'action phải là approve hoặc reject' });
