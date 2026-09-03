@@ -1043,22 +1043,29 @@ const reviewReturnRequest = async (req, res, next) => {
         }
 
         const now = new Date();
+        const finalRefundAmt = Number(customRefundAmount) > 0 
+            ? Number(customRefundAmount) 
+            : (order.returnRequest?.estimatedRefundAmount || order.returnRequest?.refundAmount || order.finalAmount || order.totalAmount || 0);
+
         if (action === 'approve') {
             order.returnRequest.status = 'approved';
             order.returnRequest.reviewedAt = now;
             order.returnRequest.reviewedBy = adminName || 'Admin';
+            if (warehouseAddress && warehouseAddress.trim()) {
+                order.returnRequest.warehouseAddress = warehouseAddress.trim();
+            }
 
             // Nếu Admin chọn Hoàn tiền ngay không cần gửi hàng (Instant Refund)
             if (instantRefund) {
                 order.status = 'refunded';
                 order.paymentStatus = 'refunded';
                 order.returnRequest.refundedAt = now;
-                order.returnRequest.refundAmount = order.finalAmount || order.totalAmount || 0;
+                order.returnRequest.refundAmount = finalRefundAmt;
                 
                 order.shippingTimeline.push({
                     status: 'refunded',
                     title: 'Duyệt hoàn tiền ngay vào Ví HAVEN thành công',
-                    note: `Shop đã duyệt hoàn tiền ngay lập tức. Số tiền ${(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')} đ đã chuyển vào Ví HAVEN.`,
+                    note: `Shop đã duyệt hoàn tiền ngay lập tức. Số tiền ${finalRefundAmt.toLocaleString('vi-VN')} đ đã chuyển vào Ví HAVEN.`,
                     timestamp: now,
                     isCustomerVisible: true
                 });
@@ -1067,17 +1074,16 @@ const reviewReturnRequest = async (req, res, next) => {
                     await returnExportedStock(order.items, orderId);
                 }
 
-                const refundAmt = order.finalAmount || order.totalAmount || 0;
                 try {
                     await refundOrderToWallet({
                         userId: order.userId,
                         userEmail: order.email,
                         userPhone: order.phone,
                         orderId: order.id,
-                        refundAmount: refundAmt,
+                        refundAmount: finalRefundAmt,
                         reason: `Hoàn tiền hoàn hàng thành công cho đơn #${order.id}`
                     });
-                    log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn ${orderId} (Instant Refund)`);
+                    log(`[Wallet Sync] Đã hoàn ${finalRefundAmt} VNĐ vào ví user cho đơn ${orderId} (Instant Refund)`);
                 } catch (wErr) {
                     log(`[Wallet Sync Warning] ${wErr.message}`);
                 }
@@ -1102,7 +1108,7 @@ const reviewReturnRequest = async (req, res, next) => {
                 order.shippingTimeline.push({
                     status: 'returning',
                     title: 'Yêu cầu hoàn hàng đã được Shop chấp thuận',
-                    note: `Shop đã duyệt. Quý khách vui lòng gửi hàng về kho và cập nhật mã vận đơn trước ${shippingDeadline.toLocaleString('vi-VN')} (trong vòng 3–5 ngày).`,
+                    note: `Shop đã duyệt. Quý khách vui lòng gửi hàng về ${order.returnRequest.warehouseAddress || 'Kho Tổng HAVEN'} và cập nhật mã vận đơn trước ${shippingDeadline.toLocaleString('vi-VN')} (trong vòng 3–5 ngày).`,
                     timestamp: now,
                     isCustomerVisible: true
                 });
@@ -1128,7 +1134,7 @@ const reviewReturnRequest = async (req, res, next) => {
         if (io) io.emit('order_status_changed', { orderId, status: order.status });
 
         const respMsg = action === 'approve' 
-            ? (instantRefund ? '✅ Đã duyệt và hoàn tiền ngay vào Ví HAVEN của khách hàng' : '✅ Đã duyệt hoàn hàng — thời hạn khách gửi hàng là 3–5 ngày') 
+            ? (instantRefund ? `✅ Đã duyệt và hoàn tiền ngay ${finalRefundAmt.toLocaleString('vi-VN')} đ vào Ví HAVEN của khách hàng` : '✅ Đã duyệt hoàn hàng — thời hạn khách gửi hàng là 3–5 ngày') 
             : '❌ Đã từ chối yêu cầu hoàn hàng';
 
         res.json({ success: true, message: respMsg, order });
@@ -1138,14 +1144,14 @@ const reviewReturnRequest = async (req, res, next) => {
 };
 
 /**
- * @desc Admin xác nhận đã nhận hàng trả & thực hiện hoàn tiền vào Ví
+ * @desc Admin xác nhận đã nhận hàng trả & thẩm định kiểm tra hàng hoàn
  * @route PUT /api/orders/return-received/:orderId
  * @access Admin
  */
 const confirmReturnReceived = async (req, res, next) => {
     try {
         const { orderId } = req.params;
-        const { adminName } = req.body;
+        const { adminName, inspectionResult, inspectionNote, customRefundAmount } = req.body;
 
         const order = await OrderModel.findOne({ id: orderId });
         if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
@@ -1154,62 +1160,85 @@ const confirmReturnReceived = async (req, res, next) => {
         }
 
         const now = new Date();
-        const refundAmt = order.finalAmount || order.totalAmount || 0;
+        const isPassed = inspectionResult !== 'failed';
+        const finalRefundAmt = Number(customRefundAmount) > 0 
+            ? Number(customRefundAmount) 
+            : (order.returnRequest?.estimatedRefundAmount || order.returnRequest?.refundAmount || order.finalAmount || order.totalAmount || 0);
 
-        order.status = 'refunded';
-        order.paymentStatus = 'refunded';
         order.returnRequest.returnReceivedAt = now;
-        order.returnRequest.refundedAt = now;
-        order.returnRequest.refundAmount = refundAmt;
+        order.returnRequest.inspectionStatus = isPassed ? 'passed' : 'failed';
+        order.returnRequest.inspectionNote = (inspectionNote || '').trim();
 
-        order.shippingTimeline.push({
-            status: 'refunded',
-            title: 'Đã nhận hàng trả & Hoàn tiền vào ví thành công',
-            note: `Shop đã nhận lại kiện hàng và kiểm tra hoàn tất. Số tiền ${refundAmt.toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của khách hàng. Xác nhận bởi: ${adminName || 'Admin'}`,
-            timestamp: now,
-            isCustomerVisible: true
-        });
+        if (isPassed) {
+            order.status = 'refunded';
+            order.paymentStatus = 'refunded';
+            order.returnRequest.refundedAt = now;
+            order.returnRequest.refundAmount = finalRefundAmt;
+
+            order.shippingTimeline.push({
+                status: 'refunded',
+                title: 'Thẩm định đạt yêu cầu & Hoàn tiền thành công',
+                note: `Shop đã kiểm tra kiện hàng hoàn trả đạt tiêu chuẩn. Số tiền ${finalRefundAmt.toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của khách hàng. Ghi chú kiểm hàng: "${inspectionNote || 'Kiện hàng đầy đủ, nguyên vẹn'}"`,
+                timestamp: now,
+                isCustomerVisible: true
+            });
+
+            // 1. Nhập lại tồn kho vật lý cho sản phẩm hoàn về
+            if (order.items && order.items.length > 0) {
+                await returnExportedStock(order.items, orderId);
+            }
+
+            // 2. Tự động chuyển toàn bộ số tiền về Ví HAVEN của User
+            try {
+                await refundOrderToWallet({
+                    userId: order.userId,
+                    userEmail: order.email,
+                    userPhone: order.phone,
+                    orderId: order.id,
+                    refundAmount: finalRefundAmt,
+                    reason: `Hoàn tiền hoàn hàng thành công cho đơn #${order.id}`
+                });
+                log(`[Wallet Sync] Đã hoàn ${finalRefundAmt} VNĐ vào ví user cho đơn hoàn hàng ${orderId}`);
+            } catch (wErr) {
+                log(`[Wallet Sync Warning] Lỗi hoàn tiền vào ví: ${wErr.message}`);
+            }
+
+            // 3. Thu hồi điểm tích lũy của đơn nếu có
+            if (order.userId) {
+                try {
+                    const { revokePoints } = require('./loyaltyController');
+                    if (typeof revokePoints === 'function') {
+                        await revokePoints(order.userId, orderId);
+                    }
+                } catch (lErr) {
+                    log(`[Loyalty Warning] ${lErr.message}`);
+                }
+            }
+        } else {
+            // Không đạt kiểm tra
+            order.status = 'delivered'; // Hoặc giữ trạng thái delivered
+            order.returnRequest.status = 'rejected';
+            order.returnRequest.rejectReason = `Hàng hoàn không đạt yêu cầu thẩm định: ${(inspectionNote || 'Sản phẩm không đúng hoặc đã qua sử dụng hỏng hóc')}`;
+
+            order.shippingTimeline.push({
+                status: 'delivered',
+                title: 'Từ chối hoàn tiền sau khi thẩm định kiện hàng',
+                note: `Lý do từ chối: "${(inspectionNote || 'Kiện hàng không đạt tiêu chuẩn hoàn hàng của HAVEN')}". Shop sẽ liên hệ gửi trả lại sản phẩm cho quý khách.`,
+                timestamp: now,
+                isCustomerVisible: true
+            });
+        }
 
         await order.save();
-
-        // 1. Nhập lại tồn kho vật lý cho sản phẩm hoàn về
-        if (order.items && order.items.length > 0) {
-            await returnExportedStock(order.items, orderId);
-        }
-
-        // 2. Tự động chuyển toàn bộ số tiền đơn hàng về Ví HAVEN của User
-        try {
-            await refundOrderToWallet({
-                userId: order.userId,
-                userEmail: order.email,
-                userPhone: order.phone,
-                orderId: order.id,
-                refundAmount: refundAmt,
-                reason: `Hoàn tiền hoàn hàng thành công cho đơn #${order.id}`
-            });
-            log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn hoàn hàng ${orderId}`);
-        } catch (wErr) {
-            log(`[Wallet Sync Warning] Lỗi hoàn tiền vào ví: ${wErr.message}`);
-        }
-
-        // 3. Thu hồi điểm tích lũy của đơn nếu có
-        if (order.userId) {
-            try {
-                const { revokePoints } = require('./loyaltyController');
-                if (typeof revokePoints === 'function') {
-                    await revokePoints(order.userId, orderId);
-                }
-            } catch (lErr) {
-                log(`[Loyalty Warning] ${lErr.message}`);
-            }
-        }
 
         const io = req.app.get('io');
         if (io) io.emit('order_status_changed', { orderId, status: order.status });
 
         res.json({ 
             success: true, 
-            message: `Đã xác nhận nhận hàng & hoàn thành công ${refundAmt.toLocaleString('vi-VN')} đ vào Ví HAVEN của khách hàng`, 
+            message: isPassed 
+                ? `Đã thẩm định đạt & hoàn thành công ${finalRefundAmt.toLocaleString('vi-VN')} đ vào Ví HAVEN của khách hàng` 
+                : 'Đã từ chối hoàn tiền do kiện hàng không đạt yêu cầu thẩm định', 
             order 
         });
     } catch (error) {

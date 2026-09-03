@@ -138,6 +138,7 @@ const OrderSchema = new Schema({
         reviewedAt:           { type: Date },
         reviewedBy:           { type: String, default: '' },
         rejectReason:         { type: String, default: '' },
+        warehouseAddress:     { type: String, default: 'Kho Tổng HAVEN - 123 Nguyễn Huệ, P. Bến Nghé, Quận 1, TP. Hồ Chí Minh (Hotline: 1900 6868)' },
         
         // Khách gửi hàng hoàn
         shippingDeadline:     { type: Date },       // Hạn chót khách gửi hàng (reviewedAt + 5 ngày)
@@ -148,6 +149,9 @@ const OrderSchema = new Schema({
         // Shop nhận & thẩm định
         returnReceivedAt:     { type: Date },       // Thời điểm shop nhận hàng hoàn
         inspectionDeadline:   { type: Date },       // Hạn thẩm định hàng (returnReceivedAt + 3 ngày)
+        inspectionStatus:     { type: String, default: 'pending' }, // 'pending' | 'passed' | 'failed'
+        inspectionNote:       { type: String, default: '' },
+        inspectionImages:     [{ type: String }],
         
         // Hoàn tiền
         refundDeadline:       { type: Date },       // Hạn hoàn tiền (3 ngày)
