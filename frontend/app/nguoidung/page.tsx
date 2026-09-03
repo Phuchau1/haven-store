@@ -197,6 +197,7 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
             4
         );
 
+    const { showToast } = useToast();
     const timelineIndex = Math.max(0, MAIN_TIMELINE_STEPS.findIndex(s => s.key === order.status));
     const steps = MAIN_TIMELINE_STEPS;
 
@@ -237,43 +238,54 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                 </div>
                                 <div>
                                     <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Phương thức & Trạng thái thanh toán</p>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <p className="text-sm font-medium text-slate-800">
-                                            {order.paymentMethod === 'pay-cod' || order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 
-                                             order.paymentMethod === 'wallet' ? 'Ví tài khoản HAVEN Pay' :
-                                             order.paymentMethod === 'momo' ? 'Ví điện tử MoMo' : 
-                                             order.paymentMethod === 'vnpay' ? 'Ví VNPAY' : 'Chuyển khoản'}
-                                        </p>
-                                        {(order as any).paymentStatus === 'paid' ? (
-                                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                ✓ Đã thanh toán
-                                            </span>
-                                        ) : (
-                                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                                                ⏳ Chưa thanh toán
-                                            </span>
+                                    <div className="flex flex-col gap-1.5">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="text-sm font-bold text-slate-900">
+                                                {order.paymentMethod === 'pay-cod' || order.paymentMethod === 'cod' ? '💵 Thanh toán khi nhận hàng (COD)' : 
+                                                 order.paymentMethod === 'wallet' ? '👛 Ví tài khoản HAVEN Pay' :
+                                                 order.paymentMethod === 'momo' ? '📱 Ví điện tử MoMo' : 
+                                                 order.paymentMethod === 'vnpay' ? '💳 Cổng thanh toán VNPAY' : '🏦 Chuyển khoản ngân hàng'}
+                                            </p>
+                                            {(order as any).paymentStatus === 'paid' ? (
+                                                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                                                    ✓ Đã thanh toán thành công
+                                                </span>
+                                            ) : (order.paymentMethod === 'cod' || order.paymentMethod === 'pay-cod') ? (
+                                                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                                    💵 Trả tiền mặt cho Shipper
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-300 flex items-center gap-1 animate-pulse">
+                                                    ⏳ Chưa thanh toán trực tuyến
+                                                </span>
+                                            )}
+                                        </div>
+                                        {(order as any).paymentStatus !== 'paid' && !['cod', 'pay-cod'].includes(order.paymentMethod) && order.status === 'pending' && (
+                                            <p className="text-xs text-amber-800 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 mt-1">
+                                                ⚡ <strong>Đơn hàng đang chờ thanh toán:</strong> Vui lòng nhấn nút <strong>"Thanh toán ngay"</strong> bên dưới để hoàn tất giao dịch và giữ hàng.
+                                            </p>
                                         )}
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Tổng tiền</p>
+                                    <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Tổng tiền thanh toán</p>
                                     {((order as ExtendedOrder).discountAmount ?? 0) > 0 && (
                                         <p className="text-xs text-slate-400 line-through">{formatPrice(order.totalAmount)}</p>
                                     )}
-                                    <p className="text-sm font-bold text-rose-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
+                                    <p className="text-base font-black text-rose-600">{formatPrice((order as ExtendedOrder).finalAmount || order.totalAmount)}</p>
                                     {(order as ExtendedOrder).couponCode && (
-                                        <p className="text-[10px] text-emerald-600 mt-0.5">🎟 {(order as ExtendedOrder).couponCode}</p>
+                                        <p className="text-[10px] text-emerald-600 mt-0.5 font-bold">🎟 Đã áp dụng mã: {(order as ExtendedOrder).couponCode}</p>
                                     )}
                                 </div>
                             </div>
                             <div className="space-y-5">
                                 <div>
-                                    <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Địa chỉ giao hàng</p>
-                                    <p className="text-sm font-medium text-slate-800">{order.address}</p>
+                                    <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Địa chỉ nhận hàng</p>
+                                    <p className="text-sm font-medium text-slate-800 leading-relaxed">{order.address}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Số điện thoại</p>
-                                    <p className="text-sm font-medium text-slate-800">{order.phone}</p>
+                                    <p className="text-[11px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Số điện thoại liên hệ</p>
+                                    <p className="text-sm font-bold text-slate-900">{order.phone}</p>
                                 </div>
                             </div>
                         </div>
@@ -284,33 +296,34 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                 Thao tác với đơn hàng #{order.id}:
                             </span>
                             <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto ml-auto">
-                                {(order as any).paymentStatus !== 'paid' && ['momo', 'vnpay'].includes(order.paymentMethod) && order.status === 'pending' && (
+                                {(order as any).paymentStatus !== 'paid' && !['cod', 'pay-cod'].includes(order.paymentMethod) && order.status === 'pending' && (
                                     <button 
                                         onClick={async () => {
                                             try {
+                                                showToast('Đang chuyển hướng sang cổng thanh toán...', 'info', 'Thanh toán');
                                                 const res = await fetch('/api/payment/create-url', {
                                                     method: 'POST',
                                                     headers: { 'Content-Type': 'application/json' },
                                                     body: JSON.stringify({
                                                         orderId: order.id,
                                                         amount: (order as any).finalAmount || order.totalAmount,
-                                                        paymentMethod: order.paymentMethod
+                                                        paymentMethod: order.paymentMethod?.toLowerCase().includes('vnpay') ? 'vnpay' : 'momo'
                                                     })
                                                 });
                                                 const data = await res.json();
                                                 if (data.success && data.url) {
                                                     window.location.href = data.url;
                                                 } else {
-                                                    toast.error(data.message || 'Không thể mở cổng thanh toán');
+                                                    showToast(data.message || 'Không thể mở cổng thanh toán', 'error', 'Lỗi thanh toán');
                                                 }
                                             } catch (e) {
                                                 console.error(e);
-                                                toast.error('Lỗi kết nối máy chủ');
+                                                showToast('Lỗi kết nối máy chủ thanh toán', 'error');
                                             }
                                         }}
-                                        className="px-4 py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                                        className="px-5 py-2.5 bg-gradient-to-r from-pink-600 via-rose-600 to-amber-600 text-white rounded-xl text-xs font-bold hover:opacity-95 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
                                     >
-                                        💳 Thanh toán ngay ({order.paymentMethod === 'momo' ? 'MoMo' : 'VNPay'})
+                                        💳 Thanh toán ngay ({order.paymentMethod === 'vnpay' ? 'VNPay' : 'MoMo'})
                                     </button>
                                 )}
                                 {(order.status === 'pending' || order.status === 'processing') && (
@@ -1350,6 +1363,36 @@ export default function NguoiDungPage() {
 
                                                             <div className="mt-6 pt-6 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
                                                                 <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                                                                    {(order as any).paymentStatus !== 'paid' && !['cod', 'pay-cod'].includes(order.paymentMethod) && order.status === 'pending' && (
+                                                                        <button 
+                                                                            onClick={async () => {
+                                                                                try {
+                                                                                    showToast('Đang chuyển hướng sang cổng thanh toán...', 'info', 'Thanh toán');
+                                                                                    const res = await fetch('/api/payment/create-url', {
+                                                                                        method: 'POST',
+                                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                                        body: JSON.stringify({
+                                                                                            orderId: order.id,
+                                                                                            amount: (order as any).finalAmount || order.totalAmount,
+                                                                                            paymentMethod: order.paymentMethod?.toLowerCase().includes('vnpay') ? 'vnpay' : 'momo'
+                                                                                        })
+                                                                                    });
+                                                                                    const data = await res.json();
+                                                                                    if (data.success && data.url) {
+                                                                                        window.location.href = data.url;
+                                                                                    } else {
+                                                                                        showToast(data.message || 'Không thể mở cổng thanh toán', 'error', 'Lỗi thanh toán');
+                                                                                    }
+                                                                                } catch (e) {
+                                                                                    console.error(e);
+                                                                                    showToast('Lỗi kết nối máy chủ thanh toán', 'error');
+                                                                                }
+                                                                            }}
+                                                                            className="px-3.5 py-2 bg-gradient-to-r from-pink-600 via-rose-600 to-amber-600 text-white rounded-xl text-xs font-bold hover:opacity-95 transition-all shadow-sm active:scale-95 flex-1 sm:flex-none flex items-center justify-center gap-1.5 cursor-pointer"
+                                                                        >
+                                                                            💳 Thanh toán ngay ({order.paymentMethod === 'vnpay' ? 'VNPay' : 'MoMo'})
+                                                                        </button>
+                                                                    )}
                                                                     {(order.status === 'pending' || order.status === 'processing') && (
                                                                         <button onClick={() => handleCancelOrder(order.id ?? '')} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
                                                                             <XCircle size={13} className="text-rose-500" /> Hủy đơn
