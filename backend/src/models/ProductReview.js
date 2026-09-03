@@ -5,9 +5,12 @@ const ProductReviewSchema = new Schema({
     id: { type: String, required: true, unique: true },
     user_id: { type: String, required: true },
     userName: { type: String, required: true, default: 'Khách hàng' },
-    userEmail: { type: String },
     product_id: { type: String, required: true },
+    orderId: { type: String },
     rating: { type: Number, required: true, min: 1, max: 5 },
+    sellerRating: { type: Number, min: 1, max: 5, default: 5 },
+    shippingRating: { type: Number, min: 1, max: 5, default: 5 },
+    tags: [{ type: String }],
     content: { type: String, required: true },
     status: { type: String, required: true, default: 'approved' },
     created_at: { type: String, required: true, default: () => new Date().toISOString() }

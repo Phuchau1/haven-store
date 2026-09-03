@@ -128,6 +128,7 @@ const createReview = async (req, res, next) => {
                 });
             }
         }
+        const { product_id, rating, content, userName, userEmail, user_id, sellerRating, shippingRating, tags, orderId } = req.body;
         const reviewId = `rv-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
         const newReview = new ProductReviewModel({
             id: reviewId,
@@ -135,7 +136,11 @@ const createReview = async (req, res, next) => {
             userName: (userName || 'Khách hàng').trim(),
             userEmail: userEmail || '',
             product_id,
+            orderId: orderId || '',
             rating: ratingNum,
+            sellerRating: Number(sellerRating) || 5,
+            shippingRating: Number(shippingRating) || 5,
+            tags: Array.isArray(tags) ? tags : [],
             content: trimmedContent,
             status: 'approved',   // Mặc định tự động duyệt. Đổi thành 'pending' nếu muốn admin duyệt thủ công
             created_at: new Date().toISOString()
@@ -145,13 +150,25 @@ const createReview = async (req, res, next) => {
         await newReview.save();
         log(`✅ Review saved to MongoDB: ${reviewId} | product: ${product_id} | rating: ${ratingNum}⭐`);
 
+        // Tặng 50 điểm tích lũy cho user khi hoàn tất đánh giá
+        if (user_id && user_id !== 'guest') {
+            try {
+                const { earnPoints } = require('./loyaltyController');
+                if (typeof earnPoints === 'function') {
+                    await earnPoints(user_id, 50000, `reward-review-${reviewId}`); // 50k = 50 điểm thưởng
+                }
+            } catch (err) {
+                log(`[Loyalty Warning] Review points award failed: ${err.message}`);
+            }
+        }
+
         // Gọi hàm tính toán lại trung bình sao
         const { avg, count } = await recalcProductRating(product_id);
         log(`📊 Product ${product_id} rating updated: ${avg}⭐ (${count} reviews)`);
 
         return res.status(201).json({
             success: true,
-            message: 'Đánh giá đã được lưu thành công!',
+            message: 'Đánh giá đã được lưu thành công! Bạn nhận được +50 điểm thưởng.',
             review: newReview.toObject(),
             productRating: { avg, count }
         });

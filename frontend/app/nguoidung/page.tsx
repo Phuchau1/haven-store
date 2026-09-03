@@ -58,10 +58,10 @@ const TABS = [
 const ORDER_STATUS_TABS = [
     { id: 'all',        label: 'Tất cả' },
     { id: 'pending',    label: 'Chờ xác nhận' },
-    { id: 'processing', label: 'Đang xử lý' },
-    { id: 'shipping',   label: 'Đang vận chuyển' },
-    { id: 'delivered',  label: 'Hoàn thành' },
-    { id: 'return',     label: 'Hoàn hàng' },
+    { id: 'processing', label: 'Đang chuẩn bị' },
+    { id: 'shipping',   label: 'Đang giao hàng' },
+    { id: 'delivered',  label: 'Đã giao / Đánh giá' },
+    { id: 'return',     label: 'Trả hàng / Hoàn tiền' },
     { id: 'cancelled',  label: 'Đã hủy' },
 ];
 
