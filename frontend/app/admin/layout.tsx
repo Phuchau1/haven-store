@@ -10,7 +10,7 @@ import {
     ChevronRight, Search, MoreHorizontal, Zap, Home, Heart,
     Gift, MessageSquare, History, Ticket, CreditCard, Truck, Sun, Moon,
     Boxes, FileDown, Tag, Grid, Box, Image as ImageIcon, CheckCircle, Store, Database, MapPin, FileText,
-    ClipboardList, BarChart3, Navigation, ShieldCheck, ArrowLeftRight, RotateCcw, Mail
+    ClipboardList, BarChart3, Navigation, ShieldCheck, ArrowLeftRight, RotateCcw, Mail, Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/component/AuthContext';
@@ -32,6 +32,7 @@ const MENU_ITEMS = [
     { icon: Palette,         label: 'Màu sắc',       href: '/admin/colors',            group: 'catalog' },
     { icon: Ruler,           label: 'Kích thước',    href: '/admin/sizes',             group: 'catalog' },
     { icon: Heart,           label: 'Sản phẩm yêu thích', href: '/admin/wishlist',     group: 'catalog' },
+    { icon: Award,           label: 'Tích điểm & VIP', href: '/admin/loyalty',         group: 'store' },
     { icon: Zap,             label: 'Flash Sale',    href: '/admin/flash-sales',       group: 'store' },
     { icon: Ticket,          label: 'Mã giảm giá',  href: '/admin/coupons',           group: 'store' },
     { icon: Gift,            label: 'Vòng quay',     href: '/admin/lucky-wheel',       group: 'store' },

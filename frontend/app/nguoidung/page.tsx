@@ -25,7 +25,12 @@ import {
     PackageX,
     Ticket,
     Copy,
-    Check
+    Check,
+    Award,
+    Sparkles,
+    Gift,
+    ArrowUpRight,
+    ArrowDownRight
 } from 'lucide-react';
 import { useAuth } from '@/app/component/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -50,6 +55,7 @@ interface ExtendedOrder extends Omit<OrderData, 'finalAmount'> {
 const TABS = [
     { id: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
     { id: 'wallet', label: 'Ví HAVEN (Số dư)', icon: CreditCard },
+    { id: 'loyalty', label: 'Điểm Thưởng & Hạng VIP', icon: Award },
     { id: 'vouchers', label: 'Ví Voucher của tôi', icon: Ticket },
     { id: 'settings', label: 'Cài đặt', icon: Settings },
     { id: 'notifications', label: 'Thông báo', icon: Bell },
@@ -77,7 +83,7 @@ const STATUS_GROUP_MAP: Record<string, string[]> = {
 };
 
 // Component Chi tiết đơn hàng mới
-const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (order: OrderData) => void, onReturn: (order: OrderData) => void }) => {
+const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn, onReturnTracking }: { order: OrderData, onBack: () => void, onCancel: (id: string) => void, onRebuy: (order: OrderData) => void, onRate: (order: OrderData) => void, onReturn: (order: OrderData) => void, onReturnTracking?: (order: OrderData) => void }) => {
     const getStatusText = (status: string) => {
         const map: Record<string,string> = {
             pending: 'Chờ xác nhận',
@@ -343,9 +349,19 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn }:
                                     </button>
                                 )}
                                 {order.status === 'returning' && (
-                                    <span className="px-4 py-2.5 bg-orange-50 border border-orange-200 text-orange-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                                        🚚 Đang hoàn hàng — Vui lòng gửi hàng về shop
-                                    </span>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="px-4 py-2.5 bg-orange-50 border border-orange-200 text-orange-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                                            🚚 Shop đã duyệt hoàn (Hạn 3–5 ngày)
+                                        </span>
+                                        {onReturnTracking && (
+                                            <button
+                                                onClick={() => onReturnTracking(order)}
+                                                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                                            >
+                                                <Truck size={14} /> {order.returnRequest?.returnTrackingNumber ? `Vận đơn: ${order.returnRequest.returnTrackingNumber}` : '📦 Nhập mã vận đơn gửi hàng'}
+                                            </button>
+                                        )}
+                                    </div>
                                 )}
                                 {order.status === 'return_received' && (
                                     <span className="px-4 py-2.5 bg-teal-50 border border-teal-200 text-teal-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
@@ -874,6 +890,404 @@ const CustomerReturnModal = ({
     );
 };
 
+// ─── MODAL CẬP NHẬT MÃ VẬN ĐƠN TRẢ HÀNG (SLA STEP 3) ─────────────────────────
+const ReturnTrackingModal = ({
+    order,
+    onClose,
+    onSuccess
+}: {
+    order: OrderData;
+    onClose: () => void;
+    onSuccess: (orderId: string) => void;
+}) => {
+    const [trackingNumber, setTrackingNumber] = useState('');
+    const [carrier, setCarrier] = useState('Giao Hàng Nhanh (GHN)');
+    const [submitting, setSubmitting] = useState(false);
+    const { showToast } = useToast();
+
+    const CARRIERS = [
+        'Giao Hàng Nhanh (GHN)',
+        'Giao Hàng Tiết Kiệm (GHTK)',
+        'Viettel Post',
+        'J&T Express',
+        'Vietnam Post (VNPost)',
+        'Bưu điện / Đơn vị khác'
+    ];
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!trackingNumber.trim()) {
+            showToast('Vui lòng nhập mã vận đơn trả hàng', 'error');
+            return;
+        }
+        setSubmitting(true);
+        try {
+            const res = await fetch(`/api/orders/return-tracking/${order.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    trackingNumber: trackingNumber.trim(),
+                    carrier
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Đã cập nhật mã vận đơn trả hàng thành công! Shop sẽ kiểm tra khi nhận được kiện hàng.', 'success', 'Cập nhật thành công!');
+                onSuccess(order.id ?? '');
+                onClose();
+            } else {
+                showToast(data.message || 'Cập nhật thất bại', 'error');
+            }
+        } catch {
+            showToast('Lỗi kết nối máy chủ', 'error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl border border-slate-100"
+            >
+                <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <Truck className="text-indigo-600" size={18} /> Cập Nhật Mã Vận Đơn Trả Hàng
+                    </h3>
+                    <button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer">
+                        <XCircle size={20} />
+                    </button>
+                </div>
+
+                <div className="bg-indigo-50 p-3.5 rounded-2xl border border-indigo-100 text-xs space-y-1">
+                    <p className="font-bold text-indigo-900">Đơn hàng #{order.id}</p>
+                    <p className="text-indigo-700 text-[11px]">
+                        💡 Sau khi bạn gửi hàng tại bưu cục (GHN, GHTK, Viettel Post...), hãy nhập mã vận đơn để Shop theo dõi kiện hàng và hoàn tiền nhanh nhất cho bạn.
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                    <div>
+                        <label className="block font-bold text-slate-700 mb-1.5">Đơn vị vận chuyển</label>
+                        <select
+                            value={carrier}
+                            onChange={e => setCarrier(e.target.value)}
+                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+                        >
+                            {CARRIERS.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block font-bold text-slate-700 mb-1.5">Mã vận đơn gửi trả <span className="text-rose-500">*</span></label>
+                        <input
+                            type="text"
+                            value={trackingNumber}
+                            onChange={e => setTrackingNumber(e.target.value)}
+                            placeholder="Ví dụ: GHN-12345678, GHTK987654..."
+                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                            required
+                        />
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={submitting || !trackingNumber.trim()}
+                            className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                            {submitting ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                            {submitting ? 'Đang lưu...' : 'Xác Nhận Đã Gửi Hàng'}
+                        </button>
+                    </div>
+                </form>
+            </motion.div>
+        </div>
+    );
+};
+
+// ─── VIEW ĐIỂM THƯỞNG & HẠNG VIP (HAVEN LOYALTY) ──────────────────────────────
+const LoyaltyPointsView = ({
+    user,
+    token,
+    onRedeemSuccess
+}: {
+    user: any;
+    token: string | null;
+    onRedeemSuccess?: () => void;
+}) => {
+    const [loyaltyData, setLoyaltyData] = useState<any>(null);
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [redeemingPoints, setRedeemingPoints] = useState<number | null>(null);
+    const { showToast } = useToast();
+
+    const fetchLoyalty = useCallback(async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            const headers: Record<string, string> = {};
+            if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            if (user.id) headers['x-user-id'] = user.id;
+
+            const res = await fetch(`/api/loyalty/me?userId=${encodeURIComponent(user.id || '')}`, { headers });
+            const data = await res.json();
+            if (data.success) {
+                setLoyaltyData(data.loyalty);
+                setTransactions(data.transactions || []);
+            }
+        } catch (err) {
+            console.error('Error fetching loyalty data:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, [user, token]);
+
+    useEffect(() => {
+        fetchLoyalty();
+    }, [fetchLoyalty]);
+
+    const handleRedeem = async (points: number) => {
+        if (!user) return;
+        setRedeemingPoints(points);
+        try {
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            if (user.id) headers['x-user-id'] = user.id;
+
+            const res = await fetch('/api/loyalty/redeem', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    userId: user.id,
+                    pointsToRedeem: points
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message || 'Đổi Voucher thành công!', 'success', '🎉 Đổi Thưởng Thành Công!');
+                fetchLoyalty();
+                if (onRedeemSuccess) onRedeemSuccess();
+            } else {
+                showToast(data.message || 'Đổi voucher thất bại', 'error');
+            }
+        } catch {
+            showToast('Lỗi kết nối máy chủ', 'error');
+        } finally {
+            setRedeemingPoints(null);
+        }
+    };
+
+    const currentLevel = loyaltyData?.level || 'Bronze';
+    const points = loyaltyData?.points || 0;
+
+    const cardGradient = 
+        currentLevel === 'Platinum' ? 'from-purple-900 via-indigo-850 to-slate-950 border-purple-400/40 text-purple-100' :
+        currentLevel === 'Gold'     ? 'from-amber-600 via-yellow-600 to-amber-900 border-yellow-300/50 text-amber-50' :
+        currentLevel === 'Silver'   ? 'from-slate-700 via-slate-600 to-slate-900 border-slate-400/40 text-slate-100' :
+        'from-amber-800 via-amber-700 to-amber-950 border-amber-500/40 text-amber-100';
+
+    const VOUCHER_PACKAGES = [
+        { points: 100, value: 10000, label: '10.000đ', icon: '🎫' },
+        { points: 200, value: 20000, label: '20.000đ', icon: '🎁' },
+        { points: 500, value: 50000, label: '50.000đ', icon: '💎' },
+        { points: 1000, value: 100000, label: '100.000đ', icon: '👑' },
+    ];
+
+    return (
+        <div className="space-y-6">
+            {/* VIP CARD */}
+            <div className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br ${cardGradient} shadow-2xl border`}>
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="relative z-10 flex flex-col justify-between min-h-[220px]">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70 block">
+                                HAVEN STORE • VIP MEMBERSHIP
+                            </span>
+                            <h2 className="text-xl sm:text-2xl font-black text-white mt-1 flex items-center gap-2">
+                                <span>{loyaltyData?.levelBadge || '🥉'}</span>
+                                <span>{loyaltyData?.levelLabel || 'Hạng Đồng'}</span>
+                            </h2>
+                            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 backdrop-blur-md text-white border border-white/20">
+                                {loyaltyData?.levelDiscount || 'Tích điểm mua sắm'}
+                            </span>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-[11px] text-white/70 block">Điểm khả dụng</span>
+                            <p className="text-3xl sm:text-4xl font-black text-white drop-shadow-md">
+                                {points.toLocaleString('vi-VN')}
+                            </p>
+                            <span className="text-[11px] text-white/80">
+                                ~ {((loyaltyData?.estimatedVoucherValue || 0)).toLocaleString('vi-VN')}đ voucher
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Progress to next tier */}
+                    <div className="mt-6 pt-4 border-t border-white/15 space-y-2">
+                        <div className="flex items-center justify-between text-xs text-white/90">
+                            <span className="font-semibold">
+                                {loyaltyData?.nextLevel ? `Tiến độ lên ${loyaltyData.nextLevelBadge || ''} ${loyaltyData.nextLevel}` : 'Đã đạt cấp bậc cao nhất (VIP Diamond)'}
+                            </span>
+                            <span className="font-bold">{loyaltyData?.progressPercent || 0}%</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-black/30 rounded-full overflow-hidden p-0.5">
+                            <div
+                                className="h-full bg-gradient-to-r from-yellow-300 via-amber-300 to-white rounded-full transition-all duration-700 shadow-sm"
+                                style={{ width: `${loyaltyData?.progressPercent || 0}%` }}
+                            />
+                        </div>
+                        {loyaltyData?.pointsToNextLevel > 0 && (
+                            <p className="text-[11px] text-white/70">
+                                Chi tiêu thêm <strong>{(loyaltyData.pointsToNextLevel * 1000).toLocaleString('vi-VN')}đ</strong> (+{loyaltyData.pointsToNextLevel.toLocaleString('vi-VN')} điểm) để thăng hạng!
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* REDEEM VOUCHER PACKAGES */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 space-y-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <Gift className="w-5 h-5 text-amber-500" />
+                            Đổi Điểm Lấy Voucher Giảm Giá
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Voucher sau khi đổi sẽ tự động lưu vào Ví Voucher để áp dụng ngay khi thanh toán</p>
+                    </div>
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl">
+                        Tỷ lệ: 100 điểm = 10.000đ
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                    {VOUCHER_PACKAGES.map((pkg) => {
+                        const canRedeem = points >= pkg.points;
+                        const isRedeeming = redeemingPoints === pkg.points;
+                        return (
+                            <div
+                                key={pkg.points}
+                                className={`p-5 rounded-2xl border transition-all space-y-3 flex flex-col justify-between ${
+                                    canRedeem
+                                        ? 'bg-gradient-to-b from-white to-amber-50/40 border-amber-200 hover:border-amber-400 hover:shadow-md'
+                                        : 'bg-slate-50 border-slate-200 opacity-60'
+                                }`}
+                            >
+                                <div className="space-y-1">
+                                    <span className="text-2xl block">{pkg.icon}</span>
+                                    <h4 className="font-black text-slate-900 text-lg">Giảm {pkg.label}</h4>
+                                    <p className="text-xs text-slate-500">Đổi bằng <strong className="text-amber-600 font-bold">{pkg.points} điểm</strong></p>
+                                </div>
+                                <button
+                                    onClick={() => handleRedeem(pkg.points)}
+                                    disabled={!canRedeem || isRedeeming}
+                                    className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
+                                        canRedeem
+                                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm active:scale-95 cursor-pointer'
+                                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                    }`}
+                                >
+                                    {isRedeeming ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                    {isRedeeming ? 'Đang đổi...' : canRedeem ? 'Đổi Voucher ngay' : 'Chưa đủ điểm'}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* TRANSACTION HISTORY */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-indigo-600" />
+                        Lịch Sử Giao Dịch Điểm
+                    </h3>
+                    <span className="text-xs text-slate-400">30 giao dịch gần nhất</span>
+                </div>
+
+                {loading ? (
+                    <div className="py-12 text-center text-slate-400">
+                        <Loader2 size={24} className="animate-spin mx-auto mb-2 text-indigo-600" />
+                        Đang tải lịch sử điểm...
+                    </div>
+                ) : transactions.length === 0 ? (
+                    <div className="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50">
+                        <Award size={36} className="mx-auto text-slate-300 mb-2" />
+                        <p className="text-slate-500 text-sm font-medium">Chưa có giao dịch tích điểm nào</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Hãy đặt hàng hoặc đánh giá sản phẩm để tích lũy điểm ngay!</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase text-[11px]">
+                                    <th className="pb-3">Thời gian</th>
+                                    <th className="pb-3">Hành động</th>
+                                    <th className="pb-3">Mô tả</th>
+                                    <th className="pb-3 text-right">Biến động</th>
+                                    <th className="pb-3 text-right">Số dư</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {transactions.map(tx => {
+                                    const isAdd = tx.points > 0;
+                                    return (
+                                        <tr key={tx._id} className="hover:bg-slate-50/70 transition-colors">
+                                            <td className="py-3.5 text-slate-500 whitespace-nowrap">
+                                                {new Date(tx.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                                            </td>
+                                            <td className="py-3.5">
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${
+                                                    tx.type === 'earn' ? 'bg-emerald-50 text-emerald-700' :
+                                                    tx.type === 'redeem' ? 'bg-amber-50 text-amber-700' :
+                                                    tx.type === 'bonus' ? 'bg-purple-50 text-purple-700' :
+                                                    tx.type === 'admin_adjust' ? 'bg-indigo-50 text-indigo-700' :
+                                                    'bg-rose-50 text-rose-700'
+                                                }`}>
+                                                    {tx.type === 'earn' ? '🛍️ Mua hàng' :
+                                                     tx.type === 'redeem' ? '🎁 Đổi quà' :
+                                                     tx.type === 'bonus' ? '⭐ Thưởng' :
+                                                     tx.type === 'admin_adjust' ? '⚙️ Admin' : 'Thu hồi'}
+                                                </span>
+                                            </td>
+                                            <td className="py-3.5 text-slate-800 font-medium max-w-xs truncate">
+                                                {tx.description}
+                                            </td>
+                                            <td className={`py-3.5 text-right font-bold text-sm ${isAdd ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                {isAdd ? `+${tx.points}` : tx.points}
+                                            </td>
+                                            <td className="py-3.5 text-right font-bold text-slate-900 font-mono">
+                                                {tx.balanceAfter}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 export default function NguoiDungPage() {
     const { showToast, showConfirm } = useToast();
     const { user, token, logout, updateProfile } = useAuth();
@@ -889,6 +1303,7 @@ export default function NguoiDungPage() {
     // State cho Review Modal & Return Modal
     const [reviewOrder, setReviewOrder] = useState<OrderData | null>(null);
     const [returnOrder, setReturnOrder] = useState<OrderData | null>(null);
+    const [returnTrackingOrder, setReturnTrackingOrder] = useState<OrderData | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -1269,6 +1684,7 @@ export default function NguoiDungPage() {
                                             onRebuy={handleRebuy}
                                             onRate={handleRateOrder}
                                             onReturn={handleReturnOrder}
+                                            onReturnTracking={setReturnTrackingOrder}
                                         />
                                     ) : (
                                         // VIEW: Danh sách đơn hàng
@@ -1398,38 +1814,59 @@ export default function NguoiDungPage() {
                                                                             <XCircle size={13} className="text-rose-500" /> Hủy đơn
                                                                         </button>
                                                                     )}
-                                                                    {order.status === 'delivered' && (!order.returnRequest || order.returnRequest.status === 'none') && (
-                                                                        <button onClick={() => handleReturnOrder(order)} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
-                                                                            <RotateCcw size={13} className="text-rose-500" /> Hoàn hàng
-                                                                        </button>
-                                                                    )}
+                                                                    {order.status === 'delivered' && (!order.returnRequest || order.returnRequest.status === 'none') && (() => {
+                                                                        const deliveredDate = (order as any).deliveredAt ? new Date((order as any).deliveredAt) : new Date(order.createdAt);
+                                                                        const daysPassed = Math.floor((Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24));
+                                                                        const daysRemaining = Math.max(0, 7 - daysPassed);
+                                                                        return daysRemaining > 0 ? (
+                                                                            <button onClick={() => handleReturnOrder(order)} className="px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer" title="Quyền yêu cầu hoàn hàng trong 7 ngày">
+                                                                                <RotateCcw size={13} className="text-rose-500" /> Hoàn hàng ({daysRemaining} ngày)
+                                                                            </button>
+                                                                        ) : (
+                                                                            <span className="px-2.5 py-1.5 bg-slate-100 text-slate-400 rounded-xl text-[10px] font-semibold" title="Đã quá 7 ngày kể từ khi nhận hàng">
+                                                                                Hết hạn hoàn hàng (7 ngày)
+                                                                            </span>
+                                                                        );
+                                                                    })()}
                                                                     {order.status === 'return_requested' && (
                                                                         <span className="px-3.5 py-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-pulse">
-                                                                            ⏳ Đang chờ Shop xét duyệt yêu cầu hoàn
+                                                                            ⏳ Chờ duyệt hoàn (24-48h)
                                                                         </span>
                                                                     )}
                                                                     {order.status === 'returning' && (
-                                                                        <span className="px-3.5 py-2 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                                                                            🚚 Shop đã duyệt — Vui lòng gửi hàng về shop
-                                                                        </span>
+                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                            <span className="px-3 py-1.5 bg-orange-50 border border-orange-200 text-orange-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                                                                🚚 Đã duyệt (Hạn gửi 3-5 ngày)
+                                                                            </span>
+                                                                            <button
+                                                                                onClick={() => setReturnTrackingOrder(order)}
+                                                                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                                                                            >
+                                                                                <Truck size={13} /> {order.returnRequest?.returnTrackingNumber ? `Mã: ${order.returnRequest.returnTrackingNumber}` : '📦 Nhập mã vận đơn'}
+                                                                            </button>
+                                                                        </div>
                                                                     )}
                                                                     {order.status === 'return_received' && (
                                                                         <span className="px-3.5 py-2 bg-teal-50 border border-teal-200 text-teal-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                                                                            📦 Shop đã nhận hàng trả — Đang xử lý hoàn tiền
+                                                                            📦 Shop đang kiểm tra hàng (1-3 ngày)
                                                                         </span>
                                                                     )}
                                                                     {order.status === 'refunded' && (
                                                                         <span className="px-3.5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                                                                            💰 Đã hoàn tiền thành công
+                                                                            💰 Đã hoàn tiền vào Ví HAVEN
                                                                         </span>
                                                                     )}
-                                                                    {order.status === 'delivered' && (
-                                                                        <button onClick={() => handleRateOrder(order)} className="px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
-                                                                            <Star size={13} className="text-amber-500 fill-amber-400" /> Đánh giá
-                                                                        </button>
-                                                                    )}
+                                                                    {order.status === 'delivered' && (() => {
+                                                                        const deliveredDate = (order as any).deliveredAt ? new Date((order as any).deliveredAt) : new Date(order.createdAt);
+                                                                        const daysPassed = Math.floor((Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24));
+                                                                        return daysPassed <= 30 ? (
+                                                                            <button onClick={() => handleRateOrder(order)} className="px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer" title="Đánh giá nhận ngay +50 điểm thưởng">
+                                                                                <Star size={13} className="text-amber-500 fill-amber-400" /> Đánh giá (+50đ)
+                                                                            </button>
+                                                                        ) : null;
+                                                                    })()}
                                                                     {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
-                                                                        <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-100 flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95">
+                                                                        <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-100 flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
                                                                             <ShoppingBag size={13} /> Mua lại
                                                                         </button>
                                                                     )}
@@ -1443,7 +1880,7 @@ export default function NguoiDungPage() {
                                                                     </div>
                                                                     <button 
                                                                         onClick={() => setSelectedOrderId(order.id ?? '')}
-                                                                        className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-600 hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-md hover:shadow-lg"
+                                                                        className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-600 hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-md hover:shadow-lg cursor-pointer"
                                                                     >
                                                                         Chi tiết đơn hàng <ChevronRight size={14} />
                                                                     </button>
@@ -1466,6 +1903,23 @@ export default function NguoiDungPage() {
                                     exit={{ opacity: 0, x: -20 }}
                                 >
                                     <HavenWalletManager />
+                                </motion.div>
+                            )}
+
+                            {activeMainTab === 'loyalty' && (
+                                <motion.div
+                                    key="loyalty"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                >
+                                    <LoyaltyPointsView 
+                                        user={user} 
+                                        token={token} 
+                                        onRedeemSuccess={() => {
+                                            fetchMyCoupons();
+                                        }} 
+                                    />
                                 </motion.div>
                             )}
 
@@ -1706,6 +2160,22 @@ export default function NguoiDungPage() {
                     onClose={() => setReturnOrder(null)}
                     onSuccess={(orderId) => {
                         setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'return_requested' } : o));
+                    }}
+                />
+            )}
+
+            {returnTrackingOrder && (
+                <ReturnTrackingModal 
+                    order={returnTrackingOrder}
+                    onClose={() => setReturnTrackingOrder(null)}
+                    onSuccess={(orderId) => {
+                        setOrders(prev => prev.map(o => o.id === orderId ? { 
+                            ...o, 
+                            returnRequest: { 
+                                ...(o.returnRequest || {}), 
+                                status: 'approved' 
+                            } as any 
+                        } : o));
                     }}
                 />
             )}

@@ -809,28 +809,53 @@ const submitReturnRequest = async (req, res, next) => {
 
         const allowedStatuses = ['delivered', 'completed', 'awaiting_review', 'reviewed'];
         if (!allowedStatuses.includes(order.status)) {
-            return res.status(400).json({ success: false, message: 'Chỉ có thể yêu cầu hoàn hàng với đơn đã giao' });
+            return res.status(400).json({ success: false, message: 'Chỉ có thể yêu cầu hoàn hàng với đơn đã giao thành công' });
         }
-        if (order.returnRequest && order.returnRequest.status !== 'none') {
-            return res.status(400).json({ success: false, message: 'Đơn hàng này đã có yêu cầu hoàn' });
+        if (order.returnRequest && order.returnRequest.status !== 'none' && order.returnRequest.status !== 'rejected') {
+            return res.status(400).json({ success: false, message: 'Đơn hàng này đã có yêu cầu hoàn đang được xử lý' });
         }
+
+        // ─── KIỂM TRA THỜI HẠN 7 NGÀY (SLA) ───
+        const deliveredTime = order.deliveredAt ? new Date(order.deliveredAt).getTime() : new Date(order.updatedAt || order.createdAt).getTime();
+        const daysSinceDelivery = (Date.now() - deliveredTime) / (1000 * 60 * 60 * 24);
+        if (daysSinceDelivery > 7) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Đã hết thời hạn yêu cầu trả hàng / hoàn tiền (Tối đa 7 ngày kể từ khi nhận hàng).' 
+            });
+        }
+
+        const now = new Date();
+        const reviewDeadline = new Date(now.getTime() + 48 * 60 * 60 * 1000); // Shop cam kết xử lý trong 24-48 giờ
 
         order.returnRequest = {
             status: 'pending',
             reason: reason.trim(),
             images: images || [],
-            requestedAt: new Date(),
+            requestedAt: now,
+            reviewDeadline: reviewDeadline,
             reviewedAt: null,
             reviewedBy: '',
-            rejectReason: ''
+            rejectReason: '',
+            shippingDeadline: null,
+            returnTrackingNumber: '',
+            returnCarrier: '',
+            returnShippedAt: null,
+            returnReceivedAt: null,
+            inspectionDeadline: null,
+            refundDeadline: null,
+            refundedAt: null,
+            refundAmount: order.finalAmount || order.totalAmount || 0,
+            refundMethod: 'wallet'
         };
+
         order.status = 'return_requested';
         order.shippingTimeline = order.shippingTimeline || [];
         order.shippingTimeline.push({
             status: 'return_requested',
-            title: 'Yêu cầu hoàn hàng đã gửi',
-            note: reason.trim(),
-            timestamp: new Date(),
+            title: 'Khách hàng gửi yêu cầu trả hàng / hoàn tiền',
+            note: `Lý do: "${reason.trim()}" • Shop cam kết xét duyệt trong 24-48 giờ (Hạn chót: ${reviewDeadline.toLocaleString('vi-VN')})`,
+            timestamp: now,
             isCustomerVisible: true
         });
         await order.save();
@@ -838,7 +863,61 @@ const submitReturnRequest = async (req, res, next) => {
         const io = req.app.get('io');
         if (io) io.emit('order_status_changed', { orderId, status: 'return_requested' });
 
-        res.json({ success: true, message: 'Gửi yêu cầu hoàn hàng thành công', order });
+        res.json({ 
+            success: true, 
+            message: 'Gửi yêu cầu hoàn hàng thành công! Shop sẽ xét duyệt trong 24–48 giờ.', 
+            order 
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc Khách hàng cập nhật mã vận đơn trả hàng (sau khi Shop duyệt hoàn hàng)
+ * @route PUT /api/orders/return-tracking/:orderId
+ * @body { trackingNumber, carrier }
+ */
+const submitReturnTracking = async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const { trackingNumber, carrier } = req.body;
+
+        if (!trackingNumber || !trackingNumber.trim()) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập mã vận đơn trả hàng' });
+        }
+
+        const order = await OrderModel.findOne({ id: orderId });
+        if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+        if (!order.returnRequest || order.returnRequest.status !== 'approved') {
+            return res.status(400).json({ success: false, message: 'Yêu cầu hoàn hàng chưa được shop duyệt chấp thuận' });
+        }
+
+        const now = new Date();
+        order.returnRequest.returnTrackingNumber = trackingNumber.trim();
+        order.returnRequest.returnCarrier = carrier ? carrier.trim() : 'Đơn vị vận chuyển';
+        order.returnRequest.returnShippedAt = now;
+        order.status = 'returning';
+
+        order.shippingTimeline = order.shippingTimeline || [];
+        order.shippingTimeline.push({
+            status: 'returning',
+            title: 'Khách hàng đã gửi hàng hoàn về shop',
+            note: `Đơn vị vận chuyển: ${order.returnRequest.returnCarrier} • Mã vận đơn: ${order.returnRequest.returnTrackingNumber}`,
+            timestamp: now,
+            isCustomerVisible: true
+        });
+
+        await order.save();
+
+        const io = req.app.get('io');
+        if (io) io.emit('order_status_changed', { orderId, status: 'returning' });
+
+        res.json({ 
+            success: true, 
+            message: 'Đã cập nhật mã vận đơn trả hàng thành công! Shop sẽ kiểm tra khi nhận được kiện hàng.', 
+            order 
+        });
     } catch (error) {
         next(error);
     }
@@ -850,9 +929,17 @@ const submitReturnRequest = async (req, res, next) => {
  */
 const getReturnRequests = async (req, res, next) => {
     try {
-        const { status } = req.query; // 'pending' | 'approved' | 'rejected' | all
+        const { status } = req.query; // 'pending' | 'approved' | 'rejected' | 'returning' | 'refunded' | all
         const query = { 'returnRequest.status': { $ne: 'none' } };
-        if (status && status !== 'all') query['returnRequest.status'] = status;
+        if (status && status !== 'all') {
+            if (status === 'returning') {
+                query.status = 'returning';
+            } else if (status === 'refunded') {
+                query.status = 'refunded';
+            } else {
+                query['returnRequest.status'] = status;
+            }
+        }
 
         const orders = await OrderModel.find(query)
             .sort({ 'returnRequest.requestedAt': -1 })
@@ -860,9 +947,11 @@ const getReturnRequests = async (req, res, next) => {
 
         const stats = {
             total: await OrderModel.countDocuments({ 'returnRequest.status': { $ne: 'none' } }),
-            pending:  await OrderModel.countDocuments({ 'returnRequest.status': 'pending' }),
-            approved: await OrderModel.countDocuments({ 'returnRequest.status': 'approved' }),
-            rejected: await OrderModel.countDocuments({ 'returnRequest.status': 'rejected' }),
+            pending:   await OrderModel.countDocuments({ 'returnRequest.status': 'pending' }),
+            approved:  await OrderModel.countDocuments({ 'returnRequest.status': 'approved' }),
+            rejected:  await OrderModel.countDocuments({ 'returnRequest.status': 'rejected' }),
+            returning: await OrderModel.countDocuments({ status: 'returning' }),
+            refunded:  await OrderModel.countDocuments({ status: 'refunded' }),
         };
 
         res.json({ success: true, orders, stats });
@@ -872,20 +961,20 @@ const getReturnRequests = async (req, res, next) => {
 };
 
 /**
- * @desc Admin duyệt hoặc từ chối yêu cầu hoàn hàng
+ * @desc Admin duyệt hoặc từ chối yêu cầu hoàn hàng (kèm hạn gửi hàng 3-5 ngày)
  * @route PUT /api/orders/return-request/:orderId
- * @body { action: 'approve' | 'reject', rejectReason?, adminName? }
+ * @body { action: 'approve' | 'reject', rejectReason?, adminName?, instantRefund? }
  */
 const reviewReturnRequest = async (req, res, next) => {
     try {
         const { orderId } = req.params;
-        const { action, rejectReason, adminName } = req.body;
+        const { action, rejectReason, adminName, instantRefund } = req.body;
 
         if (!['approve', 'reject'].includes(action)) {
             return res.status(400).json({ success: false, message: 'action phải là approve hoặc reject' });
         }
         if (action === 'reject' && (!rejectReason || rejectReason.trim().length < 5)) {
-            return res.status(400).json({ success: false, message: 'Cần nhập lý do từ chối' });
+            return res.status(400).json({ success: false, message: 'Cần nhập lý do từ chối (tối thiểu 5 ký tự)' });
         }
 
         const order = await OrderModel.findOne({ id: orderId });
@@ -900,13 +989,17 @@ const reviewReturnRequest = async (req, res, next) => {
             order.returnRequest.reviewedAt = now;
             order.returnRequest.reviewedBy = adminName || 'Admin';
 
-            // Nếu Admin chọn Hoàn tiền ngay (instantRefund === true hoặc action === 'instant_refund')
-            if (req.body.instantRefund) {
+            // Nếu Admin chọn Hoàn tiền ngay không cần gửi hàng (Instant Refund)
+            if (instantRefund) {
                 order.status = 'refunded';
+                order.paymentStatus = 'refunded';
+                order.returnRequest.refundedAt = now;
+                order.returnRequest.refundAmount = order.finalAmount || order.totalAmount || 0;
+                
                 order.shippingTimeline.push({
                     status: 'refunded',
-                    title: 'Duyệt hoàn hàng & Hoàn tiền vào Ví thành công',
-                    note: `Shop đã duyệt hoàn tiền ngay lập tức. Số tiền ${(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của khách hàng.`,
+                    title: 'Duyệt hoàn tiền ngay vào Ví HAVEN thành công',
+                    note: `Shop đã duyệt hoàn tiền ngay lập tức. Số tiền ${(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')} đ đã chuyển vào Ví HAVEN.`,
                     timestamp: now,
                     isCustomerVisible: true
                 });
@@ -929,12 +1022,28 @@ const reviewReturnRequest = async (req, res, next) => {
                 } catch (wErr) {
                     log(`[Wallet Sync Warning] ${wErr.message}`);
                 }
+
+                // Thu hồi điểm tích lũy của đơn nếu có
+                if (order.userId) {
+                    try {
+                        const { revokePoints } = require('./loyaltyController');
+                        if (typeof revokePoints === 'function') {
+                            await revokePoints(order.userId, orderId);
+                        }
+                    } catch (lErr) {
+                        log(`[Loyalty Warning] ${lErr.message}`);
+                    }
+                }
             } else {
+                // Duyệt cho khách gửi hàng về kho: Hạn gửi hàng là 5 ngày kể từ ngày duyệt
+                const shippingDeadline = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+                order.returnRequest.shippingDeadline = shippingDeadline;
                 order.status = 'returning';
+
                 order.shippingTimeline.push({
                     status: 'returning',
-                    title: 'Yêu cầu hoàn hàng được chấp thuận',
-                    note: 'Shop đã duyệt — vui lòng gửi hàng về kho để được hoàn tiền',
+                    title: 'Yêu cầu hoàn hàng đã được Shop chấp thuận',
+                    note: `Shop đã duyệt. Quý khách vui lòng gửi hàng về kho và cập nhật mã vận đơn trước ${shippingDeadline.toLocaleString('vi-VN')} (trong vòng 3–5 ngày).`,
                     timestamp: now,
                     isCustomerVisible: true
                 });
@@ -944,11 +1053,11 @@ const reviewReturnRequest = async (req, res, next) => {
             order.returnRequest.reviewedAt = now;
             order.returnRequest.reviewedBy = adminName || 'Admin';
             order.returnRequest.rejectReason = rejectReason.trim();
-            order.status = 'delivered'; // khôi phục trạng thái delivered
+            order.status = 'delivered'; // Khôi phục trạng thái delivered
             order.shippingTimeline.push({
                 status: 'delivered',
                 title: 'Yêu cầu hoàn hàng bị từ chối',
-                note: rejectReason.trim(),
+                note: `Lý do: "${rejectReason.trim()}"`,
                 timestamp: now,
                 isCustomerVisible: true
             });
@@ -960,8 +1069,8 @@ const reviewReturnRequest = async (req, res, next) => {
         if (io) io.emit('order_status_changed', { orderId, status: order.status });
 
         const respMsg = action === 'approve' 
-            ? (req.body.instantRefund ? '✅ Đã duyệt và hoàn tiền ngay vào Ví HAVEN của khách hàng' : '✅ Đã duyệt hoàn hàng — chờ khách gửi hàng về') 
-            : '❌ Đã từ chối hoàn hàng';
+            ? (instantRefund ? '✅ Đã duyệt và hoàn tiền ngay vào Ví HAVEN của khách hàng' : '✅ Đã duyệt hoàn hàng — thời hạn khách gửi hàng là 3–5 ngày') 
+            : '❌ Đã từ chối yêu cầu hoàn hàng';
 
         res.json({ success: true, message: respMsg, order });
     } catch (error) {
@@ -969,9 +1078,8 @@ const reviewReturnRequest = async (req, res, next) => {
     }
 };
 
-
 /**
- * @desc Admin xác nhận đã nhận hàng trả & thực hiện hoàn tiền
+ * @desc Admin xác nhận đã nhận hàng trả & thực hiện hoàn tiền vào Ví
  * @route PUT /api/orders/return-received/:orderId
  * @access Admin
  */
@@ -987,12 +1095,18 @@ const confirmReturnReceived = async (req, res, next) => {
         }
 
         const now = new Date();
+        const refundAmt = order.finalAmount || order.totalAmount || 0;
+
         order.status = 'refunded';
         order.paymentStatus = 'refunded';
+        order.returnRequest.returnReceivedAt = now;
+        order.returnRequest.refundedAt = now;
+        order.returnRequest.refundAmount = refundAmt;
+
         order.shippingTimeline.push({
             status: 'refunded',
             title: 'Đã nhận hàng trả & Hoàn tiền vào ví thành công',
-            note: `Shop đã nhận lại hàng trả. Số tiền ${(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của khách hàng. Xác nhận bởi: ${adminName || 'Admin'}`,
+            note: `Shop đã nhận lại kiện hàng và kiểm tra hoàn tất. Số tiền ${refundAmt.toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của khách hàng. Xác nhận bởi: ${adminName || 'Admin'}`,
             timestamp: now,
             isCustomerVisible: true
         });
@@ -1005,7 +1119,6 @@ const confirmReturnReceived = async (req, res, next) => {
         }
 
         // 2. Tự động chuyển toàn bộ số tiền đơn hàng về Ví HAVEN của User
-        const refundAmt = order.finalAmount || order.totalAmount || 0;
         try {
             await refundOrderToWallet({
                 userId: order.userId,
@@ -1018,6 +1131,18 @@ const confirmReturnReceived = async (req, res, next) => {
             log(`[Wallet Sync] Đã hoàn ${refundAmt} VNĐ vào ví user cho đơn hoàn hàng ${orderId}`);
         } catch (wErr) {
             log(`[Wallet Sync Warning] Lỗi hoàn tiền vào ví: ${wErr.message}`);
+        }
+
+        // 3. Thu hồi điểm tích lũy của đơn nếu có
+        if (order.userId) {
+            try {
+                const { revokePoints } = require('./loyaltyController');
+                if (typeof revokePoints === 'function') {
+                    await revokePoints(order.userId, orderId);
+                }
+            } catch (lErr) {
+                log(`[Loyalty Warning] ${lErr.message}`);
+            }
         }
 
         const io = req.app.get('io');
@@ -1174,6 +1299,7 @@ module.exports = {
     exportStockOnApproval,
     restoreStockOnCancel,
     submitReturnRequest,
+    submitReturnTracking,
     getReturnRequests,
     reviewReturnRequest,
     confirmReturnReceived,

@@ -107,15 +107,32 @@ const OrderSchema = new Schema({
     deliveredAt:        { type: Date, default: null },
     cancelledAt:        { type: Date, default: null },
 
-    // ─── RETURN REQUEST ───────────────────────────────────────────────────────
+    // ─── RETURN REQUEST (SLA ENGINE & TRACKING) ──────────────────────────────
     returnRequest: {
-        status:       { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
-        reason:       { type: String, default: '' },
-        images:       [{ type: String }],
-        requestedAt:  { type: Date },
-        reviewedAt:   { type: Date },
-        reviewedBy:   { type: String, default: '' },
-        rejectReason: { type: String, default: '' }
+        status:               { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
+        reason:               { type: String, default: '' },
+        images:               [{ type: String }],
+        requestedAt:          { type: Date },
+        reviewDeadline:       { type: Date },       // Hạn chót shop duyệt (requestedAt + 48h)
+        reviewedAt:           { type: Date },
+        reviewedBy:           { type: String, default: '' },
+        rejectReason:         { type: String, default: '' },
+        
+        // Khách gửi hàng hoàn
+        shippingDeadline:     { type: Date },       // Hạn chót khách gửi hàng (reviewedAt + 5 ngày)
+        returnTrackingNumber: { type: String, default: '' }, // Mã vận đơn trả hàng
+        returnCarrier:        { type: String, default: '' }, // Đơn vị VC (GHN, GHTK, Viettel Post...)
+        returnShippedAt:      { type: Date },       // Thời điểm khách gửi hàng
+        
+        // Shop nhận & thẩm định
+        returnReceivedAt:     { type: Date },       // Thời điểm shop nhận hàng hoàn
+        inspectionDeadline:   { type: Date },       // Hạn thẩm định hàng (returnReceivedAt + 3 ngày)
+        
+        // Hoàn tiền
+        refundDeadline:       { type: Date },       // Hạn hoàn tiền (3 ngày)
+        refundedAt:           { type: Date },       // Thời điểm hoàn tiền thành công
+        refundAmount:         { type: Number, default: 0 },
+        refundMethod:         { type: String, default: 'wallet' }
     },
 
     createdAt: { type: String, required: true }

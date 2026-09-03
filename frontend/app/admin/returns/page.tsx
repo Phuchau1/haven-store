@@ -24,9 +24,18 @@ interface ReturnRequestData {
     reason: string;
     images?: string[];
     requestedAt?: string;
+    reviewDeadline?: string;
     reviewedAt?: string;
     reviewedBy?: string;
     rejectReason?: string;
+    shippingDeadline?: string;
+    returnTrackingNumber?: string;
+    returnCarrier?: string;
+    returnShippedAt?: string;
+    returnReceivedAt?: string;
+    refundDeadline?: string;
+    refundedAt?: string;
+    refundAmount?: number;
 }
 
 interface OrderData {
@@ -132,9 +141,9 @@ export default function AdminReturnsPage() {
                 const msg = reviewAction === 'instant_refund'
                     ? '💰 Đã duyệt & Hoàn tiền ngay vào Ví HAVEN của khách hàng thành công!'
                     : reviewAction === 'approve' 
-                        ? '✅ Đã duyệt hoàn hàng — khách cần gửi hàng về kho' 
+                        ? '✅ Đã duyệt hoàn hàng — thời hạn khách gửi hàng là 3–5 ngày' 
                         : reviewAction === 'confirm_received' 
-                            ? '💰 Đã xác nhận nhận hàng & hoàn tiền thành công!' 
+                            ? '💰 Đã xác nhận nhận hàng & hoàn tiền vào Ví thành công!' 
                             : '❌ Đã từ chối hoàn hàng';
                 showToast(msg, 'success');
                 setReviewModalOpen(false);
@@ -158,7 +167,8 @@ export default function AdminReturnsPage() {
             o.id.toLowerCase().includes(q) ||
             o.customerName.toLowerCase().includes(q) ||
             o.phone.includes(q) ||
-            (o.returnRequest?.reason || '').toLowerCase().includes(q)
+            (o.returnRequest?.reason || '').toLowerCase().includes(q) ||
+            (o.returnRequest?.returnTrackingNumber || '').toLowerCase().includes(q)
         );
     });
 
@@ -181,13 +191,13 @@ export default function AdminReturnsPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
                         <RotateCcw className="w-7 h-7 text-indigo-600" />
-                        Quản lý Hoàn Hàng & Trả Tiền
+                        Quản lý Hoàn Hàng & Trả Tiền (SLA Engine)
                     </h1>
-                    <p className="text-slate-500 text-sm mt-1">Duyệt các yêu cầu hoàn hàng từ khách hàng và quản lý tiến trình</p>
+                    <p className="text-slate-500 text-sm mt-1">Chuẩn hóa thời gian xét duyệt 24–48h, theo dõi mã vận đơn hoàn trả và hoàn tiền vào Ví</p>
                 </div>
                 <button
                     onClick={fetchReturns}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-colors w-fit"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-colors w-fit cursor-pointer"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     Làm mới
@@ -195,8 +205,8 @@ export default function AdminReturnsPage() {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
                     <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
                         <span>Tổng yêu cầu</span>
                         <RotateCcw className="w-4 h-4 text-slate-400" />
@@ -205,31 +215,43 @@ export default function AdminReturnsPage() {
                 </div>
                 <div 
                     onClick={() => setFilterStatus('pending')}
-                    className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-sm ${
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-xs ${
                         filterStatus === 'pending' ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-400/20' : 'bg-white border-slate-200 hover:border-amber-200'
                     }`}
                 >
                     <div className="flex items-center justify-between text-amber-700 text-xs font-semibold uppercase">
-                        <span>Chờ duyệt</span>
+                        <span>Chờ duyệt (24-48h)</span>
                         <Clock className="w-4 h-4 text-amber-500" />
                     </div>
                     <p className="text-2xl font-bold text-amber-900 mt-2">{stats.pending}</p>
                 </div>
                 <div 
-                    onClick={() => setFilterStatus('approved')}
-                    className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-sm ${
-                        filterStatus === 'approved' ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400/20' : 'bg-white border-slate-200 hover:border-emerald-200'
+                    onClick={() => setFilterStatus('returning')}
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-xs ${
+                        filterStatus === 'returning' ? 'bg-orange-50 border-orange-300 ring-2 ring-orange-400/20' : 'bg-white border-slate-200 hover:border-orange-200'
+                    }`}
+                >
+                    <div className="flex items-center justify-between text-orange-700 text-xs font-semibold uppercase">
+                        <span>Đang gửi hàng hoàn</span>
+                        <span className="text-sm">🚚</span>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-900 mt-2">{(stats as any).returning || 0}</p>
+                </div>
+                <div 
+                    onClick={() => setFilterStatus('refunded')}
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-xs ${
+                        filterStatus === 'refunded' ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400/20' : 'bg-white border-slate-200 hover:border-emerald-200'
                     }`}
                 >
                     <div className="flex items-center justify-between text-emerald-700 text-xs font-semibold uppercase">
-                        <span>Đã chấp thuận</span>
+                        <span>Đã hoàn tiền</span>
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     </div>
-                    <p className="text-2xl font-bold text-emerald-900 mt-2">{stats.approved}</p>
+                    <p className="text-2xl font-bold text-emerald-900 mt-2">{stats.refunded || 0}</p>
                 </div>
                 <div 
                     onClick={() => setFilterStatus('rejected')}
-                    className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-sm ${
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all shadow-xs ${
                         filterStatus === 'rejected' ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-400/20' : 'bg-white border-slate-200 hover:border-rose-200'
                     }`}
                 >
@@ -242,11 +264,12 @@ export default function AdminReturnsPage() {
             </div>
 
             {/* Filter Tabs & Search */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex gap-2 w-full md:w-auto overflow-x-auto no-scrollbar">
                     {[
                         { id: 'pending', label: `Chờ duyệt (${stats.pending})` },
-                        { id: 'returning', label: `Đang hoàn hàng (${(stats as any).returning || 0})` },
+                        { id: 'returning', label: `Đang gửi hàng hoàn (${(stats as any).returning || 0})` },
+                        { id: 'refunded', label: `Đã hoàn tiền (${stats.refunded || 0})` },
                         { id: 'approved', label: `Đã duyệt (${stats.approved})` },
                         { id: 'rejected', label: `Từ chối (${stats.rejected})` },
                         { id: 'all', label: `Tất cả (${stats.total})` }
@@ -254,7 +277,7 @@ export default function AdminReturnsPage() {
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id as any)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                                 filterStatus === tab.id
                                 ? 'bg-indigo-600 text-white shadow-md'
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -269,7 +292,7 @@ export default function AdminReturnsPage() {
                     <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="Tìm theo mã đơn, tên, SĐT..."
+                        placeholder="Tìm theo mã đơn, mã vận đơn, SĐT..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
@@ -278,16 +301,17 @@ export default function AdminReturnsPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase">
                                 <th className="p-4">Mã đơn hàng</th>
                                 <th className="p-4">Khách hàng</th>
-                                <th className="p-4">Lý do hoàn</th>
-                                <th className="p-4">Số tiền</th>
-                                <th className="p-4">Ngày yêu cầu</th>
+                                <th className="p-4">Lý do & Bằng chứng</th>
+                                <th className="p-4">Vận đơn trả hàng</th>
+                                <th className="p-4">Số tiền hoàn</th>
+                                <th className="p-4">Hạn chót SLA</th>
                                 <th className="p-4">Trạng thái</th>
                                 <th className="p-4 text-right">Thao tác</th>
                             </tr>
@@ -295,16 +319,16 @@ export default function AdminReturnsPage() {
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-slate-400">
+                                    <td colSpan={8} className="p-8 text-center text-slate-400">
                                         <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-500" />
                                         Đang tải danh sách...
                                     </td>
                                 </tr>
                             ) : filteredOrders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-slate-400">
+                                    <td colSpan={8} className="p-8 text-center text-slate-400">
                                         <RotateCcw className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                                        Không có yêu cầu hoàn hàng nào
+                                        Không có yêu cầu hoàn hàng nào phù hợp
                                     </td>
                                 </tr>
                             ) : (
@@ -327,7 +351,7 @@ export default function AdminReturnsPage() {
                                             </td>
                                             <td className="p-4 max-w-xs">
                                                 <div className="font-medium text-slate-700 truncate" title={req?.reason}>
-                                                    {req?.reason || '—'}
+                                                    "{req?.reason || '—'}"
                                                 </div>
                                                 {req?.images && req.images.length > 0 && (
                                                     <div className="flex items-center gap-1 mt-1 text-[10px] text-indigo-600 font-semibold">
@@ -336,13 +360,35 @@ export default function AdminReturnsPage() {
                                                     </div>
                                                 )}
                                             </td>
+                                            <td className="p-4">
+                                                {req?.returnTrackingNumber ? (
+                                                    <div>
+                                                        <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 text-[11px]">
+                                                            {req.returnTrackingNumber}
+                                                        </span>
+                                                        <p className="text-[10px] text-slate-400 mt-0.5">{req.returnCarrier || 'Chuyển phát'}</p>
+                                                    </div>
+                                                ) : isReturning ? (
+                                                    <span className="text-[11px] text-amber-600 italic">⏳ Chờ khách nhập mã</span>
+                                                ) : (
+                                                    <span className="text-slate-400">—</span>
+                                                )}
+                                            </td>
                                             <td className="p-4 font-bold text-slate-900">
                                                 {(order.finalAmount || order.totalAmount || 0).toLocaleString('vi-VN')}đ
                                             </td>
                                             <td className="p-4 text-slate-500">
-                                                {req?.requestedAt 
-                                                    ? new Date(req.requestedAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
-                                                    : '—'}
+                                                {isPending && req?.reviewDeadline ? (
+                                                    <span className="text-[11px] text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                                        Duyệt trước: {new Date(req.reviewDeadline).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                                                    </span>
+                                                ) : isReturning && req?.shippingDeadline ? (
+                                                    <span className="text-[11px] text-orange-700 font-semibold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                                                        Gửi trước: {new Date(req.shippingDeadline).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit' })}
+                                                    </span>
+                                                ) : req?.requestedAt ? (
+                                                    new Date(req.requestedAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+                                                ) : '—'}
                                             </td>
                                             <td className="p-4">
                                                 {isPending && (
@@ -375,8 +421,8 @@ export default function AdminReturnsPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => setSelectedOrder(order)}
-                                                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                                                        title="Xem chi tiết"
+                                                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                                                        title="Xem chi tiết & Tiến trình SLA"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
@@ -384,21 +430,21 @@ export default function AdminReturnsPage() {
                                                         <>
                                                             <button
                                                                 onClick={() => handleOpenReview(order, 'instant_refund')}
-                                                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-xs"
+                                                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-xs cursor-pointer active:scale-95"
                                                                 title="Duyệt và hoàn tiền ngay lập tức vào Ví HAVEN"
                                                             >
                                                                 ⚡ Hoàn tiền ngay
                                                             </button>
                                                             <button
                                                                 onClick={() => handleOpenReview(order, 'approve')}
-                                                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center gap-1"
-                                                                title="Duyệt cho phép gửi hàng về kho trước"
+                                                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer active:scale-95"
+                                                                title="Duyệt cho phép gửi hàng về kho (Hạn 3-5 ngày)"
                                                             >
                                                                 <Check className="w-3.5 h-3.5" /> Duyệt gửi hàng
                                                             </button>
                                                             <button
                                                                 onClick={() => handleOpenReview(order, 'reject')}
-                                                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors flex items-center gap-1"
+                                                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
                                                             >
                                                                 <X className="w-3.5 h-3.5" /> Từ chối
                                                             </button>
@@ -407,7 +453,7 @@ export default function AdminReturnsPage() {
                                                     {isReturning && (
                                                         <button
                                                             onClick={() => handleOpenReview(order, 'confirm_received')}
-                                                            className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-sm"
+                                                            className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-xs cursor-pointer active:scale-95"
                                                         >
                                                             💰 Đã nhận hàng & Hoàn tiền
                                                         </button>
@@ -423,21 +469,54 @@ export default function AdminReturnsPage() {
                 </div>
             </div>
 
-            {/* Detail Drawer / Modal */}
+            {/* Detail Drawer / Modal với SLA Timeline */}
             {selectedOrder && !reviewModalOpen && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto border border-slate-100">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900">Chi tiết Yêu cầu Hoàn hàng #{selectedOrder.id}</h3>
+                                <h3 className="text-lg font-bold text-slate-900">Chi tiết Tiến trình Hoàn hàng #{selectedOrder.id}</h3>
                                 <p className="text-xs text-slate-500">Khách hàng: {selectedOrder.customerName} - {selectedOrder.phone}</p>
                             </div>
                             <button
                                 onClick={() => setSelectedOrder(null)}
-                                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500"
+                                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
                             >
                                 <X className="w-5 h-5" />
                             </button>
+                        </div>
+
+                        {/* SLA Timeline 5 Bước */}
+                        <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-2">
+                            <h4 className="text-xs font-bold uppercase text-indigo-900 flex items-center gap-1.5">
+                                ⏱️ Các Mốc Thời Gian SLA
+                            </h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                                <div className="bg-white p-2.5 rounded-xl border border-indigo-100">
+                                    <span className="text-[10px] text-slate-400 block">1. Khách gửi yêu cầu</span>
+                                    <strong className="text-slate-800 text-[11px]">
+                                        {selectedOrder.returnRequest?.requestedAt ? new Date(selectedOrder.returnRequest.requestedAt).toLocaleDateString('vi-VN') : '—'}
+                                    </strong>
+                                </div>
+                                <div className="bg-white p-2.5 rounded-xl border border-indigo-100">
+                                    <span className="text-[10px] text-slate-400 block">2. Shop xét duyệt</span>
+                                    <strong className="text-slate-800 text-[11px]">
+                                        {selectedOrder.returnRequest?.reviewedAt ? new Date(selectedOrder.returnRequest.reviewedAt).toLocaleDateString('vi-VN') : 'Trong 24-48h'}
+                                    </strong>
+                                </div>
+                                <div className="bg-white p-2.5 rounded-xl border border-indigo-100">
+                                    <span className="text-[10px] text-slate-400 block">3. Mã gửi hàng</span>
+                                    <strong className="text-indigo-700 text-[11px] truncate block">
+                                        {selectedOrder.returnRequest?.returnTrackingNumber || 'Hạn 3-5 ngày'}
+                                    </strong>
+                                </div>
+                                <div className="bg-white p-2.5 rounded-xl border border-indigo-100">
+                                    <span className="text-[10px] text-slate-400 block">4. Hoàn tiền Ví</span>
+                                    <strong className="text-emerald-700 text-[11px]">
+                                        {selectedOrder.status === 'refunded' ? 'Đã hoàn tất' : 'Trong 1-3 ngày'}
+                                    </strong>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Return Request Details */}
@@ -507,19 +586,19 @@ export default function AdminReturnsPage() {
                             <div className="flex flex-wrap justify-end gap-2.5 pt-3 border-t border-slate-100">
                                 <button
                                     onClick={() => handleOpenReview(selectedOrder, 'reject')}
-                                    className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
+                                    className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                                 >
                                     <X className="w-4 h-4" /> Từ chối
                                 </button>
                                 <button
                                     onClick={() => handleOpenReview(selectedOrder, 'approve')}
-                                    className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
+                                    className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                                 >
-                                    <Check className="w-4 h-4" /> Cho phép gửi hàng về
+                                    <Check className="w-4 h-4" /> Cho phép gửi hàng về (3-5 ngày)
                                 </button>
                                 <button
                                     onClick={() => handleOpenReview(selectedOrder, 'instant_refund')}
-                                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                                 >
                                     ⚡ Hoàn tiền ngay vào Ví
                                 </button>
@@ -529,7 +608,7 @@ export default function AdminReturnsPage() {
                             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
                                 <button
                                     onClick={() => handleOpenReview(selectedOrder, 'confirm_received')}
-                                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                                 >
                                     💰 Xác nhận đã nhận hàng & Hoàn tiền vào Ví
                                 </button>
@@ -541,8 +620,8 @@ export default function AdminReturnsPage() {
 
             {/* Review Confirm Modal */}
             {reviewModalOpen && selectedOrder && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
                         <div className="flex items-center gap-3">
                             <div className={`p-2.5 rounded-xl ${
                                 reviewAction === 'instant_refund' ? 'bg-emerald-100 text-emerald-700' :
@@ -564,16 +643,16 @@ export default function AdminReturnsPage() {
                         </div>
 
                         {reviewAction === 'instant_refund' ? (
-                            <p className="text-xs text-slate-600 leading-relaxed bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                            <p className="text-xs text-slate-600 leading-relaxed bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200">
                                 Hệ thống sẽ <strong>hoàn tiền ngay lập tức</strong> số tiền <strong>{(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString('vi-VN')} đ</strong> vào <strong>Ví HAVEN</strong> của khách hàng. Khách có thể dùng số dư mua hàng hoặc rút về ngân hàng.
                             </p>
                         ) : reviewAction === 'approve' ? (
-                            <p className="text-xs text-slate-600 leading-relaxed bg-indigo-50 p-3 rounded-xl border border-indigo-200">
-                                Khi chấp thuận, đơn hàng sẽ chuyển sang trạng thái <strong>Đang gửi hàng trả (returning)</strong>. Khách hàng sẽ gửi sản phẩm về shop. Tiền sẽ được hoàn sau khi shop nhận hàng.
+                            <p className="text-xs text-slate-600 leading-relaxed bg-indigo-50 p-3.5 rounded-2xl border border-indigo-200">
+                                Khi chấp thuận, đơn hàng sẽ chuyển sang trạng thái <strong>Đang gửi hàng hoàn (returning)</strong> với thời hạn <strong>3–5 ngày</strong>. Khách hàng sẽ gửi sản phẩm về kho và cập nhật mã vận đơn. Tiền sẽ được hoàn sau khi shop nhận hàng.
                             </p>
                         ) : reviewAction === 'confirm_received' ? (
-                            <p className="text-xs text-slate-600 leading-relaxed bg-teal-50 p-3 rounded-xl border border-teal-200">
-                                Xác nhận đã nhận lại kiện hàng vật lý. Hệ thống sẽ cộng <strong>{(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString('vi-VN')} đ</strong> vào Ví HAVEN của khách hàng.
+                            <p className="text-xs text-slate-600 leading-relaxed bg-teal-50 p-3.5 rounded-2xl border border-teal-200">
+                                Xác nhận đã nhận lại kiện hàng vật lý. Hệ thống sẽ tự động hoàn <strong>{(selectedOrder.finalAmount || selectedOrder.totalAmount || 0).toLocaleString('vi-VN')} đ</strong> vào Ví HAVEN của khách hàng.
                             </p>
                         ) : (
                             <div className="space-y-2">
@@ -583,7 +662,7 @@ export default function AdminReturnsPage() {
                                     onChange={e => setRejectReason(e.target.value)}
                                     placeholder="Nhập lý do chi tiết từ chối yêu cầu của khách hàng..."
                                     rows={3}
-                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 resize-none"
                                 />
                             </div>
                         )}
@@ -591,14 +670,14 @@ export default function AdminReturnsPage() {
                         <div className="flex justify-end gap-2 pt-2">
                             <button
                                 onClick={() => setReviewModalOpen(false)}
-                                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
+                                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
                             >
                                 Hủy
                             </button>
                             <button
                                 onClick={handleReviewSubmit}
                                 disabled={submitting}
-                                className={`px-4 py-2 rounded-xl text-white text-xs font-semibold flex items-center gap-1.5 ${
+                                className={`px-4 py-2 rounded-xl text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
                                     reviewAction === 'instant_refund' ? 'bg-emerald-600 hover:bg-emerald-700' :
                                     reviewAction === 'approve' ? 'bg-indigo-600 hover:bg-indigo-700' :
                                     reviewAction === 'confirm_received' ? 'bg-teal-600 hover:bg-teal-700' :
@@ -607,7 +686,7 @@ export default function AdminReturnsPage() {
                             >
                                 {submitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                                 {reviewAction === 'instant_refund' ? 'Xác nhận Hoàn tiền ngay' :
-                                 reviewAction === 'approve' ? 'Xác nhận Chấp thuận' : 
+                                 reviewAction === 'approve' ? 'Xác nhận Chấp thuận (Hạn 5 ngày)' : 
                                  reviewAction === 'confirm_received' ? 'Xác nhận Hoàn tiền' : 
                                  'Xác nhận Từ chối'}
                             </button>

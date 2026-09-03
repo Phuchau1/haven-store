@@ -138,9 +138,19 @@ export interface OrderData {
         reason?: string;
         images?: string[];
         requestedAt?: string;
+        reviewDeadline?: string;
         reviewedAt?: string;
         reviewedBy?: string;
         rejectReason?: string;
+        shippingDeadline?: string;
+        returnTrackingNumber?: string;
+        returnCarrier?: string;
+        returnShippedAt?: string;
+        returnReceivedAt?: string;
+        inspectionDeadline?: string;
+        refundDeadline?: string;
+        refundedAt?: string;
+        refundAmount?: number;
     };
 }
 
