@@ -57,20 +57,20 @@ export default function FeaturesBanner() {
     if (banner.status !== 'active') return null;
 
     return (
-        <section className="py-16 sm:py-20 lg:py-24 bg-white border-y border-slate-100 overflow-hidden">
-            <div className="container-torano">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-14 items-center">
+        <section className="py-8 sm:py-10 lg:py-12 bg-white border-y border-slate-100 overflow-hidden">
+            <div className="container-torano max-w-6xl">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-center">
                     {/* ── Left: Collection Banner Image ─────────────────── */}
                     <motion.div
-                        initial={{ opacity: 0, x: -30 }}
+                        initial={{ opacity: 0, x: -20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                         className="lg:col-span-6 relative group"
                     >
                         <Link 
                             href={banner.link || '/products'} 
-                            className="block relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-slate-100 transition-all duration-500"
+                            className="block relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm hover:shadow-lg border border-slate-100 transition-all duration-500"
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
@@ -84,29 +84,29 @@ export default function FeaturesBanner() {
 
                     {/* ── Right: Collection Description & Action ───────── */}
                     <motion.div
-                        initial={{ opacity: 0, x: 30 }}
+                        initial={{ opacity: 0, x: 20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                         className="lg:col-span-6 flex flex-col justify-center"
                     >
-                        <h2 className="text-2xl sm:text-3xl lg:text-[32px] xl:text-[36px] font-black text-slate-900 leading-[1.25] tracking-tight uppercase">
+                        <h2 className="text-xl sm:text-2xl lg:text-[28px] font-black text-slate-900 leading-[1.25] tracking-tight uppercase">
                             {banner.title}
                         </h2>
 
                         {banner.subtitle && (
-                            <div className="mt-5 sm:mt-6 space-y-4 text-slate-600 text-[14px] sm:text-[15px] leading-relaxed font-normal">
+                            <div className="mt-3 sm:mt-3.5 space-y-3 text-slate-600 text-[13px] sm:text-[14px] leading-relaxed font-normal">
                                 <p className="whitespace-pre-line">{banner.subtitle}</p>
                             </div>
                         )}
 
-                        <div className="mt-6 sm:mt-8">
+                        <div className="mt-4 sm:mt-5">
                             <Link
                                 href={banner.link || '/products'}
-                                className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-slate-900 hover:text-[#C9A227] underline underline-offset-8 decoration-2 hover:decoration-[#C9A227] transition-all group cursor-pointer"
+                                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-900 hover:text-[#C9A227] underline underline-offset-8 decoration-2 hover:decoration-[#C9A227] transition-all group cursor-pointer"
                             >
                                 <span>{banner.link_text || 'Xem chi tiết'}</span>
-                                <ArrowRight size={18} className="transform group-hover:translate-x-1.5 transition-transform duration-300" />
+                                <ArrowRight size={16} className="transform group-hover:translate-x-1.5 transition-transform duration-300" />
                             </Link>
                         </div>
                     </motion.div>
