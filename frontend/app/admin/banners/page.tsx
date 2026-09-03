@@ -59,7 +59,24 @@ export default function AdminBannersPage() {
             const res = await fetch('/api/admin/extra/banners');
             const data = await res.json();
             if (data.success && Array.isArray(data.data)) {
-                setBanners(data.data);
+                let list = [...data.data];
+                const hasCol = list.some(b => b.type === 'collection');
+                if (!hasCol) {
+                    const defaultCol: Banner = {
+                        id: 'banner-collection-1',
+                        title: 'BST XUÂN HÈ 2026: EASY DAILY | BẮT NHỊP SỐNG - HÒA NHỊP SỐNG',
+                        subtitle: '✨ BST Xuân Hè cập bến mang theo tinh thần "Easy" thoải mái trải nghiệm cùng những trang phục "Daily" tiện dụng mỗi ngày. HAVEN tin rằng, khi trang phục đủ nhẹ tênh, tâm trí sẽ tự khắc rộng mở để bạn bắt trọn nhịp điệu cuộc sống. Sẵn sàng cho một diện mạo rạng rỡ và trải nghiệm đầy năng lượng cùng HAVEN ngay hôm nay!',
+                        image: '/bst-xuan-he-2026.png',
+                        video: '',
+                        link: '/products',
+                        link_text: 'Xem chi tiết',
+                        type: 'collection',
+                        status: 'active',
+                        order: 0
+                    };
+                    list.unshift(defaultCol);
+                }
+                setBanners(list);
             }
         } catch (error) {
             console.error('Error fetching banners:', error);
