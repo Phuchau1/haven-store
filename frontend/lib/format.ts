@@ -39,3 +39,29 @@ export function cleanProductTitle(name: string): string {
         .replace(/\s+/g, ' ')
         .trim();
 }
+
+// ===== DATA PRIVACY & MASKING HELPERS (BẢO VỆ THÔNG TIN KHÁCH HÀNG) =====
+export function maskPhone(phone?: string): string {
+    if (!phone) return '';
+    const cleaned = phone.trim();
+    if (cleaned.length <= 4) return '****';
+    if (cleaned.length <= 7) return cleaned.slice(0, 2) + '***' + cleaned.slice(-2);
+    return cleaned.slice(0, 3) + '****' + cleaned.slice(-3);
+}
+
+export function maskEmail(email?: string): string {
+    if (!email) return '';
+    const parts = email.trim().split('@');
+    if (parts.length !== 2) return '***@***';
+    const [user, domain] = parts;
+    if (user.length <= 2) return `${user[0]}***@${domain}`;
+    return `${user.slice(0, 2)}***${user.slice(-2)}@${domain}`;
+}
+
+export function maskBankAccount(acc?: string): string {
+    if (!acc) return '';
+    const cleaned = acc.trim();
+    if (cleaned.length <= 4) return '****';
+    return '*'.repeat(Math.max(4, cleaned.length - 4)) + cleaned.slice(-4);
+}
+

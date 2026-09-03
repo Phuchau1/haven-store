@@ -6,10 +6,10 @@ import {
     ArrowLeftRight, CheckCircle2, XCircle, Clock, Search, 
     Filter, RefreshCw, QrCode, AlertCircle, Building2, User,
     Phone, Mail, Calendar, CreditCard, ChevronRight, ExternalLink,
-    DollarSign, Check, X, ShieldAlert, ArrowUpRight
+    DollarSign, Check, X, ShieldAlert, ArrowUpRight, Eye, EyeOff, ShieldCheck, Copy
 } from 'lucide-react';
 import Image from 'next/image';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, maskPhone, maskEmail, maskBankAccount } from '@/lib/format';
 import { useAuth } from '@/app/component/AuthContext';
 
 interface Withdrawal {
@@ -47,6 +47,17 @@ export default function AdminWithdrawalsPage() {
         completed: { count: 0, amount: 0 },
         rejected: { count: 0, amount: 0 }
     });
+
+    // Privacy Masking State (Mặc định BẬT bảo mật che thông tin)
+    const [privacyMode, setPrivacyMode] = useState(true);
+    const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
+
+    const toggleReveal = (id: string) => {
+        setRevealedIds(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+    };
 
     // Modals
     const [selectedQR, setSelectedQR] = useState<Withdrawal | null>(null);
@@ -200,11 +211,25 @@ export default function AdminWithdrawalsPage() {
                         Xem danh sách yêu cầu rút tiền từ Ví HAVEN về tài khoản ngân hàng của khách hàng & quét mã VietQR chuyển khoản 1 chạm.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
+                    {/* Nút bật/tắt bảo mật thông tin khách hàng */}
+                    <button
+                        onClick={() => setPrivacyMode(!privacyMode)}
+                        className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer border ${
+                            privacyMode
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                        }`}
+                        title={privacyMode ? 'Đang ẩn thông tin nhạy cảm (STK/Email/SĐT)' : 'Đang hiện đầy đủ thông tin'}
+                    >
+                        {privacyMode ? <EyeOff size={14} className="text-emerald-600" /> : <Eye size={14} className="text-amber-600" />}
+                        <span>{privacyMode ? 'Bảo mật dữ liệu: BẬT' : 'Bảo mật dữ liệu: TẮT'}</span>
+                    </button>
+
                     <button
                         onClick={fetchWithdrawals}
                         disabled={loading}
-                        className="px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                        className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
                     >
                         <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                         Làm mới
@@ -332,40 +357,57 @@ export default function AdminWithdrawalsPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                withdrawals.map((w) => (
-                                    <tr key={w.id || w._id} className="hover:bg-slate-50/60 transition-colors">
-                                        <td className="p-4 pl-6">
-                                            <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-lg">
-                                                {w.id}
-                                            </span>
-                                            {w.note && (
-                                                <p className="text-[11px] text-slate-400 mt-1 italic max-w-xs truncate">
-                                                    &quot;{w.note}&quot;
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className="p-4">
-                                            <p className="font-bold text-slate-900">{w.userName || 'Chưa cập nhật'}</p>
-                                            <p className="text-[11px] text-slate-400">{w.userEmail}</p>
-                                            {w.userPhone && <p className="text-[11px] text-slate-400">{w.userPhone}</p>}
-                                        </td>
-                                        <td className="p-4">
-                                            <span className="font-mono font-black text-sm text-emerald-600">
-                                                {formatPrice(w.amount)}
-                                            </span>
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex items-start gap-2.5">
-                                                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl shrink-0 mt-0.5">
-                                                    <Building2 size={16} />
+                                withdrawals.map((w) => {
+                                    const isRevealed = !privacyMode || !!revealedIds[w.id];
+                                    const displayEmail = isRevealed ? w.userEmail : maskEmail(w.userEmail);
+                                    const displayPhone = isRevealed ? w.userPhone : maskPhone(w.userPhone);
+                                    const displayAccount = isRevealed ? w.bankInfo.accountNumber : maskBankAccount(w.bankInfo.accountNumber);
+
+                                    return (
+                                        <tr key={w.id || w._id} className="hover:bg-slate-50/60 transition-colors">
+                                            <td className="p-4 pl-6">
+                                                <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-lg">
+                                                    {w.id}
+                                                </span>
+                                                {w.note && (
+                                                    <p className="text-[11px] text-slate-400 mt-1 italic max-w-xs truncate">
+                                                        &quot;{w.note}&quot;
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className="p-4">
+                                                <p className="font-bold text-slate-900">{w.userName || 'Chưa cập nhật'}</p>
+                                                <p className="text-[11px] text-slate-500 font-mono">{displayEmail}</p>
+                                                {w.userPhone && <p className="text-[11px] text-slate-500 font-mono">{displayPhone}</p>}
+                                            </td>
+                                            <td className="p-4">
+                                                <span className="font-mono font-black text-sm text-emerald-600">
+                                                    {formatPrice(w.amount)}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex items-start gap-2.5">
+                                                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl shrink-0 mt-0.5">
+                                                        <Building2 size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 uppercase">{w.bankInfo.bankCode} - {w.bankInfo.bankName}</p>
+                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                            <span className="font-mono font-bold text-indigo-700 bg-indigo-50/80 px-2 py-0.5 rounded border border-indigo-100">
+                                                                {displayAccount}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => toggleReveal(w.id)}
+                                                                className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors cursor-pointer"
+                                                                title={isRevealed ? "Ẩn số tài khoản" : "Hiện số tài khoản"}
+                                                            >
+                                                                {isRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-[11px] font-bold text-slate-500 uppercase mt-0.5">{w.bankInfo.accountHolder}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-900 uppercase">{w.bankInfo.bankCode} - {w.bankInfo.bankName}</p>
-                                                    <p className="font-mono font-bold text-indigo-600">{w.bankInfo.accountNumber}</p>
-                                                    <p className="text-[11px] font-bold text-slate-500 uppercase">{w.bankInfo.accountHolder}</p>
-                                                </div>
-                                            </div>
-                                        </td>
+                                            </td>
                                         <td className="p-4 text-slate-500 whitespace-nowrap">
                                             <p>{new Date(w.createdAt).toLocaleDateString('vi-VN')}</p>
                                             <p className="text-[11px] text-slate-400">{new Date(w.createdAt).toLocaleTimeString('vi-VN')}</p>
@@ -435,7 +477,8 @@ export default function AdminWithdrawalsPage() {
                                             </div>
                                         </td>
                                     </tr>
-                                ))
+                                );
+                            })
                             )}
                         </tbody>
                     </table>
@@ -478,12 +521,39 @@ export default function AdminWithdrawalsPage() {
                                         className="w-full h-full object-contain"
                                     />
                                 </div>
-                                <div className="mt-3 text-left text-xs space-y-1 text-slate-600">
-                                    <p>Ngân hàng: <strong className="text-slate-900 uppercase">{selectedQR.bankInfo.bankCode}</strong> ({selectedQR.bankInfo.bankName})</p>
-                                    <p>Số tài khoản: <strong className="font-mono text-indigo-600 font-bold">{selectedQR.bankInfo.accountNumber}</strong></p>
-                                    <p>Chủ tài khoản: <strong className="text-slate-900 font-bold uppercase">{selectedQR.bankInfo.accountHolder}</strong></p>
-                                    <p>Số tiền: <strong className="text-emerald-600 font-bold font-mono text-sm">{formatPrice(selectedQR.amount)}</strong></p>
-                                    <p>Nội dung CK: <strong className="font-mono text-slate-900">{selectedQR.id}</strong></p>
+                                <div className="mt-3 text-left text-xs space-y-1.5 text-slate-600 bg-white p-3 rounded-xl border border-slate-200">
+                                    <div className="flex justify-between items-center">
+                                        <span>Ngân hàng:</span>
+                                        <strong className="text-slate-900 uppercase">{selectedQR.bankInfo.bankCode} ({selectedQR.bankInfo.bankName})</strong>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span>Số tài khoản:</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <strong className="font-mono text-indigo-600 font-bold">{selectedQR.bankInfo.accountNumber}</strong>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(selectedQR.bankInfo.accountNumber);
+                                                    showToast(`Đã sao chép STK: ${selectedQR.bankInfo.accountNumber}`);
+                                                }}
+                                                className="p-1 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded transition-colors"
+                                                title="Sao chép số tài khoản"
+                                            >
+                                                <Copy size={12} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span>Chủ tài khoản:</span>
+                                        <strong className="text-slate-900 font-bold uppercase">{selectedQR.bankInfo.accountHolder}</strong>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span>Số tiền:</span>
+                                        <strong className="text-emerald-600 font-bold font-mono text-sm">{formatPrice(selectedQR.amount)}</strong>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span>Nội dung CK:</span>
+                                        <strong className="font-mono text-slate-900">{selectedQR.id}</strong>
+                                    </div>
                                 </div>
                             </div>
 
