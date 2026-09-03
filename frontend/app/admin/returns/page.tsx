@@ -839,66 +839,105 @@ export default function AdminReturnsPage() {
 
                             {/* ── FORM THẨM ĐỊNH (MODE: INSPECT) ── */}
                             {modalMode === 'inspect' && (
-                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3.5">
-                                    <div className="font-bold text-slate-900 text-xs uppercase tracking-wide">
-                                        Kiểm tra kiện hàng nhận về
+                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
+                                    <div className="font-bold text-slate-900 text-xs uppercase tracking-wide flex items-center justify-between">
+                                        <span>Kiểm tra kiện hàng nhận về tại kho</span>
+                                        <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                            Bước: Nghiệm thu & Quyết định hoàn tiền
+                                        </span>
                                     </div>
 
-                                    <div className="p-2.5 bg-white rounded-lg border border-slate-200 text-xs text-slate-700">
-                                        Mã vận đơn: <strong className="font-mono text-slate-900">{activeOrder.returnRequest?.returnTrackingNumber}</strong> ({activeOrder.returnRequest?.returnCarrier || 'Chuyển phát'})
+                                    <div className="p-2.5 bg-white rounded-lg border border-slate-200 text-xs text-slate-700 flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            Mã vận đơn gửi: <strong className="font-mono text-slate-900">{activeOrder.returnRequest?.returnTrackingNumber || 'Chưa có'}</strong> ({activeOrder.returnRequest?.returnCarrier || 'Chuyển phát'})
+                                        </div>
+                                        <div>
+                                            Tổng giá trị hàng hoàn: <strong className="text-emerald-700 font-bold">{(activeOrder.returnRequest?.estimatedRefundAmount || activeOrder.finalAmount || activeOrder.totalAmount || 0).toLocaleString('vi-VN')} đ</strong>
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                         <label className={`p-3 rounded-xl border transition-all cursor-pointer ${
                                             inspectionResult === 'passed'
-                                                ? 'bg-white border-emerald-600 ring-2 ring-emerald-600/20'
+                                                ? 'bg-emerald-50/70 border-emerald-600 ring-2 ring-emerald-600/20'
                                                 : 'bg-white border-slate-200 hover:border-slate-300'
                                         }`}>
-                                            <div className="flex items-start gap-2">
+                                            <div className="flex items-start gap-2.5">
                                                 <input
                                                     type="radio"
                                                     name="inspectResult"
                                                     checked={inspectionResult === 'passed'}
                                                     onChange={() => setInspectionResult('passed')}
-                                                    className="mt-0.5"
+                                                    className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
                                                 />
                                                 <div>
-                                                    <p className="font-semibold text-xs text-slate-900">Đạt yêu cầu - Hoàn tiền</p>
-                                                    <p className="text-[11px] text-slate-500 mt-0.5">Kiện hàng đúng mô tả, hệ thống sẽ hoàn tiền và nhập lại kho.</p>
+                                                    <p className="font-bold text-xs text-slate-900 flex items-center gap-1">
+                                                        <CheckCircle2 size={13} className="text-emerald-600" />
+                                                        Đạt tiêu chuẩn — Hoàn tiền
+                                                    </p>
+                                                    <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                                                        Kiện hàng đúng mẫu, nguyên vẹn. Hệ thống sẽ tự động hoàn tiền vào Ví HAVEN và nhập tồn kho.
+                                                    </p>
                                                 </div>
                                             </div>
                                         </label>
 
                                         <label className={`p-3 rounded-xl border transition-all cursor-pointer ${
                                             inspectionResult === 'failed'
-                                                ? 'bg-white border-rose-600 ring-2 ring-rose-600/20'
+                                                ? 'bg-rose-50/70 border-rose-600 ring-2 ring-rose-600/20'
                                                 : 'bg-white border-slate-200 hover:border-slate-300'
                                         }`}>
-                                            <div className="flex items-start gap-2">
+                                            <div className="flex items-start gap-2.5">
                                                 <input
                                                     type="radio"
                                                     name="inspectResult"
                                                     checked={inspectionResult === 'failed'}
                                                     onChange={() => setInspectionResult('failed')}
-                                                    className="mt-0.5"
+                                                    className="mt-0.5 text-rose-600 focus:ring-rose-500"
                                                 />
                                                 <div>
-                                                    <p className="font-semibold text-xs text-slate-900">Không đạt yêu cầu</p>
-                                                    <p className="text-[11px] text-slate-500 mt-0.5">Sản phẩm bị lỗi khác, rách bẩn thêm, hoặc sai hàng.</p>
+                                                    <p className="font-bold text-xs text-slate-900 flex items-center gap-1">
+                                                        <XCircle size={13} className="text-rose-600" />
+                                                        Không đạt tiêu chuẩn — Từ chối
+                                                    </p>
+                                                    <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                                                        Sản phẩm bị tráo đổi, hư hỏng thêm do khách, hoặc mất phụ kiện/tem nhãn.
+                                                    </p>
                                                 </div>
                                             </div>
                                         </label>
                                     </div>
 
+                                    {/* Số tiền hoàn khi đạt yêu cầu */}
+                                    {inspectionResult === 'passed' && (
+                                        <div className="p-3 bg-white rounded-xl border border-emerald-200 space-y-1.5 text-xs">
+                                            <label className="font-semibold text-slate-800 block">
+                                                Số tiền hoàn vào Ví HAVEN của khách:
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={customRefundAmount}
+                                                    onChange={e => setCustomRefundAmount(Number(e.target.value))}
+                                                    className="w-48 p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-emerald-700 focus:bg-white focus:outline-none focus:border-emerald-500"
+                                                />
+                                                <span className="text-slate-500 font-semibold">VNĐ</span>
+                                            </div>
+                                            <p className="text-[11px] text-slate-400 italic">
+                                                Mặc định hoàn toàn bộ 100% giá trị sản phẩm trả về. Có thể chỉnh sửa nếu cần khấu trừ.
+                                            </p>
+                                        </div>
+                                    )}
+
                                     <div className="space-y-1.5 text-xs">
                                         <label className="font-semibold text-slate-700 block">
-                                            Ghi chú kiểm tra {inspectionResult === 'failed' && <span className="text-rose-500">*</span>}:
+                                            Ghi chú kiểm tra {inspectionResult === 'failed' && <span className="text-rose-500">* (Bắt buộc)</span>}:
                                         </label>
                                         <textarea
                                             rows={2}
                                             value={inspectionNote}
                                             onChange={e => setInspectionNote(e.target.value)}
-                                            placeholder="Ghi chú tình trạng sản phẩm..."
+                                            placeholder={inspectionResult === 'passed' ? 'Ghi chú tình trạng kiện hàng (Ví dụ: Sản phẩm mới 100%, nguyên tem mác)...' : 'Nhập lý do cụ thể gửi thông báo cho khách hàng...'}
                                             className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-slate-400"
                                         />
                                     </div>
@@ -916,14 +955,36 @@ export default function AdminReturnsPage() {
                                 Đóng
                             </button>
 
-                            {(modalMode === 'review' || modalMode === 'inspect') && (
+                            {modalMode === 'review' && (
                                 <button
                                     type="button"
                                     onClick={handleSubmitDecision}
                                     disabled={submitting}
                                     className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
                                 >
-                                    {submitting ? 'Đang lưu...' : 'Xác nhận xử lý'}
+                                    {submitting ? 'Đang lưu...' : 'Xác nhận xét duyệt'}
+                                </button>
+                            )}
+
+                            {modalMode === 'inspect' && (
+                                <button
+                                    type="button"
+                                    onClick={handleSubmitDecision}
+                                    disabled={submitting}
+                                    className={`px-5 py-2 text-white font-semibold text-xs rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-2xs flex items-center gap-1.5 ${
+                                        inspectionResult === 'passed' 
+                                            ? 'bg-emerald-600 hover:bg-emerald-700' 
+                                            : 'bg-rose-600 hover:bg-rose-700'
+                                    }`}
+                                >
+                                    {inspectionResult === 'passed' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                                    <span>
+                                        {submitting 
+                                            ? 'Đang xử lý...' 
+                                            : inspectionResult === 'passed' 
+                                            ? 'Xác nhận đạt & Hoàn tiền ngay' 
+                                            : 'Xác nhận không đạt & Từ chối'}
+                                    </span>
                                 </button>
                             )}
                         </div>
