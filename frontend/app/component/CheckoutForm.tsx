@@ -141,6 +141,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
     const [walletBalance, setWalletBalance] = useState<number | null>(null);
     const [loadingWallet, setLoadingWallet] = useState(false);
 
+    // ── HAVEN Loyalty Points ──
+    const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
+    const [usePoints, setUsePoints] = useState<boolean>(false);
+
     // ── Address Dropdowns ──
     const [provinces, setProvinces] = useState<any[]>([]);
     const [districts, setDistricts] = useState<any[]>([]);
@@ -161,7 +165,13 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         setStoreShippingFee(shippingFee);
     }, [shippingFee, setStoreShippingFee]);
 
-    const finalTotal = Math.max(0, (appliedCoupon ? appliedCoupon.finalAmount : totalAmount) + shippingFee);
+    // Mỗi 100 điểm = 10.000đ (1 điểm = 100đ quy đổi khi trừ trực tiếp)
+    const maxUsablePoints = Math.min(loyaltyPoints, Math.floor(totalAmount / 10000) * 100);
+    const pointsDiscountAmount = (usePoints && maxUsablePoints >= 100) ? (maxUsablePoints * 100) : 0;
+    const couponDiscountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+    const totalDiscountAmount = couponDiscountAmount + pointsDiscountAmount;
+
+    const finalTotal = Math.max(0, totalAmount - totalDiscountAmount + shippingFee);
 
     // Tải danh mục Tỉnh / Thành phố
     useEffect(() => {
@@ -267,6 +277,27 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }
         };
         fetchWallet();
+    }, [user, token]);
+
+    // Tải số điểm tích lũy HAVEN Rewards của người dùng
+    useEffect(() => {
+        const fetchLoyalty = async () => {
+            if (!user) return;
+            try {
+                const headers: Record<string, string> = {};
+                if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                if (user.id) headers['x-user-id'] = user.id;
+
+                const res = await fetch(`/api/loyalty/me?userId=${encodeURIComponent(user.id)}`, { headers });
+                const data = await res.json();
+                if (data.success && data.loyalty) {
+                    setLoyaltyPoints(data.loyalty.points || 0);
+                }
+            } catch (err) {
+                console.error("Failed to fetch loyalty points", err);
+            }
+        };
+        fetchLoyalty();
     }, [user, token]);
 
     // Tính phí vận chuyển tức thì (Instant Zero-Latency Calculation)
@@ -614,7 +645,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }
 
             // 2. Tạo đơn hàng
-            const orderData: OrderData = {
+            const orderData: any = {
                 id: orderId,
                 userId: user?.id || '',
                 ...formData,
@@ -622,7 +653,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 items,
                 totalAmount,
                 couponCode: appliedCoupon ? appliedCoupon.code : '',
-                discountAmount: appliedCoupon ? appliedCoupon.discountAmount : 0,
+                discountAmount: totalDiscountAmount,
+                usedPoints: (usePoints && maxUsablePoints >= 100) ? maxUsablePoints : 0,
+                pointsDiscountAmount: pointsDiscountAmount,
                 finalAmount: finalTotal,
                 shippingFee,
                 shippingMethodId: selectedShippingMethodId || 'GHN',
@@ -1383,6 +1416,38 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 </motion.div>
                             )}
                         </AnimatePresence>
+
+                        {/* ── DÙNG ĐIỂM THƯỞNG HAVEN REWARDS ── */}
+                        {user && loyaltyPoints >= 100 && (
+                            <div className="pt-3 mt-3 border-t border-slate-100">
+                                <label className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                                    usePoints 
+                                        ? 'bg-amber-50/90 border-amber-300 ring-1 ring-amber-400/40 shadow-xs' 
+                                        : 'bg-slate-50/70 border-slate-200 hover:border-amber-200 hover:bg-amber-50/30'
+                                }`}>
+                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                        <span className="text-xl shrink-0">⭐</span>
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-bold text-slate-900 flex flex-wrap items-center gap-1.5">
+                                                <span>Dùng {maxUsablePoints.toLocaleString('vi-VN')} điểm HAVEN</span>
+                                                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                    -{(maxUsablePoints * 100).toLocaleString('vi-VN')}đ
+                                                </span>
+                                            </p>
+                                            <p className="text-[11px] text-slate-500 mt-0.5">
+                                                Bạn đang có <strong className="text-amber-600 font-bold">{loyaltyPoints.toLocaleString('vi-VN')} điểm</strong> khả dụng
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={usePoints}
+                                        onChange={e => setUsePoints(e.target.checked)}
+                                        className="w-5 h-5 accent-amber-600 rounded cursor-pointer shrink-0"
+                                    />
+                                </label>
+                            </div>
+                        )}
                     </div>
 
                     {/* ── BẢNG TỔNG KẾT CHI PHÍ ── */}
@@ -1401,8 +1466,15 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
 
                         {appliedCoupon && (
                             <div className="flex justify-between text-rose-600 font-bold">
-                                <span>Giảm giá Voucher</span>
+                                <span>Giảm giá Voucher ({appliedCoupon.code})</span>
                                 <span>-{formatPrice(appliedCoupon.discountAmount)}</span>
+                            </div>
+                        )}
+
+                        {usePoints && pointsDiscountAmount > 0 && (
+                            <div className="flex justify-between text-amber-700 font-bold">
+                                <span className="flex items-center gap-1">⭐ Điểm thưởng ({maxUsablePoints} điểm)</span>
+                                <span>-{formatPrice(pointsDiscountAmount)}</span>
                             </div>
                         )}
 
@@ -1416,7 +1488,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                                 </span>
                             </div>
                             <div className="text-right">
-                                {appliedCoupon && (
+                                {(appliedCoupon || (usePoints && pointsDiscountAmount > 0)) && (
                                     <span className="text-xs text-slate-400 line-through block font-mono">
                                         {formatPrice(totalAmount + shippingFee)}
                                     </span>

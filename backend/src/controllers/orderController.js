@@ -551,6 +551,34 @@ const createOrder = async (req, res, next) => {
             enqueueOrderEmail(newOrderData);
 
             if (body.userId) {
+                // 1. Trừ điểm thưởng nếu khách có chọn dùng điểm trực tiếp
+                if (Number(body.usedPoints) > 0) {
+                    try {
+                        const { LoyaltyPointsModel } = require('../models/LoyaltyPoints');
+                        const { LoyaltyTransactionModel } = require('../models/LoyaltyTransaction');
+                        const loyalty = await LoyaltyPointsModel.findOne({ userId: body.userId });
+                        if (loyalty && loyalty.points >= Number(body.usedPoints)) {
+                            const balanceBefore = loyalty.points;
+                            loyalty.points -= Number(body.usedPoints);
+                            loyalty.totalSpent += Number(body.usedPoints);
+                            await loyalty.save();
+                            await LoyaltyTransactionModel.create({
+                                userId: body.userId,
+                                type: 'redeem',
+                                points: -Number(body.usedPoints),
+                                orderId: orderId,
+                                description: `Dùng ${body.usedPoints} điểm giảm ${(Number(body.usedPoints) * 100).toLocaleString('vi-VN')}đ cho Đơn hàng #${orderId}`,
+                                balanceBefore,
+                                balanceAfter: loyalty.points
+                            });
+                            log(`[Loyalty] Đã trừ ${body.usedPoints} điểm từ user ${body.userId} cho đơn hàng ${orderId}`);
+                        }
+                    } catch (ptsErr) {
+                        log(`[Loyalty Deduct Error]: ${ptsErr.message}`);
+                    }
+                }
+
+                // 2. Tích điểm thưởng mới từ số tiền thanh toán thực tế
                 try {
                     await earnPoints(body.userId, calculatedFinalAmount, orderId);
                     log(`[Loyalty] Đã cộng điểm cho user ${body.userId} từ đơn hàng ${orderId}`);
