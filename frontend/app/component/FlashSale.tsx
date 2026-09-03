@@ -155,49 +155,49 @@ export default function FlashSale() {
     return (
         <section id="flash-sale" className="py-14 sm:py-18 bg-[#fafafa]">
             <div className="container-torano">
-                {/* Enterprise High-End Flash Sale Header - Luxury Cherry Red */}
-                <div className="bg-gradient-to-r from-[#4a0418] via-[#780625] to-[#9e0b35] text-white rounded-2xl p-5 sm:p-6 md:p-7 mb-8 shadow-2xl shadow-[#4a0418]/20 border border-[#9e0b35]/20 relative overflow-hidden">
+                {/* Flash Sale Header - Absolute Pure Red & Perfectly Balanced */}
+                <div className="bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#e11d48] text-white rounded-2xl px-5 sm:px-7 py-4 sm:py-5 mb-8 shadow-xl shadow-red-600/20 border border-red-400/20 relative overflow-hidden">
                     {/* Subtle light overlay pattern */}
                     <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
                     
-                    {/* Top Row: Title, Slots, Timer */}
-                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
-                        {/* Left: Brand Title & Badge */}
-                        <div className="flex items-center gap-3.5 w-full lg:w-auto">
-                            <div className="w-11 h-11 bg-white/15 backdrop-blur-md border border-white/25 text-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                    {/* 3 Balanced Columns: Left (Title), Center (Date Slots), Right (Countdown) */}
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6">
+                        {/* 1. Left: Brand Title & Badge */}
+                        <div className="flex items-center gap-3 w-full lg:w-auto shrink-0">
+                            <div className="w-11 h-11 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-xl flex items-center justify-center shadow-xs shrink-0">
                                 <Flame size={24} className="text-amber-300 fill-amber-300" />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black uppercase text-white tracking-tight font-display">
+                                    <h2 className="text-xl sm:text-2xl font-black uppercase text-white tracking-tight font-display">
                                         Flash Sale
                                     </h2>
-                                    <span className="bg-white text-[#780625] text-[10px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider shadow-2xs">
+                                    <span className="bg-white text-[#dc2626] text-[10px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider shadow-2xs">
                                         Giới hạn
                                     </span>
                                 </div>
-                                <p className="text-xs text-rose-100/90 mt-0.5 font-medium">
+                                <p className="text-[11.5px] sm:text-xs text-rose-100 mt-0.5 font-medium">
                                     Ưu đãi số lượng có hạn · Cập nhật theo từng khung giờ
                                 </p>
                             </div>
                         </div>
 
-                        {/* Middle: Date/Time Slots */}
-                        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0 hide-scrollbar justify-start lg:justify-center">
+                        {/* 2. Middle: Date/Time Slots (Centered) */}
+                        <div className="flex items-center justify-center gap-2 overflow-x-auto w-full lg:w-auto py-1 hide-scrollbar">
                             {slots.map((slot, index) => {
                                 const isActiveTab = activeTab === slot.value;
                                 return (
                                     <button
                                         key={index}
                                         onClick={() => handleTabChange(slot.value)}
-                                        className={`flex flex-col items-center justify-center min-w-[92px] sm:min-w-[102px] py-2 px-3.5 rounded-xl transition-all cursor-pointer border ${
+                                        className={`flex flex-col items-center justify-center min-w-[88px] sm:min-w-[98px] py-1.5 px-3 rounded-xl transition-all cursor-pointer border ${
                                             isActiveTab 
-                                                ? 'bg-white text-[#780625] font-black shadow-lg scale-105 border-white' 
-                                                : 'bg-black/30 text-white hover:bg-black/40 border-white/20'
+                                                ? 'bg-white text-[#dc2626] font-black shadow-md scale-105 border-white' 
+                                                : 'bg-black/20 text-white hover:bg-black/30 border-white/20'
                                         }`}
                                     >
-                                        <span className="text-xs font-black uppercase tracking-wider">{slot.label}</span>
-                                        <span className={`text-[9.5px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#9e0b35]' : 'text-rose-200/90'}`}>
+                                        <span className="text-[11.5px] sm:text-xs font-black uppercase tracking-wider">{slot.label}</span>
+                                        <span className={`text-[9px] sm:text-[9.5px] mt-0.5 font-bold uppercase tracking-wider ${isActiveTab ? 'text-[#dc2626]' : 'text-rose-200'}`}>
                                             {slot.subLabel}
                                         </span>
                                     </button>
@@ -205,9 +205,9 @@ export default function FlashSale() {
                             })}
                         </div>
 
-                        {/* Right: Countdown */}
-                        <div className="flex flex-col items-start lg:items-end w-full lg:w-auto border-t lg:border-t-0 border-white/20 pt-3 lg:pt-0">
-                            <span className="text-[10px] text-rose-100 font-bold uppercase tracking-widest mb-1 self-start lg:self-end">
+                        {/* 3. Right: Countdown Timer (Aligned) */}
+                        <div className="flex flex-col items-center lg:items-end w-full lg:w-auto shrink-0 border-t lg:border-t-0 border-white/20 pt-3 lg:pt-0">
+                            <span className="text-[10px] text-rose-100 font-bold uppercase tracking-widest mb-1.5">
                                 Kết thúc sau
                             </span>
                             <div className="flex items-center gap-1.5">
@@ -218,7 +218,7 @@ export default function FlashSale() {
                                 ].map((unit, i) => (
                                     <React.Fragment key={i}>
                                         <div className="flex items-center gap-1">
-                                            <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-white text-[#780625] rounded-lg shadow-sm font-black font-mono text-sm sm:text-base">
+                                            <div className="w-9 h-9 sm:w-9.5 sm:h-9.5 flex items-center justify-center bg-white text-[#dc2626] rounded-xl shadow-xs font-black font-mono text-sm sm:text-base">
                                                 {String(unit.value).padStart(2, '0')}
                                             </div>
                                         </div>
