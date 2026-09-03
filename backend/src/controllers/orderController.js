@@ -105,84 +105,99 @@ const decreaseStockOnOrder = async (orderItems, orderId, session) => {
 };
 
 /**
- * @desc [TRƯỜNG HỢP 1] Hủy đơn khi đang PENDING (chưa duyệt)
- *       Chỉ giảm reserved_stock (trả lại "Có thể bán"), stock vật lý KHÔNG thay đổi.
+ * @desc Hoàn trả đầy đủ tồn kho (ProductVariantModel & ProductModel) khi đơn hàng bị HỦY hoặc HOÀN TRẢ
  * @param {Array} orderItems - Danh sách sản phẩm trong đơn
  * @param {String} orderId - Mã đơn hàng
  */
-const releaseReservedStock = async (orderItems, orderId) => {
+const restoreStockOnCancel = async (orderItems, orderId) => {
     try {
+        if (!Array.isArray(orderItems) || orderItems.length === 0) return;
+
         for (const item of orderItems) {
-            const productId = item.product.id;
+            const productId = item.product?.id || item.product?._id || item.product;
             const size = item.selectedSize;
-            const color = item.selectedColor.name;
-            const quantity = item.quantity;
+            const color = item.selectedColor?.name || item.selectedColor;
+            const quantity = Number(item.quantity) || 1;
 
-            // (Đã gỡ bỏ logic trừ soldQuantity ở đây vì soldQuantity chỉ tính trên đơn delivered)
+            if (!productId) continue;
 
-            // Chỉ trả lại reserved_stock, stock vật lý KHÔNG thay đổi
-            await ProductVariantModel.findOneAndUpdate(
-                { product_id: productId, size_id: size, color_id: color },
-                { $inc: { reserved_stock: -quantity } },
-                { new: true }
-            );
+            // 1. Hoàn trả tồn kho trên ProductVariantModel
+            try {
+                if (size && color) {
+                    await ProductVariantModel.findOneAndUpdate(
+                        { 
+                            product_id: productId, 
+                            size_id: size, 
+                            color_id: color
+                        },
+                        { 
+                            $inc: { stock: quantity },
+                            $set: { updatedAt: new Date() }
+                        },
+                        { new: true }
+                    );
+                }
+            } catch (vErr) {
+                log(`[ProductVariantModel Restore Warning] ${vErr.message}`);
+            }
+
+            // 2. Hoàn trả tồn kho trên ProductModel (variants & tổng stock & soldQuantity)
+            try {
+                const productDoc = await ProductModel.findOne({
+                    $or: [
+                        { id: productId },
+                        { id: String(productId) },
+                        { _id: mongoose.Types.ObjectId.isValid(productId) ? productId : undefined }
+                    ].filter(Boolean)
+                });
+
+                if (productDoc) {
+                    if (Array.isArray(productDoc.variants) && productDoc.variants.length > 0) {
+                        const vIdx = productDoc.variants.findIndex(v => 
+                            (String(v.color || '').toLowerCase() === String(color || '').toLowerCase()) && 
+                            (String(v.size || '').toUpperCase() === String(size || '').toUpperCase())
+                        );
+                        if (vIdx !== -1) {
+                            productDoc.variants[vIdx].stock = (Number(productDoc.variants[vIdx].stock) || 0) + quantity;
+                        }
+                        const totalStock = productDoc.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+                        productDoc.inStock = totalStock > 0;
+                    } else {
+                        // Sản phẩm không có biến thể
+                        if (productDoc.stock !== undefined) {
+                            productDoc.stock = (Number(productDoc.stock) || 0) + quantity;
+                            productDoc.inStock = productDoc.stock > 0;
+                        }
+                    }
+
+                    // Giảm lượt bán do đơn bị hủy
+                    if (productDoc.soldQuantity !== undefined) {
+                        productDoc.soldQuantity = Math.max(0, (productDoc.soldQuantity || 0) - quantity);
+                    }
+
+                    await productDoc.save();
+                    log(`[ProductModel Restore] Đã cộng lại ${quantity} tồn kho cho sản phẩm ${productId} (Size: ${size}, Màu: ${color}) do hủy đơn #${orderId}`);
+                }
+            } catch (pErr) {
+                log(`[ProductModel Restore Warning] ${pErr.message}`);
+            }
         }
-        log(`[releaseReservedStock] Đã hoàn giữ chỗ tồn kho cho đơn hủy PENDING: ${orderId}`);
+        log(`Đã hoàn trả tồn kho toàn bộ thành công cho đơn hàng: ${orderId}`);
     } catch (error) {
-        log(`Lỗi releaseReservedStock: ${error.message}`);
+        log(`Lỗi khi hoàn trả tồn kho (restoreStockOnCancel): ${error.message}`);
     }
 };
 
-/**
- * @desc [TRƯỜNG HỢP 2] Hủy/hoàn đơn sau khi đã duyệt (processing, shipped, delivered)
- *       Tăng stock vật lý trở lại (nhập kho hàng hoàn về).
- *       reserved_stock KHÔNG thay đổi (vì đã được trừ khi duyệt rồi).
- * @param {Array} orderItems - Danh sách sản phẩm trong đơn
- * @param {String} orderId - Mã đơn hàng
- */
-const returnExportedStock = async (orderItems, orderId) => {
-    try {
-        for (const item of orderItems) {
-            const productId = item.product.id;
-            const size = item.selectedSize;
-            const color = item.selectedColor.name;
-            const quantity = item.quantity;
-
-            // Tăng stock vật lý (hàng hoàn về kho)
-            await ProductVariantModel.findOneAndUpdate(
-                { product_id: productId, size_id: size, color_id: color },
-                { $inc: { stock: quantity } },
-                { new: true }
-            );
-        }
-        log(`[returnExportedStock] Đã nhập lại tồn kho vật lý cho đơn hoàn: ${orderId}`);
-    } catch (error) {
-        log(`Lỗi returnExportedStock: ${error.message}`);
-    }
-};
+const releaseReservedStock = restoreStockOnCancel;
+const returnExportedStock = restoreStockOnCancel;
 
 /**
- * @desc [TRƯỜNG HỢP 3] Admin duyệt đơn (pending -> processing)
- *       Giảm stock vật lý (xuất kho) VÀ giảm reserved_stock (giải phóng giữ chỗ).
- * @param {Array} orderItems - Danh sách sản phẩm trong đơn
- * @param {String} orderId - Mã đơn hàng
+ * @desc Admin duyệt đơn (pending -> processing)
+ *       Ghi log kiểm tra xuất kho
  */
 const exportStockOnApproval = async (orderItems, orderId) => {
     try {
-        for (const item of orderItems) {
-            const productId = item.product.id;
-            const size = item.selectedSize;
-            const color = item.selectedColor?.name || item.selectedColor;
-            const quantity = item.quantity;
-
-            // Giảm stock vật lý VÀ giảm reserved_stock cùng lúc
-            await ProductVariantModel.findOneAndUpdate(
-                { product_id: productId, size_id: size, color_id: color },
-                { $inc: { stock: -quantity, reserved_stock: -quantity } },
-                { new: true }
-            );
-        }
-        log(`[exportStockOnApproval] Đã xuất kho cho đơn được duyệt: ${orderId}`);
+        log(`[exportStockOnApproval] Đã xác nhận đơn được duyệt: ${orderId}`);
     } catch (error) {
         log(`Lỗi exportStockOnApproval: ${error.message}`);
     }
@@ -670,16 +685,16 @@ const updateOrderStatus = async (req, res, next) => {
             }
         }
 
-        // [Hủy đơn khi chưa duyệt] pending/confirmed -> cancelled
-        // Chỉ trả lại reserved_stock, stock vật lý KHÔNG thay đổi
-        if ((status === 'cancelled' || status === 'refunded') && pendingStatuses.includes(oldStatus)) {
+        // [Hủy đơn hoặc Hoàn trả] Bất kể từ trạng thái nào chuyển sang cancelled hoặc refunded
+        // Hoàn trả đầy đủ tồn kho vật lý, biến thể và trừ soldQuantity
+        if ((status === 'cancelled' || status === 'refunded') && oldStatus !== 'cancelled' && oldStatus !== 'refunded') {
             if (updatedOrder.items && updatedOrder.items.length > 0) {
-                await releaseReservedStock(updatedOrder.items, id);
+                await restoreStockOnCancel(updatedOrder.items, id);
             }
         }
 
         // Thu hồi điểm tích lũy nếu đơn bị hủy/hoàn
-        if (status === 'cancelled' || status === 'refunded') {
+        if ((status === 'cancelled' || status === 'refunded') && oldStatus !== 'cancelled' && oldStatus !== 'refunded') {
             if (currentOrder.userId) {
                 try {
                     await revokePoints(currentOrder.userId, id);
@@ -687,14 +702,6 @@ const updateOrderStatus = async (req, res, next) => {
                 } catch (loyaltyErr) {
                     log(`[Loyalty] Lỗi khi thu hồi điểm: ${loyaltyErr.message}`);
                 }
-            }
-        }
-
-        // [Hủy/hoàn sau khi đã duyệt] processing/shipped/delivered -> cancelled/refunded
-        // Nhập lại kho vật lý (hàng hoàn về)
-        if ((status === 'cancelled' || status === 'refunded') && processedStatuses.includes(oldStatus)) {
-            if (updatedOrder.items && updatedOrder.items.length > 0) {
-                await returnExportedStock(updatedOrder.items, id);
             }
         }
 
@@ -1127,6 +1134,7 @@ module.exports = {
     updateOrderStatus,
     requestRefund,
     exportStockOnApproval,
+    restoreStockOnCancel,
     submitReturnRequest,
     getReturnRequests,
     reviewReturnRequest,

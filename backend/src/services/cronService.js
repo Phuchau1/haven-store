@@ -1,7 +1,6 @@
 const cron = require('node-cron');
 const { OrderModel } = require('../models/Order');
-const { ProductVariantModel } = require('../models/ProductVariant');
-const { ProductModel } = require('../models/Product');
+const { restoreStockOnCancel } = require('../controllers/orderController');
 const logger = require('../utils/logger');
 
 const startCronJobs = () => {
@@ -24,23 +23,11 @@ const startCronJobs = () => {
                     order.note = order.note ? `${order.note} - Đã hủy tự động do quá thời gian thanh toán.` : 'Đã hủy tự động do quá thời gian thanh toán.';
                     await order.save();
 
-                    // Hoàn lại reserved_stock
-                    for (const item of order.items) {
-                        const productId = item.product.id;
-                        const size = item.selectedSize;
-                        const color = item.selectedColor.name;
-                        const quantity = item.quantity;
-
-                        // Tìm pVariant để trả lại reserved_stock
-                        await ProductVariantModel.findOneAndUpdate(
-                            { product_id: productId, size_id: size, color_id: color },
-                            { $inc: { reserved_stock: -quantity } }
-                        );
-                        
-                        // Note: stock của Product gốc (embedded) không đổi vì lúc đặt hàng mới chỉ tính vào reserved_stock 
-                        // Nếu logic cũ trừ đi stock của embedded variant, ta đã sửa thành không trừ, nên ở đây không cần hoàn.
+                    // Hoàn trả tồn kho vật lý và biến thể
+                    if (order.items && order.items.length > 0) {
+                        await restoreStockOnCancel(order.items, order.id);
                     }
-                    logger.info(`[CronJob] Đã hủy đơn hàng ${order.id} và hoàn lại giữ chỗ tồn kho.`);
+                    logger.info(`[CronJob] Đã hủy đơn hàng ${order.id} và hoàn trả đầy đủ tồn kho.`);
                 }
             }
         } catch (error) {
