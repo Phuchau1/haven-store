@@ -33,33 +33,34 @@ export default function Hero() {
     const [settings, setSettings] = useState({
         heroHeading:  'ĐỊNH NGHĨA\nLẠI PHONG CÁCH',
         heroSubtitle: 'Mỗi bộ trang phục là một tuyên ngôn.\nMỗi lần diện đồ là một câu chuyện riêng của bạn.',
-        heroVideoUrl: 'https://videos.pexels.com/video-files/3753716/3753716-uhd_2560_1440_25fps.mp4',
-        heroImage:    'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920&h=1080&fit=crop',
+        heroVideoUrl: '',
+        heroImage:    'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1600&auto=format&fit=crop&q=80',
         bannerLink:   '/products'
     });
 
     const [stats, setStats] = useState([
-        { value: '...', label: 'Mẫu độc quyền' },
-        { value: '...', label: 'Sản phẩm đã bán' },
-        { value: '...', label: 'Đánh giá trung bình' },
+        { value: '70+', label: 'Mẫu độc quyền' },
+        { value: '344+', label: 'Sản phẩm đã bán' },
+        { value: '4.9★', label: 'Đánh giá trung bình' },
     ]);
 
     useEffect(() => {
+        let isMounted = true;
         const fetchData = async () => {
             try {
-                const [resSettingsResult, resBannersResult, resProductsResult] = await Promise.allSettled([
+                const [resSettingsResult, resBannersResult] = await Promise.allSettled([
                     fetch('/api/settings').then(r => r.ok ? r.json() : null),
                     fetch('/api/banners?type=hero').then(r => r.ok ? r.json() : null),
-                    fetch('/api/products').then(r => r.ok ? r.json() : null)
                 ]);
 
+                if (!isMounted) return;
                 const newSettings = { ...settings };
 
                 // 1. Settings
                 if (resSettingsResult.status === 'fulfilled' && resSettingsResult.value?.success && resSettingsResult.value.settings) {
                     const s = resSettingsResult.value.settings;
                     newSettings.heroSubtitle = s.heroSubtitle || newSettings.heroSubtitle;
-                    newSettings.heroVideoUrl = s.heroVideoUrl || newSettings.heroVideoUrl;
+                    if (s.heroVideoUrl) newSettings.heroVideoUrl = s.heroVideoUrl;
                 }
 
                 // 2. Banners
@@ -74,43 +75,13 @@ export default function Hero() {
                 }
 
                 setSettings(newSettings);
-
-                // 3. Products for Live Stats
-                if (resProductsResult.status === 'fulfilled' && resProductsResult.value?.success && Array.isArray(resProductsResult.value.products) && resProductsResult.value.products.length > 0) {
-                    const prods = resProductsResult.value.products;
-                    const totalCount = prods.length;
-                    const totalSold = prods.reduce((sum: number, p: any) => sum + (Number(p.soldQuantity) || Number(p.sold_quantity) || 0), 0);
-                    const validRatings = prods.filter((p: any) => p.rating && Number(p.rating) > 0);
-                    const avgRating = validRatings.length > 0 
-                        ? (validRatings.reduce((sum: number, p: any) => sum + Number(p.rating), 0) / validRatings.length).toFixed(1)
-                        : '5.0';
-
-                    const formatNumber = (num: number) => {
-                        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M+';
-                        if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
-                        return `${num}+`;
-                    };
-
-                    setStats([
-                        { 
-                            value: `${totalCount}+`, 
-                            label: 'Mẫu độc quyền' 
-                        },
-                        { 
-                            value: totalSold > 0 ? formatNumber(totalSold) : `${totalCount * 12}+`, 
-                            label: 'Sản phẩm đã bán' 
-                        },
-                        { 
-                            value: `${avgRating}★`, 
-                            label: 'Đánh giá trung bình' 
-                        },
-                    ]);
-                }
             } catch (err) {
                 console.error("Error fetching hero data", err);
             }
         };
         fetchData();
+
+        return () => { isMounted = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -124,7 +95,7 @@ export default function Hero() {
             <div className="absolute inset-0">
                 {settings.heroVideoUrl ? (
                     <video
-                        autoPlay muted loop playsInline
+                        autoPlay muted loop playsInline preload="none"
                         poster={settings.heroImage}
                         className="w-full h-full object-cover"
                         style={{ opacity: 0.60 }}

@@ -147,9 +147,12 @@ export default function ChatSupport() {
     return { cleanReply, suggested };
   }, [products]);
 
-  // ── Load sản phẩm từ backend ──
+  // ── Load sản phẩm từ backend (Lazy load khi mở chat hoặc khi rảnh để không làm chậm tải trang) ──
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const loadProducts = async () => {
+      if (products.length > 0) return;
       try {
         const res = await fetch('/api/products?limit=60');
         const data = await res.json();
@@ -158,20 +161,19 @@ export default function ChatSupport() {
           setIsReady(true);
         }
       } catch (err) {
-        try {
-          const fallbackRes = await fetch(`${BACKEND_URL}/api/products?limit=60`);
-          const fallbackData = await fallbackRes.json();
-          if (fallbackData.success && Array.isArray(fallbackData.products)) {
-            setProducts(fallbackData.products);
-          }
-        } catch (e) {
-          console.error('Không thể tải sản phẩm:', e);
-        }
         setIsReady(true);
       }
     };
-    loadProducts();
-  }, []);
+
+    if (isOpen) {
+      loadProducts();
+    } else {
+      // Tải ngầm sau 3 giây khi trang chủ đã tải xong hoàn toàn
+      timeoutId = setTimeout(loadProducts, 3000);
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [isOpen, products.length]);
 
   // ── Load chat session from local storage on mount ──
   useEffect(() => {
