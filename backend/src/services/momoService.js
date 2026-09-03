@@ -24,7 +24,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
 
     const requestId   = `${partnerCode}${Date.now()}`;
     const momoOrderId = `${orderId}_${Date.now()}`; // Đảm bảo orderId gửi sang MoMo luôn duy nhất
-    const requestType = 'payWithATM'; // Mở thẳng màn hình nhập thẻ ATM nội địa
+    const requestType = 'captureWallet'; // Tiêu chuẩn MoMo: Quét mã QR MoMo hoặc mở App MoMo
     const extraData   = '';              // Không truyền data phụ
     const lang        = 'vi';
 
@@ -96,8 +96,8 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
  * @returns {boolean} true nếu chữ ký hợp lệ
  */
 const verifyMoMoReturn = (query) => {
-    const secretKey = process.env.MOMO_SECRET_KEY;
-    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretKey = process.env.MOMO_SECRET_KEY || 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
+    const accessKey = process.env.MOMO_ACCESS_KEY || 'klm05TvNBzhg7h7j';
 
     if (!secretKey) return false;
 

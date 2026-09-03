@@ -27,6 +27,9 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
         const host = req.headers['x-forwarded-host'] || req.headers.host;
         returnUrl = `${protocol}://${host}/api/payment/vnpay-return`;
     }
+    if (!returnUrl) {
+        returnUrl = 'https://fashion-backend-93lh.onrender.com/api/payment/vnpay-return';
+    }
 
     function getVNPayDate() {
         const d = new Date();

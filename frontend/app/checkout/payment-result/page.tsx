@@ -16,10 +16,13 @@ function PaymentResultContent() {
 
     useEffect(() => {
         if (status === 'success') {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsSuccess(true);
-            // Clear cart from local storage since order was successful
-            localStorage.removeItem('phstore-cart');
+            try {
+                localStorage.removeItem('phstore-cart');
+                window.dispatchEvent(new Event('storage'));
+            } catch (e) {
+                console.error(e);
+            }
         }
     }, [status]);
 
