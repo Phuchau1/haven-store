@@ -21,7 +21,7 @@ services:
       - key: EMAIL_PASS
         value: app_password_here
       - key: FRONTEND_URL
-        value: https://fashion-frontend-imqb.onrender.com
+        value: https://havenstore.io.vn
       - key: VNP_TMN_CODE
         value: 2Z1OV1ND
       - key: VNP_HASH_SECRET

@@ -172,7 +172,7 @@ const exportStockOnApproval = async (orderItems, orderId) => {
         for (const item of orderItems) {
             const productId = item.product.id;
             const size = item.selectedSize;
-            const color = item.selectedColor.name;
+            const color = item.selectedColor?.name || item.selectedColor;
             const quantity = item.quantity;
 
             // Giảm stock vật lý VÀ giảm reserved_stock cùng lúc
@@ -605,7 +605,14 @@ const updateOrderStatus = async (req, res, next) => {
         // TUYỆT ĐỐI KHÔNG HOÀN TIỀN NẾU LÀ ĐƠN COD HOẶC CHƯA THANH TOÁN (unpaid)
         // ─────────────────────────────────────────────────────────────────
         const isCOD = ['cod', 'pay-cod'].includes(String(currentOrder.paymentMethod || '').toLowerCase());
-        const isPaid = currentOrder.paymentStatus === 'paid';
+        const isPaid = currentOrder.paymentStatus === 'paid' || (oldStatus === 'delivered' && isCOD);
+
+        if (status === 'delivered' && isCOD) {
+            updateData.paymentStatus = 'paid';
+        }
+        if (status === 'refunded') {
+            updateData.paymentStatus = 'refunded';
+        }
 
         if (status === 'refunded' || (status === 'cancelled' && isPaid && !isCOD)) {
             try {
@@ -956,10 +963,11 @@ const confirmReturnReceived = async (req, res, next) => {
 
         const now = new Date();
         order.status = 'refunded';
+        order.paymentStatus = 'refunded';
         order.shippingTimeline.push({
             status: 'refunded',
             title: 'Đã nhận hàng trả & Hoàn tiền vào ví thành công',
-            note: `Shop đã nhận lại hàng trả. Số tiền ${order.finalAmount || order.totalAmount} đ đã tự động chuyển vào Ví HAVEN của khách hàng. Xác nhận bởi: ${adminName || 'Admin'}`,
+            note: `Shop đã nhận lại hàng trả. Số tiền ${(order.finalAmount || order.totalAmount).toLocaleString('vi-VN')} đ đã tự động chuyển vào Ví HAVEN của khách hàng. Xác nhận bởi: ${adminName || 'Admin'}`,
             timestamp: now,
             isCustomerVisible: true
         });
@@ -977,6 +985,7 @@ const confirmReturnReceived = async (req, res, next) => {
             await refundOrderToWallet({
                 userId: order.userId,
                 userEmail: order.email,
+                userPhone: order.phone,
                 orderId: order.id,
                 refundAmount: refundAmt,
                 reason: `Hoàn tiền hoàn hàng thành công cho đơn #${order.id}`

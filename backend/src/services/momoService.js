@@ -15,19 +15,12 @@ const crypto = require('crypto');
  * @returns {Promise<string>} payUrl - URL để redirect sang trang MoMo
  */
 const buildMoMoUrl = async (orderId, amount, orderInfo) => {
-    const partnerCode  = process.env.MOMO_PARTNER_CODE;
-    const accessKey    = process.env.MOMO_ACCESS_KEY;
-    const secretKey    = process.env.MOMO_SECRET_KEY;
-    const redirectUrl  = process.env.MOMO_RETURN_URL;
-    const ipnUrl       = process.env.MOMO_IPN_URL;
+    const partnerCode  = process.env.MOMO_PARTNER_CODE || 'MOMOBKUN20180529';
+    const accessKey    = process.env.MOMO_ACCESS_KEY || 'klm05TvNBzhg7h7j';
+    const secretKey    = process.env.MOMO_SECRET_KEY || 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
+    const redirectUrl  = process.env.MOMO_RETURN_URL || 'https://fashion-backend-93lh.onrender.com/api/payment/momo-return';
+    const ipnUrl       = process.env.MOMO_IPN_URL || 'https://fashion-backend-93lh.onrender.com/api/payment/momo-ipn';
     const endpoint     = process.env.MOMO_API_URL || 'https://test-payment.momo.vn/v2/gateway/api/create';
-
-    if (!partnerCode || !accessKey || !secretKey) {
-        throw new Error('Chưa cấu hình MoMo trên server (thiếu MOMO_PARTNER_CODE, MOMO_ACCESS_KEY, hoặc MOMO_SECRET_KEY).');
-    }
-    if (!redirectUrl || !ipnUrl) {
-        throw new Error('Chưa cấu hình MOMO_RETURN_URL hoặc MOMO_IPN_URL.');
-    }
 
     const requestId   = `${partnerCode}${Date.now()}`;
     const momoOrderId = `${orderId}_${Date.now()}`; // Đảm bảo orderId gửi sang MoMo luôn duy nhất

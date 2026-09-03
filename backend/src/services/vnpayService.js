@@ -94,7 +94,7 @@ const buildVNPayUrl = (req, orderId, amount, orderInfo) => {
 
 const verifyVNPayReturn = (vnp_Params) => {
     let secureHash = vnp_Params['vnp_SecureHash'];
-    let secretKey = process.env.VNP_HASH_SECRET;
+    let secretKey = process.env.VNP_HASH_SECRET || 'RAOCTEZARFTJ2ZWDG2EQN1AOQ7H1G1MG';
 
     delete vnp_Params['vnp_SecureHash'];
     delete vnp_Params['vnp_SecureHashType'];

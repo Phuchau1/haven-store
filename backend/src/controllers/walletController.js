@@ -36,11 +36,21 @@ const refundOrderToWallet = async ({ userId, userEmail, userPhone, orderId, refu
         if (!userDoc && targetEmail) {
             userDoc = await UserModel.findOne({ email: targetEmail });
         }
-        if (!userDoc && targetPhone) {
-            userDoc = await UserModel.findOne({ phone: targetPhone });
-        }
-        if (!userDoc && targetEmail) {
-            userDoc = await UserModel.findOne({ email: { $regex: new RegExp(`^${targetEmail.trim()}$`, 'i') } });
+        if (!userDoc && (targetEmail || targetPhone)) {
+            const orderDoc = orderId ? await OrderModel.findOne({ id: orderId }) : null;
+            const customerName = orderDoc?.customerName || 'Khách hàng';
+            const generatedId = `usr_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
+            userDoc = new UserModel({
+                id: generatedId,
+                name: customerName,
+                email: targetEmail ? targetEmail.trim().toLowerCase() : `${targetPhone}@havenstore.vn`,
+                phone: targetPhone ? targetPhone.trim() : '',
+                role: 'user',
+                walletBalance: 0,
+                status: 'active'
+            });
+            await userDoc.save();
+            console.log(`[Wallet] Đã tự động liên kết tài khoản ví cho khách hàng ${userDoc.email || userDoc.phone}`);
         }
 
         if (!userDoc) {

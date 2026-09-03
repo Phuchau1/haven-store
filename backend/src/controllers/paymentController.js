@@ -21,7 +21,13 @@ const otpStore = new Map();
  * @desc Lấy Frontend URL từ env (dùng cho redirect sau thanh toán)
  */
 const getFrontendUrl = () => {
-    return (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    if (process.env.FRONTEND_URL) {
+        return process.env.FRONTEND_URL.replace(/\/$/, '');
+    }
+    if (process.env.NODE_ENV === 'production') {
+        return 'https://havenstore.io.vn';
+    }
+    return 'http://localhost:3000';
 };
 
 /**
@@ -66,16 +72,25 @@ const createPaymentUrl = async (req, res) => {
  * @desc Helper: Cập nhật đơn hàng thành công và trừ tồn kho
  */
 const confirmOrderPaid = async (orderId) => {
-    const { earnPoints } = require('../services/loyaltyService');
+    const { earnPoints } = require('./loyaltyController');
     const updatedOrder = await OrderModel.findOneAndUpdate(
         { id: orderId, paymentStatus: { $ne: 'paid' } }, // Chỉ update nếu chưa paid (idempotent)
         { status: 'processing', paymentStatus: 'paid' },
         { new: true }
     );
     if (updatedOrder && updatedOrder.items && updatedOrder.items.length > 0) {
-        await exportStockOnApproval(updatedOrder.items, orderId);
-        // Gửi email xác nhận thanh toán thành công
-        enqueueOrderEmail(updatedOrder.toObject());
+        try {
+            await exportStockOnApproval(updatedOrder.items, orderId);
+        } catch (stockErr) {
+            logger.warn(`[Payment] exportStockOnApproval warning: ${stockErr.message}`);
+        }
+
+        try {
+            // Gửi email xác nhận thanh toán thành công
+            enqueueOrderEmail(updatedOrder.toObject());
+        } catch (mailErr) {
+            logger.warn(`[Payment] enqueueOrderEmail warning: ${mailErr.message}`);
+        }
 
         // Cộng điểm tích lũy cho người dùng
         if (updatedOrder.userId) {
