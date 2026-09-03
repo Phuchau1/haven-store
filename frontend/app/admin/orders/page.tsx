@@ -53,6 +53,7 @@ const WORKFLOW_STAGES = [
     { id: 'processing', label: 'Đã xác nhận'   },
     { id: 'shipped',    label: 'Đang vận chuyển' },
     { id: 'delivered',  label: 'Giao thành công' },
+    { id: 'return',     label: 'Đổi trả hàng' },
 ];
 
 const STATUS_BUTTONS = [
@@ -81,6 +82,7 @@ const getStageIndex = (status?: string): number => {
         case 'processing': return 1;
         case 'shipped': return 2;
         case 'delivered': return 3;
+        case 'return': return 4;
         default: return -1;
     }
 };
@@ -725,31 +727,53 @@ export default function AdminOrders() {
 
                                     {/* ── Order Progress Stepper ── */}
                                     <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800">
-                                        <div className="flex items-center justify-between relative px-2 sm:px-6">
+                                        <div className="flex items-center justify-between relative px-1 sm:px-6">
                                             {/* Progress connecting line */}
                                             <div className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 dark:bg-slate-700 -z-0" />
                                             
                                             {WORKFLOW_STAGES.map((stage, idx) => {
-                                                const currentIdx = getStageIndex(selectedOrder.status);
+                                                const isReturnStatus = ['return_requested', 'returning', 'return_received', 'refunded'].includes(selectedOrder.status);
                                                 const isRefunded = selectedOrder.status === 'refunded';
-                                                const isCompleted = isRefunded || (selectedOrder.status !== 'cancelled' && currentIdx >= idx);
-                                                const isActive = !isRefunded && selectedOrder.status !== 'cancelled' && currentIdx === idx;
+                                                const isCancelled = selectedOrder.status === 'cancelled';
+                                                const currentIdx = getStageIndex(selectedOrder.status);
+
+                                                // Nếu đơn trong chu trình đổi trả, 4 bước giao hàng trước đó đã hoàn tất
+                                                const isCompleted = isRefunded
+                                                    ? true
+                                                    : isReturnStatus
+                                                    ? idx < 4
+                                                    : !isCancelled && currentIdx >= idx;
+
+                                                const isActive = isRefunded
+                                                    ? false
+                                                    : isReturnStatus
+                                                    ? idx === 4
+                                                    : !isCancelled && currentIdx === idx;
+
+                                                let stageLabel = stage.label;
+                                                if (stage.id === 'return') {
+                                                    if (selectedOrder.status === 'return_requested') stageLabel = 'Yêu cầu hoàn';
+                                                    else if (selectedOrder.status === 'returning') stageLabel = 'Đang hoàn hàng';
+                                                    else if (selectedOrder.status === 'return_received') stageLabel = 'Kho nhận hàng';
+                                                    else if (selectedOrder.status === 'refunded') stageLabel = 'Đã hoàn tiền';
+                                                    else stageLabel = 'Đổi trả hàng';
+                                                }
 
                                                 return (
                                                     <div key={stage.id} className="flex flex-col items-center relative z-10">
-                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                                                             isActive
-                                                                ? 'bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40'
+                                                                ? 'bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-sm'
                                                                 : isCompleted
                                                                 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                                                                 : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-300 dark:border-slate-700'
                                                         }`}>
                                                             {isCompleted && !isActive ? <Check size={14} /> : idx + 1}
                                                         </div>
-                                                        <span className={`mt-2 text-xs font-medium ${
+                                                        <span className={`mt-2 text-[11px] sm:text-xs text-center font-medium ${
                                                             isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : isCompleted ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-400'
                                                         }`}>
-                                                            {stage.label}
+                                                            {stageLabel}
                                                         </span>
                                                     </div>
                                                 );
@@ -802,7 +826,7 @@ export default function AdminOrders() {
                                                     </div>
                                                 </div>
 
-                                                {/* Actions */}
+                                                {/* Actions for Normal Orders */}
                                                 {selectedOrder.status === 'pending' && !(selectedOrder as any).trackingNumber ? (
                                                     <div className="pt-2">
                                                         <p className="text-xs text-slate-500 mb-2.5">Chọn đơn vị vận chuyển để bắt đầu bàn giao:</p>
@@ -835,6 +859,38 @@ export default function AdminOrders() {
                                                         </button>
                                                     </div>
                                                 ) : null}
+
+                                                {/* Actions for Return / Refund Workflow */}
+                                                {['returning', 'return_requested', 'return_received'].includes(selectedOrder.status) && (
+                                                    <div className="pt-2 space-y-2.5">
+                                                        <div className="p-3 bg-amber-50/90 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/60 space-y-1.5 text-xs">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-amber-800 dark:text-amber-300 font-medium">Tiến độ hoàn trả:</span>
+                                                                <span className="font-bold text-amber-900 dark:text-amber-200">
+                                                                    {selectedOrder.status === 'return_requested' && 'Chờ Shop xét duyệt yêu cầu'}
+                                                                    {selectedOrder.status === 'returning' && 'Khách đang gửi bưu kiện hoàn trả'}
+                                                                    {selectedOrder.status === 'return_received' && 'Kho Shop đã nhận bưu kiện hoàn'}
+                                                                </span>
+                                                            </div>
+                                                            {selectedOrder.returnRequest?.returnTrackingNumber && (
+                                                                <div className="flex justify-between items-center pt-1.5 border-t border-amber-200/60 dark:border-amber-800/40">
+                                                                    <span className="text-amber-700 dark:text-amber-400">Mã vận đơn gửi:</span>
+                                                                    <span className="font-mono font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-amber-200">
+                                                                        {selectedOrder.returnRequest.returnTrackingNumber} ({selectedOrder.returnRequest.returnCarrier || 'Chuyển phát'})
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <a
+                                                            href="/admin/returns"
+                                                            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                                                        >
+                                                            <RotateCcw size={14} />
+                                                            <span>Tiến hành kiểm hàng & xử lý tại mục Đổi trả →</span>
+                                                        </a>
+                                                    </div>
+                                                )}
 
                                                 {/* Timeline */}
                                                 {(selectedOrder as any).shippingTimeline?.length > 0 && (
