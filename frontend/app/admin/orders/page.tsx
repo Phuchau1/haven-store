@@ -19,9 +19,6 @@ import {
     ArrowRight,
     Copy,
     Check,
-    Printer,
-    FileText,
-    ExternalLink,
 } from 'lucide-react';
 import { OrderData } from '@/types';
 import { formatPrice } from '@/lib/format';
@@ -52,10 +49,18 @@ const ITEMS_PER_PAGE = 10;
 // Workflow Stages (Chỉ tiến, không lùi)
 // ---------------------------------------------------------------------------
 const WORKFLOW_STAGES = [
-    { id: 'pending',    label: 'Chờ tiếp nhận',     actionLabel: 'Xác nhận & Đóng gói', nextStatus: 'processing' },
-    { id: 'processing', label: 'Đã xác nhận',       actionLabel: 'Bàn giao vận chuyển',  nextStatus: 'shipped'    },
-    { id: 'shipped',    label: 'Đang vận chuyển',   actionLabel: 'Xác nhận giao thành công', nextStatus: 'delivered'  },
-    { id: 'delivered',  label: 'Giao thành công',   actionLabel: 'Đơn hàng hoàn tất',    nextStatus: null         },
+    { id: 'pending',    label: 'Chờ tiếp nhận' },
+    { id: 'processing', label: 'Đã xác nhận'   },
+    { id: 'shipped',    label: 'Đang vận chuyển' },
+    { id: 'delivered',  label: 'Giao thành công' },
+];
+
+const STATUS_BUTTONS = [
+    { id: 'pending',    label: 'Chờ xử lý',          icon: Clock,        color: 'text-amber-700',   bg: 'bg-amber-50',   border: 'border-amber-300' },
+    { id: 'processing', label: 'Xác nhận & Đóng gói', icon: Package,      color: 'text-blue-700',    bg: 'bg-blue-50',    border: 'border-blue-300' },
+    { id: 'shipped',    label: 'Đang vận chuyển',     icon: Truck,        color: 'text-indigo-700',  bg: 'bg-indigo-50',  border: 'border-indigo-300' },
+    { id: 'delivered',  label: 'Giao thành công',     icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-300' },
+    { id: 'cancelled',  label: 'Hủy đơn hàng này',    icon: XCircle,      color: 'text-rose-700',    bg: 'bg-rose-50',    border: 'border-rose-300' },
 ];
 
 const normalizeWorkflowStatus = (status?: string): 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'return' => {
@@ -78,6 +83,24 @@ const getStageIndex = (status?: string): number => {
         case 'delivered': return 3;
         default: return -1;
     }
+};
+
+const isTransitionAllowed = (currentStatus: string, targetStatus: string): boolean => {
+    const currentNorm = normalizeWorkflowStatus(currentStatus);
+    const targetNorm = normalizeWorkflowStatus(targetStatus);
+
+    if (currentStatus === 'cancelled') return false;
+    if (currentNorm === 'delivered') return false;
+
+    if (targetStatus === 'cancelled') {
+        return currentNorm === 'pending' || currentNorm === 'processing';
+    }
+
+    const currentIdx = getStageIndex(currentStatus);
+    const targetIdx = getStageIndex(targetStatus);
+
+    if (targetIdx < currentIdx) return false; // Chỉ được tiến, không được lùi
+    return true;
 };
 
 const getStatusBadge = (status: string) => {
@@ -123,6 +146,7 @@ export default function AdminOrders() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [copiedTracking, setCopiedTracking] = useState(false);
     
@@ -131,6 +155,22 @@ export default function AdminOrders() {
     const [orderToApprove, setOrderToApprove] = useState<string | null>(null);
     const [selectedShippingProvider, setSelectedShippingProvider] = useState<string>('GHN');
     const [isSimulating, setIsSimulating] = useState(false);
+
+    const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+    const handleOutsideClick = useCallback((e: MouseEvent) => {
+        if (openDropdownId) {
+            const ref = dropdownRefs.current[openDropdownId];
+            if (ref && !ref.contains(e.target as Node)) {
+                setOpenDropdownId(null);
+            }
+        }
+    }, [openDropdownId]);
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleOutsideClick);
+        return () => document.removeEventListener('mousedown', handleOutsideClick);
+    }, [handleOutsideClick]);
 
     // Fetch orders
     const fetchOrders = useCallback(async (silent = false) => {
@@ -211,7 +251,16 @@ export default function AdminOrders() {
 
     // Update status
     const handleUpdateStatus = async (orderId: string, newStatus: string, shippingProvider?: string) => {
+        const order = orders.find(o => o.id === orderId) || selectedOrder;
+        if (order) {
+            if (!isTransitionAllowed(order.status, newStatus)) {
+                alert('Thao tác không hợp lệ: Quy trình chỉ được tiến lên, không thể lùi về bước trước!');
+                return;
+            }
+        }
+
         setIsSubmitting(true);
+        setOpenDropdownId(null);
         try {
             const bodyData: any = { id: orderId, status: newStatus };
             if (shippingProvider) {
@@ -401,8 +450,8 @@ export default function AdminOrders() {
                                 <th className="px-5 py-3.5">Ngày đặt</th>
                                 <th className="px-5 py-3.5">Thanh toán</th>
                                 <th className="px-5 py-3.5">Tổng tiền</th>
-                                <th className="px-5 py-3.5">Trạng thái</th>
-                                <th className="px-5 py-3.5 text-right">Hành động</th>
+                                <th className="px-5 py-3.5">Cập nhật trạng thái</th>
+                                <th className="px-5 py-3.5 text-right">Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
@@ -459,12 +508,67 @@ export default function AdminOrders() {
                                                 {formatPrice(order.finalAmount || order.totalAmount)}
                                             </td>
 
-                                            {/* Status badge */}
+                                            {/* Status dropdown */}
                                             <td className="px-5 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${badge.className}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`} />
-                                                    {badge.label}
-                                                </span>
+                                                <div
+                                                    className="relative inline-block"
+                                                    ref={el => { dropdownRefs.current[order.id!] = el; }}
+                                                >
+                                                    <button
+                                                        onClick={() => setOpenDropdownId(openDropdownId === order.id ? null : order.id!)}
+                                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer hover:shadow-xs transition-all ${badge.className}`}
+                                                    >
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`} />
+                                                        <span>{badge.label}</span>
+                                                        <ChevronDown size={13} className={`opacity-60 transition-transform ${openDropdownId === order.id ? 'rotate-180' : ''}`} />
+                                                    </button>
+
+                                                    <AnimatePresence>
+                                                        {openDropdownId === order.id && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: -5, scale: 0.98 }}
+                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                exit={{ opacity: 0, y: -5, scale: 0.98 }}
+                                                                transition={{ duration: 0.12 }}
+                                                                className="absolute left-0 top-full mt-1.5 z-50 w-56 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 p-1.5"
+                                                            >
+                                                                <div className="space-y-0.5">
+                                                                    {STATUS_BUTTONS.map(btn => {
+                                                                        const isCurrent = normalizeWorkflowStatus(order.status) === btn.id || (btn.id === 'delivered' && order.status === 'completed') || order.status === btn.id;
+                                                                        const allowed = isTransitionAllowed(order.status, btn.id);
+                                                                        const isPast = !allowed && !isCurrent;
+
+                                                                        return (
+                                                                            <button
+                                                                                key={btn.id}
+                                                                                disabled={isPast || isSubmitting}
+                                                                                onClick={() => {
+                                                                                    if (isCurrent) return;
+                                                                                    if (order.status === 'pending' && btn.id === 'processing') {
+                                                                                        handleApproveOrder(order.id!);
+                                                                                    } else {
+                                                                                        handleUpdateStatus(order.id!, btn.id);
+                                                                                    }
+                                                                                }}
+                                                                                className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                                                                    isCurrent
+                                                                                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold'
+                                                                                        : allowed
+                                                                                        ? 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer'
+                                                                                        : 'opacity-30 cursor-not-allowed text-slate-400'
+                                                                                }`}
+                                                                            >
+                                                                                <btn.icon size={13} />
+                                                                                <span className="flex-1 text-left">{btn.label}</span>
+                                                                                {isCurrent && <Check size={13} className="text-emerald-400" />}
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
                                             </td>
 
                                             {/* View button */}
@@ -697,7 +801,7 @@ export default function AdminOrders() {
                                                             className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
                                                         >
                                                             <Truck size={14} />
-                                                            <span>{isSimulating ? 'Đang cập nhật...' : 'Cập nhật tiến trình giao hàng kế tiếp'}</span>
+                                                            <span>{isSimulating ? 'Đang cập nhật...' : 'Tiến 1 bước giao hàng'}</span>
                                                         </button>
                                                     </div>
                                                 ) : null}
@@ -820,81 +924,63 @@ export default function AdminOrders() {
                                     </div>
                                 </div>
 
-                                {/* ── Clean Merchant Footer (Chỉ tiến, không lùi) ── */}
-                                <div className="px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/30 flex items-center justify-between">
-                                    <div>
-                                        {selectedOrder.status === 'pending' || selectedOrder.status === 'processing' ? (
-                                            <button
-                                                disabled={isSubmitting}
-                                                onClick={() => {
-                                                    if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-                                                        handleUpdateStatus(selectedOrder.id!, 'cancelled');
-                                                    }
-                                                }}
-                                                className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
-                                            >
-                                                Hủy đơn hàng này
-                                            </button>
-                                        ) : selectedOrder.status === 'cancelled' ? (
-                                            <span className="text-xs text-rose-600 font-medium">Đơn hàng đã bị hủy</span>
-                                        ) : (
-                                            <span className="text-xs text-slate-500 font-medium">Quy trình vận hành 1 chiều</span>
-                                        )}
+                                {/* ── MODAL FOOTER: CẬP NHẬT NHANH (CHỈ TIẾN, KHÔNG LÙI) ── */}
+                                <div className="px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/30 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                                    
+                                    {/* Action buttons list */}
+                                    <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0" style={{ scrollbarWidth: 'none' }}>
+                                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+                                            Cập nhật nhanh:
+                                        </span>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            {STATUS_BUTTONS.map(btn => {
+                                                const normCurrent = normalizeWorkflowStatus(selectedOrder.status);
+                                                const isCurrent = normCurrent === btn.id || (btn.id === 'delivered' && selectedOrder.status === 'completed') || selectedOrder.status === btn.id;
+                                                const allowed = isTransitionAllowed(selectedOrder.status, btn.id);
+                                                const isPast = !allowed && !isCurrent;
+
+                                                return (
+                                                    <button
+                                                        key={btn.id}
+                                                        disabled={isPast || isSubmitting}
+                                                        onClick={() => {
+                                                            if (isCurrent) return;
+                                                            if (selectedOrder.status === 'pending' && btn.id === 'processing') {
+                                                                handleApproveOrder(selectedOrder.id!);
+                                                            } else {
+                                                                handleUpdateStatus(selectedOrder.id!, btn.id);
+                                                            }
+                                                        }}
+                                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all whitespace-nowrap ${
+                                                            isCurrent
+                                                                ? `${btn.bg} ${btn.color} ${btn.border} ring-2 ring-emerald-400 font-bold shadow-xs`
+                                                                : allowed
+                                                                ? 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:text-blue-600 cursor-pointer active:scale-95'
+                                                                : 'opacity-35 cursor-not-allowed bg-slate-100 dark:bg-slate-800/50 text-slate-400 border-slate-200 dark:border-slate-800'
+                                                        }`}
+                                                    >
+                                                        {isCurrent ? (
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                        ) : (
+                                                            <btn.icon size={13} />
+                                                        )}
+                                                        <span>{btn.label}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2.5">
+                                    {/* Close modal */}
+                                    <div className="flex items-center justify-end shrink-0">
                                         <button
                                             onClick={() => setSelectedOrder(null)}
-                                            className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                                            className="px-4 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                                         >
                                             Đóng
                                         </button>
-
-                                        {/* Next stage primary action button */}
-                                        {(() => {
-                                            const currentIdx = getStageIndex(selectedOrder.status);
-                                            if (selectedOrder.status === 'cancelled') return null;
-                                            
-                                            if (currentIdx === 0) {
-                                                return (
-                                                    <button
-                                                        disabled={isSubmitting}
-                                                        onClick={() => handleApproveOrder(selectedOrder.id!)}
-                                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
-                                                    >
-                                                        Xác nhận & Bàn giao ĐVVC
-                                                    </button>
-                                                );
-                                            } else if (currentIdx === 1) {
-                                                return (
-                                                    <button
-                                                        disabled={isSubmitting}
-                                                        onClick={() => handleUpdateStatus(selectedOrder.id!, 'shipped')}
-                                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
-                                                    >
-                                                        Chuyển sang Đang vận chuyển
-                                                    </button>
-                                                );
-                                            } else if (currentIdx === 2) {
-                                                return (
-                                                    <button
-                                                        disabled={isSubmitting}
-                                                        onClick={() => handleUpdateStatus(selectedOrder.id!, 'delivered')}
-                                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
-                                                    >
-                                                        Xác nhận giao thành công
-                                                    </button>
-                                                );
-                                            } else if (currentIdx === 3) {
-                                                return (
-                                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-                                                        <Check size={14} /> Đã hoàn tất
-                                                    </span>
-                                                );
-                                            }
-                                            return null;
-                                        })()}
                                     </div>
+
                                 </div>
 
                             </div>
