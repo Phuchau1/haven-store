@@ -53,8 +53,6 @@ export default function AboutPage() {
     const [loading, setLoading] = useState(true);
     const [activeCat, setActiveCat] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [subscribedEmail, setSubscribedEmail] = useState('');
-    const [subscribeSuccess, setSubscribeSuccess] = useState(false);
 
     useEffect(() => {
         const fetchArticles = async () => {
@@ -112,15 +110,6 @@ export default function AboutPage() {
     const trendingArticles = useMemo(() => {
         return [...articles].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
     }, [articles]);
-
-    const handleSubscribe = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (subscribedEmail.trim()) {
-            setSubscribeSuccess(true);
-            setSubscribedEmail('');
-            setTimeout(() => setSubscribeSuccess(false), 4000);
-        }
-    };
 
     return (
         <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20">
@@ -416,43 +405,24 @@ export default function AboutPage() {
                                     </div>
                                 </div>
 
-                                {/* 📬 Đăng ký nhận Bản tin thời trang (Newsletter) */}
+                                {/* 📞 Tư vấn & CSKH HAVEN */}
                                 <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
                                     <div className="relative z-10">
                                         <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">
-                                            Bản tin HAVEN
+                                            Dịch vụ khách hàng
                                         </span>
                                         <h4 className="text-base font-black text-white tracking-tight mb-2">
-                                            Nhận mẹo phối đồ & ưu đãi 10%
+                                            Tư vấn phong cách 24/7
                                         </h4>
                                         <p className="text-xs text-slate-300 font-normal mb-4 leading-relaxed">
-                                            Đăng ký để nhận sớm nhất các bài viết xu hướng mới và voucher mua sắm độc quyền.
+                                            Đội ngũ stylist của HAVEN luôn sẵn sàng hỗ trợ bạn lựa chọn trang phục phù hợp nhất.
                                         </p>
-
-                                        {subscribeSuccess ? (
-                                            <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-bold flex items-center gap-2">
-                                                <CheckCircle2 size={16} />
-                                                Cảm ơn bạn đã đăng ký nhận tin!
-                                            </div>
-                                        ) : (
-                                            <form onSubmit={handleSubscribe} className="space-y-2">
-                                                <input
-                                                    type="email"
-                                                    value={subscribedEmail}
-                                                    onChange={(e) => setSubscribedEmail(e.target.value)}
-                                                    placeholder="Nhập email của bạn..."
-                                                    required
-                                                    className="w-full px-3.5 py-2.5 bg-white/10 border border-white/20 rounded-xl text-xs text-white placeholder:text-slate-400 focus:bg-white focus:text-slate-900 outline-none transition-all"
-                                                />
-                                                <button
-                                                    type="submit"
-                                                    className="w-full py-2.5 bg-amber-400 hover:bg-amber-500 text-black font-extrabold rounded-xl text-xs tracking-wider uppercase transition-colors cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
-                                                >
-                                                    <Send size={13} />
-                                                    Đăng ký ngay
-                                                </button>
-                                            </form>
-                                        )}
+                                        <Link
+                                            href="/contact"
+                                            className="w-full py-2.5 bg-amber-400 hover:bg-amber-500 text-black font-extrabold rounded-xl text-xs tracking-wider uppercase transition-colors cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                                        >
+                                            Liên hệ ngay
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

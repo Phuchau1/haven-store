@@ -34,7 +34,6 @@ const MENU_ITEMS = [
     { icon: Heart,           label: 'Sản phẩm yêu thích', href: '/admin/wishlist',     group: 'catalog' },
     { icon: Zap,             label: 'Flash Sale',    href: '/admin/flash-sales',       group: 'store' },
     { icon: Ticket,          label: 'Mã giảm giá',  href: '/admin/coupons',           group: 'store' },
-    { icon: Mail,            label: 'Email Đăng ký', href: '/admin/newsletters',       group: 'store' },
     { icon: Gift,            label: 'Vòng quay',     href: '/admin/lucky-wheel',       group: 'store' },
     { icon: ArrowLeftRight,  label: 'Duyệt Rút Tiền Ví', href: '/admin/withdrawals',    group: 'store' },
     { icon: CreditCard,      label: 'Thanh toán',    href: '/admin/payment-methods',   group: 'store' },

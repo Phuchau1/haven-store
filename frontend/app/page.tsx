@@ -6,7 +6,6 @@ import NewArrivals from '@/app/component/NewArrivals';
 import BestSelling from '@/app/component/BestSelling';
 import FlashSale from '@/app/component/FlashSale';
 import FeaturesBanner from '@/app/component/FeaturesBanner';
-import Newsletter from '@/app/component/Newsletter';
 import FlashSalePopup from '@/app/component/FlashSalePopup';
 
 export default function HomePage() {
@@ -19,7 +18,6 @@ export default function HomePage() {
       <NewArrivals />
       <BestSelling />
       <FeaturesBanner />
-      <Newsletter />
       <FlashSalePopup />
     </>
   );
