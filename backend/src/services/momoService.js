@@ -24,7 +24,7 @@ const buildMoMoUrl = async (orderId, amount, orderInfo) => {
 
     const requestId   = `${partnerCode}${Date.now()}`;
     const momoOrderId = `${orderId}_${Date.now()}`; // Đảm bảo orderId gửi sang MoMo luôn duy nhất
-    const requestType = 'captureWallet'; // Tiêu chuẩn MoMo: Quét mã QR MoMo hoặc mở App MoMo
+    const requestType = 'payWithATM'; // Cổng MoMo nhập thông tin thẻ ATM (Số thẻ, Tên chủ thẻ, Ngày phát hành, OTP)
     const extraData   = '';              // Không truyền data phụ
     const lang        = 'vi';
 
