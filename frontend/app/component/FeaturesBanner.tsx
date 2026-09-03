@@ -1,11 +1,61 @@
-﻿'use client';
-// ===== BST XUÂN HÈ 2026: EASY DAILY SECTION =====
-import React from 'react';
+'use client';
+// ===== BST XUÂN HÈ / COLLECTION BANNER SECTION (ADMIN MANAGED) =====
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+
+interface CollectionBannerData {
+    id: string;
+    title: string;
+    subtitle?: string;
+    image: string;
+    link: string;
+    link_text?: string;
+    status: string;
+}
+
+const DEFAULT_BANNER: CollectionBannerData = {
+    id: 'banner-collection-1',
+    title: 'BST XUÂN HÈ 2026: EASY DAILY | BẮT NHỊP SỐNG - HÒA NHỊP SỐNG',
+    subtitle: '✨ BST Xuân Hè cập bến mang theo tinh thần "Easy" thoải mái trải nghiệm cùng những trang phục "Daily" tiện dụng mỗi ngày. HAVEN tin rằng, khi trang phục đủ nhẹ tênh, tâm trí sẽ tự khắc rộng mở để bạn bắt trọn nhịp điệu cuộc sống. Sẵn sàng cho một diện mạo rạng rỡ và trải nghiệm đầy năng lượng cùng HAVEN ngay hôm nay!',
+    image: '/bst-xuan-he-2026.png',
+    link: '/products',
+    link_text: 'Xem chi tiết',
+    status: 'active'
+};
 
 export default function FeaturesBanner() {
+    const [banner, setBanner] = useState<CollectionBannerData>(DEFAULT_BANNER);
+
+    useEffect(() => {
+        const fetchBanner = async () => {
+            try {
+                const res = await fetch('/api/banners?type=collection');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.banners) && data.banners.length > 0) {
+                    const activeBanner = data.banners.find((b: CollectionBannerData) => b.status === 'active') || data.banners[0];
+                    if (activeBanner) {
+                        setBanner({
+                            id: activeBanner.id || DEFAULT_BANNER.id,
+                            title: activeBanner.title || DEFAULT_BANNER.title,
+                            subtitle: activeBanner.subtitle || DEFAULT_BANNER.subtitle,
+                            image: activeBanner.image || DEFAULT_BANNER.image,
+                            link: activeBanner.link || DEFAULT_BANNER.link,
+                            link_text: activeBanner.link_text || DEFAULT_BANNER.link_text,
+                            status: activeBanner.status || 'active'
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching collection banner:', err);
+            }
+        };
+        fetchBanner();
+    }, []);
+
+    if (banner.status !== 'active') return null;
+
     return (
         <section className="py-16 sm:py-20 lg:py-24 bg-white border-y border-slate-100 overflow-hidden">
             <div className="container-torano">
@@ -18,11 +68,14 @@ export default function FeaturesBanner() {
                         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                         className="lg:col-span-6 relative group"
                     >
-                        <Link href="/products" className="block relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-slate-100 transition-all duration-500">
+                        <Link 
+                            href={banner.link || '/products'} 
+                            className="block relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-slate-100 transition-all duration-500"
+                        >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                                src="/bst-xuan-he-2026.png"
-                                alt="BST XUÂN HÈ 2026: EASY DAILY | BẮT NHỊP SỐNG - HÒA NHỊP SỐNG"
+                                src={banner.image || '/bst-xuan-he-2026.png'}
+                                alt={banner.title}
                                 className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
@@ -38,21 +91,21 @@ export default function FeaturesBanner() {
                         className="lg:col-span-6 flex flex-col justify-center"
                     >
                         <h2 className="text-2xl sm:text-3xl lg:text-[32px] xl:text-[36px] font-black text-slate-900 leading-[1.25] tracking-tight uppercase">
-                            BST XUÂN HÈ 2026: EASY DAILY | BẮT NHỊP SỐNG - HÒA NHỊP SỐNG
+                            {banner.title}
                         </h2>
 
-                        <div className="mt-5 sm:mt-6 space-y-4 text-slate-600 text-[14px] sm:text-[15px] leading-relaxed font-normal">
-                            <p>
-                                ✨ <strong className="font-semibold text-slate-800">BST Xuân Hè</strong> cập bến mang theo tinh thần <strong className="font-semibold text-slate-900">&quot;Easy&quot;</strong> thoải mái trải nghiệm cùng những trang phục <strong className="font-semibold text-slate-900">&quot;Daily&quot;</strong> tiện dụng mỗi ngày. HAVEN tin rằng, khi trang phục đủ nhẹ tênh, tâm trí sẽ tự khắc rộng mở để bạn bắt trọn nhịp điệu cuộc sống. Sẵn sàng cho một diện mạo rạng rỡ và trải nghiệm đầy năng lượng cùng HAVEN ngay hôm nay!
-                            </p>
-                        </div>
+                        {banner.subtitle && (
+                            <div className="mt-5 sm:mt-6 space-y-4 text-slate-600 text-[14px] sm:text-[15px] leading-relaxed font-normal">
+                                <p className="whitespace-pre-line">{banner.subtitle}</p>
+                            </div>
+                        )}
 
                         <div className="mt-6 sm:mt-8">
                             <Link
-                                href="/products"
+                                href={banner.link || '/products'}
                                 className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-slate-900 hover:text-[#C9A227] underline underline-offset-8 decoration-2 hover:decoration-[#C9A227] transition-all group cursor-pointer"
                             >
-                                <span>Xem chi tiết</span>
+                                <span>{banner.link_text || 'Xem chi tiết'}</span>
                                 <ArrowRight size={18} className="transform group-hover:translate-x-1.5 transition-transform duration-300" />
                             </Link>
                         </div>
