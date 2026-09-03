@@ -13,6 +13,7 @@ const { ProductVariantModel } = require('../models/ProductVariant');
 const { CouponModel } = require('../models/Coupon');
 const { ShippingMethodModel } = require('../models/ShippingMethod');
 const { UserModel } = require('../models/User');
+const { CartModel } = require('../models/Cart');
 const { WalletTransactionModel } = require('../models/WalletTransaction');
 // Sử dụng BullMQ queue để gửi email bất đồng bộ (không làm chậm tốc độ tạo đơn)
 const { enqueueOrderEmail } = require('../services/queueService');
@@ -517,6 +518,23 @@ const createOrder = async (req, res, next) => {
 
         // 2. Giảm tồn kho (Gắn Session)
         await decreaseStockOnOrder(newOrderData.items, orderId, session);
+
+        // 3. Xóa sạch giỏ hàng trong Database
+        const uid = body.userId || body.user_id;
+        if (uid || body.email) {
+            const userFilter = [];
+            if (uid) {
+                userFilter.push({ user_id: uid });
+                userFilter.push({ user_id: String(uid) });
+            }
+            if (body.email) {
+                userFilter.push({ user_id: body.email });
+            }
+            await CartModel.updateMany(
+                { $or: userFilter },
+                { $set: { items: [] } }
+            ).session(session).catch(err => log(`[Cart Clear Warning]: ${err.message}`));
+        }
 
         // 4. Nếu mọi thứ thành công -> Xác nhận giao dịch
         await session.commitTransaction();

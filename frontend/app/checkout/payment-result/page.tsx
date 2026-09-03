@@ -6,6 +6,8 @@ import { CheckCircle2, XCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { useCartStore } from '@/app/store/useCartStore';
+
 function PaymentResultContent() {
     const searchParams = useSearchParams();
     const status = searchParams.get('status');
@@ -18,6 +20,7 @@ function PaymentResultContent() {
         if (status === 'success') {
             setIsSuccess(true);
             try {
+                useCartStore.getState().clearCart();
                 localStorage.removeItem('phstore-cart');
                 window.dispatchEvent(new Event('storage'));
             } catch (e) {

@@ -682,6 +682,17 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 }).catch(e => console.error(e));
             }
 
+            // Xóa sạch giỏ hàng (Zustand + LocalStorage + Database) ngay khi đơn hàng đã được tạo
+            const buyNow = useCartStore.getState().buyNowItem;
+            if (buyNow) {
+                useCartStore.getState().clearBuyNowItem();
+            } else {
+                useCartStore.getState().clearCart();
+            }
+            removeVoucher();
+            localStorage.removeItem('phstore-checkout-temp');
+            localStorage.removeItem('phstore-cart');
+
             // Cổng thanh toán Online (VNPay / MoMo)
             if (formData.paymentMethod === 'vnpay' || formData.paymentMethod === 'momo') {
                 const payRes = await fetch('/api/payment/create-url', {
@@ -702,7 +713,6 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 }
             }
 
-            localStorage.removeItem('phstore-checkout-temp');
             onSuccess(result.orderId, formData.email, formData.paymentMethod, result.finalAmount || finalTotal);
         } catch (err: unknown) {
             console.error('Checkout error:', err);
