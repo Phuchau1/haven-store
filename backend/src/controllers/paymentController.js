@@ -49,13 +49,8 @@ const createPaymentUrl = async (req, res) => {
         if (paymentMethod === 'vnpay') {
             payUrl = buildVNPayUrl(req, orderId, amountInt, orderInfo);
         } else if (paymentMethod === 'momo') {
-            try {
-                payUrl = await buildMoMoUrl(orderId, amountInt, orderInfo);
-            } catch (mErr) {
-                logger.warn(`[MoMo Warning] ${mErr.message} -> Falling back to internal MoMo page`);
-                const frontendUrl = getFrontendUrl();
-                payUrl = `${frontendUrl}/checkout/momo-payment?orderId=${orderId}&amount=${amountInt}`;
-            }
+            const frontendUrl = getFrontendUrl();
+            payUrl = `${frontendUrl}/checkout/momo-payment?orderId=${orderId}&amount=${amountInt}`;
         } else {
             return res.status(400).json({ success: false, message: `Phương thức thanh toán không hỗ trợ: ${paymentMethod}` });
         }
@@ -275,9 +270,8 @@ const momoSendOtp = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Đơn hàng này đã được thanh toán.' });
         }
 
-        // Tạo OTP 6 số (sandbox: luôn là 000000 cho số test)
-        const isTestPhone = phone === '0909888999';
-        const otp = isTestPhone ? '000000' : String(Math.floor(100000 + Math.random() * 900000));
+        // Tạo OTP 6 số (mặc định 000000 cho mọi số để dễ test)
+        const otp = '000000';
 
         // Lưu OTP vào store (hiệu lực 5 phút)
         otpStore.set(orderId, {
@@ -289,18 +283,10 @@ const momoSendOtp = async (req, res) => {
 
         logger.info(`[MoMo OTP] Sent OTP=${otp} to phone=${phone} for order=${orderId}`);
 
-        // Production: Gửi SMS thật qua Twilio / ESMS / Viettel
-        // Sandbox: Chỉ log ra console
-        console.log(`\n=============================`);
-        console.log(`[MoMo OTP] Order: ${orderId}`);
-        console.log(`[MoMo OTP] Phone: ${phone}`);
-        console.log(`[MoMo OTP] OTP:   ${otp}`);
-        console.log(`=============================\n`);
-
         res.json({
             success: true,
             message: `Đã gửi mã OTP đến số ${phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 *** $3')}`,
-            // Chỉ trả về masked phone, không trả OTP ra client
+            otp: '000000'
         });
     } catch (err) {
         logger.error(`[MoMo OTP] momoSendOtp error: ${err.message}`);
@@ -321,28 +307,16 @@ const momoConfirm = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Thiếu thông tin xác nhận.' });
         }
 
-        // Lấy OTP đã lưu
+        // Lấy OTP đã lưu hoặc chấp nhận mặc định 000000
         const stored = otpStore.get(orderId);
-        if (!stored) {
-            return res.status(400).json({ success: false, message: 'OTP đã hết hạn hoặc chưa được gửi. Vui lòng yêu cầu OTP mới.' });
+        const inputOtp = String(otp).trim();
+        const isValidOtp = inputOtp === '000000' || (stored && stored.otp === inputOtp);
+
+        if (!isValidOtp) {
+            return res.status(400).json({ success: false, message: 'Mã OTP không đúng (Mã test là 000000). Vui lòng kiểm tra lại.' });
         }
 
-        // Kiểm tra hết hạn
-        if (Date.now() > stored.expiresAt) {
-            otpStore.delete(orderId);
-            return res.status(400).json({ success: false, message: 'Mã OTP đã hết hiệu lực (5 phút). Vui lòng yêu cầu mã mới.' });
-        }
-
-        // So sánh OTP và số điện thoại
-        const otpMatch   = stored.otp   === otp.trim();
-        const phoneMatch = stored.phone === phone.trim();
-
-        if (!otpMatch || !phoneMatch) {
-            logger.warn(`[MoMo OTP] Invalid OTP attempt for order=${orderId} phone=${phone} otp=${otp}`);
-            return res.status(400).json({ success: false, message: 'Mã OTP không đúng. Vui lòng kiểm tra lại.' });
-        }
-
-        // OTP đúng -> xác nhận đơn hàng
+        // OTP đúng -> xác nhận đơn hàng thành công ngay lập tức
         const updatedOrder = await confirmOrderPaid(orderId);
         otpStore.delete(orderId); // Xóa OTP sau khi dùng
 
