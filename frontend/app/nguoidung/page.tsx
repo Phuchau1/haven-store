@@ -171,47 +171,6 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn, o
     const isCancelled = ['cancelled','delivery_failed','returned_to_seller','dispute'].includes(order.status);
     const isReturn = ['return_requested','returning','return_received','refunded','refund_requested'].includes(order.status);
 
-    // Bản đồ mốc vận chuyển trực quan (Chiều Giao Hàng & Chiều Hoàn Hàng)
-    const FORWARD_MAP_NODES = [
-        { id: 'shop',    label: 'Kho HAVEN',      desc: 'Xuất kho & Đóng gói',   emoji: '🏬' },
-        { id: 'hcm',     label: 'Hub Khai Thác',  desc: 'Phân loại tự động',     emoji: '🏢' },
-        { id: 'transit', label: 'Trung Chuyển',   desc: 'Vận chuyển liên tỉnh',  emoji: '🚛' },
-        { id: 'local',   label: 'Bưu Cục Phát',   desc: 'Đang giao đến bạn',     emoji: '🛵' },
-        { id: 'home',    label: 'Địa Chỉ Nhận',   desc: 'Giao hàng thành công',  emoji: '🏠' },
-    ];
-
-    const RETURN_MAP_NODES = [
-        { id: 'client',  label: 'Khách Gửi Trả',  desc: 'Tạo yêu cầu hoàn trả',  emoji: '📦' },
-        { id: 'courier', label: 'Shipper Lấy',   desc: 'Trung chuyển về shop',  emoji: '🛵' },
-        { id: 'hub',     label: 'Hub Phân Loại',  desc: 'Kiểm kê kiện hàng',     emoji: '🏢' },
-        { id: 'seller',  label: 'Kho Shop HAVEN', desc: 'Shop nhận hàng về kho', emoji: '🏬' },
-        { id: 'wallet',  label: 'Hoàn Tiền Khách Hàng', desc: 'Đã hoàn tiền về tài khoản/ví', emoji: '💳' },
-    ];
-
-    const MAP_NODES = isReturn ? RETURN_MAP_NODES : FORWARD_MAP_NODES;
-
-    const returnStepMap: Record<string, number> = {
-        return_requested: 0,
-        returning: 1,
-        return_received: 3,
-        refunded: 4
-    };
-
-    const mapStep = isReturn
-        ? (returnStepMap[order.status as string] ?? 1)
-        : Math.min(
-            (order.status as string) === 'delivered' || (order.status as string) === 'completed'
-                ? 4
-                : shippingTimeline.length > 0
-                    ? Math.min(Math.floor((shippingTimeline.length / 5) * 4), 3)
-                    : ['shipped', 'in_transit', 'out_for_delivery'].includes(order.status as string)
-                        ? 2
-                        : ['processing', 'picked_up', 'waiting_pickup'].includes(order.status as string)
-                            ? 1
-                            : 0,
-            4
-        );
-
     const { showToast } = useToast();
     const timelineIndex = Math.max(0, MAIN_TIMELINE_STEPS.findIndex(s => s.key === order.status));
     const steps = MAIN_TIMELINE_STEPS;
@@ -492,138 +451,35 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn, o
                 {/* Right Column */}
                 <div className="space-y-5">
 
-                    {/* ─── TIKTOK SHOP STYLE ORDER TRACKING & CARRIER CARD ──────────────────── */}
+                    {/* ─── ĐƠN VỊ VẬN CHUYỂN & MÃ VẬN ĐƠN (GỌN GÀNG, CHUẨN ERP) ─── */}
                     {hasCarrier && (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                            {/* TikTok Style Carrier Header */}
-                            <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-wrap items-center justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-xl shrink-0">
-                                        {isReturn ? '🔄' : '🚚'}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider block">
-                                                {isReturn ? 'Lộ Trình Hoàn Hàng' : 'Đơn Vị Vận Chuyển'}
-                                            </span>
-                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                                        </div>
-                                        <p className="text-sm font-extrabold text-white truncate">
-                                            {orderExt.shippingProvider || orderExt.carrierCode || 'Giao Hàng Nhanh (GHN)'}
-                                        </p>
-                                    </div>
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
+                                    <Truck size={18} />
                                 </div>
-
-                                {orderExt.trackingNumber && (
-                                    <div className="bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-xl border border-white/15 flex items-center gap-2 shrink-0">
-                                        <span className="text-[10px] text-slate-300 font-medium hidden sm:inline">Mã vận đơn:</span>
-                                        <span className="text-xs font-mono font-black text-amber-300">{orderExt.trackingNumber}</span>
-                                        <button
-                                            onClick={() => {
-                                                if (navigator.clipboard) {
-                                                    navigator.clipboard.writeText(orderExt.trackingNumber);
-                                                    toast.success(`Đã sao chép mã ${orderExt.trackingNumber}`);
-                                                }
-                                            }}
-                                            className="p-0.5 hover:bg-white/20 rounded text-slate-300 hover:text-white transition-colors cursor-pointer"
-                                            title="Sao chép"
-                                        >
-                                            📋
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="min-w-0">
+                                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đơn vị vận chuyển</p>
+                                    <p className="text-xs font-bold text-slate-900 truncate">
+                                        {orderExt.shippingProvider || orderExt.carrierCode || 'Giao Hàng Nhanh (GHN)'}
+                                    </p>
+                                </div>
                             </div>
-
-                            {/* Current Active Status Banner (TikTok Shop Style) */}
-                            {!isCancelled && (
-                                <div className="p-4 bg-indigo-50/70 border-b border-indigo-100/80 flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm">
-                                            {MAP_NODES[mapStep]?.emoji || '📍'}
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wide block">
-                                                Trạng Thái Hiện Tại (TikTok Style)
-                                            </span>
-                                            <h5 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
-                                                {MAP_NODES[mapStep]?.label} — <span className="font-medium text-slate-600">{MAP_NODES[mapStep]?.desc}</span>
-                                            </h5>
-                                        </div>
-                                    </div>
-
-                                    <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg shrink-0 border border-emerald-200">
-                                        {Math.round(((mapStep + 1) / 5) * 100)}%
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* TikTok Shop Vertical Step Timeline */}
-                            {!isCancelled && (
-                                <div className="p-5 sm:p-6">
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">
-                                        Lộ Trình Chi Tiết
-                                    </h4>
-
-                                    <div className="relative pl-1 space-y-6">
-                                        {MAP_NODES.map((node, i) => {
-                                            const isPassed = i < mapStep;
-                                            const isCurrent = i === mapStep;
-                                            const isFuture = i > mapStep;
-
-                                            return (
-                                                <div key={node.id} className="relative flex items-start gap-3.5">
-                                                    {/* Vertical Line Connector */}
-                                                    {i < MAP_NODES.length - 1 && (
-                                                        <div 
-                                                            className={`absolute left-[19px] top-9 bottom-[-24px] w-0.5 transition-colors duration-500 ${
-                                                                i < mapStep ? 'bg-emerald-500' : 'bg-slate-200'
-                                                            }`} 
-                                                        />
-                                                    )}
-
-                                                    {/* Node Icon Circle */}
-                                                    <div className={`relative z-10 w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 transition-all duration-300 ${
-                                                        isCurrent
-                                                            ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 shadow-md scale-110 font-bold border-2 border-indigo-400'
-                                                            : isPassed
-                                                                ? 'bg-emerald-600 text-white shadow-xs'
-                                                                : 'bg-slate-100 text-slate-400 border border-slate-200'
-                                                    }`}>
-                                                        {isPassed ? '✓' : <span>{node.emoji}</span>}
-                                                        {isCurrent && (
-                                                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full animate-ping" />
-                                                        )}
-                                                    </div>
-
-                                                    {/* Step Text Info */}
-                                                    <div className="pt-0.5 min-w-0 flex-1">
-                                                        <div className="flex flex-wrap items-center justify-between gap-1">
-                                                            <p className={`text-xs sm:text-sm font-bold leading-tight ${
-                                                                isCurrent ? 'text-indigo-600 font-black' : isPassed ? 'text-slate-900 font-bold' : 'text-slate-400 font-medium'
-                                                            }`}>
-                                                                {node.label}
-                                                            </p>
-                                                            {isCurrent && (
-                                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 animate-pulse">
-                                                                    ● Đang ở bước này
-                                                                </span>
-                                                            )}
-                                                            {isPassed && (
-                                                                <span className="text-[10px] font-medium text-slate-400">
-                                                                    Hoàn tất
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className={`text-xs mt-0.5 leading-normal ${
-                                                            isCurrent ? 'text-slate-700 font-medium' : isPassed ? 'text-slate-600' : 'text-slate-400'
-                                                        }`}>
-                                                            {node.desc}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                            {orderExt.trackingNumber && (
+                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shrink-0">
+                                    <span className="text-[11px] font-mono font-bold text-slate-800">{orderExt.trackingNumber}</span>
+                                    <button
+                                        onClick={() => {
+                                            if (navigator.clipboard) {
+                                                navigator.clipboard.writeText(orderExt.trackingNumber);
+                                                toast.success(`Đã sao chép mã ${orderExt.trackingNumber}`);
+                                            }
+                                        }}
+                                        className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                                        title="Sao chép mã"
+                                    >
+                                        <Copy size={12} />
+                                    </button>
                                 </div>
                             )}
                         </div>
