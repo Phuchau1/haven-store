@@ -1,25 +1,22 @@
+'use client';
 /**
  * ============================================================
- * PAGE: MoMo Payment - Nhập SĐT + OTP
- * Mô tả: Trang thanh toán MoMo nội bộ với luồng:
- *   Bước 1: Nhập số điện thoại MoMo
- *   Bước 2: Nhập OTP (6 số)
- *   Bước 3: Xác nhận thành công / thất bại
- * Sandbox test: SĐT = 0909888999 | OTP = 000000
+ * CỔNG THANH TOÁN MOMO - GIAO DIỆN CHUẨN DOANH NGHIỆP (VNPay Style)
+ * Mô tả: Cổng thanh toán MoMo mô phỏng chuẩn giao thức VNPay / MoMo
+ *        - Cột trái: Thông tin đơn hàng, số tiền, mã đơn, nhà cung cấp
+ *        - Cột phải: Form nhập số điện thoại MoMo, Tên chủ ví, Mã OTP
+ *        - Đồng hồ đếm ngược 15 phút, chứng chỉ bảo mật PCI-DSS, SSL
  * ============================================================
  */
-'use client';
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Phone, Loader2, CheckCircle2, XCircle, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useCartStore } from '@/app/store/useCartStore';
 
-// ── OTP Input: 6 ô riêng biệt, không dùng hooks trong loop ──
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-    // Tạo 6 ref TRƯỚC (đúng React Rules of Hooks)
     const ref0 = useRef<HTMLInputElement>(null);
     const ref1 = useRef<HTMLInputElement>(null);
     const ref2 = useRef<HTMLInputElement>(null);
@@ -51,7 +48,7 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
     };
 
     return (
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-2.5 sm:gap-3 justify-center">
             {refs.map((ref, i) => (
                 <input
                     key={i}
@@ -64,90 +61,84 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
                     onKeyDown={e => handleKey(i, e)}
                     onPaste={handlePaste}
                     autoComplete="one-time-code"
-                    className={`w-12 h-14 text-center text-2xl font-bold rounded-2xl border-2 outline-none transition-all
+                    className={`w-11 h-13 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold rounded-xl border-2 outline-none transition-all
                         ${value[i]
                             ? 'border-[#ae2070] bg-pink-50 text-[#ae2070]'
-                            : 'border-gray-200 bg-gray-50 text-gray-900'
-                        } focus:border-[#ae2070] focus:bg-pink-50/50 focus:scale-105`}
+                            : 'border-slate-200 bg-slate-50 text-slate-900'
+                        } focus:border-[#ae2070] focus:bg-pink-50/50`}
                 />
             ))}
         </div>
     );
 }
 
-// ── Step indicator ──────────────────────────────────────────
-function Steps({ step }: { step: number }) {
-    const steps = [1, 2];
-    return (
-        <div className="flex items-center justify-center gap-2 mb-8">
-            {steps.map((s, idx) => (
-                <React.Fragment key={s}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all
-                        ${step >= s ? 'bg-[#ae2070] text-white scale-110' : 'bg-gray-100 text-gray-400'}`}>
-                        {step > s ? '✓' : s}
-                    </div>
-                    {idx < steps.length - 1 && (
-                        <div className={`h-0.5 w-16 rounded transition-all ${step > s ? 'bg-[#ae2070]' : 'bg-gray-200'}`} />
-                    )}
-                </React.Fragment>
-            ))}
-        </div>
-    );
-}
-
-// ── Main Component ──────────────────────────────────────────
 function MoMoPaymentContent() {
     const searchParams = useSearchParams();
-    const clearCart    = useCartStore(s => s.clearCart);
+    const router = useRouter();
+    const clearCart = useCartStore(s => s.clearCart);
 
-    const orderId   = searchParams.get('orderId')  || '';
-    const amount    = searchParams.get('amount')   || '0';
-    const amountFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(amount));
+    const orderId = searchParams.get('orderId') || '';
+    const amount = Number(searchParams.get('amount')) || 0;
+    const amountFmt = new Intl.NumberFormat('vi-VN').format(amount) + ' VND';
 
-    const [step, setStep]           = useState<1 | 2 | 'success' | 'failed'>(1);
-    const [phone, setPhone]         = useState('');
-    const [otp, setOtp]             = useState('');
-    const [loading, setLoading]     = useState(false);
-    const [error, setError]         = useState('');
+    const [step, setStep] = useState<1 | 2 | 'success' | 'failed'>(1);
+    const [phone, setPhone] = useState('0909888999');
+    const [accountName, setAccountName] = useState('NGUYEN VAN A');
+    const [otp, setOtp] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [countdown, setCountdown] = useState(0);
 
-    // Đếm ngược nút "Gửi lại OTP"
+    // 15 phút đếm ngược hạn thanh toán (giống VNPay)
+    const [sessionTimer, setSessionTimer] = useState(15 * 60);
+
+    useEffect(() => {
+        if (sessionTimer <= 0) return;
+        const t = setInterval(() => setSessionTimer(s => s - 1), 1000);
+        return () => clearInterval(t);
+    }, [sessionTimer]);
+
+    const minutes = Math.floor(sessionTimer / 60);
+    const seconds = sessionTimer % 60;
+    const formatTime = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+
+    // Đếm ngược nút Gửi lại OTP
     useEffect(() => {
         if (countdown <= 0) return;
         const t = setTimeout(() => setCountdown(c => c - 1), 1000);
         return () => clearTimeout(t);
     }, [countdown]);
 
-    // ── Bước 1: Gửi OTP ──────────────────────────────────────
-    const handleSendOtp = async () => {
+    // Bước 1: Xác thực tài khoản & Gửi OTP
+    const handleNextStep = async () => {
         setError('');
         const cleaned = phone.replace(/\s/g, '');
         if (!/^(0[3|5|7|8|9])[0-9]{8}$/.test(cleaned)) {
-            setError('Số điện thoại không hợp lệ. Vui lòng nhập đúng 10 số bắt đầu bằng 0.');
+            setError('Số điện thoại MoMo không hợp lệ (Vui lòng nhập đúng 10 số bắt đầu bằng 0).');
             return;
         }
         setLoading(true);
         try {
-            const res  = await fetch('/api/payment/momo-send-otp', {
-                method:  'POST',
+            const res = await fetch('/api/payment/momo-send-otp', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ orderId, phone: cleaned, amount }),
+                body: JSON.stringify({ orderId, phone: cleaned, amount }),
             });
             const data = await res.json();
             if (data.success) {
                 setStep(2);
                 setCountdown(60);
             } else {
-                setError(data.message || 'Không thể gửi OTP. Vui lòng thử lại.');
+                setError(data.message || 'Không thể tạo phiên giao dịch. Vui lòng thử lại.');
             }
         } catch {
-            setError('Lỗi kết nối máy chủ. Vui lòng thử lại.');
+            setError('Lỗi kết nối máy chủ thanh toán.');
         } finally {
             setLoading(false);
         }
     };
 
-    // ── Bước 2: Xác nhận OTP ─────────────────────────────────
+    // Bước 2: Xác nhận OTP
     const handleConfirmOtp = async () => {
         setError('');
         if (otp.length < 6) {
@@ -156,263 +147,308 @@ function MoMoPaymentContent() {
         }
         setLoading(true);
         try {
-            const res  = await fetch('/api/payment/momo-confirm', {
-                method:  'POST',
+            const res = await fetch('/api/payment/momo-confirm', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ orderId, phone: phone.replace(/\s/g, ''), otp, amount }),
+                body: JSON.stringify({ orderId, phone: phone.replace(/\s/g, ''), otp, amount }),
             });
             const data = await res.json();
             if (data.success) {
-                // Xóa giỏ hàng qua Zustand (cả state + localStorage)
                 clearCart();
+                try {
+                    localStorage.removeItem('phstore-cart');
+                    localStorage.removeItem('phstore-checkout-temp');
+                    window.dispatchEvent(new Event('storage'));
+                } catch (e) {
+                    console.error(e);
+                }
                 setStep('success');
             } else {
                 setError(data.message || 'OTP không hợp lệ hoặc đã hết hạn.');
                 setOtp('');
             }
         } catch {
-            setError('Lỗi kết nối máy chủ. Vui lòng thử lại.');
+            setError('Lỗi kết nối máy chủ.');
         } finally {
             setLoading(false);
         }
     };
 
-    const maskedPhone = phone.replace(/\s/g, '').replace(/(\d{4})(\d{3})(\d{3})/, '$1 *** $3');
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#fce4ec] via-white to-[#f8f9fa] flex items-center justify-center p-4">
-            <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md"
-            >
-                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="min-h-screen bg-[#f3f4f6] text-slate-800 flex flex-col justify-between py-6 px-4 sm:px-6">
+            
+            {/* ── TOP NAV: QUAY LẠI & NGÔN NGỮ ── */}
+            <div className="max-w-5xl w-full mx-auto flex items-center justify-between text-xs sm:text-sm font-semibold text-slate-600 mb-4">
+                <button
+                    onClick={() => router.push('/checkout')}
+                    className="flex items-center gap-1.5 hover:text-slate-900 transition-colors py-1 px-2 rounded-lg hover:bg-white/60 cursor-pointer"
+                >
+                    <ChevronLeft size={18} />
+                    <span>Quay lại</span>
+                </button>
+                <div className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-md shadow-2xs">
+                    <span>🇻🇳</span>
+                    <span className="font-bold text-slate-800">Vi</span>
+                </div>
+            </div>
 
-                    {/* Header MoMo */}
-                    <div className="bg-gradient-to-r from-[#ae2070] to-[#d4357a] px-6 pt-8 pb-10">
-                        <div className="flex items-center gap-3 mb-6">
-                            <Link
-                                href="/checkout"
-                                className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-                                aria-label="Quay lại"
-                            >
-                                <ArrowLeft size={18} className="text-white" />
-                            </Link>
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                                    <span className="text-[#ae2070] text-xs font-black">M</span>
-                                </div>
-                                <span className="text-white font-bold text-lg">Ví MoMo</span>
-                            </div>
+            {/* ── MAIN CARD: CHUẨN FORM VNPAY / MOMO ── */}
+            <div className="max-w-5xl w-full mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                
+                {/* Header cổng thanh toán */}
+                <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-[#ae2070] flex items-center justify-center text-white font-black text-sm shadow-xs">
+                            M
                         </div>
-                        <div className="bg-white/15 backdrop-blur-sm rounded-2xl px-5 py-4">
-                            <p className="text-white/70 text-xs mb-1">Thanh toán đơn hàng</p>
-                            <p className="text-white font-mono font-bold text-sm">#{orderId}</p>
-                            <p className="text-white text-2xl font-black mt-1">{amountFmt}</p>
+                        <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CỔNG THANH TOÁN</span>
+                            <span className="text-sm font-black text-[#ae2070]">Ví điện tử MoMo</span>
                         </div>
                     </div>
 
-                    {/* Body */}
-                    <div className="px-6 py-8 -mt-4 bg-white rounded-t-3xl relative">
+                    {/* Countdown Timer */}
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600">
+                        <span>Giao dịch hết hạn sau</span>
+                        <div className="flex items-center gap-1 font-mono font-bold text-white text-xs">
+                            <span className="bg-slate-900 px-2 py-1 rounded-md">{formatTime(minutes)}</span>
+                            <span className="text-slate-900">:</span>
+                            <span className="bg-slate-900 px-2 py-1 rounded-md">{formatTime(seconds)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Body 2 Cột */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                    
+                    {/* CỘT TRÁI: THÔNG TIN ĐƠN HÀNG (GIỐNG VNPAY) */}
+                    <div className="lg:col-span-5 p-6 sm:p-8 bg-slate-50/50 space-y-6">
+                        <div className="border-b border-slate-200 pb-4">
+                            <h3 className="text-base font-bold text-slate-900">
+                                Thông tin đơn hàng (Test)
+                            </h3>
+                        </div>
+
+                        <div>
+                            <p className="text-xs text-slate-500 font-medium">Số tiền thanh toán</p>
+                            <p className="text-2xl sm:text-3xl font-black text-[#ae2070] tracking-tight mt-1">
+                                {amountFmt}
+                            </p>
+                        </div>
+
+                        <div className="space-y-3.5 text-xs sm:text-sm border-t border-slate-200 pt-4">
+                            <div className="flex justify-between items-center text-slate-600">
+                                <span>Giá trị đơn hàng</span>
+                                <span className="font-bold text-slate-900">{amountFmt}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-slate-600">
+                                <span>Phí giao dịch</span>
+                                <span className="font-bold text-emerald-600">0 VND</span>
+                            </div>
+                            <div className="flex justify-between items-center text-slate-600">
+                                <span>Mã đơn hàng</span>
+                                <span className="font-mono font-bold text-slate-900">#{orderId}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-slate-600">
+                                <span>Nhà cung cấp</span>
+                                <span className="font-medium text-slate-900">HAVEN STORE (https://havenstore.io.vn)</span>
+                            </div>
+                        </div>
+
+                        <div className="p-3.5 bg-pink-50 border border-pink-200 rounded-xl text-xs text-pink-900 leading-relaxed">
+                            💡 <strong>Sandbox Test:</strong> SĐT: <code className="bg-white px-1.5 py-0.5 rounded font-bold font-mono">0909888999</code> · OTP: <code className="bg-white px-1.5 py-0.5 rounded font-bold font-mono">000000</code>
+                        </div>
+                    </div>
+
+                    {/* CỘT PHẢI: FORM NHẬP THÔNG TIN VÍ & OTP */}
+                    <div className="lg:col-span-7 p-6 sm:p-8">
                         <AnimatePresence mode="wait">
-
-                            {/* BƯỚC 1: Nhập SĐT */}
+                            
+                            {/* BƯỚC 1: NHẬP SỐ ĐIỆN THOẠI & TÊN VÍ */}
                             {step === 1 && (
-                                <motion.div key="step1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
-                                    <Steps step={1} />
-                                    <h2 className="text-xl font-bold text-gray-900 text-center mb-1">Xác thực tài khoản</h2>
-                                    <p className="text-gray-400 text-sm text-center mb-6">Nhập số điện thoại đăng ký MoMo của bạn</p>
+                                <motion.div key="step1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
+                                    <div className="text-center pb-2">
+                                        <h2 className="text-xl font-bold text-slate-900">
+                                            Thanh toán qua Ví MoMo
+                                        </h2>
+                                        <p className="text-xs text-slate-500 mt-1">Tài khoản ví điện tử</p>
+                                    </div>
 
-                                    <div className="relative mb-4">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                            <Phone size={16} className="text-[#ae2070]" />
-                                            <span className="text-gray-400 text-sm font-medium">+84</span>
-                                            <span className="text-gray-200 select-none">|</span>
+                                    {/* Số điện thoại */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            Số điện thoại đăng ký MoMo <span className="text-rose-500">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="tel"
+                                                value={phone}
+                                                onChange={e => { setPhone(e.target.value); setError(''); }}
+                                                placeholder="Nhập số điện thoại MoMo"
+                                                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm sm:text-base font-medium text-slate-900 focus:border-[#ae2070] focus:ring-1 focus:ring-[#ae2070] outline-none transition-all pr-14"
+                                            />
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-[#ae2070] flex items-center justify-center text-white text-xs font-black">
+                                                MoMo
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    {/* Tên chủ thẻ / chủ ví */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            Tên chủ tài khoản (không dấu)
+                                        </label>
                                         <input
-                                            id="momo-phone"
-                                            type="tel"
-                                            value={phone}
-                                            onChange={e => { setPhone(e.target.value.replace(/[^0-9\s]/g, '')); setError(''); }}
-                                            onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
-                                            placeholder="0909 888 999"
-                                            maxLength={11}
-                                            autoComplete="tel"
-                                            className="w-full pl-24 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-base font-medium focus:outline-none focus:border-[#ae2070] focus:bg-pink-50/30 transition-all"
+                                            type="text"
+                                            value={accountName}
+                                            onChange={e => setAccountName(e.target.value.toUpperCase())}
+                                            placeholder="Nhập tên chủ ví (không dấu)"
+                                            className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm sm:text-base font-medium text-slate-900 focus:border-[#ae2070] focus:ring-1 focus:ring-[#ae2070] outline-none transition-all uppercase"
                                         />
                                     </div>
 
-                                    <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-4">
-                                        <ShieldCheck size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                                        <p className="text-xs text-amber-700">
-                                            <strong>Sandbox test:</strong> SĐT&nbsp;
-                                            <code className="bg-amber-100 px-1 rounded font-mono">0909888999</code>
-                                            &nbsp;→ OTP&nbsp;
-                                            <code className="bg-amber-100 px-1 rounded font-mono">000000</code>
-                                        </p>
-                                    </div>
-
                                     {error && (
-                                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                            className="text-sm text-red-500 text-center mb-4 flex items-center justify-center gap-1">
-                                            <XCircle size={14} /> {error}
-                                        </motion.p>
+                                        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium rounded-xl flex items-center gap-2">
+                                            <XCircle size={14} className="shrink-0" />
+                                            <span>{error}</span>
+                                        </div>
                                     )}
 
-                                    <motion.button
-                                        id="momo-send-otp"
-                                        onClick={handleSendOtp}
-                                        disabled={loading || !phone.trim()}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="w-full py-4 bg-gradient-to-r from-[#ae2070] to-[#d4357a] text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all"
-                                    >
-                                        {loading ? <><Loader2 size={18} className="animate-spin" /> Đang gửi OTP...</> : 'Tiếp tục →'}
-                                    </motion.button>
+                                    {/* Nút hành động */}
+                                    <div className="grid grid-cols-2 gap-3 pt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => router.push('/checkout')}
+                                            className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all cursor-pointer text-center"
+                                        >
+                                            Hủy thanh toán
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleNextStep}
+                                            disabled={loading || !phone.trim()}
+                                            className="py-3 px-4 bg-[#ae2070] hover:bg-[#911b5e] text-white rounded-xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                        >
+                                            {loading ? <Loader2 size={16} className="animate-spin" /> : 'Tiếp tục'}
+                                        </button>
+                                    </div>
                                 </motion.div>
                             )}
 
-                            {/* BƯỚC 2: Nhập OTP */}
+                            {/* BƯỚC 2: NHẬP OTP XÁC THỰC */}
                             {step === 2 && (
-                                <motion.div key="step2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
-                                    <Steps step={2} />
-                                    <h2 className="text-xl font-bold text-gray-900 text-center mb-1">Nhập mã OTP</h2>
-                                    <p className="text-gray-400 text-sm text-center mb-1">Mã OTP đã được gửi đến</p>
-                                    <p className="text-[#ae2070] font-bold text-center text-sm mb-6">
-                                        {maskedPhone}
-                                        <button
-                                            onClick={() => { setStep(1); setOtp(''); setError(''); }}
-                                            className="ml-2 text-gray-400 hover:text-gray-600 text-xs font-normal underline"
-                                        >
-                                            Thay đổi
-                                        </button>
-                                    </p>
+                                <motion.div key="step2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
+                                    <div className="text-center pb-2">
+                                        <h2 className="text-xl font-bold text-slate-900">
+                                            Xác thực giao dịch OTP
+                                        </h2>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            Mã OTP đã được gửi đến số <strong className="text-slate-900">{phone}</strong>
+                                        </p>
+                                    </div>
 
-                                    <div className="mb-6">
+                                    <div className="py-2">
                                         <OtpInput value={otp} onChange={setOtp} />
                                     </div>
 
                                     {error && (
-                                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                            className="text-sm text-red-500 text-center mb-4 flex items-center justify-center gap-1">
-                                            <XCircle size={14} /> {error}
-                                        </motion.p>
+                                        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium rounded-xl flex items-center gap-2">
+                                            <XCircle size={14} className="shrink-0" />
+                                            <span>{error}</span>
+                                        </div>
                                     )}
-
-                                    <motion.button
-                                        id="momo-confirm-otp"
-                                        onClick={handleConfirmOtp}
-                                        disabled={loading || otp.length < 6}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="w-full py-4 bg-gradient-to-r from-[#ae2070] to-[#d4357a] text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4 transition-all"
-                                    >
-                                        {loading ? <><Loader2 size={18} className="animate-spin" /> Đang xác nhận...</> : 'Xác nhận thanh toán'}
-                                    </motion.button>
 
                                     <div className="text-center">
                                         {countdown > 0 ? (
-                                            <p className="text-xs text-gray-400">
-                                                Gửi lại OTP sau <span className="font-bold text-[#ae2070]">{countdown}s</span>
+                                            <p className="text-xs text-slate-400 font-medium">
+                                                Gửi lại OTP sau <span className="font-bold text-slate-900">{countdown}s</span>
                                             </p>
                                         ) : (
                                             <button
-                                                onClick={() => { setOtp(''); setError(''); handleSendOtp(); }}
-                                                disabled={loading}
-                                                className="text-xs text-[#ae2070] font-medium hover:underline flex items-center gap-1 mx-auto"
+                                                type="button"
+                                                onClick={handleNextStep}
+                                                className="text-xs text-[#ae2070] font-bold hover:underline flex items-center gap-1 mx-auto cursor-pointer"
                                             >
-                                                <RefreshCw size={12} /> Gửi lại OTP
+                                                <RefreshCw size={12} /> Gửi lại mã OTP
                                             </button>
                                         )}
                                     </div>
 
-                                    <p className="text-[10px] text-gray-300 text-center mt-4">
-                                        Mã OTP có hiệu lực trong 5 phút. Không chia sẻ OTP với bất kỳ ai.
-                                    </p>
-                                </motion.div>
-                            )}
-
-                            {/* THÀNH CÔNG */}
-                            {step === 'success' && (
-                                <motion.div key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="py-6 text-center">
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ delay: 0.15, type: 'spring', damping: 10 }}
-                                        className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5"
-                                    >
-                                        <CheckCircle2 size={48} className="text-emerald-500" />
-                                    </motion.div>
-                                    <h2 className="text-2xl font-black text-gray-900 mb-2">Thanh toán thành công!</h2>
-                                    <p className="text-gray-500 text-sm mb-1">
-                                        Đơn hàng <span className="font-bold text-gray-900 font-mono">#{orderId}</span> đã được xác nhận.
-                                    </p>
-                                    <p className="text-[#ae2070] font-bold text-xl mb-2">{amountFmt}</p>
-                                    <p className="text-gray-400 text-xs mb-8">Cảm ơn bạn đã sử dụng Ví MoMo. Chúng tôi sẽ giao hàng sớm nhất! 🎉</p>
-                                    <div className="space-y-3">
-                                        <Link
-                                            href="/nguoidung"
-                                            className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-[#ae2070] to-[#d4357a] text-white font-bold rounded-2xl shadow-lg shadow-pink-200 hover:opacity-90 transition-all"
-                                        >
-                                            Xem đơn hàng của tôi
-                                        </Link>
-                                        <Link href="/collections/all" className="w-full flex items-center justify-center gap-2 py-3 text-gray-400 text-sm hover:text-gray-600 transition-colors">
-                                            Tiếp tục mua sắm
-                                        </Link>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* THẤT BẠI */}
-                            {step === 'failed' && (
-                                <motion.div key="failed" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="py-6 text-center">
-                                    <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-5">
-                                        <XCircle size={48} className="text-rose-500" />
-                                    </div>
-                                    <h2 className="text-2xl font-black text-rose-600 mb-2">Thanh toán thất bại</h2>
-                                    <p className="text-gray-400 text-sm mb-8">Vui lòng thử lại hoặc chọn phương thức thanh toán khác.</p>
-                                    <div className="space-y-3">
+                                    {/* Nút xác nhận */}
+                                    <div className="grid grid-cols-2 gap-3 pt-4">
                                         <button
-                                            onClick={() => { setStep(1); setOtp(''); setPhone(''); setError(''); }}
-                                            className="w-full py-4 bg-gradient-to-r from-[#ae2070] to-[#d4357a] text-white font-bold rounded-2xl"
+                                            type="button"
+                                            onClick={() => setStep(1)}
+                                            className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all cursor-pointer text-center"
                                         >
-                                            Thử lại
+                                            Quay lại
                                         </button>
-                                        <Link href="/checkout" className="w-full flex items-center justify-center py-3 text-gray-400 text-sm hover:text-gray-600">
-                                            Quay lại thanh toán
-                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={handleConfirmOtp}
+                                            disabled={loading || otp.length < 6}
+                                            className="py-3 px-4 bg-[#ae2070] hover:bg-[#911b5e] text-white rounded-xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                        >
+                                            {loading ? <Loader2 size={16} className="animate-spin" /> : 'Xác nhận thanh toán'}
+                                        </button>
                                     </div>
                                 </motion.div>
                             )}
 
+                            {/* BƯỚC 3: THÀNH CÔNG */}
+                            {step === 'success' && (
+                                <motion.div key="success" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-6 space-y-4">
+                                    <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
+                                        <CheckCircle2 size={36} />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-slate-900">Thanh toán thành công!</h2>
+                                    <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
+                                        Đơn hàng <span className="font-mono font-bold text-slate-900">#{orderId}</span> trị giá <strong className="text-emerald-700 font-bold">{amountFmt}</strong> đã được ghi nhận.
+                                    </p>
+
+                                    <div className="pt-4 space-y-2.5 max-w-xs mx-auto">
+                                        <Link href="/nguoidung" className="block w-full">
+                                            <button className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer">
+                                                Xem đơn hàng của tôi
+                                            </button>
+                                        </Link>
+                                        <Link href="/products" className="block w-full">
+                                            <button className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors cursor-pointer">
+                                                Tiếp tục mua sắm
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </motion.div>
+                            )}
                         </AnimatePresence>
                     </div>
+                </div>
 
-                    {/* Footer */}
-                    <div className="px-6 pb-6 text-center">
-                        <div className="flex items-center justify-center gap-2 text-gray-300">
-                            <ShieldCheck size={13} />
-                            <span className="text-[11px]">Bảo mật SSL 256-bit • Powered by MoMo</span>
-                        </div>
+                {/* Footer Bar: Hotline & Security Badge */}
+                <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
+                    <div className="flex items-center gap-2">
+                        <span>✉️ hotro@havenstore.io.vn</span>
+                        <span>•</span>
+                        <span>📞 1900 6868</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck size={16} className="text-emerald-600" />
+                        <span className="font-bold text-slate-700">PCI-DSS Compliant • 256-bit SSL</span>
                     </div>
                 </div>
-            </motion.div>
+            </div>
+
+            {/* Copyright */}
+            <div className="text-center text-[11px] text-slate-400 mt-4">
+                Phát triển bởi HAVEN Store & MoMo / VNPay Gateway Protocol © 2026
+            </div>
         </div>
     );
 }
 
 export default function MoMoPaymentPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-gradient-to-br from-[#fce4ec] via-white to-[#f8f9fa] flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-16 h-16 bg-[#ae2070] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                        <span className="text-white text-2xl font-black">M</span>
-                    </div>
-                    <p className="text-gray-500 text-sm">Đang khởi tạo thanh toán MoMo...</p>
-                </div>
-            </div>
-        }>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#f3f4f6]">Đang tải cổng thanh toán...</div>}>
             <MoMoPaymentContent />
         </Suspense>
     );
