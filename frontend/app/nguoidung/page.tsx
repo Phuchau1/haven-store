@@ -378,18 +378,42 @@ const OrderDetailView = ({ order, onBack, onCancel, onRebuy, onRate, onReturn, o
                                         ⏳ Yêu cầu hoàn hàng đang chờ Admin duyệt
                                     </span>
                                 )}
-                                {order.status === 'delivered' && (
-                                    <button 
-                                        onClick={() => onRate(order)}
-                                        className="px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-100 hover:border-amber-300 transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
-                                    >
-                                        <Star size={14} className="text-amber-500 fill-amber-400" /> Đánh giá sản phẩm
-                                    </button>
-                                )}
+                                {order.status === 'delivered' && (() => {
+                                    const deliveredDate = (order as any).deliveredAt ? new Date((order as any).deliveredAt) : new Date(order.createdAt);
+                                    const daysPassed = Math.floor((Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24));
+                                    const daysRemaining = Math.max(0, 30 - daysPassed);
+                                    return daysRemaining > 0 ? (
+                                        <div className="w-full bg-gradient-to-r from-amber-50 via-yellow-50/70 to-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-1.5 text-amber-950 font-bold text-xs sm:text-sm">
+                                                    <Star size={16} className="text-amber-500 fill-amber-400" />
+                                                    <span>⭐ Đánh giá sản phẩm</span>
+                                                </div>
+                                                <p className="text-[11px] text-amber-800">
+                                                    Bạn có thể đánh giá trong vòng 30 ngày (+50 điểm thưởng)
+                                                </p>
+                                                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-900 pt-0.5">
+                                                    <Clock size={13} className="text-amber-600" />
+                                                    <span>⏱ Còn <strong>{daysRemaining} ngày</strong></span>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => onRate(order)}
+                                                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                            >
+                                                <Star size={13} className="fill-white" /> Đánh giá ngay
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <span className="px-3 py-2 bg-slate-100 text-slate-400 rounded-xl text-xs font-semibold flex items-center gap-1">
+                                            <Clock size={13} /> Hết hạn đánh giá (30 ngày)
+                                        </span>
+                                    );
+                                })()}
                                 {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
                                     <button 
                                         onClick={() => onRebuy(order)}
-                                        className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 active:scale-95 flex items-center gap-1.5"
+                                        className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 active:scale-95 flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <ShoppingBag size={14} /> Mua lại đơn hàng
                                     </button>
@@ -1757,6 +1781,37 @@ export default function NguoiDungPage() {
                                                                     } as Record<string,string>)[order.status] || order.status}
                                                                 </div>
                                                             </div>
+
+                                                            {/* 30-Day Review Widget */}
+                                                            {order.status === 'delivered' && (() => {
+                                                                const deliveredDate = (order as any).deliveredAt ? new Date((order as any).deliveredAt) : new Date(order.createdAt);
+                                                                const daysPassed = Math.floor((Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24));
+                                                                const daysRemaining = Math.max(0, 30 - daysPassed);
+                                                                return daysRemaining > 0 ? (
+                                                                    <div className="mt-4 p-3.5 sm:p-4 bg-gradient-to-r from-amber-50 via-yellow-50/70 to-amber-50 border border-amber-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                                                                        <div className="space-y-0.5">
+                                                                            <div className="flex items-center gap-1.5 text-amber-950 font-bold text-xs sm:text-sm">
+                                                                                <Star size={16} className="text-amber-500 fill-amber-400" />
+                                                                                <span>⭐ Đánh giá sản phẩm</span>
+                                                                            </div>
+                                                                            <p className="text-[11px] text-amber-800">
+                                                                                Bạn có thể đánh giá trong vòng 30 ngày (+50 điểm thưởng)
+                                                                            </p>
+                                                                            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-900 pt-0.5">
+                                                                                <Clock size={13} className="text-amber-600" />
+                                                                                <span>⏱ Còn <strong>{daysRemaining} ngày</strong></span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => handleRateOrder(order)}
+                                                                            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                                                        >
+                                                                            <Star size={13} className="fill-white" /> Đánh giá ngay
+                                                                        </button>
+                                                                    </div>
+                                                                ) : null;
+                                                            })()}
+
                                                             <div className="space-y-3">
                                                                 {order.items.slice(0, 2).map((item, idx) => (
                                                                     <div key={idx} className="flex items-center gap-4">
@@ -1856,15 +1911,6 @@ export default function NguoiDungPage() {
                                                                             💰 Đã hoàn tiền vào Ví HAVEN
                                                                         </span>
                                                                     )}
-                                                                    {order.status === 'delivered' && (() => {
-                                                                        const deliveredDate = (order as any).deliveredAt ? new Date((order as any).deliveredAt) : new Date(order.createdAt);
-                                                                        const daysPassed = Math.floor((Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24));
-                                                                        return daysPassed <= 30 ? (
-                                                                            <button onClick={() => handleRateOrder(order)} className="px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-100 transition-all flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer" title="Đánh giá nhận ngay +50 điểm thưởng">
-                                                                                <Star size={13} className="text-amber-500 fill-amber-400" /> Đánh giá (+50đ)
-                                                                            </button>
-                                                                        ) : null;
-                                                                    })()}
                                                                     {(order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded') && (
                                                                         <button onClick={() => handleRebuy(order)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-100 flex-1 sm:flex-none flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
                                                                             <ShoppingBag size={13} /> Mua lại
